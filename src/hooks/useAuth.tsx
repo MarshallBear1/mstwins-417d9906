@@ -3,6 +3,37 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// Email notification helper functions
+const sendWelcomeEmail = async (email: string, firstName?: string) => {
+  try {
+    const response = await supabase.functions.invoke('send-welcome-email', {
+      body: { email, firstName }
+    });
+    console.log('Welcome email sent:', response);
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+  }
+};
+
+export const sendNotificationEmail = async (
+  email: string, 
+  type: 'match' | 'like' | 'message',
+  firstName?: string,
+  fromUser?: string,
+  message?: string
+) => {
+  try {
+    const response = await supabase.functions.invoke('send-notification-email', {
+      body: { email, firstName, type, fromUser, message }
+    });
+    console.log(`${type} notification email sent:`, response);
+    return response;
+  } catch (error) {
+    console.error(`Error sending ${type} notification email:`, error);
+    throw error;
+  }
+};
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -66,6 +97,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (data.user && data.session) {
+        // Send welcome email
+        setTimeout(() => {
+          sendWelcomeEmail(email, firstName);
+        }, 0);
+        
         toast({
           title: "Welcome!",
           description: "Your account has been created successfully.",
