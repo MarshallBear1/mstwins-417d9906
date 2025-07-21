@@ -128,6 +128,10 @@ const DiscoverProfiles = () => {
     if (!user || !currentProfile || actionLoading) return;
     
     setActionLoading(true);
+    
+    // Move to next profile immediately for better UX
+    handleNext();
+    
     console.log('🚀 Starting like process for profile:', currentProfile.user_id);
     
     try {
@@ -192,8 +196,6 @@ const DiscoverProfiles = () => {
         console.error('❌ Error sending email notification:', emailError);
         // Don't fail the like process if email fails
       }
-
-      handleNext();
     } catch (error) {
       console.error('❌ Error in like process:', error);
     } finally {
@@ -204,6 +206,9 @@ const DiscoverProfiles = () => {
 
   const handlePass = async () => {
     if (!user || !currentProfile || actionLoading) return;
+    
+    // Move to next profile immediately for better UX
+    handleNext();
     
     console.log('⏭️ Starting pass process for profile:', currentProfile.user_id);
     
@@ -227,11 +232,11 @@ const DiscoverProfiles = () => {
       }
     }
     
-    handleNext();
     console.log('⏭️ Pass process completed');
   };
 
   const handleNext = () => {
+    // Immediately move to next profile for snappiness
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {

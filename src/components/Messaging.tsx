@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, ArrowLeft, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Send, ArrowLeft, User, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -27,6 +29,7 @@ interface Match {
     last_name: string;
     avatar_url: string | null;
   };
+  unread_count: number;
 }
 
 interface MessagingProps {
@@ -80,7 +83,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         return;
       }
 
-      // Fetch user profiles for each match
+      // Fetch user profiles and unread message counts for each match
       const matchesWithProfiles = await Promise.all(
         (data || []).map(async (match) => {
           const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
@@ -91,13 +94,22 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             .eq('user_id', otherUserId)
             .single();
 
+          // Get unread message count
+          const { count: unreadCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('match_id', match.id)
+            .eq('receiver_id', user.id)
+            .eq('is_read', false);
+
           return {
             ...match,
             other_user: profileData || {
               first_name: 'Unknown',
               last_name: 'User',
               avatar_url: null
-            }
+            },
+            unread_count: unreadCount || 0
           };
         })
       );
@@ -133,6 +145,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         .update({ is_read: true })
         .eq('match_id', matchId)
         .eq('receiver_id', user.id);
+
+      // Update unread count for this match
+      setMatches(prev => prev.map(match => 
+        match.id === matchId ? { ...match, unread_count: 0 } : match
+      ));
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -172,6 +189,44 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     }
   };
 
+  const removeMatch = async (matchId: string) => {
+    if (!user) return;
+
+    try {
+      // Delete the match
+      const { error: matchError } = await supabase
+        .from('matches')
+        .delete()
+        .eq('id', matchId);
+
+      if (matchError) {
+        console.error('Error removing match:', matchError);
+        return;
+      }
+
+      // Delete associated messages
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('match_id', matchId);
+
+      if (messagesError) {
+        console.error('Error removing messages:', messagesError);
+      }
+
+      // Update local state
+      setMatches(prev => prev.filter(match => match.id !== matchId));
+      
+      // If this was the selected match, go back to match list
+      if (selectedMatch?.id === matchId) {
+        setSelectedMatch(null);
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('Error removing match:', error);
+    }
+  };
+
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -206,12 +261,33 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               <User className="w-5 h-5" />
             </AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex-1">
             <CardTitle className="text-lg">
               {selectedMatch.other_user.first_name} {selectedMatch.other_user.last_name}
             </CardTitle>
             <p className="text-sm text-muted-foreground">Online</p>
           </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove Match</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to remove this match? This will permanently delete your conversation with {selectedMatch.other_user.first_name}.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => removeMatch(selectedMatch.id)} className="bg-destructive hover:bg-destructive/90">
+                  Remove Match
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardHeader>
 
         {/* Messages */}
@@ -289,16 +365,46 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <h3 className="font-semibold">
-                      {match.other_user.first_name} {match.other_user.last_name}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">
+                        {match.other_user.first_name} {match.other_user.last_name}
+                      </h3>
+                      {match.unread_count > 0 && (
+                        <Badge variant="destructive" className="text-xs px-2">
+                          {match.unread_count}
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       Matched {formatTime(match.created_at)}
                     </p>
                   </div>
-                  <Button variant="outline" size="sm">
-                    Chat
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      Chat
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remove Match</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to remove this match? This will permanently delete your conversation with {match.other_user.first_name}.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => removeMatch(match.id)} className="bg-destructive hover:bg-destructive/90">
+                            Remove Match
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </CardContent>
             </Card>
