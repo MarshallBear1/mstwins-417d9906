@@ -473,8 +473,8 @@ const ProfileSetup = () => {
                     📁 Upload Photo
                   </Button>
                   {profileData.avatarUrl && (
-                    <Button variant="outline" size="icon" onClick={rerollAvatar} title="Reroll avatar">
-                      <Shuffle className="w-4 h-4" />
+                    <Button variant="outline" onClick={rerollAvatar} title="Reroll avatar">
+                      Reroll
                     </Button>
                   )}
                 </div>
@@ -483,11 +483,11 @@ const ProfileSetup = () => {
                 
                 <div className="grid grid-cols-4 gap-2">
                   {[
-                    { style: "adventurer", emoji: "🏃" },
-                    { style: "avataaars", emoji: "😊" },
-                    { style: "big-ears", emoji: "👂" },
-                    { style: "personas", emoji: "👤" }
-                  ].map(({ style, emoji }) => (
+                    { style: "adventurer" },
+                    { style: "avataaars" },
+                    { style: "big-ears" },
+                    { style: "personas" }
+                  ].map(({ style }) => (
                     <Button
                       key={style}
                       variant={profileData.avatarUrl?.includes(style) ? "default" : "outline"}
@@ -495,12 +495,12 @@ const ProfileSetup = () => {
                       onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`)}
                       className="h-16 flex flex-col gap-1"
                     >
-                      <span className="text-lg">{emoji}</span>
                       <img 
                         src={`https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`} 
                         alt={style}
-                        className="w-6 h-6 rounded"
+                        className="w-8 h-8 rounded"
                       />
+                      <span className="text-xs capitalize">{style}</span>
                     </Button>
                   ))}
                 </div>
