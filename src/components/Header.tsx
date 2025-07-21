@@ -32,7 +32,7 @@ const Header = () => {
             <Button variant="ghost" className="hidden sm:inline-flex" asChild>
               <a href="/auth">Sign In</a>
             </Button>
-            <Button variant="hero" asChild>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
               <a href="/auth">Get Started</a>
             </Button>
           </div>
