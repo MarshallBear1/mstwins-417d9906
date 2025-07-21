@@ -58,7 +58,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       fetchMatches();
       
       // Set up real-time subscription for new messages
-      const channel = supabase
+      const messageChannel = supabase
         .channel('message-updates')
         .on(
           'postgres_changes',
@@ -72,11 +72,6 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             console.log('📨 New message received:', payload);
             const newMessage = payload.new as Message;
             
-            // Update messages if viewing this match
-            if (selectedMatch?.id === newMessage.match_id) {
-              setMessages(prev => [...prev, newMessage]);
-            }
-            
             // Always update the message history cache
             setMessageHistory(prev => {
               const existingMessages = prev.get(newMessage.match_id) || [];
@@ -84,14 +79,39 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               return new Map(prev.set(newMessage.match_id, updatedMessages));
             });
             
+            // Update messages if viewing this match
+            if (selectedMatch?.id === newMessage.match_id) {
+              setMessages(prev => [...prev, newMessage]);
+            }
+            
             // Refresh matches to update unread counts
             fetchMatches();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `sender_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📤 Message sent confirmation:', payload);
+            const newMessage = payload.new as Message;
+            
+            // Update message history for sent messages too
+            setMessageHistory(prev => {
+              const existingMessages = prev.get(newMessage.match_id) || [];
+              const updatedMessages = [...existingMessages, newMessage];
+              return new Map(prev.set(newMessage.match_id, updatedMessages));
+            });
           }
         )
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(messageChannel);
       };
     }
   }, [user, selectedMatch?.id, messages]);
@@ -491,8 +511,16 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())}
               className="flex-1"
             />
-            <Button onClick={sendMessage} disabled={!newMessage.trim() || sending}>
-              <Send className="w-4 h-4" />
+            <Button 
+              onClick={sendMessage} 
+              disabled={!newMessage.trim() || sending}
+              className="relative"
+            >
+              {sending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
         </div>
