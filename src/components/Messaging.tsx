@@ -49,6 +49,28 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   useEffect(() => {
     if (user) {
       fetchMatches();
+      
+      // Set up real-time subscription for new messages to update unread counts
+      const channel = supabase
+        .channel('message-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `receiver_id=eq.${user.id}`
+          },
+          () => {
+            // Refresh matches to update unread counts
+            fetchMatches();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
@@ -182,6 +204,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
       setMessages(prev => [...prev, data]);
       setNewMessage("");
+      
+      // Update unread count for this match
+      setMatches(prev => prev.map(match => 
+        match.id === selectedMatch.id ? { ...match, unread_count: 0 } : match
+      ));
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
