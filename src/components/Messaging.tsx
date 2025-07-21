@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
+import { analytics } from "@/lib/analytics";
 
 interface Message {
   id: string;
@@ -241,6 +242,9 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       setMessages(prev => [...prev, data]);
       setNewMessage("");
       
+      // Track message sent
+      analytics.messageSent(user.id, receiverId, newMessage.trim().length);
+      
       // Update unread count for this match
       setMatches(prev => prev.map(match => 
         match.id === selectedMatch.id ? { ...match, unread_count: 0 } : match
@@ -296,6 +300,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
       // Update local state
       setMatches(prev => prev.filter(match => match.id !== matchId));
+      
+      // Track match removal
+      if (user) {
+        analytics.matchRemoved(user.id, matchId);
+      }
       
       // If this was the selected match, go back to match list
       if (selectedMatch?.id === matchId) {

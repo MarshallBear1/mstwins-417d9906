@@ -6,6 +6,7 @@ import { Heart, X, User, MapPin, Calendar, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
+import { analytics } from "@/lib/analytics";
 
 interface Profile {
   id: string;
@@ -178,6 +179,9 @@ const DiscoverProfiles = () => {
     
     setActionLoading(true);
     
+    // Track profile like
+    analytics.profileLiked(user.id, currentProfile.user_id);
+    
     // Move to next profile immediately for better UX
     handleNext();
     
@@ -255,6 +259,9 @@ const DiscoverProfiles = () => {
 
   const handlePass = async () => {
     if (!user || !currentProfile || actionLoading) return;
+    
+    // Track profile pass
+    analytics.profilePassed(user.id, currentProfile.user_id);
     
     // Move to next profile immediately for better UX
     handleNext();

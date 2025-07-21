@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { analytics } from '@/lib/analytics';
 
 // Email notification helper functions
 const sendWelcomeEmail = async (email: string, firstName?: string) => {
@@ -58,6 +59,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Track authentication events
+        if (event === 'SIGNED_IN' && session?.user) {
+          analytics.identify(session.user.id, {
+            email: session.user.email,
+            created_at: session.user.created_at
+          });
+          analytics.userSignedIn(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          analytics.reset();
+        }
       }
     );
 
@@ -114,7 +126,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.error('Error sending welcome email:', emailError);
           // Don't fail signup if email fails
         }
-      }
+        }
+        
+        // Track signup event
+        if (data.user) {
+          analytics.userSignedUp(data.user.id);
+        }
 
       if (data.user && data.session) {
         toast({
@@ -192,6 +209,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           description: error.message,
         });
       } else {
+        // Track sign out
+        if (user) {
+          analytics.userSignedOut(user.id);
+        }
+        analytics.reset();
+        
         toast({
           title: "Signed out",
           description: "You have been signed out successfully.",

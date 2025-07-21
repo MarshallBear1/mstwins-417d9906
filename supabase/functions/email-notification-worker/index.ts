@@ -26,13 +26,18 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { type, likerUserId, likedUserId, messageContent }: EmailJobRequest = await req.json();
 
-    console.log(`Processing ${type} email job:`, { likerUserId, likedUserId });
+    console.log(`🚀 Processing ${type} email job:`, { likerUserId, likedUserId, messageContent });
 
     // Get user profiles and emails
     const [likerProfile, likedProfile] = await Promise.all([
       supabase.from('profiles').select('first_name').eq('user_id', likerUserId).single(),
       supabase.from('profiles').select('first_name').eq('user_id', likedUserId).single()
     ]);
+
+    console.log('📋 Profile data:', { 
+      likerProfile: likerProfile.data, 
+      likedProfile: likedProfile.data 
+    });
 
     // Get user emails from auth
     const [likerAuth, likedAuth] = await Promise.all([
@@ -45,12 +50,19 @@ const handler = async (req: Request): Promise<Response> => {
     const likerName = likerProfile.data?.first_name;
     const likedName = likedProfile.data?.first_name;
 
-    console.log('User emails:', { likerEmail, likedEmail, likerName, likedName });
+    console.log('📧 User details:', { 
+      likerEmail, 
+      likedEmail, 
+      likerName, 
+      likedName,
+      type 
+    });
 
     // Send appropriate emails
     if (type === 'like' && likedEmail) {
+      console.log('💙 Sending like notification to:', likedEmail);
       // Send like notification to liked user
-      await supabase.functions.invoke('send-notification-email', {
+      const likeEmailResult = await supabase.functions.invoke('send-notification-email', {
         body: {
           email: likedEmail,
           firstName: likedName,
@@ -58,11 +70,12 @@ const handler = async (req: Request): Promise<Response> => {
           fromUser: likerName
         }
       });
-      console.log('Like email sent to:', likedEmail);
+      console.log('💙 Like email result:', likeEmailResult);
     } 
     else if (type === 'match' && likerEmail && likedEmail) {
+      console.log('🤝 Sending match notifications to both users');
       // Send match notifications to both users
-      await Promise.all([
+      const matchEmailResults = await Promise.all([
         supabase.functions.invoke('send-notification-email', {
           body: {
             email: likerEmail,
@@ -80,11 +93,12 @@ const handler = async (req: Request): Promise<Response> => {
           }
         })
       ]);
-      console.log('Match emails sent to both users');
+      console.log('🤝 Match email results:', matchEmailResults);
     }
     else if (type === 'message' && likedEmail) {
+      console.log('💬 Sending message notification to:', likedEmail);
       // Send message notification
-      await supabase.functions.invoke('send-notification-email', {
+      const messageEmailResult = await supabase.functions.invoke('send-notification-email', {
         body: {
           email: likedEmail,
           firstName: likedName,
@@ -93,7 +107,17 @@ const handler = async (req: Request): Promise<Response> => {
           message: messageContent
         }
       });
-      console.log('Message email sent to:', likedEmail);
+      console.log('💬 Message email result:', messageEmailResult);
+    }
+    else {
+      console.warn('⚠️ Email not sent - missing data:', {
+        type,
+        likerEmail: !!likerEmail,
+        likedEmail: !!likedEmail,
+        condition: type === 'like' ? 'like && likedEmail' : 
+                  type === 'match' ? 'match && both emails' : 
+                  type === 'message' ? 'message && likedEmail' : 'unknown'
+      });
     }
 
     return new Response(JSON.stringify({ success: true }), {
