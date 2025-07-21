@@ -7,7 +7,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gradient-primary p-1">
+            <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-gray-200 p-1 shadow-sm">
               <img 
                 src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
                 alt="MSTwins mascot"
