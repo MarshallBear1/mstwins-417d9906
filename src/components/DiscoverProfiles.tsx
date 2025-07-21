@@ -40,20 +40,34 @@ const DiscoverProfiles = () => {
 
     setLoading(true);
     try {
-      // Get profiles excluding current user and people already liked/passed
+      // Get profiles excluding current user, people already liked/passed, and matched users
       const { data: existingLikes } = await supabase
         .from('likes')
         .select('liked_id')
         .eq('liker_id', user.id);
 
+      const { data: existingMatches } = await supabase
+        .from('matches')
+        .select('user1_id, user2_id')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
       const likedIds = existingLikes?.map(like => like.liked_id) || [];
+      const matchedIds = existingMatches?.map(match => 
+        match.user1_id === user.id ? match.user2_id : match.user1_id
+      ) || [];
       
-      const { data, error } = await supabase
+      const excludedIds = [...likedIds, ...matchedIds];
+      
+      let query = supabase
         .from('profiles')
         .select('*')
-        .neq('user_id', user.id)
-        .not('user_id', 'in', `(${likedIds.join(',') || 'null'})`)
-        .limit(10);
+        .neq('user_id', user.id);
+
+      if (excludedIds.length > 0) {
+        query = query.not('user_id', 'in', `(${excludedIds.join(',')})`);
+      }
+
+      const { data, error } = await query.limit(10);
 
       if (error) {
         console.error('Error fetching profiles:', error);
@@ -163,9 +177,6 @@ const DiscoverProfiles = () => {
                   Review Skipped
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-4">
-                💡 Tip: Complete your profile to attract more meaningful connections
-              </p>
             </div>
           </CardContent>
         </Card>

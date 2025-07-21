@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import DiscoverProfiles from "@/components/DiscoverProfiles";
 import Messaging from "@/components/Messaging";
+import ProfileCard from "@/components/ProfileCard";
 
 interface Profile {
   id: string;
@@ -82,18 +83,6 @@ const Dashboard = () => {
     localStorage.setItem('robotNotificationDismissed', 'true');
   };
 
-  const calculateAge = (birthDate: string | null) => {
-    if (!birthDate) return null;
-    const today = new Date();
-    const birth = new Date(birthDate);
-    const age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      return age - 1;
-    }
-    return age;
-  };
 
   if (loading || profileLoading) {
     return (
@@ -138,67 +127,11 @@ const Dashboard = () => {
         return <Messaging />;
       case "profile":
         return (
-          <div className="p-6">
-            <div className="max-w-md mx-auto">
-              <Card className="overflow-hidden shadow-xl">
-                <div className="relative h-48 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                    {profile.avatar_url ? (
-                      <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <User className="w-8 h-8 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="absolute top-4 right-4 flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => navigate("/profile-setup")} className="bg-white/80 hover:bg-white">
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleSignOut} className="bg-white/80 hover:bg-white text-red-600">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
-                    </Button>
-                  </div>
-                </div>
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-bold">{profile.first_name} {profile.last_name}</h3>
-                    {profile.date_of_birth && (
-                      <span className="text-xl font-semibold text-muted-foreground">
-                        {calculateAge(profile.date_of_birth)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm">{profile.location}</span>
-                    </div>
-                    {profile.diagnosis_year && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="w-4 h-4" />
-                        <span className="text-sm">Diagnosed in {profile.diagnosis_year}</span>
-                      </div>
-                    )}
-                  </div>
-                  {profile.hobbies.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2">Interests</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {profile.hobbies.slice(0, 6).map((hobby, index) => (
-                          <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700">
-                            {hobby}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          <ProfileCard 
+            profile={profile}
+            onProfileUpdate={setProfile}
+            onSignOut={handleSignOut}
+          />
         );
       default:
         return null;
