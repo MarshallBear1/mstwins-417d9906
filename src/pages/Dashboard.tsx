@@ -182,19 +182,34 @@ const Dashboard = () => {
             </div>
             <Card className="mb-4">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-center text-muted-foreground flex-1">
-                    Ready to start discovering meaningful connections in the MS community!
+                <div className="space-y-4">
+                  <p className="text-muted-foreground mb-4">
+                    No new profiles to discover right now.
                   </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {/* Add refresh logic here */}}
-                    className="ml-4"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh
-                  </Button>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    More profiles will appear as new users join the MSTwins community. Check back later to find your perfect matches!
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => {/* Add refresh logic here */}}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Refresh Profiles
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {/* Add review skipped logic here */}}
+                      className="flex items-center gap-2"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Review Skipped
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    💡 Tip: Complete your profile to attract more meaningful connections
+                  </p>
                 </div>
               </CardContent>
             </Card>

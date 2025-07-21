@@ -30,10 +30,10 @@ const Footer = () => {
               Community
             </h3>
             <ul className="space-y-2 text-background/80">
-              <li><a href="#" className="hover:text-background transition-colors">How It Works</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Safety Guidelines</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Community Standards</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Success Stories</a></li>
+              <li><a href="#about" className="hover:text-background transition-colors">How It Works</a></li>
+              <li><a href="#features" className="hover:text-background transition-colors">Features</a></li>
+              <li><a href="#testimonials" className="hover:text-background transition-colors">Success Stories</a></li>
+              <li><a href="/auth" className="hover:text-background transition-colors">Join Community</a></li>
             </ul>
           </div>
 
@@ -44,10 +44,24 @@ const Footer = () => {
               Support
             </h3>
             <ul className="space-y-2 text-background/80">
-              <li><a href="#" className="hover:text-background transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Terms of Service</a></li>
+              <li>
+                <a 
+                  href="mailto:team@sharedgenes.org" 
+                  className="hover:text-background transition-colors"
+                >
+                  Contact Us
+                </a>
+              </li>
+              <li><a href="/privacy-policy" className="hover:text-background transition-colors">Privacy Policy</a></li>
+              <li><a href="/terms-of-service" className="hover:text-background transition-colors">Terms of Service</a></li>
+              <li>
+                <a 
+                  href="mailto:team@sharedgenes.org?subject=Help%20Request" 
+                  className="hover:text-background transition-colors"
+                >
+                  Help Center
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -55,10 +69,15 @@ const Footer = () => {
         {/* Bottom */}
         <div className="pt-8 border-t border-background/20">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-background/60 text-sm">
-              © 2024 MSTwins. Supporting the MS community with care and understanding.
-            </p>
-            <p className="text-background/60 text-sm">
+            <div className="text-center md:text-left">
+              <p className="text-background/60 text-sm">
+                © 2025 MSTwins. Supporting the MS community with care and understanding.
+              </p>
+              <p className="text-background/60 text-xs mt-1">
+                Contact us: <a href="mailto:team@sharedgenes.org" className="hover:text-background transition-colors">team@sharedgenes.org</a>
+              </p>
+            </div>
+            <p className="text-background/60 text-sm text-center md:text-right">
               Not a dating app • Community focused • MS support network
             </p>
           </div>
