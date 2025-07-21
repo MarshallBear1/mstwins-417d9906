@@ -320,10 +320,10 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         match.id === selectedMatch.id ? { ...match, unread_count: 0 } : match
       ));
 
-      // Send email notification for new message
+      // Send email notification for new message (non-blocking)
       try {
         console.log('📧 Sending message email notification...');
-        await supabase.functions.invoke('email-notification-worker', {
+        const emailResult = await supabase.functions.invoke('email-notification-worker', {
           body: {
             type: 'message',
             likerUserId: user.id,
@@ -331,10 +331,15 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             messageContent: newMessage.trim()
           }
         });
-        console.log('✅ Message email notification sent successfully');
+        
+        if (emailResult.error) {
+          console.warn('⚠️ Email notification failed (non-critical):', emailResult.error);
+        } else {
+          console.log('✅ Message email notification sent successfully');
+        }
       } catch (emailError) {
-        console.error('❌ Error sending message email notification:', emailError);
-        // Don't fail the message send if email fails
+        console.warn('⚠️ Email notification failed (non-critical):', emailError);
+        // Don't fail the message send if email fails - this is non-critical
       }
     } catch (error) {
       console.error('Error sending message:', error);
