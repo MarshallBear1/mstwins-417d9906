@@ -58,11 +58,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
-        // Redirect to dashboard on successful sign in/up
-        if (event === 'SIGNED_IN' && session?.user) {
-          window.location.href = '/dashboard';
-        }
       }
     );
 
@@ -111,6 +106,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           title: "Welcome!",
           description: "Your account has been created successfully.",
         });
+        
+        // Navigate to dashboard after signup
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
       }
 
       return { error: null };
@@ -144,6 +144,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
+
+      // Navigate to dashboard after signin
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1000);
 
       return { error: null };
     } catch (error: any) {
