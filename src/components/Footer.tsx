@@ -8,10 +8,16 @@ const Footer = () => {
           {/* Logo & Mission */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-gradient-primary rounded-lg">
-                <Heart className="w-6 h-6 text-primary-foreground" fill="currentColor" />
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gradient-primary p-1">
+                <img 
+                  src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                  alt="MSTwins mascot"
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <span className="text-xl font-bold">MSTwins</span>
+              <span className="text-xl font-bold">
+                MS<span className="text-blue-400">Twins</span>
+              </span>
             </div>
             <p className="text-background/80 leading-relaxed max-w-md">
               A safe, supportive community platform connecting individuals living with Multiple Sclerosis. 

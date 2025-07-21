@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
 
 const Header = () => {
   return (
@@ -8,10 +7,16 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="p-2 bg-gradient-primary rounded-lg">
-              <Heart className="w-6 h-6 text-primary-foreground" fill="currentColor" />
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gradient-primary p-1">
+              <img 
+                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                alt="MSTwins mascot"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <span className="text-xl font-bold text-foreground">MSTwins</span>
+            <span className="text-xl font-bold text-foreground">
+              MS<span className="text-blue-600">Twins</span>
+            </span>
           </div>
 
           {/* Navigation */}
