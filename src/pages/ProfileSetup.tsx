@@ -420,7 +420,7 @@ const ProfileSetup = () => {
                     <SelectTrigger>
                       <SelectValue placeholder="Year" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-48">
                       {Array.from({ length: 100 }, (_, i) => {
                         const year = new Date().getFullYear() - i;
                         return (
@@ -432,6 +432,25 @@ const ProfileSetup = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              
+              {/* Alternative: Manual Date Input */}
+              <div className="pt-4 border-t">
+                <Label htmlFor="manualDate" className="text-sm">Or type your date (MM/DD/YYYY)</Label>
+                <Input
+                  id="manualDate"
+                  type="date"
+                  value={profileData.dateOfBirth ? profileData.dateOfBirth.toISOString().split('T')[0] : ""}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      updateProfileData("dateOfBirth", new Date(e.target.value));
+                    }
+                  }}
+                  max={new Date().toISOString().split('T')[0]}
+                  min="1900-01-01"
+                  className="mt-2"
+                  placeholder="Select or type your birth date"
+                />
               </div>
             </div>
           </div>

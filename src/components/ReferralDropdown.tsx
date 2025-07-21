@@ -64,11 +64,12 @@ const ReferralDropdown = () => {
           <span className="text-sm font-medium">Refer</span>
         </div>
         
-        {/* Spark Animation on Hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Sparkles className="absolute top-1 right-1 w-3 h-3 text-yellow-400 animate-pulse" />
-          <Sparkles className="absolute bottom-1 left-1 w-2 h-2 text-blue-400 animate-pulse delay-100" />
-          <Sparkles className="absolute top-1/2 left-1/2 w-2 h-2 text-purple-400 animate-pulse delay-200" />
+        {/* Spark Animation around the button */}
+        <div className="absolute -inset-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <Sparkles className="absolute -top-1 -right-1 w-3 h-3 text-yellow-400 animate-pulse" />
+          <Sparkles className="absolute -bottom-1 -left-1 w-2 h-2 text-blue-400 animate-pulse delay-100" />
+          <Sparkles className="absolute top-1/2 -left-2 w-2 h-2 text-purple-400 animate-pulse delay-200" />
+          <Sparkles className="absolute -top-1 left-1/2 w-2 h-2 text-pink-400 animate-pulse delay-300" />
         </div>
       </Button>
 

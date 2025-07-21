@@ -74,16 +74,15 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             
             // Update messages if viewing this match
             if (selectedMatch?.id === newMessage.match_id) {
-              const updatedMessages = [...messages, newMessage];
-              setMessages(updatedMessages);
-              setMessageHistory(prev => new Map(prev.set(newMessage.match_id, updatedMessages)));
-            } else {
-              // Cache the message for later
-              setMessageHistory(prev => {
-                const existingMessages = prev.get(newMessage.match_id) || [];
-                return new Map(prev.set(newMessage.match_id, [...existingMessages, newMessage]));
-              });
+              setMessages(prev => [...prev, newMessage]);
             }
+            
+            // Always update the message history cache
+            setMessageHistory(prev => {
+              const existingMessages = prev.get(newMessage.match_id) || [];
+              const updatedMessages = [...existingMessages, newMessage];
+              return new Map(prev.set(newMessage.match_id, updatedMessages));
+            });
             
             // Refresh matches to update unread counts
             fetchMatches();
