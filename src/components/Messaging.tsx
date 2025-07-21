@@ -17,6 +17,7 @@ interface Message {
   content: string;
   sender_id: string;
   receiver_id: string;
+  match_id: string;
   created_at: string;
   is_read: boolean;
 }
@@ -44,6 +45,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [messageHistory, setMessageHistory] = useState<Map<string, Message[]>>(new Map());
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -55,7 +57,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     if (user) {
       fetchMatches();
       
-      // Set up real-time subscription for new messages to update unread counts
+      // Set up real-time subscription for new messages
       const channel = supabase
         .channel('message-updates')
         .on(
@@ -66,7 +68,23 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             table: 'messages',
             filter: `receiver_id=eq.${user.id}`
           },
-          () => {
+          (payload) => {
+            console.log('📨 New message received:', payload);
+            const newMessage = payload.new as Message;
+            
+            // Update messages if viewing this match
+            if (selectedMatch?.id === newMessage.match_id) {
+              const updatedMessages = [...messages, newMessage];
+              setMessages(updatedMessages);
+              setMessageHistory(prev => new Map(prev.set(newMessage.match_id, updatedMessages)));
+            } else {
+              // Cache the message for later
+              setMessageHistory(prev => {
+                const existingMessages = prev.get(newMessage.match_id) || [];
+                return new Map(prev.set(newMessage.match_id, [...existingMessages, newMessage]));
+              });
+            }
+            
             // Refresh matches to update unread counts
             fetchMatches();
           }
@@ -77,15 +95,30 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, selectedMatch?.id, messages]);
 
   useEffect(() => {
     if (matchId) {
       const match = matches.find(m => m.id === matchId);
       if (match) {
         setSelectedMatch(match);
-        fetchMessages(matchId);
+        
+        // Check if we have cached messages for this match
+        const cachedMessages = messageHistory.get(matchId);
+        if (cachedMessages) {
+          console.log('📄 Loading cached messages for match:', matchId);
+          setMessages(cachedMessages);
+        } else {
+          console.log('🔄 Fetching fresh messages for match:', matchId);
+          fetchMessages(matchId);
+        }
       }
+    } else if (selectedMatch) {
+      // Going back to match list - cache current messages
+      console.log('💾 Caching messages for match:', selectedMatch.id);
+      setMessageHistory(prev => new Map(prev.set(selectedMatch.id, messages)));
+      setSelectedMatch(null);
+      setMessages([]);
     }
   }, [matchId, matches]);
 
@@ -166,6 +199,9 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
       setMessages(data || []);
       
+      // Cache the messages for this match
+      setMessageHistory(prev => new Map(prev.set(matchId, data || [])));
+      
       // Mark messages as read
       await supabase
         .from('messages')
@@ -239,7 +275,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         return;
       }
 
-      setMessages(prev => [...prev, data]);
+      const updatedMessages = [...messages, data];
+      setMessages(updatedMessages);
+      
+      // Update cached messages for this match
+      setMessageHistory(prev => new Map(prev.set(selectedMatch.id, updatedMessages)));
       setNewMessage("");
       
       // Track message sent
