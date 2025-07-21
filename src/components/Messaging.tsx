@@ -98,9 +98,10 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   }, [user, selectedMatch?.id, messages]);
 
   useEffect(() => {
-    if (matchId) {
+    if (matchId && matches.length > 0) {
       const match = matches.find(m => m.id === matchId);
       if (match) {
+        console.log('🔄 Setting selected match from URL:', match.id);
         setSelectedMatch(match);
         
         // Check if we have cached messages for this match
@@ -113,14 +114,14 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           fetchMessages(matchId);
         }
       }
-    } else if (selectedMatch) {
+    } else if (!matchId && selectedMatch) {
       // Going back to match list - cache current messages
       console.log('💾 Caching messages for match:', selectedMatch.id);
       setMessageHistory(prev => new Map(prev.set(selectedMatch.id, messages)));
       setSelectedMatch(null);
       setMessages([]);
     }
-  }, [matchId, matches]);
+  }, [matchId, matches, selectedMatch]);
 
   const fetchMatches = async () => {
     if (!user) return;
@@ -506,10 +507,14 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           {matches.map((match) => (
             <Card key={match.id} className="cursor-pointer hover:shadow-md transition-shadow">
               <CardContent className="p-4">
-                <div 
-                  className="flex items-center space-x-4"
-                  onClick={() => setSelectedMatch(match)}
-                >
+                 <div 
+                   className="flex items-center space-x-4"
+                   onClick={() => {
+                     console.log('🖱️ Match card clicked for match:', match.id);
+                     setSelectedMatch(match);
+                     fetchMessages(match.id);
+                   }}
+                 >
                   <div className="relative">
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={match.other_user.avatar_url || undefined} />
@@ -543,7 +548,9 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log('🖱️ Chat button clicked for match:', match.id);
                         setSelectedMatch(match);
+                        fetchMessages(match.id);
                       }}
                     >
                       Chat

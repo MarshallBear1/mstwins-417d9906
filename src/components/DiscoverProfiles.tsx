@@ -371,7 +371,7 @@ const DiscoverProfiles = () => {
               />
               <h2 className="text-3xl font-bold text-green-600 mb-2">🎉 It's a Match!</h2>
               <p className="text-gray-600">
-                You and {currentProfile?.first_name} liked each other! Start chatting now.
+                You and {currentProfile?.first_name} {currentProfile?.last_name} liked each other! Start chatting now.
               </p>
             </div>
             <div className="flex gap-3">
