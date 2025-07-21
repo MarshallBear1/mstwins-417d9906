@@ -1,16 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, ArrowRight, Check, CalendarIcon, Shuffle } from "lucide-react";
+import { ArrowLeft, CalendarIcon, Shuffle, Save, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,56 +20,63 @@ const ProfileSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [existingProfile, setExistingProfile] = useState<any>(null);
   const [avatarSeed, setAvatarSeed] = useState(() => Math.random().toString(36).substring(7));
   const [profileData, setProfileData] = useState({
-    // Step 1: Name Collection
     firstName: "",
     lastName: "",
-    
-    // Step 2: Date of Birth
     dateOfBirth: undefined as Date | undefined,
-    
-    // Step 3: Location
     location: "",
-    
-    // Step 4: MS Subtype
     msSubtype: "",
-    
-    // Step 5: Diagnosis Year
     diagnosisYear: "",
-    
-    // Step 6: Symptoms
     symptoms: [] as string[],
-    
-    // Step 7: Medications
     medications: [] as string[],
-    
-    // Step 8: Interests & Hobbies
     hobbies: [] as string[],
-    customHobbies: "",
-    
-    // Step 9: Profile Picture (Avatar)
     avatarUrl: "",
-    
-    // Step 10: About Me (Optional Bio)
     aboutMe: "",
-    
-    // Custom fields for "Other" options
-    customSymptoms: "",
-    customMedications: "",
   });
 
-  const totalSteps = 10;
-  const progress = (currentStep / totalSteps) * 100;
+  // Fetch existing profile if editing
+  useEffect(() => {
+    if (user) {
+      fetchExistingProfile();
+    }
+  }, [user]);
 
-  const handleNext = async () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Complete profile setup and save to database
-      await saveProfile();
+  const fetchExistingProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (data) {
+        setExistingProfile(data);
+        setProfileData({
+          firstName: data.first_name || "",
+          lastName: data.last_name || "",
+          dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth) : undefined,
+          location: data.location || "",
+          msSubtype: data.ms_subtype || "",
+          diagnosisYear: data.diagnosis_year ? data.diagnosis_year.toString() : "",
+          symptoms: data.symptoms || [],
+          medications: data.medications || [],
+          hobbies: data.hobbies || [],
+          avatarUrl: data.avatar_url || "",
+          aboutMe: data.about_me || "",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
     }
   };
 
@@ -86,22 +92,6 @@ const ProfileSetup = () => {
 
     setLoading(true);
     try {
-      // Combine custom entries with selected options
-      const allSymptoms = [...profileData.symptoms];
-      if (profileData.customSymptoms.trim()) {
-        allSymptoms.push(...profileData.customSymptoms.split(',').map(s => s.trim()).filter(s => s));
-      }
-
-      const allMedications = [...profileData.medications];
-      if (profileData.customMedications.trim()) {
-        allMedications.push(...profileData.customMedications.split(',').map(m => m.trim()).filter(m => m));
-      }
-
-      const allHobbies = [...profileData.hobbies];
-      if (profileData.customHobbies.trim()) {
-        allHobbies.push(...profileData.customHobbies.split(',').map(h => h.trim()).filter(h => h));
-      }
-
       const profileToSave = {
         user_id: user.id,
         first_name: profileData.firstName,
@@ -110,16 +100,16 @@ const ProfileSetup = () => {
         location: profileData.location,
         ms_subtype: profileData.msSubtype,
         diagnosis_year: profileData.diagnosisYear ? parseInt(profileData.diagnosisYear) : null,
-        symptoms: allSymptoms,
-        medications: allMedications,
-        hobbies: allHobbies,
+        symptoms: profileData.symptoms,
+        medications: profileData.medications,
+        hobbies: profileData.hobbies,
         avatar_url: profileData.avatarUrl,
         about_me: profileData.aboutMe,
       };
 
       const { error } = await supabase
         .from('profiles')
-        .upsert(profileToSave);
+        .upsert(profileToSave, { onConflict: 'user_id' });
 
       if (error) {
         console.error('Profile save error:', error);
@@ -132,8 +122,8 @@ const ProfileSetup = () => {
       }
 
       toast({
-        title: "Profile Completed! 🎉",
-        description: "Welcome to the MSTwins community!",
+        title: existingProfile ? "Profile Updated! ✨" : "Profile Created! 🎉",
+        description: existingProfile ? "Your profile has been updated successfully." : "Welcome to the MSTwins community!",
       });
       navigate("/dashboard");
     } catch (error: any) {
@@ -148,14 +138,6 @@ const ProfileSetup = () => {
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    } else {
-      navigate("/dashboard");
-    }
-  };
-
   const updateProfileData = (field: string, value: any) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
@@ -167,18 +149,59 @@ const ProfileSetup = () => {
     updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${currentStyle}/svg?seed=${newSeed}`);
   };
 
-  const getEmojiForHobby = (hobby: string) => {
-    const emojiMap: { [key: string]: string } = {
-      "Reading": "📚", "Exercise/Fitness": "💪", "Cooking": "🍳", "Art/Drawing": "🎨", 
-      "Music": "🎵", "Travel": "✈️", "Photography": "📸", "Gaming": "🎮", 
-      "Gardening": "🌱", "Volunteering": "❤️", "Crafts": "✂️", "Sports": "⚽",
-      "Writing": "✍️", "Movies/TV": "🎬", "Board games": "🎲", "Meditation": "🧘",
-      "Yoga": "🧘‍♀️", "Swimming": "🏊", "Walking/Hiking": "🚶", "Dancing": "💃",
-      "Knitting/Sewing": "🧶", "Technology": "💻", "Learning": "🎓", "Podcasts": "🎧",
-      "Nature": "🌿", "Animals/Pets": "🐕"
-    };
-    return emojiMap[hobby] || "🌟";
-  };
+  const symptomsData = [
+    { name: "Fatigue", emoji: "😴", color: "bg-red-100 text-red-800 hover:bg-red-200" },
+    { name: "Walking difficulties", emoji: "🚶‍♂️", color: "bg-orange-100 text-orange-800 hover:bg-orange-200" },
+    { name: "Vision problems", emoji: "👁️", color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200" },
+    { name: "Numbness/tingling", emoji: "🤏", color: "bg-green-100 text-green-800 hover:bg-green-200" },
+    { name: "Muscle weakness", emoji: "💪", color: "bg-blue-100 text-blue-800 hover:bg-blue-200" },
+    { name: "Balance problems", emoji: "⚖️", color: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200" },
+    { name: "Cognitive changes", emoji: "🧠", color: "bg-purple-100 text-purple-800 hover:bg-purple-200" },
+    { name: "Bladder issues", emoji: "🚽", color: "bg-pink-100 text-pink-800 hover:bg-pink-200" },
+    { name: "Spasticity", emoji: "🤲", color: "bg-cyan-100 text-cyan-800 hover:bg-cyan-200" },
+    { name: "Pain", emoji: "😣", color: "bg-red-100 text-red-800 hover:bg-red-200" },
+    { name: "Depression", emoji: "😔", color: "bg-gray-100 text-gray-800 hover:bg-gray-200" },
+    { name: "Dizziness", emoji: "💫", color: "bg-emerald-100 text-emerald-800 hover:bg-emerald-200" },
+    { name: "Speech problems", emoji: "🗣️", color: "bg-amber-100 text-amber-800 hover:bg-amber-200" },
+    { name: "Swallowing difficulties", emoji: "🥤", color: "bg-lime-100 text-lime-800 hover:bg-lime-200" },
+    { name: "Tremor", emoji: "🤝", color: "bg-teal-100 text-teal-800 hover:bg-teal-200" },
+    { name: "Heat sensitivity", emoji: "🌡️", color: "bg-rose-100 text-rose-800 hover:bg-rose-200" }
+  ];
+
+  const medicationsData = [
+    { name: "Tecfidera", emoji: "💊", color: "bg-blue-100 text-blue-800 hover:bg-blue-200" },
+    { name: "Copaxone", emoji: "💉", color: "bg-green-100 text-green-800 hover:bg-green-200" },
+    { name: "Betaseron", emoji: "🩹", color: "bg-purple-100 text-purple-800 hover:bg-purple-200" },
+    { name: "Avonex", emoji: "💊", color: "bg-red-100 text-red-800 hover:bg-red-200" },
+    { name: "Rebif", emoji: "💉", color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200" },
+    { name: "Tysabri", emoji: "🩺", color: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200" },
+    { name: "Gilenya", emoji: "💊", color: "bg-pink-100 text-pink-800 hover:bg-pink-200" },
+    { name: "Aubagio", emoji: "🧪", color: "bg-cyan-100 text-cyan-800 hover:bg-cyan-200" },
+    { name: "Lemtrada", emoji: "💉", color: "bg-orange-100 text-orange-800 hover:bg-orange-200" },
+    { name: "Ocrevus", emoji: "🩹", color: "bg-emerald-100 text-emerald-800 hover:bg-emerald-200" },
+    { name: "Mavenclad", emoji: "💊", color: "bg-amber-100 text-amber-800 hover:bg-amber-200" },
+    { name: "Kesimpta", emoji: "💉", color: "bg-lime-100 text-lime-800 hover:bg-lime-200" },
+    { name: "Ponvory", emoji: "🧬", color: "bg-teal-100 text-teal-800 hover:bg-teal-200" },
+    { name: "Zeposia", emoji: "💊", color: "bg-rose-100 text-rose-800 hover:bg-rose-200" },
+    { name: "Vumerity", emoji: "🩺", color: "bg-violet-100 text-violet-800 hover:bg-violet-200" },
+    { name: "None", emoji: "❌", color: "bg-gray-100 text-gray-800 hover:bg-gray-200" }
+  ];
+
+  const hobbiesData = [
+    { name: "Reading", emoji: "📚" }, { name: "Exercise/Fitness", emoji: "💪" }, 
+    { name: "Cooking", emoji: "🍳" }, { name: "Art/Drawing", emoji: "🎨" }, 
+    { name: "Music", emoji: "🎵" }, { name: "Travel", emoji: "✈️" }, 
+    { name: "Photography", emoji: "📸" }, { name: "Gaming", emoji: "🎮" }, 
+    { name: "Gardening", emoji: "🌱" }, { name: "Volunteering", emoji: "❤️" }, 
+    { name: "Crafts", emoji: "✂️" }, { name: "Sports", emoji: "⚽" },
+    { name: "Writing", emoji: "✍️" }, { name: "Movies/TV", emoji: "🎬" }, 
+    { name: "Board games", emoji: "🎲" }, { name: "Meditation", emoji: "🧘" },
+    { name: "Yoga", emoji: "🧘‍♀️" }, { name: "Swimming", emoji: "🏊" }, 
+    { name: "Walking/Hiking", emoji: "🚶" }, { name: "Dancing", emoji: "💃" },
+    { name: "Knitting/Sewing", emoji: "🧶" }, { name: "Technology", emoji: "💻" }, 
+    { name: "Learning", emoji: "🎓" }, { name: "Podcasts", emoji: "🎧" },
+    { name: "Nature", emoji: "🌿" }, { name: "Animals/Pets", emoji: "🐕" }
+  ];
 
   const toggleArrayItem = (field: string, item: string) => {
     setProfileData(prev => {
@@ -191,404 +214,337 @@ const ProfileSetup = () => {
       };
     });
   };
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Name Collection</h2>
-              <p className="text-muted-foreground">Let's start with your name</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={profileData.firstName}
-                  onChange={(e) => updateProfileData("firstName", e.target.value)}
-                  placeholder="Sarah"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={profileData.lastName}
-                  onChange={(e) => updateProfileData("lastName", e.target.value)}
-                  placeholder="Johnson"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-        );
 
-      case 2:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Date of Birth</h2>
-              <p className="text-muted-foreground">When were you born?</p>
-            </div>
-            <div>
-              <Label htmlFor="dateOfBirth">Date of Birth</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !profileData.dateOfBirth && "text-muted-foreground"
-                    )}
+  return (
+    <div className="min-h-screen bg-gradient-subtle p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">
+              {existingProfile ? "Edit Profile" : "Create Your Profile"}
+            </h1>
+            <p className="text-muted-foreground">
+              {existingProfile ? "Update your information" : "Tell us about yourself"}
+            </p>
+          </div>
+          <div className="w-32" />
+        </div>
+
+        <div className="grid gap-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                👤 Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    value={profileData.firstName}
+                    onChange={(e) => updateProfileData("firstName", e.target.value)}
+                    placeholder="Sarah"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    value={profileData.lastName}
+                    onChange={(e) => updateProfileData("lastName", e.target.value)}
+                    placeholder="Johnson"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !profileData.dateOfBirth && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {profileData.dateOfBirth ? format(profileData.dateOfBirth, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={profileData.dateOfBirth}
+                        onSelect={(date) => updateProfileData("dateOfBirth", date)}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label htmlFor="location">Location *</Label>
+                  <Input
+                    id="location"
+                    value={profileData.location}
+                    onChange={(e) => updateProfileData("location", e.target.value)}
+                    placeholder="New York, NY, USA"
+                    required
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Medical Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                🏥 Medical Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="msSubtype">MS Subtype</Label>
+                  <Select value={profileData.msSubtype} onValueChange={(value) => updateProfileData("msSubtype", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your MS subtype" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rrms">Relapsing-Remitting MS (RRMS)</SelectItem>
+                      <SelectItem value="ppms">Primary Progressive MS (PPMS)</SelectItem>
+                      <SelectItem value="spms">Secondary Progressive MS (SPMS)</SelectItem>
+                      <SelectItem value="prms">Progressive-Relapsing MS (PRMS)</SelectItem>
+                      <SelectItem value="cis">Clinically Isolated Syndrome (CIS)</SelectItem>
+                      <SelectItem value="rms">Radiologically Isolated Syndrome (RIS)</SelectItem>
+                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="diagnosisYear">Year of Diagnosis</Label>
+                  <Input
+                    id="diagnosisYear"
+                    type="number"
+                    value={profileData.diagnosisYear}
+                    onChange={(e) => updateProfileData("diagnosisYear", e.target.value)}
+                    placeholder="2020"
+                    min="1950"
+                    max={new Date().getFullYear()}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Symptoms */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                🩺 Symptoms
+                <span className="text-sm font-normal text-muted-foreground">
+                  (Select all that apply)
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {symptomsData.map((symptom) => (
+                  <Badge
+                    key={symptom.name}
+                    variant={profileData.symptoms.includes(symptom.name) ? "default" : "outline"}
+                    className={`cursor-pointer transition-all ${
+                      profileData.symptoms.includes(symptom.name) 
+                        ? "bg-primary text-primary-foreground" 
+                        : symptom.color
+                    }`}
+                    onClick={() => toggleArrayItem("symptoms", symptom.name)}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {profileData.dateOfBirth ? format(profileData.dateOfBirth, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={profileData.dateOfBirth}
-                    onSelect={(date) => updateProfileData("dateOfBirth", date)}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Location</h2>
-              <p className="text-muted-foreground">Where are you located?</p>
-            </div>
-            <div>
-              <Label htmlFor="location">Location (City, State/Province, Country)</Label>
-              <Input
-                id="location"
-                value={profileData.location}
-                onChange={(e) => updateProfileData("location", e.target.value)}
-                placeholder="New York, NY, USA"
-                required
-              />
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">MS Subtype</h2>
-              <p className="text-muted-foreground">What type of MS do you have?</p>
-            </div>
-            <div>
-              <Label htmlFor="msSubtype">MS Subtype</Label>
-              <Select onValueChange={(value) => updateProfileData("msSubtype", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your MS subtype" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rrms">Relapsing-Remitting MS (RRMS)</SelectItem>
-                  <SelectItem value="ppms">Primary Progressive MS (PPMS)</SelectItem>
-                  <SelectItem value="spms">Secondary Progressive MS (SPMS)</SelectItem>
-                  <SelectItem value="prms">Progressive-Relapsing MS (PRMS)</SelectItem>
-                  <SelectItem value="cis">Clinically Isolated Syndrome (CIS)</SelectItem>
-                  <SelectItem value="rms">Radiologically Isolated Syndrome (RIS)</SelectItem>
-                  <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-
-      case 5:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Diagnosis Year</h2>
-              <p className="text-muted-foreground">When were you diagnosed?</p>
-            </div>
-            <div>
-              <Label htmlFor="diagnosisYear">Year of Diagnosis</Label>
-              <Input
-                id="diagnosisYear"
-                type="number"
-                value={profileData.diagnosisYear}
-                onChange={(e) => updateProfileData("diagnosisYear", e.target.value)}
-                placeholder="2020"
-                min="1950"
-                max={new Date().getFullYear()}
-                required
-              />
-            </div>
-          </div>
-        );
-
-      case 6:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Symptoms</h2>
-              <p className="text-muted-foreground">Which symptoms do you experience?</p>
-            </div>
-            <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
-              {[
-                "Fatigue", "Walking difficulties", "Vision problems", "Numbness/tingling", 
-                "Muscle weakness", "Balance problems", "Cognitive changes", "Bladder issues",
-                "Spasticity", "Pain", "Depression", "Dizziness", "Speech problems",
-                "Swallowing difficulties", "Tremor", "Heat sensitivity"
-              ].map((symptom) => (
-                <div key={symptom} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    id={symptom}
-                    checked={profileData.symptoms.includes(symptom)}
-                    onCheckedChange={() => toggleArrayItem("symptoms", symptom)}
-                  />
-                  <Label htmlFor={symptom} className="text-sm flex-1 cursor-pointer">{symptom}</Label>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Label htmlFor="customSymptoms">Other symptoms (comma-separated)</Label>
-              <Input
-                id="customSymptoms"
-                value={profileData.customSymptoms}
-                onChange={(e) => updateProfileData("customSymptoms", e.target.value)}
-                placeholder="e.g., Anxiety, Sleep issues, Memory problems"
-              />
-            </div>
-          </div>
-        );
-
-      case 7:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Medications</h2>
-              <p className="text-muted-foreground">What medications are you currently taking?</p>
-            </div>
-            <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
-              {[
-                "Tecfidera (Dimethyl fumarate)", "Copaxone (Glatiramer acetate)", 
-                "Betaseron (Interferon beta-1b)", "Avonex (Interferon beta-1a)",
-                "Rebif (Interferon beta-1a)", "Tysabri (Natalizumab)", 
-                "Gilenya (Fingolimod)", "Aubagio (Teriflunomide)", 
-                "Lemtrada (Alemtuzumab)", "Ocrevus (Ocrelizumab)",
-                "Mavenclad (Cladribine)", "Kesimpta (Ofatumumab)",
-                "Ponvory (Ponesimod)", "Zeposia (Ozanimod)",
-                "Vumerity (Diroximel fumarate)", "Bafiertam (Monomethyl fumarate)",
-                "None", "Other/Prefer not to say"
-              ].map((medication) => (
-                <div key={medication} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    id={medication}
-                    checked={profileData.medications.includes(medication)}
-                    onCheckedChange={() => toggleArrayItem("medications", medication)}
-                  />
-                  <Label htmlFor={medication} className="text-sm flex-1 cursor-pointer">{medication}</Label>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Label htmlFor="customMedications">Other medications (comma-separated)</Label>
-              <Input
-                id="customMedications"
-                value={profileData.customMedications}
-                onChange={(e) => updateProfileData("customMedications", e.target.value)}
-                placeholder="e.g., Vitamin D, Pain medication, Anti-depressants"
-              />
-            </div>
-          </div>
-        );
-
-      case 8:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Interests & Hobbies</h2>
-              <p className="text-muted-foreground">What do you enjoy doing?</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
-              {[
-                "Reading", "Exercise/Fitness", "Cooking", "Art/Drawing", "Music", "Travel", 
-                "Photography", "Gaming", "Gardening", "Volunteering", "Crafts", "Sports",
-                "Writing", "Movies/TV", "Board games", "Meditation", "Yoga", "Swimming",
-                "Walking/Hiking", "Dancing", "Knitting/Sewing", "Technology", "Learning",
-                "Podcasts", "Nature", "Animals/Pets"
-              ].map((hobby) => (
-                <div key={hobby} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-primary/20">
-                  <Checkbox
-                    id={hobby}
-                    checked={profileData.hobbies.includes(hobby)}
-                    onCheckedChange={() => toggleArrayItem("hobbies", hobby)}
-                  />
-                  <Label htmlFor={hobby} className="text-sm flex-1 cursor-pointer flex items-center gap-1">
-                    <span className="text-lg">{getEmojiForHobby(hobby)}</span>
-                    {hobby}
-                  </Label>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Label htmlFor="customHobbies">Other interests (comma-separated)</Label>
-              <Input
-                id="customHobbies"
-                value={profileData.customHobbies}
-                onChange={(e) => updateProfileData("customHobbies", e.target.value)}
-                placeholder="e.g., Birdwatching, Collecting, Astronomy"
-              />
-            </div>
-          </div>
-        );
-
-      case 9:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Profile Picture</h2>
-              <p className="text-muted-foreground">Choose your avatar</p>
-            </div>
-            <div className="text-center space-y-4">
-              <div className="w-32 h-32 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center overflow-hidden">
-                {profileData.avatarUrl ? (
-                  <img src={profileData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-muted-foreground">Avatar</span>
-                )}
+                    <span className="mr-1">{symptom.emoji}</span>
+                    {symptom.name}
+                  </Badge>
+                ))}
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1">
-                    📁 Upload Photo
-                  </Button>
-                  {profileData.avatarUrl && (
-                    <Button variant="outline" onClick={rerollAvatar} title="Reroll avatar">
-                      Reroll
-                    </Button>
+            </CardContent>
+          </Card>
+
+          {/* Medications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                💊 Medications
+                <span className="text-sm font-normal text-muted-foreground">
+                  (Select all that apply)
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {medicationsData.map((medication) => (
+                  <Badge
+                    key={medication.name}
+                    variant={profileData.medications.includes(medication.name) ? "default" : "outline"}
+                    className={`cursor-pointer transition-all ${
+                      profileData.medications.includes(medication.name) 
+                        ? "bg-primary text-primary-foreground" 
+                        : medication.color
+                    }`}
+                    onClick={() => toggleArrayItem("medications", medication.name)}
+                  >
+                    <span className="mr-1">{medication.emoji}</span>
+                    {medication.name}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Interests & Hobbies */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                🎯 Interests & Hobbies
+                <span className="text-sm font-normal text-muted-foreground">
+                  (Select all that apply)
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {hobbiesData.map((hobby) => (
+                  <Badge
+                    key={hobby.name}
+                    variant={profileData.hobbies.includes(hobby.name) ? "default" : "outline"}
+                    className="cursor-pointer transition-all hover:scale-105"
+                    onClick={() => toggleArrayItem("hobbies", hobby.name)}
+                  >
+                    <span className="mr-1">{hobby.emoji}</span>
+                    {hobby.name}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Profile Picture */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                📸 Profile Picture
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-6 items-center">
+                <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-background shadow-lg">
+                  {profileData.avatarUrl ? (
+                    <img src={profileData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-muted-foreground">No Avatar</span>
                   )}
                 </div>
-                
-                <p className="text-xs text-muted-foreground">Or choose a DiceBear avatar style</p>
-                
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    { style: "adventurer" },
-                    { style: "avataaars" },
-                    { style: "big-ears" },
-                    { style: "personas" }
-                  ].map(({ style }) => (
-                    <Button
-                      key={style}
-                      variant={profileData.avatarUrl?.includes(style) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`)}
-                      className="h-16 flex flex-col gap-1"
-                    >
-                      <img 
-                        src={`https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`} 
-                        alt={style}
-                        className="w-8 h-8 rounded"
-                      />
-                      <span className="text-xs capitalize">{style}</span>
+                <div className="flex-1 space-y-4">
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Photo
                     </Button>
-                  ))}
+                    {profileData.avatarUrl && (
+                      <Button variant="outline" onClick={rerollAvatar} title="Generate new avatar">
+                        <Shuffle className="w-4 h-4 mr-2" />
+                        Reroll
+                      </Button>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-3">Or choose an avatar style:</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {[
+                        { style: "adventurer", name: "Adventurer" },
+                        { style: "avataaars", name: "Avataaars" },
+                        { style: "big-ears", name: "Big Ears" },
+                        { style: "personas", name: "Personas" }
+                      ].map(({ style, name }) => (
+                        <Button
+                          key={style}
+                          variant={profileData.avatarUrl?.includes(style) ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`)}
+                          className="h-20 flex flex-col gap-1"
+                        >
+                          <img 
+                            src={`https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`} 
+                            alt={style}
+                            className="w-8 h-8 rounded"
+                          />
+                          <span className="text-xs">{name}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        );
+            </CardContent>
+          </Card>
 
-      case 10:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">About Me</h2>
-              <p className="text-muted-foreground">Tell us about yourself (optional)</p>
-            </div>
-            <div>
-              <Label htmlFor="aboutMe">About Me (Optional)</Label>
+          {/* About Me */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                ✍️ About Me
+                <span className="text-sm font-normal text-muted-foreground">
+                  (Optional)
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <Textarea
-                id="aboutMe"
                 value={profileData.aboutMe}
                 onChange={(e) => updateProfileData("aboutMe", e.target.value)}
                 placeholder="Share a bit about yourself, your MS journey, what you're looking for in the community, or anything else you'd like others to know..."
-                rows={6}
+                rows={4}
+                className="resize-none"
               />
               <p className="text-xs text-muted-foreground mt-2">
                 This helps others understand who you are and what you're looking for in connections.
               </p>
-            </div>
+            </CardContent>
+          </Card>
+
+          {/* Save Button */}
+          <div className="flex justify-end">
+            <Button 
+              onClick={saveProfile} 
+              disabled={loading || !profileData.firstName || !profileData.lastName || !profileData.location}
+              size="lg"
+              className="min-w-32"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  {existingProfile ? "Update Profile" : "Create Profile"}
+                </>
+              )}
+            </Button>
           </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-subtle p-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" size="sm" onClick={handleBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <div className="text-center">
-            <div className="text-sm font-medium text-muted-foreground">
-              Step {currentStep} of {totalSteps}
-            </div>
-          </div>
-          <div className="w-16" /> {/* Spacer */}
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <Progress value={progress} className="h-2" />
-        </div>
-
-        {/* Content Card */}
-        <Card>
-          <CardContent className="p-6">
-            {renderStep()}
-          </CardContent>
-        </Card>
-
-        {/* Navigation */}
-        <div className="flex justify-between mt-6">
-          <Button variant="outline" onClick={handleBack} disabled={currentStep === 1}>
-            Previous
-          </Button>
-          <Button onClick={handleNext} disabled={loading}>
-            {loading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : currentStep === totalSteps ? (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Complete Profile
-              </>
-            ) : (
-              <>
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </>
-            )}
-          </Button>
         </div>
       </div>
     </div>
