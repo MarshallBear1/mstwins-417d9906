@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar } from "lucide-react";
+import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, LogOut, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Profile {
@@ -24,11 +24,14 @@ interface Profile {
 }
 
 const Dashboard = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("discover");
+  const [showRobotNotification, setShowRobotNotification] = useState(true);
+  const [likes, setLikes] = useState<any[]>([]);
+  const [likesLoading, setLikesLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -39,8 +42,11 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      if (activeTab === "likes") {
+        fetchLikes();
+      }
     }
-  }, [user]);
+  }, [user, activeTab]);
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -64,6 +70,68 @@ const Dashboard = () => {
     } finally {
       setProfileLoading(false);
     }
+  };
+
+  const fetchLikes = async () => {
+    if (!user) return;
+    
+    setLikesLoading(true);
+    try {
+      // TODO: Implement when likes table is available
+      // const { data, error } = await supabase
+      //   .from('likes')
+      //   .select(`
+      //     id,
+      //     created_at,
+      //     liker_id,
+      //     profiles!likes_liker_id_fkey (
+      //       first_name,
+      //       last_name,
+      //       avatar_url,
+      //       hobbies,
+      //       ms_subtype,
+      //       location
+      //     )
+      //   `)
+      //   .eq('liked_id', user.id)
+      //   .order('created_at', { ascending: false });
+
+      // if (error) {
+      //   console.error('Error fetching likes:', error);
+      //   return;
+      // }
+
+      // setLikes(data || []);
+      setLikes([]); // Placeholder until table exists
+    } catch (error) {
+      console.error('Error fetching likes:', error);
+    } finally {
+      setLikesLoading(false);
+    }
+  };
+
+  const dismissLike = async (likeId: string) => {
+    try {
+      // TODO: Implement when likes table is available
+      // const { error } = await supabase
+      //   .from('likes')
+      //   .delete()
+      //   .eq('id', likeId);
+
+      // if (error) {
+      //   console.error('Error dismissing like:', error);
+      //   return;
+      // }
+
+      setLikes(prev => prev.filter(like => like.id !== likeId));
+    } catch (error) {
+      console.error('Error dismissing like:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
   };
 
   const calculateAge = (birthDate: string | null) => {
@@ -114,9 +182,20 @@ const Dashboard = () => {
             </div>
             <Card className="mb-4">
               <CardContent className="p-6">
-                <p className="text-center text-muted-foreground">
-                  Ready to start discovering meaningful connections in the MS community!
-                </p>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-center text-muted-foreground flex-1">
+                    Ready to start discovering meaningful connections in the MS community!
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {/* Add refresh logic here */}}
+                    className="ml-4"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -124,19 +203,83 @@ const Dashboard = () => {
       
       case "likes":
         return (
-          <div className="p-6 text-center">
-            <div className="mb-8">
+          <div className="p-6">
+            <div className="mb-8 text-center">
               <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
               <h2 className="text-2xl font-bold mb-2">People Who Liked You</h2>
               <p className="text-muted-foreground">See who's interested in connecting</p>
             </div>
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-center text-muted-foreground">
-                  No likes yet. Start discovering to find your community!
-                </p>
-              </CardContent>
-            </Card>
+            
+            {likesLoading ? (
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              </div>
+            ) : likes.length > 0 ? (
+              <div className="space-y-4">
+                {likes.map((like) => (
+                  <Card key={like.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 rounded-full overflow-hidden">
+                            {like.profiles.avatar_url ? (
+                              <img 
+                                src={like.profiles.avatar_url} 
+                                alt={like.profiles.first_name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-muted flex items-center justify-center">
+                                <User className="w-6 h-6 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold">{like.profiles.first_name} {like.profiles.last_name}</h3>
+                            <p className="text-sm text-muted-foreground">{like.profiles.location}</p>
+                            {like.profiles.ms_subtype && (
+                              <p className="text-sm text-muted-foreground">{like.profiles.ms_subtype}</p>
+                            )}
+                            {like.profiles.hobbies.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {like.profiles.hobbies.slice(0, 3).map((hobby, index) => (
+                                  <Badge key={index} variant="secondary" className="text-xs">
+                                    {hobby}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => dismissLike(like.id)}
+                          >
+                            Dismiss
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => {/* Add like back functionality */}}
+                          >
+                            Like Back
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-center text-muted-foreground">
+                    No likes yet. Start discovering to find your community!
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         );
       
@@ -180,15 +323,26 @@ const Dashboard = () => {
                     )}
                   </div>
                   {/* Edit button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/profile-setup")}
-                    className="absolute top-4 right-4 bg-white/80 hover:bg-white"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
+                  <div className="absolute top-4 right-4 flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate("/profile-setup")}
+                      className="bg-white/80 hover:bg-white"
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSignOut}
+                      className="bg-white/80 hover:bg-white text-red-600 hover:text-red-700"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Profile Content */}
@@ -271,26 +425,36 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Welcome Message */}
-      <div className="bg-green-50 border-b border-green-200 p-4">
-        <div className="flex items-start space-x-3">
-          <img 
-            src="/lovable-uploads/4872045b-6fa1-4c2c-b2c9-cba6d4add944.png" 
-            alt="Helpful avatar"
-            className="w-12 h-12 rounded-full flex-shrink-0"
-          />
-          <div className="flex-1">
-            <div className="bg-white rounded-lg p-3 shadow-sm relative">
-              <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
-              <p className="text-sm text-foreground mb-2">
-                <strong>Great job, {profile.first_name}!</strong> 🎉
-              </p>
-              <p className="text-sm text-foreground">
-                You are ready to start swiping! Click Discover to see profiles and find your perfect MS community matches.
-              </p>
+      {showRobotNotification && (
+        <div className="bg-green-50 border-b border-green-200 p-4">
+          <div className="flex items-start space-x-3">
+            <img 
+              src="/lovable-uploads/4872045b-6fa1-4c2c-b2c9-cba6d4add944.png" 
+              alt="Helpful avatar"
+              className="w-12 h-12 rounded-full flex-shrink-0"
+            />
+            <div className="flex-1">
+              <div className="bg-white rounded-lg p-3 shadow-sm relative">
+                <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
+                <p className="text-sm text-foreground mb-2">
+                  <strong>Great job, {profile.first_name}!</strong> 🎉
+                </p>
+                <p className="text-sm text-foreground">
+                  You are ready to start swiping! Click Discover to see profiles and find your perfect MS community matches.
+                </p>
+              </div>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowRobotNotification(false)}
+              className="flex-shrink-0 p-1 h-auto"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 pb-20">
