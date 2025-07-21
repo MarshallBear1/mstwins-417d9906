@@ -538,12 +538,24 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedMatch(match);
+                      }}
+                    >
                       Chat
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-destructive hover:text-destructive"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>
