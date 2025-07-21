@@ -10,15 +10,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, ArrowRight, Check, CalendarIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CalendarIcon, Shuffle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [avatarSeed, setAvatarSeed] = useState(() => Math.random().toString(36).substring(7));
   const [profileData, setProfileData] = useState({
     // Step 1: Name Collection
     firstName: "",
@@ -44,27 +49,102 @@ const ProfileSetup = () => {
     
     // Step 8: Interests & Hobbies
     hobbies: [] as string[],
+    customHobbies: "",
     
     // Step 9: Profile Picture (Avatar)
     avatarUrl: "",
     
     // Step 10: About Me (Optional Bio)
     aboutMe: "",
+    
+    // Custom fields for "Other" options
+    customSymptoms: "",
+    customMedications: "",
   });
 
   const totalSteps = 10;
   const progress = (currentStep / totalSteps) * 100;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Complete profile setup
+      // Complete profile setup and save to database
+      await saveProfile();
+    }
+  };
+
+  const saveProfile = async () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to save your profile.",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Combine custom entries with selected options
+      const allSymptoms = [...profileData.symptoms];
+      if (profileData.customSymptoms.trim()) {
+        allSymptoms.push(...profileData.customSymptoms.split(',').map(s => s.trim()).filter(s => s));
+      }
+
+      const allMedications = [...profileData.medications];
+      if (profileData.customMedications.trim()) {
+        allMedications.push(...profileData.customMedications.split(',').map(m => m.trim()).filter(m => m));
+      }
+
+      const allHobbies = [...profileData.hobbies];
+      if (profileData.customHobbies.trim()) {
+        allHobbies.push(...profileData.customHobbies.split(',').map(h => h.trim()).filter(h => h));
+      }
+
+      const profileToSave = {
+        user_id: user.id,
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        date_of_birth: profileData.dateOfBirth?.toISOString().split('T')[0] || null,
+        location: profileData.location,
+        ms_subtype: profileData.msSubtype,
+        diagnosis_year: profileData.diagnosisYear ? parseInt(profileData.diagnosisYear) : null,
+        symptoms: allSymptoms,
+        medications: allMedications,
+        hobbies: allHobbies,
+        avatar_url: profileData.avatarUrl,
+        about_me: profileData.aboutMe,
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(profileToSave);
+
+      if (error) {
+        console.error('Profile save error:', error);
+        toast({
+          variant: "destructive",
+          title: "Error saving profile",
+          description: error.message,
+        });
+        return;
+      }
+
       toast({
         title: "Profile Completed! 🎉",
         description: "Welcome to the MSTwins community!",
       });
       navigate("/dashboard");
+    } catch (error: any) {
+      console.error('Profile save error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save profile. Please try again.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,6 +160,26 @@ const ProfileSetup = () => {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
+  const rerollAvatar = () => {
+    const newSeed = Math.random().toString(36).substring(7);
+    setAvatarSeed(newSeed);
+    const currentStyle = profileData.avatarUrl ? profileData.avatarUrl.split('/')[4] : 'adventurer';
+    updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${currentStyle}/svg?seed=${newSeed}`);
+  };
+
+  const getEmojiForHobby = (hobby: string) => {
+    const emojiMap: { [key: string]: string } = {
+      "Reading": "📚", "Exercise/Fitness": "💪", "Cooking": "🍳", "Art/Drawing": "🎨", 
+      "Music": "🎵", "Travel": "✈️", "Photography": "📸", "Gaming": "🎮", 
+      "Gardening": "🌱", "Volunteering": "❤️", "Crafts": "✂️", "Sports": "⚽",
+      "Writing": "✍️", "Movies/TV": "🎬", "Board games": "🎲", "Meditation": "🧘",
+      "Yoga": "🧘‍♀️", "Swimming": "🏊", "Walking/Hiking": "🚶", "Dancing": "💃",
+      "Knitting/Sewing": "🧶", "Technology": "💻", "Learning": "🎓", "Podcasts": "🎧",
+      "Nature": "🌿", "Animals/Pets": "🐕"
+    };
+    return emojiMap[hobby] || "🌟";
+  };
+
   const toggleArrayItem = (field: string, item: string) => {
     setProfileData(prev => {
       const currentArray = prev[field as keyof typeof prev] as string[];
@@ -91,7 +191,6 @@ const ProfileSetup = () => {
       };
     });
   };
-
   const renderStep = () => {
     switch (currentStep) {
       case 1:
@@ -242,22 +341,31 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Symptoms</h2>
               <p className="text-muted-foreground">Which symptoms do you experience?</p>
             </div>
-            <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
+            <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
               {[
                 "Fatigue", "Walking difficulties", "Vision problems", "Numbness/tingling", 
                 "Muscle weakness", "Balance problems", "Cognitive changes", "Bladder issues",
                 "Spasticity", "Pain", "Depression", "Dizziness", "Speech problems",
                 "Swallowing difficulties", "Tremor", "Heat sensitivity"
               ].map((symptom) => (
-                <div key={symptom} className="flex items-center space-x-2">
+                <div key={symptom} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox
                     id={symptom}
                     checked={profileData.symptoms.includes(symptom)}
                     onCheckedChange={() => toggleArrayItem("symptoms", symptom)}
                   />
-                  <Label htmlFor={symptom} className="text-sm">{symptom}</Label>
+                  <Label htmlFor={symptom} className="text-sm flex-1 cursor-pointer">{symptom}</Label>
                 </div>
               ))}
+            </div>
+            <div className="mt-4">
+              <Label htmlFor="customSymptoms">Other symptoms (comma-separated)</Label>
+              <Input
+                id="customSymptoms"
+                value={profileData.customSymptoms}
+                onChange={(e) => updateProfileData("customSymptoms", e.target.value)}
+                placeholder="e.g., Anxiety, Sleep issues, Memory problems"
+              />
             </div>
           </div>
         );
@@ -269,7 +377,7 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Medications</h2>
               <p className="text-muted-foreground">What medications are you currently taking?</p>
             </div>
-            <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
+            <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
               {[
                 "Tecfidera (Dimethyl fumarate)", "Copaxone (Glatiramer acetate)", 
                 "Betaseron (Interferon beta-1b)", "Avonex (Interferon beta-1a)",
@@ -281,15 +389,24 @@ const ProfileSetup = () => {
                 "Vumerity (Diroximel fumarate)", "Bafiertam (Monomethyl fumarate)",
                 "None", "Other/Prefer not to say"
               ].map((medication) => (
-                <div key={medication} className="flex items-center space-x-2">
+                <div key={medication} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox
                     id={medication}
                     checked={profileData.medications.includes(medication)}
                     onCheckedChange={() => toggleArrayItem("medications", medication)}
                   />
-                  <Label htmlFor={medication} className="text-sm">{medication}</Label>
+                  <Label htmlFor={medication} className="text-sm flex-1 cursor-pointer">{medication}</Label>
                 </div>
               ))}
+            </div>
+            <div className="mt-4">
+              <Label htmlFor="customMedications">Other medications (comma-separated)</Label>
+              <Input
+                id="customMedications"
+                value={profileData.customMedications}
+                onChange={(e) => updateProfileData("customMedications", e.target.value)}
+                placeholder="e.g., Vitamin D, Pain medication, Anti-depressants"
+              />
             </div>
           </div>
         );
@@ -301,7 +418,7 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Interests & Hobbies</h2>
               <p className="text-muted-foreground">What do you enjoy doing?</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
               {[
                 "Reading", "Exercise/Fitness", "Cooking", "Art/Drawing", "Music", "Travel", 
                 "Photography", "Gaming", "Gardening", "Volunteering", "Crafts", "Sports",
@@ -309,15 +426,27 @@ const ProfileSetup = () => {
                 "Walking/Hiking", "Dancing", "Knitting/Sewing", "Technology", "Learning",
                 "Podcasts", "Nature", "Animals/Pets"
               ].map((hobby) => (
-                <div key={hobby} className="flex items-center space-x-2">
+                <div key={hobby} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-primary/20">
                   <Checkbox
                     id={hobby}
                     checked={profileData.hobbies.includes(hobby)}
                     onCheckedChange={() => toggleArrayItem("hobbies", hobby)}
                   />
-                  <Label htmlFor={hobby} className="text-sm">{hobby}</Label>
+                  <Label htmlFor={hobby} className="text-sm flex-1 cursor-pointer flex items-center gap-1">
+                    <span className="text-lg">{getEmojiForHobby(hobby)}</span>
+                    {hobby}
+                  </Label>
                 </div>
               ))}
+            </div>
+            <div className="mt-4">
+              <Label htmlFor="customHobbies">Other interests (comma-separated)</Label>
+              <Input
+                id="customHobbies"
+                value={profileData.customHobbies}
+                onChange={(e) => updateProfileData("customHobbies", e.target.value)}
+                placeholder="e.g., Birdwatching, Collecting, Astronomy"
+              />
             </div>
           </div>
         );
@@ -329,32 +458,48 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Profile Picture</h2>
               <p className="text-muted-foreground">Choose your avatar</p>
             </div>
-            <div className="text-center">
-              <div className="w-32 h-32 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <div className="w-32 h-32 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center overflow-hidden">
                 {profileData.avatarUrl ? (
-                  <img src={profileData.avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                  <img src={profileData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-muted-foreground">Avatar</span>
                 )}
               </div>
-              <div className="space-y-2">
-                <Button variant="outline" className="w-full">
-                  Upload Photo
-                </Button>
+              
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1">
+                    📁 Upload Photo
+                  </Button>
+                  {profileData.avatarUrl && (
+                    <Button variant="outline" size="icon" onClick={rerollAvatar} title="Reroll avatar">
+                      <Shuffle className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                
                 <p className="text-xs text-muted-foreground">Or choose a DiceBear avatar style</p>
+                
                 <div className="grid grid-cols-4 gap-2">
-                  {["adventurer", "avataaars", "big-ears", "personas"].map((style) => (
+                  {[
+                    { style: "adventurer", emoji: "🏃" },
+                    { style: "avataaars", emoji: "😊" },
+                    { style: "big-ears", emoji: "👂" },
+                    { style: "personas", emoji: "👤" }
+                  ].map(({ style, emoji }) => (
                     <Button
                       key={style}
-                      variant="outline"
+                      variant={profileData.avatarUrl?.includes(style) ? "default" : "outline"}
                       size="sm"
-                      onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${profileData.firstName}`)}
-                      className="h-12"
+                      onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`)}
+                      className="h-16 flex flex-col gap-1"
                     >
+                      <span className="text-lg">{emoji}</span>
                       <img 
-                        src={`https://api.dicebear.com/6.x/${style}/svg?seed=${profileData.firstName || 'demo'}`} 
+                        src={`https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`} 
                         alt={style}
-                        className="w-8 h-8 rounded"
+                        className="w-6 h-6 rounded"
                       />
                     </Button>
                   ))}
@@ -426,11 +571,16 @@ const ProfileSetup = () => {
           <Button variant="outline" onClick={handleBack} disabled={currentStep === 1}>
             Previous
           </Button>
-          <Button onClick={handleNext}>
-            {currentStep === totalSteps ? (
+          <Button onClick={handleNext} disabled={loading}>
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Saving...
+              </>
+            ) : currentStep === totalSteps ? (
               <>
                 <Check className="w-4 h-4 mr-2" />
-                Complete
+                Complete Profile
               </>
             ) : (
               <>
