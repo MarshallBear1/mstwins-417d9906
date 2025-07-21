@@ -109,6 +109,32 @@ const DiscoverProfiles = () => {
         });
 
       if (!error) {
+        // Send email notification to liked user
+        const { data: likedUserAuth } = await supabase.auth.admin.getUserById(currentProfile.user_id);
+        const { data: currentUserProfile } = await supabase
+          .from('profiles')
+          .select('first_name')
+          .eq('user_id', user.id)
+          .single();
+
+        if (likedUserAuth.user?.email) {
+          // Send like notification email in background
+          setTimeout(async () => {
+            try {
+              await supabase.functions.invoke('send-notification-email', {
+                body: {
+                  email: likedUserAuth.user.email,
+                  firstName: currentProfile.first_name,
+                  type: 'like',
+                  fromUser: currentUserProfile?.first_name
+                }
+              });
+            } catch (error) {
+              console.error('Error sending like notification email:', error);
+            }
+          }, 0);
+        }
+
         handleNext();
       }
     } catch (error) {
