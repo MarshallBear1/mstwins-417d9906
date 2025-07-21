@@ -120,7 +120,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       setSelectedMatch(null);
       setMessages([]);
     }
-  }, [matchId, matches, selectedMatch]);
+  }, [matchId, matches.length]); // Removed selectedMatch from dependencies to prevent infinite loop
 
   const fetchMatches = async () => {
     if (!user) return;
@@ -511,7 +511,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                    onClick={() => {
                      console.log('🖱️ Match card clicked for match:', match.id);
                      setSelectedMatch(match);
-                     fetchMessages(match.id);
+                     if (!messageHistory.has(match.id)) {
+                       fetchMessages(match.id);
+                     } else {
+                       setMessages(messageHistory.get(match.id) || []);
+                     }
                    }}
                  >
                   <div className="relative">
@@ -549,7 +553,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                         e.stopPropagation();
                         console.log('🖱️ Chat button clicked for match:', match.id);
                         setSelectedMatch(match);
-                        fetchMessages(match.id);
+                        if (!messageHistory.has(match.id)) {
+                          fetchMessages(match.id);
+                        } else {
+                          setMessages(messageHistory.get(match.id) || []);
+                        }
                       }}
                     >
                       Chat

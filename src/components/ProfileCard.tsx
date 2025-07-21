@@ -14,12 +14,15 @@ import {
   Edit, 
   Save, 
   X, 
-  LogOut 
+  LogOut,
+  Upload,
+  Camera
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Profile {
   id: string;
@@ -45,8 +48,10 @@ interface ProfileCardProps {
 
 const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [editData, setEditData] = useState({
     first_name: profile.first_name,
     last_name: profile.last_name,
@@ -55,6 +60,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
     diagnosis_year: profile.diagnosis_year?.toString() || "",
     date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth) : undefined,
     about_me: profile.about_me || "",
+    avatar_url: profile.avatar_url || "",
   });
 
   const calculateAge = (birthDate: string | null) => {
@@ -70,6 +76,45 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
     return age;
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setEditData(prev => ({ ...prev, avatar_url: data.publicUrl }));
+      
+      toast({
+        title: "Photo uploaded successfully!",
+        description: "Your profile picture has been updated.",
+      });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: error.message,
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -81,6 +126,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
         diagnosis_year: editData.diagnosis_year ? parseInt(editData.diagnosis_year) : null,
         date_of_birth: editData.date_of_birth ? editData.date_of_birth.toISOString().split('T')[0] : null,
         about_me: editData.about_me || null,
+        avatar_url: editData.avatar_url || null,
       };
 
       const { data, error } = await supabase
@@ -127,6 +173,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
       diagnosis_year: profile.diagnosis_year?.toString() || "",
       date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth) : undefined,
       about_me: profile.about_me || "",
+      avatar_url: profile.avatar_url || "",
     });
     setIsEditing(false);
   };
@@ -136,12 +183,42 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
       <div className="max-w-md mx-auto">
         <Card className="overflow-hidden shadow-xl">
           <div className="relative h-48 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-              {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover" />
+            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+              {(isEditing ? editData.avatar_url : profile.avatar_url) ? (
+                <img 
+                  src={isEditing ? editData.avatar_url : profile.avatar_url} 
+                  alt={profile.first_name} 
+                  className="w-full h-full object-cover" 
+                />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center">
                   <User className="w-8 h-8 text-muted-foreground" />
+                </div>
+              )}
+              
+              {/* Upload Button in Edit Mode */}
+              {isEditing && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                  <label htmlFor="avatar-upload" className="cursor-pointer">
+                    <div className="text-white text-center">
+                      <Camera className="w-6 h-6 mx-auto mb-1" />
+                      <span className="text-xs">Change</span>
+                    </div>
+                  </label>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </div>
+              )}
+              
+              {uploading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
                 </div>
               )}
             </div>
