@@ -125,10 +125,10 @@ const DiscoverProfiles = () => {
   };
 
   const handleLike = async () => {
-    if (!user || !currentProfile) return;
+    if (!user || !currentProfile || actionLoading) return;
     
     setActionLoading(true);
-    console.log('Starting like process for profile:', currentProfile.user_id);
+    console.log('🚀 Starting like process for profile:', currentProfile.user_id);
     
     try {
       // First, check if this will create a match
@@ -137,9 +137,10 @@ const DiscoverProfiles = () => {
         .select('*')
         .eq('liker_id', currentProfile.user_id)
         .eq('liked_id', user.id)
-        .single();
+        .maybeSingle();
 
       const willCreateMatch = !!existingLike;
+      console.log('📊 Will create match:', willCreateMatch);
 
       // Insert the like
       const { data: newLike, error } = await supabase
@@ -152,66 +153,59 @@ const DiscoverProfiles = () => {
         .single();
 
       if (error) {
-        console.error('Error creating like:', error);
+        console.error('❌ Error creating like:', error);
         throw error;
       }
 
-      console.log('Like created successfully:', newLike);
+      console.log('✅ Like created successfully:', newLike);
 
-      // Send email notifications
+      // Send email notifications using our edge function
       try {
-        const { data: currentUserProfile } = await supabase
-          .from('profiles')
-          .select('first_name')
-          .eq('user_id', user.id)
-          .single();
-
         if (willCreateMatch) {
-          // Send match emails to both users
-          await supabase.functions.invoke('send-notification-email', {
+          console.log('📧 Sending match email notifications...');
+          
+          await supabase.functions.invoke('email-notification-worker', {
             body: {
-              email: user.email,
-              firstName: currentUserProfile?.first_name,
               type: 'match',
-              fromUser: currentProfile.first_name
+              likerUserId: user.id,
+              likedUserId: currentProfile.user_id
             }
           });
 
           // Show robot match announcement
           setShowMatchAnnouncement(true);
           setTimeout(() => setShowMatchAnnouncement(false), 4000);
+          console.log('🎉 Match announcement shown!');
         } else {
-          // Send like email to the liked user
-          const { data: likedUserData } = await supabase.auth.admin.getUserById(currentProfile.user_id);
+          console.log('📧 Sending like email notification...');
           
-          if (likedUserData.user?.email) {
-            await supabase.functions.invoke('send-notification-email', {
-              body: {
-                email: likedUserData.user.email,
-                firstName: currentProfile.first_name,
-                type: 'like',
-                fromUser: currentUserProfile?.first_name
-              }
-            });
-          }
+          await supabase.functions.invoke('email-notification-worker', {
+            body: {
+              type: 'like',
+              likerUserId: user.id,
+              likedUserId: currentProfile.user_id
+            }
+          });
         }
+        console.log('✅ Email notification sent successfully');
       } catch (emailError) {
-        console.error('Error sending email notification:', emailError);
+        console.error('❌ Error sending email notification:', emailError);
         // Don't fail the like process if email fails
       }
 
       handleNext();
     } catch (error) {
-      console.error('Error in like process:', error);
+      console.error('❌ Error in like process:', error);
     } finally {
       setActionLoading(false);
+      console.log('🔄 Like process completed, actionLoading set to false');
     }
   };
 
   const handlePass = async () => {
-    if (!user || !currentProfile) return;
+    if (!user || !currentProfile || actionLoading) return;
     
-    console.log('Starting pass process for profile:', currentProfile.user_id);
+    console.log('⏭️ Starting pass process for profile:', currentProfile.user_id);
     
     if (!showingSkipped) {
       // Record the pass in the database
@@ -224,16 +218,17 @@ const DiscoverProfiles = () => {
           });
 
         if (error) {
-          console.error('Error recording pass:', error);
+          console.error('❌ Error recording pass:', error);
         } else {
-          console.log('Pass recorded successfully');
+          console.log('✅ Pass recorded successfully');
         }
       } catch (error) {
-        console.error('Error recording pass:', error);
+        console.error('❌ Error recording pass:', error);
       }
     }
     
     handleNext();
+    console.log('⏭️ Pass process completed');
   };
 
   const handleNext = () => {
