@@ -245,6 +245,23 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       setMatches(prev => prev.map(match => 
         match.id === selectedMatch.id ? { ...match, unread_count: 0 } : match
       ));
+
+      // Send email notification for new message
+      try {
+        console.log('📧 Sending message email notification...');
+        await supabase.functions.invoke('email-notification-worker', {
+          body: {
+            type: 'message',
+            likerUserId: user.id,
+            likedUserId: receiverId,
+            messageContent: newMessage.trim()
+          }
+        });
+        console.log('✅ Message email notification sent successfully');
+      } catch (emailError) {
+        console.error('❌ Error sending message email notification:', emailError);
+        // Don't fail the message send if email fails
+      }
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
