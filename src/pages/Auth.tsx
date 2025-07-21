@@ -1,13 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Heart, ArrowLeft, Mail, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  const { signUp, signIn, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (isSignUp) {
+        await signUp(email, password, firstName, lastName);
+      } else {
+        await signIn(email, password);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
@@ -46,16 +77,28 @@ const Auth = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {isSignUp && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" placeholder="Sarah" />
+                    <Input 
+                      id="firstName" 
+                      placeholder="Sarah" 
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      required={isSignUp}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" placeholder="Johnson" />
+                    <Input 
+                      id="lastName" 
+                      placeholder="Johnson"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      required={isSignUp}
+                    />
                   </div>
                 </div>
               )}
@@ -69,6 +112,9 @@ const Auth = () => {
                     type="email" 
                     placeholder="sarah@example.com"
                     className="pl-10"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -82,6 +128,9 @@ const Auth = () => {
                     type="password" 
                     placeholder="••••••••"
                     className="pl-10"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -95,8 +144,8 @@ const Auth = () => {
                 </div>
               )}
 
-              <Button type="submit" variant="hero" className="w-full" size="lg">
-                {isSignUp ? "Create Account" : "Sign In"}
+              <Button type="submit" variant="hero" className="w-full" size="lg" disabled={loading}>
+                {loading ? "Loading..." : (isSignUp ? "Create Account" : "Sign In")}
               </Button>
             </form>
 
