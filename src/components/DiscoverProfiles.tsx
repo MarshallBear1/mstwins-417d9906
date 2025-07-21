@@ -343,7 +343,7 @@ const DiscoverProfiles = () => {
         <Card className="overflow-hidden shadow-xl animate-scale-in">
           {/* Avatar Section with Gradient Background */}
           <div className="relative h-48 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
               {currentProfile.avatar_url ? (
                 <img 
                   src={currentProfile.avatar_url} 
@@ -355,12 +355,27 @@ const DiscoverProfiles = () => {
                   <User className="w-8 h-8 text-muted-foreground" />
                 </div>
               )}
+              {/* Online status indicator */}
+              <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white ${
+                user ? (user.id !== currentProfile.user_id ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-400'
+              }`} />
             </div>
             {/* Profile indicator */}
             <div className="absolute top-4 left-4 bg-white/80 rounded-full px-3 py-1">
               <span className="text-sm font-medium">
                 {currentIndex + 1} of {profiles.length}
               </span>
+            </div>
+            {/* Online status badge */}
+            <div className="absolute top-4 right-4 bg-white/80 rounded-full px-3 py-1">
+              <div className="flex items-center gap-1">
+                <div className={`w-2 h-2 rounded-full ${
+                  user ? (user.id !== currentProfile.user_id ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-400'
+                }`} />
+                <span className="text-xs font-medium">
+                  {user && user.id !== currentProfile.user_id ? 'Online' : 'You'}
+                </span>
+              </div>
             </div>
           </div>
 

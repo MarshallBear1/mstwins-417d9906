@@ -9,6 +9,7 @@ import { Send, ArrowLeft, User, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 
 interface Message {
   id: string;
@@ -45,6 +46,9 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const { isUserOnline, setTyping, getTypingUsers } = useRealtimePresence();
 
   useEffect(() => {
     if (user) {
@@ -177,6 +181,38 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     }
   };
 
+  const handleTyping = (value: string) => {
+    setNewMessage(value);
+    
+    if (!selectedMatch) return;
+
+    // Clear existing timeout
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+
+    // Start typing if not already
+    if (!isTyping && value.trim()) {
+      setIsTyping(true);
+      setTyping(selectedMatch.id, true);
+    }
+
+    // Set timeout to stop typing after 2 seconds of inactivity
+    const timeout = setTimeout(() => {
+      setIsTyping(false);
+      setTyping(selectedMatch.id, false);
+    }, 2000);
+
+    setTypingTimeout(timeout);
+
+    // Stop typing immediately if input is empty
+    if (!value.trim()) {
+      setIsTyping(false);
+      setTyping(selectedMatch.id, false);
+      clearTimeout(timeout);
+    }
+  };
+
   const sendMessage = async () => {
     if (!user || !selectedMatch || !newMessage.trim()) return;
 
@@ -292,7 +328,12 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             <CardTitle className="text-lg">
               {selectedMatch.other_user.first_name} {selectedMatch.other_user.last_name}
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Online</p>
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${isUserOnline(selectedMatch.user1_id === user?.id ? selectedMatch.user2_id : selectedMatch.user1_id) ? 'bg-green-500' : 'bg-gray-400'}`} />
+              <p className="text-sm text-muted-foreground">
+                {isUserOnline(selectedMatch.user1_id === user?.id ? selectedMatch.user2_id : selectedMatch.user1_id) ? 'Online' : 'Offline'}
+              </p>
+            </div>
           </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -342,6 +383,24 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                   </div>
                 </div>
               ))}
+              
+              {/* Typing indicator */}
+              {selectedMatch && getTypingUsers(selectedMatch.id).filter(id => id !== user?.id).length > 0 && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] space-y-1">
+                    <div className="rounded-lg px-4 py-2 bg-muted text-foreground">
+                      <div className="flex items-center space-x-1">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                        <span className="text-xs text-muted-foreground ml-2">typing...</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </ScrollArea>
         </CardContent>
@@ -351,7 +410,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           <div className="flex gap-2">
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => handleTyping(e.target.value)}
               placeholder="Type a message..."
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())}
               className="flex-1"
@@ -385,12 +444,18 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                   className="flex items-center space-x-4"
                   onClick={() => setSelectedMatch(match)}
                 >
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={match.other_user.avatar_url || undefined} />
-                    <AvatarFallback>
-                      <User className="w-6 h-6" />
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={match.other_user.avatar_url || undefined} />
+                      <AvatarFallback>
+                        <User className="w-6 h-6" />
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Online indicator */}
+                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                      isUserOnline(match.user1_id === user?.id ? match.user2_id : match.user1_id) ? 'bg-green-500' : 'bg-gray-400'
+                    }`} />
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold">
