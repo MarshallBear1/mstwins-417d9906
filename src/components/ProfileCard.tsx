@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
@@ -299,33 +300,81 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               )}
             </div>
 
-            {/* Date of Birth (only when editing) */}
+            {/* Date of Birth (only when editing) - Enhanced Year Selection */}
             {isEditing && (
-              <div>
+              <div className="space-y-4">
                 <label className="text-sm font-medium mb-2 block">Date of Birth</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !editData.date_of_birth && "text-muted-foreground"
-                      )}
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label htmlFor="birthMonth" className="text-xs">Month</Label>
+                    <Select 
+                      value={editData.date_of_birth ? (editData.date_of_birth.getMonth() + 1).toString() : ""} 
+                      onValueChange={(month) => {
+                        const currentDate = editData.date_of_birth || new Date();
+                        const newDate = new Date(currentDate.getFullYear(), parseInt(month) - 1, currentDate.getDate());
+                        setEditData(prev => ({ ...prev, date_of_birth: newDate }));
+                      }}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {editData.date_of_birth ? format(editData.date_of_birth, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={editData.date_of_birth}
-                      onSelect={(date) => setEditData(prev => ({ ...prev, date_of_birth: date }))}
-                      disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 12 }, (_, i) => (
+                          <SelectItem key={i + 1} value={(i + 1).toString()}>
+                            {new Date(2000, i, 1).toLocaleDateString('en', { month: 'long' })}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="birthDay" className="text-xs">Day</Label>
+                    <Select 
+                      value={editData.date_of_birth ? editData.date_of_birth.getDate().toString() : ""} 
+                      onValueChange={(day) => {
+                        const currentDate = editData.date_of_birth || new Date();
+                        const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), parseInt(day));
+                        setEditData(prev => ({ ...prev, date_of_birth: newDate }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Day" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 31 }, (_, i) => (
+                          <SelectItem key={i + 1} value={(i + 1).toString()}>
+                            {i + 1}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="birthYear" className="text-xs">Year</Label>
+                    <Select 
+                      value={editData.date_of_birth ? editData.date_of_birth.getFullYear().toString() : ""} 
+                      onValueChange={(year) => {
+                        const currentDate = editData.date_of_birth || new Date();
+                        const newDate = new Date(parseInt(year), currentDate.getMonth(), currentDate.getDate());
+                        setEditData(prev => ({ ...prev, date_of_birth: newDate }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-48">
+                        {Array.from({ length: 100 }, (_, i) => {
+                          const year = new Date().getFullYear() - i;
+                          return (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
             )}
 
