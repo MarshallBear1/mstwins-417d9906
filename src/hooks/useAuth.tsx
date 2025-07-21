@@ -107,10 +107,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           description: "Your account has been created successfully.",
         });
         
-        // Navigate to dashboard after signup
+        // Navigate to profile setup after signup
         setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 1000);
+          window.location.href = '/profile-setup';
+        }, 500);
       }
 
       return { error: null };
@@ -148,7 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Navigate to dashboard after signin
       setTimeout(() => {
         window.location.href = '/dashboard';
-      }, 1000);
+      }, 500);
 
       return { error: null };
     } catch (error: any) {
