@@ -45,7 +45,9 @@ const DiscoverProfiles = () => {
     setLoading(true);
     try {
       if (showingSkipped) {
-        // Get profiles that were previously passed on
+        // Get profiles that were previously passed on, but exclude current matches and likes
+        console.log('🔍 Fetching skipped profiles...');
+        
         const { data: passedProfiles } = await supabase
           .from('passes')
           .select('passed_id')
@@ -53,13 +55,49 @@ const DiscoverProfiles = () => {
 
         if (passedProfiles && passedProfiles.length > 0) {
           const passedIds = passedProfiles.map(p => p.passed_id);
-          const { data: skippedProfiles } = await supabase
-            .from('profiles')
-            .select('*')
-            .in('user_id', passedIds);
           
-          setProfiles(skippedProfiles || []);
+          // Get current matches and likes to exclude them from skipped profiles
+          const { data: existingMatches } = await supabase
+            .from('matches')
+            .select('user1_id, user2_id')
+            .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+          const { data: existingLikes } = await supabase
+            .from('likes')
+            .select('liked_id')
+            .eq('liker_id', user.id);
+
+          const matchedIds = existingMatches?.map(match => 
+            match.user1_id === user.id ? match.user2_id : match.user1_id
+          ) || [];
+          const likedIds = existingLikes?.map(like => like.liked_id) || [];
+          
+          // Only show skipped profiles that aren't now matched or liked
+          const availableSkippedIds = passedIds.filter(id => 
+            !matchedIds.includes(id) && !likedIds.includes(id)
+          );
+
+          console.log('📝 Skipped profiles data:', {
+            totalPassed: passedIds.length,
+            matchedIds: matchedIds.length,
+            likedIds: likedIds.length,
+            availableSkipped: availableSkippedIds.length
+          });
+          
+          if (availableSkippedIds.length > 0) {
+            const { data: skippedProfiles } = await supabase
+              .from('profiles')
+              .select('*')
+              .in('user_id', availableSkippedIds);
+            
+            console.log(`✅ Found ${skippedProfiles?.length || 0} available skipped profiles`);
+            setProfiles(skippedProfiles || []);
+          } else {
+            console.log('📭 No skipped profiles available (all are now matched or liked)');
+            setProfiles([]);
+          }
         } else {
+          console.log('📭 No passed profiles found');
           setProfiles([]);
         }
       } else {
@@ -302,7 +340,7 @@ const DiscoverProfiles = () => {
                   className="flex items-center gap-2"
                 >
                   <Heart className="w-4 h-4" />
-                  {showingSkipped ? 'Back to Discovery' : 'Review Skipped'}
+                  {showingSkipped ? 'Back to Discovery' : 'Review Skipped Profiles'}
                 </Button>
               </div>
             </div>
