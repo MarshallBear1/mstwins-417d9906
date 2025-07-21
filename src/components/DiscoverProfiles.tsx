@@ -28,6 +28,7 @@ const DiscoverProfiles = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showingSkipped, setShowingSkipped] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -40,41 +41,67 @@ const DiscoverProfiles = () => {
 
     setLoading(true);
     try {
-      // Get profiles excluding current user, people already liked/passed, and matched users
-      const { data: existingLikes } = await supabase
-        .from('likes')
-        .select('liked_id')
-        .eq('liker_id', user.id);
+      if (showingSkipped) {
+        // Get profiles that were previously passed on
+        const { data: passedProfiles } = await supabase
+          .from('passes')
+          .select('passed_id')
+          .eq('passer_id', user.id);
 
-      const { data: existingMatches } = await supabase
-        .from('matches')
-        .select('user1_id, user2_id')
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+        if (passedProfiles && passedProfiles.length > 0) {
+          const passedIds = passedProfiles.map(p => p.passed_id);
+          const { data: skippedProfiles } = await supabase
+            .from('profiles')
+            .select('*')
+            .in('user_id', passedIds);
+          
+          setProfiles(skippedProfiles || []);
+        } else {
+          setProfiles([]);
+        }
+      } else {
+        // Get profiles excluding current user, people already liked/passed, and matched users
+        const { data: existingLikes } = await supabase
+          .from('likes')
+          .select('liked_id')
+          .eq('liker_id', user.id);
 
-      const likedIds = existingLikes?.map(like => like.liked_id) || [];
-      const matchedIds = existingMatches?.map(match => 
-        match.user1_id === user.id ? match.user2_id : match.user1_id
-      ) || [];
-      
-      const excludedIds = [...likedIds, ...matchedIds];
-      
-      let query = supabase
-        .from('profiles')
-        .select('*')
-        .neq('user_id', user.id);
+        const { data: existingMatches } = await supabase
+          .from('matches')
+          .select('user1_id, user2_id')
+          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
 
-      if (excludedIds.length > 0) {
-        query = query.not('user_id', 'in', `(${excludedIds.join(',')})`);
+        const { data: existingPasses } = await supabase
+          .from('passes')
+          .select('passed_id')
+          .eq('passer_id', user.id);
+
+        const likedIds = existingLikes?.map(like => like.liked_id) || [];
+        const matchedIds = existingMatches?.map(match => 
+          match.user1_id === user.id ? match.user2_id : match.user1_id
+        ) || [];
+        const passedIds = existingPasses?.map(pass => pass.passed_id) || [];
+        
+        const excludedIds = [...likedIds, ...matchedIds, ...passedIds];
+        
+        let query = supabase
+          .from('profiles')
+          .select('*')
+          .neq('user_id', user.id);
+
+        if (excludedIds.length > 0) {
+          query = query.not('user_id', 'in', `(${excludedIds.join(',')})`);
+        }
+
+        const { data, error } = await query.limit(10);
+
+        if (error) {
+          console.error('Error fetching profiles:', error);
+          return;
+        }
+
+        setProfiles(data || []);
       }
-
-      const { data, error } = await query.limit(10);
-
-      if (error) {
-        console.error('Error fetching profiles:', error);
-        return;
-      }
-
-      setProfiles(data || []);
       setCurrentIndex(0);
     } catch (error) {
       console.error('Error fetching profiles:', error);
@@ -144,7 +171,23 @@ const DiscoverProfiles = () => {
     }
   };
 
-  const handlePass = () => {
+  const handlePass = async () => {
+    if (!user || !currentProfile) return;
+    
+    if (!showingSkipped) {
+      // Record the pass in the database
+      try {
+        await supabase
+          .from('passes')
+          .insert({
+            passer_id: user.id,
+            passed_id: currentProfile.user_id
+          });
+      } catch (error) {
+        console.error('Error recording pass:', error);
+      }
+    }
+    
     handleNext();
   };
 
@@ -196,11 +239,14 @@ const DiscoverProfiles = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => {/* Add review skipped logic here */}}
+                  onClick={() => {
+                    setShowingSkipped(!showingSkipped);
+                    fetchProfiles();
+                  }}
                   className="flex items-center gap-2"
                 >
                   <Heart className="w-4 h-4" />
-                  Review Skipped
+                  {showingSkipped ? 'Back to Discovery' : 'Review Skipped'}
                 </Button>
               </div>
             </div>

@@ -119,6 +119,27 @@ export type Database = {
         }
         Relationships: []
       }
+      passes: {
+        Row: {
+          created_at: string
+          id: string
+          passed_id: string
+          passer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          passed_id: string
+          passer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          passed_id?: string
+          passer_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           about_me: string | null

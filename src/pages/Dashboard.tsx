@@ -10,6 +10,7 @@ import NotificationBell from "@/components/NotificationBell";
 import DiscoverProfiles from "@/components/DiscoverProfiles";
 import Messaging from "@/components/Messaging";
 import ProfileCard from "@/components/ProfileCard";
+import ReferralDropdown from "@/components/ReferralDropdown";
 
 interface Profile {
   id: string;
@@ -94,9 +95,42 @@ const Dashboard = () => {
 
   if (!user) return null;
 
+  // Profile enforcement - redirect to profile setup if no profile exists
   if (!profile) {
-    navigate("/profile-setup");
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
+        <Card className="w-full max-w-md border-2 border-primary/20 shadow-xl animate-pulse">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+              <User className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold text-primary mb-4 animate-fade-in">
+              Complete Your Profile! ✨
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              You're so close! Complete your profile to start discovering amazing connections in the MS community.
+            </p>
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-6 border border-primary/10">
+              <p className="text-sm text-primary font-medium">
+                🚀 Profile completion unlocks:
+              </p>
+              <ul className="text-xs text-muted-foreground mt-2 text-left">
+                <li>• Discover supportive community members</li>
+                <li>• Get likes and matches</li>
+                <li>• Start meaningful conversations</li>
+              </ul>
+            </div>
+            <Button 
+              onClick={() => navigate("/profile-setup")}
+              className="w-full bg-gradient-primary hover:opacity-90 text-white font-medium py-3 animate-scale-in"
+              size="lg"
+            >
+              Complete Profile Now
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const tabs = [
@@ -140,7 +174,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      {/* Header with notifications */}
+      {/* Header with notifications and referral */}
       <div className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center space-x-2">
@@ -151,7 +185,10 @@ const Dashboard = () => {
               MS<span className="text-blue-600">Twins</span>
             </span>
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <ReferralDropdown />
+            <NotificationBell />
+          </div>
         </div>
       </div>
 
