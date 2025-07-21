@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, X, User, MapPin, Calendar, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 
 interface Profile {
   id: string;
@@ -24,6 +25,7 @@ interface Profile {
 
 const DiscoverProfiles = () => {
   const { user } = useAuth();
+  const { isUserOnline } = useRealtimePresence();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -62,6 +64,8 @@ const DiscoverProfiles = () => {
         }
       } else {
         // Get profiles excluding current user, people already liked/passed, and matched users
+        console.log('🔍 Fetching profiles excluding matches, likes, and passes...');
+        
         const { data: existingLikes } = await supabase
           .from('likes')
           .select('liked_id')
@@ -83,12 +87,18 @@ const DiscoverProfiles = () => {
         ) || [];
         const passedIds = existingPasses?.map(pass => pass.passed_id) || [];
         
-        const excludedIds = [...likedIds, ...matchedIds, ...passedIds];
+        const excludedIds = [...likedIds, ...matchedIds, ...passedIds, user.id];
+        
+        console.log('📝 Exclusion data:', {
+          likedIds: likedIds.length,
+          matchedIds: matchedIds.length,
+          passedIds: passedIds.length,
+          totalExcluded: excludedIds.length
+        });
         
         let query = supabase
           .from('profiles')
-          .select('*')
-          .neq('user_id', user.id);
+          .select('*');
 
         if (excludedIds.length > 0) {
           query = query.not('user_id', 'in', `(${excludedIds.join(',')})`);
@@ -101,6 +111,7 @@ const DiscoverProfiles = () => {
           return;
         }
 
+        console.log(`✅ Found ${data?.length || 0} available profiles`);
         setProfiles(data || []);
       }
       setCurrentIndex(0);
@@ -357,7 +368,7 @@ const DiscoverProfiles = () => {
               )}
               {/* Online status indicator */}
               <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white ${
-                user ? (user.id !== currentProfile.user_id ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-400'
+                isUserOnline(currentProfile.user_id) ? 'bg-green-500' : 'bg-gray-400'
               }`} />
             </div>
             {/* Profile indicator */}
@@ -370,10 +381,10 @@ const DiscoverProfiles = () => {
             <div className="absolute top-4 right-4 bg-white/80 rounded-full px-3 py-1">
               <div className="flex items-center gap-1">
                 <div className={`w-2 h-2 rounded-full ${
-                  user ? (user.id !== currentProfile.user_id ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-400'
+                  isUserOnline(currentProfile.user_id) ? 'bg-green-500' : 'bg-gray-400'
                 }`} />
                 <span className="text-xs font-medium">
-                  {user && user.id !== currentProfile.user_id ? 'Online' : 'You'}
+                  {isUserOnline(currentProfile.user_id) ? 'Online' : 'Offline'}
                 </span>
               </div>
             </div>
