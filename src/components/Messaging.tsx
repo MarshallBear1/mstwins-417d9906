@@ -259,6 +259,13 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       : selectedMatch.user1_id;
 
     try {
+      console.log('🚀 Attempting to send message:', {
+        match_id: selectedMatch.id,
+        sender_id: user.id,
+        receiver_id: receiverId,
+        content: newMessage.trim()
+      });
+
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -271,9 +278,12 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         .single();
 
       if (error) {
-        console.error('Error sending message:', error);
+        console.error('❌ Error sending message:', error);
+        alert(`Error sending message: ${error.message}`);
         return;
       }
+
+      console.log('✅ Message sent successfully:', data);
 
       const updatedMessages = [...messages, data];
       setMessages(updatedMessages);
