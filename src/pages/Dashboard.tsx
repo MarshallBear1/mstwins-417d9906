@@ -267,9 +267,29 @@ const Dashboard = () => {
                           <Button 
                             size="sm" 
                             className="bg-gradient-primary hover:opacity-90 text-white"
-                            onClick={() => {
-                              // TODO: Add like back functionality
-                              console.log('Like back:', likedProfile.user_id);
+                            onClick={async () => {
+                              try {
+                                // Create a like back
+                                const { error } = await supabase
+                                  .from('likes')
+                                  .insert({
+                                    liker_id: user?.id,
+                                    liked_id: likedProfile.user_id
+                                  });
+
+                                if (error) {
+                                  console.error('Error liking back:', error);
+                                  return;
+                                }
+
+                                // Refresh the likes to remove this person (they'll now be a match)
+                                fetchLikes();
+                                
+                                // Show success message
+                                console.log('✅ Liked back successfully!');
+                              } catch (error) {
+                                console.error('Error in like back process:', error);
+                              }
                             }}
                           >
                             <Heart className="w-4 h-4 mr-1" />

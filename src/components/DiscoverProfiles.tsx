@@ -216,38 +216,24 @@ const DiscoverProfiles = () => {
 
       console.log('✅ Like created successfully:', newLike);
 
-      // Send email notifications using our edge function
-      try {
-        if (willCreateMatch) {
-          console.log('📧 Sending match email notifications...');
-          
-          await supabase.functions.invoke('email-notification-worker', {
-            body: {
-              type: 'match',
-              likerUserId: user.id,
-              likedUserId: currentProfile.user_id
-            }
-          });
-
-          // Show robot match announcement
-          setShowMatchAnnouncement(true);
-          setTimeout(() => setShowMatchAnnouncement(false), 4000);
-          console.log('🎉 Match announcement shown!');
-        } else {
-          console.log('📧 Sending like email notification...');
-          
-          await supabase.functions.invoke('email-notification-worker', {
-            body: {
-              type: 'like',
-              likerUserId: user.id,
-              likedUserId: currentProfile.user_id
-            }
-          });
+      // Send email notifications in background (non-blocking for speed)
+      supabase.functions.invoke('email-notification-worker', {
+        body: {
+          type: willCreateMatch ? 'match' : 'like',
+          likerUserId: user.id,
+          likedUserId: currentProfile.user_id
         }
+      }).then(() => {
         console.log('✅ Email notification sent successfully');
-      } catch (emailError) {
+      }).catch((emailError) => {
         console.error('❌ Error sending email notification:', emailError);
-        // Don't fail the like process if email fails
+      });
+
+      // Show match announcement if it's a match
+      if (willCreateMatch) {
+        setShowMatchAnnouncement(true);
+        setTimeout(() => setShowMatchAnnouncement(false), 4000);
+        console.log('🎉 Match announcement shown!');
       }
     } catch (error) {
       console.error('❌ Error in like process:', error);
