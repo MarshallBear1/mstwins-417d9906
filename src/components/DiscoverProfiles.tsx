@@ -29,6 +29,7 @@ const DiscoverProfiles = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showingSkipped, setShowingSkipped] = useState(false);
+  const [showMatchAnnouncement, setShowMatchAnnouncement] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -127,45 +128,81 @@ const DiscoverProfiles = () => {
     if (!user || !currentProfile) return;
     
     setActionLoading(true);
+    console.log('Starting like process for profile:', currentProfile.user_id);
+    
     try {
-      const { error } = await supabase
+      // First, check if this will create a match
+      const { data: existingLike } = await supabase
+        .from('likes')
+        .select('*')
+        .eq('liker_id', currentProfile.user_id)
+        .eq('liked_id', user.id)
+        .single();
+
+      const willCreateMatch = !!existingLike;
+
+      // Insert the like
+      const { data: newLike, error } = await supabase
         .from('likes')
         .insert({
           liker_id: user.id,
           liked_id: currentProfile.user_id
-        });
+        })
+        .select()
+        .single();
 
-      if (!error) {
-        // Send email notification to liked user
-        const { data: likedUserAuth } = await supabase.auth.admin.getUserById(currentProfile.user_id);
+      if (error) {
+        console.error('Error creating like:', error);
+        throw error;
+      }
+
+      console.log('Like created successfully:', newLike);
+
+      // Send email notifications
+      try {
         const { data: currentUserProfile } = await supabase
           .from('profiles')
           .select('first_name')
           .eq('user_id', user.id)
           .single();
 
-        if (likedUserAuth.user?.email) {
-          // Send like notification email in background
-          setTimeout(async () => {
-            try {
-              await supabase.functions.invoke('send-notification-email', {
-                body: {
-                  email: likedUserAuth.user.email,
-                  firstName: currentProfile.first_name,
-                  type: 'like',
-                  fromUser: currentUserProfile?.first_name
-                }
-              });
-            } catch (error) {
-              console.error('Error sending like notification email:', error);
+        if (willCreateMatch) {
+          // Send match emails to both users
+          await supabase.functions.invoke('send-notification-email', {
+            body: {
+              email: user.email,
+              firstName: currentUserProfile?.first_name,
+              type: 'match',
+              fromUser: currentProfile.first_name
             }
-          }, 0);
-        }
+          });
 
-        handleNext();
+          // Show robot match announcement
+          setShowMatchAnnouncement(true);
+          setTimeout(() => setShowMatchAnnouncement(false), 4000);
+        } else {
+          // Send like email to the liked user
+          const { data: likedUserData } = await supabase.auth.admin.getUserById(currentProfile.user_id);
+          
+          if (likedUserData.user?.email) {
+            await supabase.functions.invoke('send-notification-email', {
+              body: {
+                email: likedUserData.user.email,
+                firstName: currentProfile.first_name,
+                type: 'like',
+                fromUser: currentUserProfile?.first_name
+              }
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error('Error sending email notification:', emailError);
+        // Don't fail the like process if email fails
       }
+
+      handleNext();
     } catch (error) {
-      console.error('Error liking profile:', error);
+      console.error('Error in like process:', error);
     } finally {
       setActionLoading(false);
     }
@@ -174,15 +211,23 @@ const DiscoverProfiles = () => {
   const handlePass = async () => {
     if (!user || !currentProfile) return;
     
+    console.log('Starting pass process for profile:', currentProfile.user_id);
+    
     if (!showingSkipped) {
       // Record the pass in the database
       try {
-        await supabase
+        const { error } = await supabase
           .from('passes')
           .insert({
             passer_id: user.id,
             passed_id: currentProfile.user_id
           });
+
+        if (error) {
+          console.error('Error recording pass:', error);
+        } else {
+          console.log('Pass recorded successfully');
+        }
       } catch (error) {
         console.error('Error recording pass:', error);
       }
@@ -258,6 +303,42 @@ const DiscoverProfiles = () => {
 
   return (
     <div className="p-6">
+      {/* Match Announcement Modal */}
+      {showMatchAnnouncement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
+          <div className="bg-white rounded-2xl p-8 text-center max-w-sm mx-4 shadow-2xl animate-scale-in">
+            <div className="mb-6">
+              <img 
+                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                alt="MSTwins mascot" 
+                className="w-20 h-20 mx-auto mb-4 animate-bounce"
+              />
+              <h2 className="text-3xl font-bold text-green-600 mb-2">🎉 It's a Match!</h2>
+              <p className="text-gray-600">
+                You and {currentProfile?.first_name} liked each other! Start chatting now.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowMatchAnnouncement(false)}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              >
+                Continue Discovering
+              </button>
+              <button 
+                onClick={() => {
+                  setShowMatchAnnouncement(false);
+                  // Navigate to matches tab (you'd need to pass this function down from parent)
+                }}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                Start Chatting
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto">
         <Card className="overflow-hidden shadow-xl animate-scale-in">
           {/* Avatar Section with Gradient Background */}

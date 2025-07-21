@@ -88,6 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
+        console.error('SignUp error:', error);
         toast({
           variant: "destructive",
           title: "Sign Up Error",
@@ -96,25 +97,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
 
+      console.log('SignUp successful:', data);
+
+      // ALWAYS send welcome email - even if session is null
+      if (data.user) {
+        try {
+          console.log('Sending welcome email to:', email);
+          await supabase.functions.invoke('send-welcome-email', {
+            body: { 
+              email: email,
+              firstName: firstName || 'friend'
+            }
+          });
+          console.log('Welcome email sent successfully');
+        } catch (emailError) {
+          console.error('Error sending welcome email:', emailError);
+          // Don't fail signup if email fails
+        }
+      }
+
       if (data.user && data.session) {
-        // Send welcome email
-        setTimeout(() => {
-          sendWelcomeEmail(email, firstName);
-        }, 0);
-        
         toast({
           title: "Welcome!",
-          description: "Your account has been created successfully.",
+          description: "Your account has been created successfully. Check your email!",
         });
         
         // Navigate to profile setup after signup
         setTimeout(() => {
           window.location.href = '/profile-setup';
         }, 500);
+      } else if (data.user && !data.session) {
+        toast({
+          title: "Account Created!",
+          description: "Please check your email to verify your account.",
+        });
       }
 
       return { error: null };
     } catch (error: any) {
+      console.error('SignUp error:', error);
       toast({
         variant: "destructive",
         title: "Sign Up Error",
