@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, ArrowRight, Check, CalendarIcon, Shuffle, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CalendarIcon, Shuffle, X, Upload, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,7 @@ const ProfileSetup = () => {
   const [existingProfile, setExistingProfile] = useState<any>(null);
   const [showRobotNotification, setShowRobotNotification] = useState(true);
   const [avatarSeed, setAvatarSeed] = useState(() => Math.random().toString(36).substring(7));
+  const [uploading, setUploading] = useState(false);
   const [profileData, setProfileData] = useState({
     // Step 1: Name Collection
     firstName: "",
@@ -216,6 +217,45 @@ const ProfileSetup = () => {
     updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${currentStyle}/svg?seed=${newSeed}`);
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      updateProfileData("avatarUrl", data.publicUrl);
+      
+      toast({
+        title: "Photo uploaded successfully!",
+        description: "Your profile picture has been updated.",
+      });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: error.message,
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const getEmojiForHobby = (hobby: string) => {
     const emojiMap: { [key: string]: string } = {
       "Reading": "📚", "Exercise/Fitness": "💪", "Cooking": "🍳", "Art/Drawing": "🎨", 
@@ -320,34 +360,79 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Date of Birth</h2>
               <p className="text-muted-foreground">When were you born?</p>
             </div>
-            <div>
+            <div className="space-y-4">
               <Label htmlFor="dateOfBirth">Date of Birth</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !profileData.dateOfBirth && "text-muted-foreground"
-                    )}
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label htmlFor="birthMonth" className="text-xs">Month</Label>
+                  <Select 
+                    value={profileData.dateOfBirth ? (profileData.dateOfBirth.getMonth() + 1).toString() : ""} 
+                    onValueChange={(month) => {
+                      const currentDate = profileData.dateOfBirth || new Date();
+                      const newDate = new Date(currentDate.getFullYear(), parseInt(month) - 1, currentDate.getDate());
+                      updateProfileData("dateOfBirth", newDate);
+                    }}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {profileData.dateOfBirth ? format(profileData.dateOfBirth, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={profileData.dateOfBirth}
-                    onSelect={(date) => updateProfileData("dateOfBirth", date)}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <SelectItem key={i + 1} value={(i + 1).toString()}>
+                          {new Date(2000, i, 1).toLocaleDateString('en', { month: 'long' })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="birthDay" className="text-xs">Day</Label>
+                  <Select 
+                    value={profileData.dateOfBirth ? profileData.dateOfBirth.getDate().toString() : ""} 
+                    onValueChange={(day) => {
+                      const currentDate = profileData.dateOfBirth || new Date();
+                      const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), parseInt(day));
+                      updateProfileData("dateOfBirth", newDate);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 31 }, (_, i) => (
+                        <SelectItem key={i + 1} value={(i + 1).toString()}>
+                          {i + 1}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="birthYear" className="text-xs">Year</Label>
+                  <Select 
+                    value={profileData.dateOfBirth ? profileData.dateOfBirth.getFullYear().toString() : ""} 
+                    onValueChange={(year) => {
+                      const currentDate = profileData.dateOfBirth || new Date();
+                      const newDate = new Date(parseInt(year), currentDate.getMonth(), currentDate.getDate());
+                      updateProfileData("dateOfBirth", newDate);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 100 }, (_, i) => {
+                        const year = new Date().getFullYear() - i;
+                        return (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -548,9 +633,33 @@ const ProfileSetup = () => {
               
               <div className="space-y-3">
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1">
-                    📁 Upload Photo
-                  </Button>
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={uploading}
+                      className="hidden"
+                      id="avatar-upload"
+                    />
+                    <label htmlFor="avatar-upload">
+                      <Button variant="outline" className="w-full" disabled={uploading} asChild>
+                        <span>
+                          {uploading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 mr-2" />
+                              Upload Photo
+                            </>
+                          )}
+                        </span>
+                      </Button>
+                    </label>
+                  </div>
                   {profileData.avatarUrl && (
                     <Button variant="outline" onClick={rerollAvatar} title="Reroll avatar">
                       <Shuffle className="w-4 h-4 mr-2" />

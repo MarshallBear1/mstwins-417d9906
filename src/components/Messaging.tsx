@@ -381,7 +381,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       <div className="flex flex-col h-[600px]">
         {/* Chat Header */}
         <CardHeader className="flex flex-row items-center space-y-0 pb-4">
-          <Button variant="ghost" size="sm" onClick={onBack} className="mr-2">
+          <Button variant="ghost" size="sm" onClick={() => {setSelectedMatch(null); setMessages([]);}} className="mr-2">
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <Avatar className="w-10 h-10 mr-3">

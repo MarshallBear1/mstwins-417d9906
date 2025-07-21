@@ -518,8 +518,17 @@ const DiscoverProfiles = () => {
                 onClick={handleLike}
                 disabled={actionLoading}
               >
-                <Heart className="w-4 h-4 mr-2" fill="currentColor" />
-                {actionLoading ? 'Liking...' : 'Like'}
+                {actionLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Liking...
+                  </>
+                ) : (
+                  <>
+                    <Heart className="w-4 h-4 mr-2" fill="currentColor" />
+                    Like
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
