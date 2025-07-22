@@ -70,17 +70,6 @@ const HowItWorks = () => {
           </div>
         </div>
 
-        {/* Call to action */}
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center gap-4 bg-white rounded-full px-8 py-4 shadow-lg">
-            <div className="flex -space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full border-2 border-white"></div>
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full border-2 border-white"></div>
-              <div className="w-8 h-8 bg-gradient-to-r from-pink-400 to-pink-600 rounded-full border-2 border-white"></div>
-            </div>
-            <span className="text-gray-700 font-medium">Join 1,000+ members building connections</span>
-          </div>
-        </div>
       </div>
     </section>
   );
