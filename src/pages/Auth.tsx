@@ -50,22 +50,12 @@ const Auth = () => {
             Back to home
           </Link>
           
-          <div className="flex items-center justify-center space-x-2 mb-6">
-            <div className="w-16 h-16 rounded-xl overflow-hidden bg-white border border-gray-200 p-2 shadow-lg">
-              <img 
-                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
-                alt="MSTwins mascot"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <span className="text-3xl font-bold">
-              <span className="text-black">MS</span>
-              <span className="text-blue-600">Twins</span>
-            </span>
-          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            Connect & Thrive
+          </h1>
           
           <p className="text-lg text-muted-foreground">
-            {isSignUp ? "Join our supportive MS community" : "Welcome back to your community"}
+            {isSignUp ? "Join our supportive community and find others who truly understand your journey" : "Welcome back to your community"}
           </p>
         </div>
 
@@ -83,8 +73,8 @@ const Auth = () => {
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 translate-y-[-1px] w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-200"></div>
               </div>
               
-              {/* Robot character with hover animation */}
-              <div className="w-20 h-20 animate-bounce">
+              {/* Robot character with slow hover animation */}
+              <div className="w-20 h-20 animate-[bounce_3s_ease-in-out_infinite]">
                 <img 
                   src="/lovable-uploads/b96beb62-e747-4db6-b7cd-2de07cde399e.png" 
                   alt="Friendly robot mascot"
