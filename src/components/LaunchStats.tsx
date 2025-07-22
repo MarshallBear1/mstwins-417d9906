@@ -97,11 +97,11 @@ export default function LaunchStats() {
               {loading ? (
                 <span className="animate-pulse">...</span>
               ) : (
-                <span>{userCount.toLocaleString()}</span>
+                <span>{(userCount + 20).toLocaleString()}</span>
               )}
             </div>
             <p className="text-sm text-muted-foreground">
-              {userCount === 1 ? 'person has' : 'people have'} joined our community
+              {(userCount + 20) === 1 ? 'person has' : 'people have'} joined our community
             </p>
           </div>
         </div>
