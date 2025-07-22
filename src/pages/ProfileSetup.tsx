@@ -494,21 +494,24 @@ const ProfileSetup = () => {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold">Symptoms</h2>
-              <p className="text-muted-foreground">Which symptoms do you experience?</p>
+              <p className="text-muted-foreground">What symptoms do you experience?</p>
             </div>
-            <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
               {symptomsData.map((symptom) => (
-                <div key={symptom.name} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    id={symptom.name}
-                    checked={profileData.symptoms.includes(symptom.name)}
-                    onCheckedChange={() => toggleArrayItem("symptoms", symptom.name)}
-                  />
-                  <Label htmlFor={symptom.name} className="text-sm flex-1 cursor-pointer flex items-center gap-2">
-                    <span className="text-lg">{symptom.emoji}</span>
-                    {symptom.name}
-                  </Label>
-                </div>
+                <Button
+                  key={symptom.name}
+                  variant={profileData.symptoms.includes(symptom.name) ? "default" : "outline"}
+                  onClick={() => toggleArrayItem("symptoms", symptom.name)}
+                  className={cn(
+                    "h-auto p-3 flex flex-col items-center justify-center text-center transition-all",
+                    profileData.symptoms.includes(symptom.name) 
+                      ? "ring-2 ring-primary shadow-medium" 
+                      : "hover:shadow-soft border-2 hover:border-primary/30"
+                  )}
+                >
+                  <span className="text-2xl mb-1">{symptom.emoji}</span>
+                  <span className="text-xs leading-tight">{symptom.name}</span>
+                </Button>
               ))}
             </div>
             <div className="mt-4">
@@ -530,19 +533,22 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Medications</h2>
               <p className="text-muted-foreground">What medications are you currently taking?</p>
             </div>
-            <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
               {medicationsData.map((medication) => (
-                <div key={medication.name} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    id={medication.name}
-                    checked={profileData.medications.includes(medication.name)}
-                    onCheckedChange={() => toggleArrayItem("medications", medication.name)}
-                  />
-                  <Label htmlFor={medication.name} className="text-sm flex-1 cursor-pointer flex items-center gap-2">
-                    <span className="text-lg">{medication.emoji}</span>
-                    {medication.name}
-                  </Label>
-                </div>
+                <Button
+                  key={medication.name}
+                  variant={profileData.medications.includes(medication.name) ? "default" : "outline"}
+                  onClick={() => toggleArrayItem("medications", medication.name)}
+                  className={cn(
+                    "h-auto p-3 flex flex-col items-center justify-center text-center transition-all",
+                    profileData.medications.includes(medication.name) 
+                      ? "ring-2 ring-primary shadow-medium" 
+                      : "hover:shadow-soft border-2 hover:border-primary/30"
+                  )}
+                >
+                  <span className="text-2xl mb-1">{medication.emoji}</span>
+                  <span className="text-xs leading-tight">{medication.name}</span>
+                </Button>
               ))}
             </div>
             <div className="mt-4">
@@ -572,17 +578,20 @@ const ProfileSetup = () => {
                 "Walking/Hiking", "Dancing", "Knitting/Sewing", "Technology", "Learning",
                 "Podcasts", "Nature", "Animals/Pets"
               ].map((hobby) => (
-                <div key={hobby} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-primary/20">
-                  <Checkbox
-                    id={hobby}
-                    checked={profileData.hobbies.includes(hobby)}
-                    onCheckedChange={() => toggleArrayItem("hobbies", hobby)}
-                  />
-                  <Label htmlFor={hobby} className="text-sm flex-1 cursor-pointer flex items-center gap-1">
-                    <span className="text-lg">{getEmojiForHobby(hobby)}</span>
-                    {hobby}
-                  </Label>
-                </div>
+                <Button
+                  key={hobby}
+                  variant={profileData.hobbies.includes(hobby) ? "accent" : "outline"}
+                  onClick={() => toggleArrayItem("hobbies", hobby)}
+                  className={cn(
+                    "h-auto p-3 flex flex-col items-center justify-center text-center transition-all",
+                    profileData.hobbies.includes(hobby) 
+                      ? "ring-2 ring-accent shadow-medium" 
+                      : "hover:shadow-soft border-2 hover:border-accent/30"
+                  )}
+                >
+                  <span className="text-2xl mb-1">{getEmojiForHobby(hobby)}</span>
+                  <span className="text-xs leading-tight">{hobby}</span>
+                </Button>
               ))}
             </div>
             <div className="mt-4">
