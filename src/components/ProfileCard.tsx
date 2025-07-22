@@ -443,7 +443,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               profile.ms_subtype && (
                 <div>
                   <h4 className="text-sm font-semibold mb-2">MS Type</h4>
-                  <span className="text-muted-foreground">{profile.ms_subtype}</span>
+                  <span className="text-muted-foreground">{profile.ms_subtype.toUpperCase()}</span>
                 </div>
               )
             )}

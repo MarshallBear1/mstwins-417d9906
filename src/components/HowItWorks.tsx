@@ -35,9 +35,6 @@ const HowItWorks = () => {
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             How It Works
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Building meaningful connections has never been easier. Follow these simple steps to start your journey towards friendship and support.
-          </p>
         </div>
 
         <div className="relative">
@@ -65,9 +62,6 @@ const HowItWorks = () => {
                 <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
                   {step.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {step.description}
-                </p>
 
                 {/* Animated border */}
                 <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-gradient-to-r group-hover:from-blue-200 group-hover:to-purple-200 transition-all duration-300"></div>

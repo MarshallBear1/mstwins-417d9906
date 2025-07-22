@@ -108,7 +108,30 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
         {profile.ms_subtype && (
           <div>
             <h4 className="text-sm font-semibold mb-2">MS Type</h4>
-            <span className="text-muted-foreground">{profile.ms_subtype}</span>
+            <span className="text-muted-foreground">{profile.ms_subtype.toUpperCase()}</span>
+          </div>
+        )}
+
+        {/* Medications */}
+        {profile.medications.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Medications</h4>
+            <div className="flex flex-wrap gap-2">
+              {profile.medications.slice(0, 4).map((medication, index) => (
+                <Badge 
+                  key={index}
+                  variant="outline"
+                  className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 text-xs"
+                >
+                  {medication}
+                </Badge>
+              ))}
+              {profile.medications.length > 4 && (
+                <Badge variant="outline" className="text-xs">
+                  +{profile.medications.length - 4} more
+                </Badge>
+              )}
+            </div>
           </div>
         )}
 
