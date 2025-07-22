@@ -108,8 +108,28 @@ const Dashboard = () => {
         return;
       }
 
-      // Get the profiles of people who liked the user
-      const likerIds = likeData.map(like => like.liker_id);
+      // Get existing matches to exclude them from likes
+      const { data: existingMatches } = await supabase
+        .from('matches')
+        .select('user1_id, user2_id')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+      const matchedIds = existingMatches?.map(match => 
+        match.user1_id === user.id ? match.user2_id : match.user1_id
+      ) || [];
+
+      // Filter out users who are already matched
+      const unmatchedLikers = likeData.filter(like => 
+        !matchedIds.includes(like.liker_id)
+      );
+
+      if (unmatchedLikers.length === 0) {
+        setLikes([]);
+        return;
+      }
+
+      // Get the profiles of people who liked the user (excluding matches)
+      const likerIds = unmatchedLikers.map(like => like.liker_id);
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -273,35 +293,50 @@ const Dashboard = () => {
                           )}
                         </div>
                         
-                        <div className="flex-shrink-0">
-                          <Button 
-                            size="sm" 
-                            className="bg-gradient-primary hover:opacity-90 text-white"
-                            onClick={async () => {
-                              try {
-                                // Create a like back
-                                const { error } = await supabase
-                                  .from('likes')
-                                  .insert({
-                                    liker_id: user?.id,
-                                    liked_id: likedProfile.user_id
-                                  });
+                         <div className="flex-shrink-0">
+                           <Button 
+                             size="sm" 
+                             className="bg-gradient-primary hover:opacity-90 text-white"
+                             onClick={async () => {
+                               try {
+                                 console.log('🚀 Starting like back process for:', likedProfile.user_id);
+                                 
+                                 // Check if user already liked this person back
+                                 const { data: existingLike } = await supabase
+                                   .from('likes')
+                                   .select('id')
+                                   .eq('liker_id', user?.id)
+                                   .eq('liked_id', likedProfile.user_id)
+                                   .maybeSingle();
 
-                                if (error) {
-                                  console.error('Error liking back:', error);
-                                  return;
-                                }
+                                 if (existingLike) {
+                                   console.log('✅ Already liked back');
+                                   fetchLikes(); // Refresh to show updated state
+                                   return;
+                                 }
 
-                                // Refresh the likes to remove this person (they'll now be a match)
-                                fetchLikes();
-                                
-                                // Show success message
-                                console.log('✅ Liked back successfully!');
-                              } catch (error) {
-                                console.error('Error in like back process:', error);
-                              }
-                            }}
-                          >
+                                 // Create a like back
+                                 const { error } = await supabase
+                                   .from('likes')
+                                   .insert({
+                                     liker_id: user?.id,
+                                     liked_id: likedProfile.user_id
+                                   });
+
+                                 if (error) {
+                                   console.error('❌ Error liking back:', error);
+                                   return;
+                                 }
+
+                                 console.log('✅ Liked back successfully!');
+                                 
+                                 // Refresh the likes to show updated state
+                                 fetchLikes();
+                               } catch (error) {
+                                 console.error('❌ Error in like back process:', error);
+                               }
+                             }}
+                           >
                             <Heart className="w-4 h-4 mr-1" />
                             Like Back
                           </Button>
