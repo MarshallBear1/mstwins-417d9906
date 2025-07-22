@@ -602,8 +602,43 @@ const ProfileSetup = () => {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold">Profile Picture</h2>
-              <p className="text-muted-foreground">Choose your avatar</p>
+              <p className="text-muted-foreground">It's your choice - upload your own photo or use an avatar!</p>
             </div>
+
+            {/* Robot hint notification */}
+            {showRobotNotification && (
+              <div className="relative mb-6 animate-fade-in">
+                <div className="bg-background/95 backdrop-blur-md border rounded-lg p-4 shadow-lg">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <img 
+                        src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                        alt="MSTwins robot" 
+                        className="w-10 h-10 rounded-full"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="bg-white rounded-lg p-3 shadow-sm relative">
+                        <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
+                        <p className="text-sm text-foreground">
+                          💡 <strong>Pro tip:</strong> You can upload your own photo or choose from our fun avatar styles. 
+                          Don't like the current avatars? Click "Reroll" to get new ones!
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setShowRobotNotification(false)}
+                      className="flex-shrink-0 p-1 h-auto"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="text-center space-y-4">
               <div className="w-32 h-32 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center overflow-hidden">
                 {profileData.avatarUrl ? (
@@ -613,8 +648,9 @@ const ProfileSetup = () => {
                 )}
               </div>
               
-              <div className="space-y-3">
-                <div className="flex gap-2">
+              <div className="space-y-4">
+                <div className="text-center">
+                  <h3 className="font-semibold text-sm mb-2">Upload Your Own Photo</h3>
                   <div className="flex-1">
                     <input
                       type="file"
@@ -625,7 +661,7 @@ const ProfileSetup = () => {
                       id="avatar-upload"
                     />
                     <label htmlFor="avatar-upload">
-                      <Button variant="outline" className="w-full" disabled={uploading} asChild>
+                      <Button variant="outline" className="w-full max-w-xs" disabled={uploading} asChild>
                         <span>
                           {uploading ? (
                             <>
@@ -635,43 +671,65 @@ const ProfileSetup = () => {
                           ) : (
                             <>
                               <Upload className="w-4 h-4 mr-2" />
-                              Upload Photo
+                              Upload Your Photo
                             </>
                           )}
                         </span>
                       </Button>
                     </label>
                   </div>
-                  <Button variant="outline" onClick={rerollAvatar} title="Reroll avatar">
-                    <Shuffle className="w-4 h-4 mr-2" />
-                    Reroll
-                  </Button>
                 </div>
-                
-                <p className="text-xs text-muted-foreground">Or choose a DiceBear avatar style</p>
-                
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    { style: "adventurer" },
-                    { style: "avataaars" },
-                    { style: "big-ears" },
-                    { style: "personas" }
-                  ].map(({ style }) => (
-                    <Button
-                      key={style}
-                      variant={profileData.avatarUrl?.includes(style) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`)}
-                      className="h-16 flex flex-col gap-1"
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-muted" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">or</span>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <h3 className="font-semibold text-sm">Choose an Avatar Style</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={rerollAvatar} 
+                      title="Don't like these? Click to get new avatar options!"
+                      className="text-xs px-2 py-1 h-auto"
                     >
-                      <img 
-                        src={`https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`} 
-                        alt={style}
-                        className="w-8 h-8 rounded"
-                      />
-                      <span className="text-xs capitalize">{style}</span>
+                      <Shuffle className="w-3 h-3 mr-1" />
+                      New Options
                     </Button>
-                  ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Not happy with these avatars? Click "New Options" to generate different ones!
+                  </p>
+                  
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { style: "adventurer" },
+                      { style: "avataaars" },
+                      { style: "big-ears" },
+                      { style: "personas" }
+                    ].map(({ style }) => (
+                      <Button
+                        key={style}
+                        variant={profileData.avatarUrl?.includes(style) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`)}
+                        className="h-16 flex flex-col gap-1"
+                      >
+                        <img 
+                          src={`https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`} 
+                          alt={style}
+                          className="w-8 h-8 rounded"
+                        />
+                        <span className="text-xs capitalize">{style}</span>
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
