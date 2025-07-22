@@ -182,9 +182,6 @@ const DiscoverProfiles = () => {
     // Track profile like
     analytics.profileLiked(user.id, currentProfile.user_id);
     
-    // Move to next profile immediately for better UX
-    handleNext();
-    
     console.log('🚀 Starting like process for profile:', currentProfile.user_id);
     
     try {
@@ -235,6 +232,10 @@ const DiscoverProfiles = () => {
         setTimeout(() => setShowMatchAnnouncement(false), 4000);
         console.log('🎉 Match announcement shown!');
       }
+
+      // IMPORTANT: Move to next profile AFTER like is successfully processed
+      handleNext();
+
     } catch (error) {
       console.error('❌ Error in like process:', error);
     } finally {
