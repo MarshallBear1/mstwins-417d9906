@@ -25,9 +25,6 @@ const Header = () => {
             <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
               Features
             </a>
-            <a href="#advertisement" className="text-muted-foreground hover:text-foreground transition-colors">
-              See It In Action
-            </a>
             <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
               Stories
             </a>
