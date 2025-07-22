@@ -69,6 +69,32 @@ const Auth = () => {
           </p>
         </div>
 
+        {/* Motivational Robot for Sign Up */}
+        {isSignUp && (
+          <div className="relative flex justify-center mb-8 animate-fade-in">
+            <div className="relative">
+              {/* Speech bubble */}
+              <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 min-w-max z-10">
+                <p className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  So excited to get you connected to others! 🎉
+                </p>
+                {/* Speech bubble tail */}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-white"></div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 translate-y-[-1px] w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-200"></div>
+              </div>
+              
+              {/* Robot character with hover animation */}
+              <div className="w-20 h-20 animate-bounce">
+                <img 
+                  src="/lovable-uploads/b96beb62-e747-4db6-b7cd-2de07cde399e.png" 
+                  alt="Friendly robot mascot"
+                  className="w-full h-full object-contain hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Auth Card */}
         <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95">
           <CardHeader className="text-center pb-6">
