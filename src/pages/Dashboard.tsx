@@ -458,7 +458,7 @@ const Dashboard = () => {
                 <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
                 <p className="text-sm text-foreground mb-2">
                   <strong>
-                    {isReturningUser ? `Welcome back, ${profile.first_name}!` : `Great job, ${profile.first_name}!`}
+                    {isReturningUser ? `Hello, ${profile.first_name}!` : `Great job, ${profile.first_name}!`}
                   </strong> 🎉
                 </p>
                 <p className="text-sm text-foreground">
