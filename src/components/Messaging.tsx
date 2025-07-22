@@ -123,7 +123,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         supabase.removeChannel(messageChannel);
       };
     }
-  }, [user, selectedMatch?.id, messages]);
+  }, [user]); // Removed selectedMatch?.id and messages from dependencies
 
   useEffect(() => {
     if (matchId && matches.length > 0) {
@@ -594,7 +594,12 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               value={newMessage}
               onChange={(e) => handleTyping(e.target.value)}
               placeholder="Type a message..."
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
               className="flex-1"
             />
             <Button 
