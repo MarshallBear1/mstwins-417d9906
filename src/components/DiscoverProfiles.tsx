@@ -6,7 +6,9 @@ import { Heart, X, User, MapPin, Calendar, RefreshCw, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
+import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { analytics } from "@/lib/analytics";
+import { useToast } from "@/hooks/use-toast";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
 
 interface Profile {
@@ -29,6 +31,8 @@ interface Profile {
 const DiscoverProfiles = () => {
   const { user } = useAuth();
   const { isUserOnline, getLastSeenText } = useRealtimePresence();
+  const { remainingLikes, refreshRemainingLikes, isLimitEnforced, hasUnlimitedLikes } = useDailyLikes();
+  const { toast } = useToast();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -36,6 +40,7 @@ const DiscoverProfiles = () => {
   const [showingSkipped, setShowingSkipped] = useState(false);
   const [showMatchAnnouncement, setShowMatchAnnouncement] = useState(false);
   const [showProfileView, setShowProfileView] = useState(false);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -183,6 +188,16 @@ const DiscoverProfiles = () => {
   const handleLike = async () => {
     if (!user || !currentProfile || actionLoading) return;
     
+    // Check daily like limit before proceeding
+    if (isLimitEnforced() && remainingLikes <= 0) {
+      toast({
+        title: "Daily Like Limit Reached",
+        description: "You've reached your daily limit of 10 likes. Come back tomorrow for more!",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setActionLoading(true);
     
     // Track profile like
@@ -191,7 +206,27 @@ const DiscoverProfiles = () => {
     console.log('🚀 Starting like process for profile:', currentProfile.user_id);
     
     try {
-      // First, check if this will create a match
+      // Check and increment daily likes using the database function
+      const { data: canLike, error: limitError } = await supabase.rpc('check_and_increment_daily_likes', {
+        target_user_id: currentProfile.user_id
+      });
+      
+      if (limitError) {
+        console.error('❌ Error checking like limit:', limitError);
+        throw limitError;
+      }
+      
+      if (!canLike) {
+        toast({
+          title: "Daily Like Limit Reached",
+          description: "You've reached your daily limit of 10 likes. Come back tomorrow for more!",
+          variant: "destructive",
+        });
+        setActionLoading(false);
+        return;
+      }
+      
+      // Check if this will create a match
       const { data: existingLike } = await supabase
         .from('likes')
         .select('*')
@@ -218,6 +253,9 @@ const DiscoverProfiles = () => {
       }
 
       console.log('✅ Like created successfully:', newLike);
+      
+      // Refresh remaining likes count
+      refreshRemainingLikes();
 
       // Send email notifications in background (non-blocking for speed)
       supabase.functions.invoke('email-notification-worker', {
@@ -238,12 +276,25 @@ const DiscoverProfiles = () => {
         setTimeout(() => setShowMatchAnnouncement(false), 4000);
         console.log('🎉 Match announcement shown!');
       }
+      
+      // Show reminder about like limits when user has few remaining
+      if (isLimitEnforced() && remainingLikes <= 3 && remainingLikes > 0) {
+        toast({
+          title: "Like Limit Reminder",
+          description: `You have ${remainingLikes - 1} likes remaining today.`,
+        });
+      }
 
       // IMPORTANT: Move to next profile AFTER like is successfully processed
       handleNext();
 
     } catch (error) {
       console.error('❌ Error in like process:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setActionLoading(false);
       console.log('🔄 Like process completed, actionLoading set to false');
