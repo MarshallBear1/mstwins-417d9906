@@ -162,6 +162,48 @@ const Dashboard = () => {
     }
   }, [activeTab, user]);
 
+  // Set up real-time subscription to refresh likes when there are new notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`likes-updates-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'likes',
+          filter: `liked_id=eq.${user.id}`
+        },
+        () => {
+          // Refresh likes when someone likes the current user
+          if (activeTab === 'likes') {
+            fetchLikes();
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'matches'
+        },
+        () => {
+          // Refresh likes when a new match is created (to remove them from likes)
+          if (activeTab === 'likes') {
+            fetchLikes();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, activeTab]);
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");

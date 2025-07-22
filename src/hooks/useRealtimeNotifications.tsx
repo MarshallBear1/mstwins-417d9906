@@ -62,8 +62,17 @@ export const useRealtimeNotifications = () => {
           
           // Prevent duplicate notifications by checking if already exists
           setNotifications(prev => {
-            const exists = prev.some(n => n.id === newNotification.id);
-            if (exists) return prev;
+            const exists = prev.some(n => 
+              n.id === newNotification.id || 
+              (n.type === newNotification.type && 
+               n.from_user_id === newNotification.from_user_id && 
+               n.user_id === newNotification.user_id &&
+               Math.abs(new Date(n.created_at).getTime() - new Date(newNotification.created_at).getTime()) < 60000) // Within 1 minute
+            );
+            if (exists) {
+              console.log('Duplicate notification prevented:', newNotification);
+              return prev;
+            }
             
             // Show toast notification only for new notifications
             toast({
