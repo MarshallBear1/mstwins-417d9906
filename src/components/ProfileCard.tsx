@@ -39,6 +39,7 @@ interface Profile {
   hobbies: string[];
   avatar_url: string | null;
   about_me: string | null;
+  last_seen?: string | null;
 }
 
 interface ProfileCardProps {

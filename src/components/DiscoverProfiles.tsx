@@ -22,11 +22,12 @@ interface Profile {
   hobbies: string[];
   avatar_url: string | null;
   about_me: string | null;
+  last_seen: string | null;
 }
 
 const DiscoverProfiles = () => {
   const { user } = useAuth();
-  const { isUserOnline } = useRealtimePresence();
+  const { isUserOnline, getLastSeenText } = useRealtimePresence();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -410,13 +411,13 @@ const DiscoverProfiles = () => {
               </span>
             </div>
             {/* Online status badge */}
-            <div className="absolute top-4 right-4 bg-white/80 rounded-full px-3 py-1">
+            <div className="absolute top-4 right-4 bg-white/90 rounded-full px-3 py-1">
               <div className="flex items-center gap-1">
                 <div className={`w-2 h-2 rounded-full ${
                   isUserOnline(currentProfile.user_id) ? 'bg-green-500' : 'bg-gray-400'
                 }`} />
                 <span className="text-xs font-medium">
-                  {isUserOnline(currentProfile.user_id) ? 'Online' : 'Offline'}
+                  {isUserOnline(currentProfile.user_id) ? 'Online' : getLastSeenText(currentProfile.last_seen)}
                 </span>
               </div>
             </div>

@@ -23,6 +23,17 @@ export const useRealtimePresence = () => {
   useEffect(() => {
     if (!user) return;
 
+    // Update last_seen timestamp when user comes online
+    const updateLastSeen = async () => {
+      try {
+        await supabase.rpc('update_user_last_seen', { user_id_param: user.id });
+      } catch (error) {
+        console.error('Error updating last seen:', error);
+      }
+    };
+
+    updateLastSeen();
+
     // Set up presence channel for online/offline status
     const presenceChannel = supabase.channel('user-presence');
 
@@ -139,10 +150,28 @@ export const useRealtimePresence = () => {
     return Array.from(typingUsers.get(matchId) || []);
   };
 
+  const getLastSeenText = (lastSeen: string | null): string => {
+    if (!lastSeen) return 'last seen long ago';
+    
+    const now = new Date();
+    const lastSeenDate = new Date(lastSeen);
+    const diffInMs = now.getTime() - lastSeenDate.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    
+    if (diffInMinutes < 1) return 'last seen just now';
+    if (diffInMinutes < 60) return `last seen ${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `last seen ${diffInHours}h ago`;
+    if (diffInDays < 7) return `last seen ${diffInDays}d ago`;
+    return 'last seen long ago';
+  };
+
   return {
     onlineUsers: Array.from(onlineUsers),
     isUserOnline,
     setTyping,
-    getTypingUsers
+    getTypingUsers,
+    getLastSeenText
   };
 };

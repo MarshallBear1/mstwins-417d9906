@@ -159,6 +159,7 @@ export type Database = {
           hobbies: string[] | null
           id: string
           last_name: string
+          last_seen: string | null
           location: string
           medications: string[] | null
           ms_subtype: string | null
@@ -176,6 +177,7 @@ export type Database = {
           hobbies?: string[] | null
           id?: string
           last_name: string
+          last_seen?: string | null
           location: string
           medications?: string[] | null
           ms_subtype?: string | null
@@ -193,6 +195,7 @@ export type Database = {
           hobbies?: string[] | null
           id?: string
           last_name?: string
+          last_seen?: string | null
           location?: string
           medications?: string[] | null
           ms_subtype?: string | null
@@ -265,6 +268,10 @@ export type Database = {
       text_to_bytea: {
         Args: { data: string }
         Returns: string
+      }
+      update_user_last_seen: {
+        Args: { user_id_param: string }
+        Returns: undefined
       }
       urlencode: {
         Args: { data: Json } | { string: string } | { string: string }

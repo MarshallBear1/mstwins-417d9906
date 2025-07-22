@@ -17,6 +17,7 @@ interface Profile {
   hobbies: string[];
   avatar_url: string | null;
   about_me: string | null;
+  last_seen: string | null;
 }
 
 interface DiscoverProfileCardProps {
@@ -24,7 +25,7 @@ interface DiscoverProfileCardProps {
 }
 
 const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
-  const { isUserOnline } = useRealtimePresence();
+  const { isUserOnline, getLastSeenText } = useRealtimePresence();
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
@@ -75,7 +76,7 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
             <div className="flex items-center gap-1">
               <div className={`w-2 h-2 rounded-full ${isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-gray-400'}`} />
               <span className="text-xs text-muted-foreground">
-                {isUserOnline(profile.user_id) ? 'Online' : 'Offline'}
+                {isUserOnline(profile.user_id) ? 'Online' : getLastSeenText(profile.last_seen)}
               </span>
             </div>
           </div>

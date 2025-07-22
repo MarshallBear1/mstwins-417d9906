@@ -26,6 +26,7 @@ interface Profile {
   hobbies: string[];
   avatar_url: string | null;
   about_me: string | null;
+  last_seen: string | null;
 }
 
 const Dashboard = () => {
@@ -69,6 +70,15 @@ const Dashboard = () => {
       }
 
       setProfile(data);
+      
+      // Update last_seen timestamp in background to not block UI
+      if (data) {
+        try {
+          await supabase.rpc('update_user_last_seen', { user_id_param: user.id });
+        } catch (error) {
+          console.error('Error updating last seen:', error);
+        }
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -316,7 +326,7 @@ const Dashboard = () => {
         return (
           <ProfileCard 
             profile={profile}
-            onProfileUpdate={setProfile}
+            onProfileUpdate={(updatedProfile) => setProfile({ ...updatedProfile, last_seen: profile.last_seen })}
             onSignOut={handleSignOut}
           />
         );
