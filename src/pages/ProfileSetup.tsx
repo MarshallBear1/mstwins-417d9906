@@ -66,7 +66,7 @@ const ProfileSetup = () => {
     customMedications: "",
   });
 
-  const totalSteps = 9;
+  const totalSteps = 10;
   const progress = (currentStep / totalSteps) * 100;
 
   // Fetch existing profile if editing
@@ -375,6 +375,38 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold">Your Name</h2>
+              <p className="text-muted-foreground">Let's start with your name</p>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={profileData.firstName}
+                  onChange={(e) => updateProfileData("firstName", e.target.value)}
+                  placeholder="Your first name"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={profileData.lastName}
+                  onChange={(e) => updateProfileData("lastName", e.target.value)}
+                  placeholder="Your last name"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-4">
+            <div className="text-center mb-6">
               <h2 className="text-2xl font-bold">Date of Birth</h2>
               <p className="text-muted-foreground">When were you born?</p>
             </div>
@@ -455,7 +487,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 2:
+      case 3:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -475,7 +507,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -502,7 +534,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -525,7 +557,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -562,7 +594,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 6:
+      case 7:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -599,7 +631,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 7:
+      case 8:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -642,12 +674,12 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 8:
+      case 9:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold">Profile Picture</h2>
-              <p className="text-muted-foreground">It's your choice - upload your own photo or use an avatar!</p>
+              <p className="text-muted-foreground">Upload your own photo or choose an avatar!</p>
             </div>
 
             {/* Robot hint notification */}
@@ -666,7 +698,7 @@ const ProfileSetup = () => {
                       <div className="bg-white rounded-lg p-3 shadow-sm relative">
                         <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
                         <p className="text-sm text-foreground">
-                          💡 <strong>Pro tip:</strong> You can upload your own photo or choose from our fun avatar styles. 
+                          💡 <strong>Pro tip:</strong> Upload your own photo for better connections, or choose from our fun avatar styles. 
                           Don't like the current avatars? Click "Reroll" to get new ones!
                         </p>
                       </div>
@@ -685,11 +717,18 @@ const ProfileSetup = () => {
             )}
             
             <div className="text-center space-y-4">
-              <div className="w-32 h-32 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center overflow-hidden">
+              <div className="w-32 h-32 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center overflow-hidden border-4 border-border">
                 {profileData.avatarUrl ? (
-                  <img src={profileData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  <img 
+                    src={profileData.avatarUrl} 
+                    alt="Avatar" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${avatarSeed}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
+                    }}
+                  />
                 ) : (
-                  <span className="text-muted-foreground">Avatar</span>
+                  <Camera className="w-8 h-8 text-muted-foreground" />
                 )}
               </div>
               
@@ -789,7 +828,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 9:
+      case 10:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
