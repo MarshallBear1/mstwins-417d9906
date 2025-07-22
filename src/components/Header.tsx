@@ -15,8 +15,8 @@ const Header = () => {
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="text-xl font-bold text-foreground">
-              MS<span className="text-blue-600">Twins</span>
+            <span className="text-xl font-bold">
+              <span className="text-black">MS</span><span className="text-blue-600">Twins</span>
             </span>
           </div>
 

@@ -82,7 +82,7 @@ const Hero = () => {
               asChild
             >
               <Link to="/auth">
-                Join the Community
+                Get Started
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
