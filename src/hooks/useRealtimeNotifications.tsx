@@ -43,7 +43,12 @@ export const useRealtimeNotifications = () => {
 
     // Set up real-time subscription for new notifications
     const channel = supabase
-      .channel(`notifications-${user.id}`) // Unique channel per user
+      .channel(`notifications-${user.id}`, {
+        config: {
+          broadcast: { self: true },
+          presence: { key: user.id }
+        }
+      })
       .on(
         'postgres_changes',
         {
@@ -64,7 +69,7 @@ export const useRealtimeNotifications = () => {
             toast({
               title: newNotification.title,
               description: newNotification.message,
-              duration: 5000,
+              duration: 4000,
             });
 
             // Play notification sound (optional)

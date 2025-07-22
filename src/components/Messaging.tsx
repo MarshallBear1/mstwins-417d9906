@@ -603,6 +603,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               className="flex-1"
             />
             <Button 
+              type="button"
               onClick={sendMessage} 
               disabled={!newMessage.trim() || sending}
             >

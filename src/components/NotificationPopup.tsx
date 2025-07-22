@@ -20,11 +20,11 @@ const NotificationPopup = () => {
            !dismissedNotifications.has(n.id)
     );
 
-    if (latestNotification && (!currentNotification || latestNotification.id !== currentNotification.id)) {
+    if (latestNotification && latestNotification.id !== currentNotification?.id) {
       setCurrentNotification(latestNotification);
       setIsVisible(true);
     }
-  }, [notifications, dismissedNotifications, currentNotification]);
+  }, [notifications, dismissedNotifications]);
 
   const fetchFromUserProfile = async (fromUserId: string) => {
     if (!fromUserId) return null;
