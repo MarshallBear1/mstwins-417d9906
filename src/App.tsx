@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import ProfileSetup from "./pages/ProfileSetup";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import AdminFeedback from "./pages/AdminFeedback";
 import NotFound from "./pages/NotFound";
 
 const RouteTracker = () => {
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/admin/feedback" element={<AdminFeedback />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

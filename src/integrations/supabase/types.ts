@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      feedback: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          email: string | null
+          id: string
+          message: string
+          priority: string
+          status: string
+          subject: string
+          type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          message: string
+          priority?: string
+          status?: string
+          subject: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          message?: string
+          priority?: string
+          status?: string
+          subject?: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string

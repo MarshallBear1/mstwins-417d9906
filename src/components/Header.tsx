@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import FeedbackDialog from "@/components/FeedbackDialog";
 
 const Header = () => {
   return (
@@ -32,6 +33,7 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="flex items-center space-x-4">
+            <FeedbackDialog />
             <Button variant="ghost" className="hidden sm:inline-flex" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
