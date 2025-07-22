@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, X, User, MapPin, Calendar, RefreshCw, Eye } from "lucide-react";
+import { Heart, X, User, MapPin, Calendar, RefreshCw, Eye, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
@@ -614,15 +614,14 @@ const DiscoverProfiles = () => {
         onPass={handlePass}
         showActions={true}
         isLiking={actionLoading}
-        onReport={() => setShowReportDialog(true)}
       />
 
-      {/* User Report Dialog */}
-      <UserReportDialog 
-        reportedUser={currentProfile}
-        open={showReportDialog}
-        onOpenChange={setShowReportDialog}
-      />
+      {/* User Report Dialog - Always rendered but controlled by its own state */}
+      {currentProfile && (
+        <UserReportDialog 
+          profile={currentProfile}
+        />
+      )}
     </div>
   );
 };
