@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, ArrowLeft, User, Trash2 } from "lucide-react";
+import { Send, ArrowLeft, User, Trash2, Eye } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
@@ -31,6 +32,14 @@ interface Match {
     first_name: string;
     last_name: string;
     avatar_url: string | null;
+    location?: string;
+    about_me?: string;
+    ms_subtype?: string;
+    diagnosis_year?: number;
+    date_of_birth?: string;
+    hobbies?: string[];
+    symptoms?: string[];
+    medications?: string[];
   };
   unread_count: number;
 }
@@ -170,7 +179,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('first_name, last_name, avatar_url')
+            .select('first_name, last_name, avatar_url, location, about_me, ms_subtype, diagnosis_year, date_of_birth, hobbies, symptoms, medications')
             .eq('user_id', otherUserId)
             .single();
 
@@ -187,7 +196,15 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             other_user: profileData || {
               first_name: 'Unknown',
               last_name: 'User',
-              avatar_url: null
+              avatar_url: null,
+              location: '',
+              about_me: '',
+              ms_subtype: '',
+              diagnosis_year: null,
+              date_of_birth: '',
+              hobbies: [],
+              symptoms: [],
+              medications: []
             },
             unread_count: unreadCount || 0
           };
@@ -436,6 +453,70 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               </p>
             </div>
           </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="mr-2">
+                <Eye className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Profile</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <Avatar className="w-16 h-16">
+                    <AvatarImage src={selectedMatch.other_user.avatar_url || undefined} />
+                    <AvatarFallback>
+                      <User className="w-8 h-8" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="text-xl font-bold">
+                      {selectedMatch.other_user.first_name} {selectedMatch.other_user.last_name}
+                    </h3>
+                    {selectedMatch.other_user.location && (
+                      <p className="text-sm text-muted-foreground">{selectedMatch.other_user.location}</p>
+                    )}
+                  </div>
+                </div>
+                
+                {selectedMatch.other_user.ms_subtype && (
+                  <div>
+                    <h4 className="font-semibold mb-1">MS Type</h4>
+                    <p className="text-sm text-muted-foreground">{selectedMatch.other_user.ms_subtype}</p>
+                  </div>
+                )}
+                
+                {selectedMatch.other_user.diagnosis_year && (
+                  <div>
+                    <h4 className="font-semibold mb-1">Diagnosed</h4>
+                    <p className="text-sm text-muted-foreground">{selectedMatch.other_user.diagnosis_year}</p>
+                  </div>
+                )}
+                
+                {selectedMatch.other_user.hobbies && selectedMatch.other_user.hobbies.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-1">Interests</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedMatch.other_user.hobbies.slice(0, 6).map((hobby, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {hobby}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedMatch.other_user.about_me && (
+                  <div>
+                    <h4 className="font-semibold mb-1">About</h4>
+                    <p className="text-sm text-muted-foreground">{selectedMatch.other_user.about_me}</p>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
@@ -519,13 +600,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             <Button 
               onClick={sendMessage} 
               disabled={!newMessage.trim() || sending}
-              className="relative"
             >
-              {sending ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
+              <Send className="w-4 h-4" />
             </Button>
           </div>
         </div>
