@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
+import NotificationPopup from "@/components/NotificationPopup";
 import DiscoverProfiles from "@/components/DiscoverProfiles";
 import Messaging from "@/components/Messaging";
 import ProfileCard from "@/components/ProfileCard";
@@ -386,6 +387,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <NotificationPopup />
       {/* Header with notifications and referral */}
       <div className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
         <div className="flex items-center justify-between px-6 py-3">

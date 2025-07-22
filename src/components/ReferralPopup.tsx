@@ -20,12 +20,12 @@ const ReferralPopup = () => {
       
       // Only show if user hasn't seen it 3 times already
       if (currentCount < 3) {
-        // Show first popup after 2 minutes (120000ms)
+        // Show first popup after 5 minutes (300000ms)
         const firstTimeout = setTimeout(() => {
           setIsVisible(true);
           // Increment counter when showing popup
           localStorage.setItem(storageKey, (currentCount + 1).toString());
-        }, 120000);
+        }, 300000);
 
         // Then show every 30 minutes (1800000ms) if count is still less than 3
         const interval = setInterval(() => {
