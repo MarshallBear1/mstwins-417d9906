@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, ArrowRight, MapPin, Calendar, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import LaunchStats from "@/components/LaunchStats";
 
 const Hero = () => {
   const [currentProfile, setCurrentProfile] = useState(0);
@@ -192,6 +193,11 @@ const Hero = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Launch Stats Section */}
+        <div className="mt-16">
+          <LaunchStats />
         </div>
       </div>
     </section>
