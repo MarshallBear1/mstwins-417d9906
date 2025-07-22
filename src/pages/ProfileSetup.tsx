@@ -40,26 +40,29 @@ const ProfileSetup = () => {
     // Step 3: Location
     location: "",
     
-    // Step 4: MS Subtype
+    // Step 4: Gender
+    gender: "",
+    
+    // Step 5: MS Subtype
     msSubtype: "",
     
-    // Step 5: Diagnosis Year
+    // Step 6: Diagnosis Year
     diagnosisYear: "",
     
-    // Step 6: Symptoms
+    // Step 7: Symptoms
     symptoms: [] as string[],
     
-    // Step 7: Medications
+    // Step 8: Medications
     medications: [] as string[],
     
-    // Step 8: Interests & Hobbies
+    // Step 9: Interests & Hobbies
     hobbies: [] as string[],
     customHobbies: "",
     
-    // Step 9: Profile Picture (Avatar)
+    // Step 10: Profile Picture (Avatar)
     avatarUrl: "",
     
-    // Step 10: About Me (Optional Bio)
+    // Step 11: About Me (Optional Bio)
     aboutMe: "",
     
     // Custom fields for "Other" options
@@ -67,7 +70,7 @@ const ProfileSetup = () => {
     customMedications: "",
   });
 
-  const totalSteps = 10;
+  const totalSteps = 11;
   const progress = (currentStep / totalSteps) * 100;
 
   // Fetch existing profile if editing
@@ -113,6 +116,7 @@ const ProfileSetup = () => {
           lastName: data.last_name || user.user_metadata?.last_name || "",
           dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth) : undefined,
           location: data.location || "",
+          gender: data.gender || "",
           msSubtype: data.ms_subtype || "",
           diagnosisYear: data.diagnosis_year ? data.diagnosis_year.toString() : "",
           symptoms: data.symptoms || [],
@@ -204,6 +208,7 @@ const ProfileSetup = () => {
         last_name: sanitizeInput(profileData.lastName, 50),
         date_of_birth: profileData.dateOfBirth?.toISOString().split('T')[0] || null,
         location: sanitizeInput(profileData.location, 100),
+        gender: sanitizeInput(profileData.gender, 20),
         ms_subtype: sanitizeInput(profileData.msSubtype, 50),
         diagnosis_year: profileData.diagnosisYear ? parseInt(profileData.diagnosisYear) : null,
         symptoms: allSymptoms,
@@ -512,6 +517,31 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold">Gender</h2>
+              <p className="text-muted-foreground">What is your gender?</p>
+            </div>
+            <div>
+              <Label htmlFor="gender">Gender</Label>
+              <Select value={profileData.gender} onValueChange={(value) => updateProfileData("gender", value)} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="non-binary">Non-binary</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+      
+      case 5:
+        return (
+          <div className="space-y-4">
+            <div className="text-center mb-6">
               <h2 className="text-2xl font-bold">MS Subtype</h2>
               <p className="text-muted-foreground">What type of MS do you have?</p>
             </div>
@@ -535,7 +565,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -558,7 +588,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 6:
+      case 7:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -595,7 +625,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 7:
+      case 8:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -632,7 +662,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 8:
+      case 9:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -675,7 +705,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 9:
+      case 10:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -829,7 +859,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 10:
+      case 11:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -923,13 +953,14 @@ const ProfileSetup = () => {
                   { step: 1, label: "Name" },
                   { step: 2, label: "Birth" },
                   { step: 3, label: "Location" },
-                  { step: 4, label: "MS Type" },
-                  { step: 5, label: "Diagnosis" },
-                  { step: 6, label: "Symptoms" },
-                  { step: 7, label: "Meds" },
-                  { step: 8, label: "Hobbies" },
-                  { step: 9, label: "Avatar" },
-                  { step: 10, label: "About" }
+                  { step: 4, label: "Gender" },
+                  { step: 5, label: "MS Type" },
+                  { step: 6, label: "Diagnosis" },
+                  { step: 7, label: "Symptoms" },
+                  { step: 8, label: "Meds" },
+                  { step: 9, label: "Hobbies" },
+                  { step: 10, label: "Avatar" },
+                  { step: 11, label: "About" }
                 ].map((section) => (
                   <Button
                     key={section.step}

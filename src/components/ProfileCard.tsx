@@ -420,6 +420,32 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               </div>
             )}
 
+            {/* Gender */}
+            <div className="space-y-2">
+              {isEditing ? (
+                <div>
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select value={editData.gender || ''} onValueChange={(value) => setEditData(prev => ({ ...prev, gender: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="non-binary">Non-binary</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : profile.gender && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <User className="w-4 h-4" />
+                  <span>{profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}</span>
+                </div>
+              )}
+            </div>
+
             {/* Location */}
             <div className="space-y-2">
               {isEditing ? (

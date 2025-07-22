@@ -200,6 +200,13 @@ export const validateProfileData = (data: any): { isValid: boolean; errors: stri
     errors.push(locationValidation.error!);
   }
   
+  // Validate gender (required)
+  if (!data.gender) {
+    errors.push('Gender is required');
+  } else if (!['male', 'female', 'non-binary', 'other', 'prefer-not-to-say'].includes(data.gender)) {
+    errors.push('Invalid gender selection');
+  }
+  
   // Validate optional fields with length limits
   if (data.aboutMe) {
     const aboutMeValidation = validateTextInput(data.aboutMe, 'About me', 1000, false);

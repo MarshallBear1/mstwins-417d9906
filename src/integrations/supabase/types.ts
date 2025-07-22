@@ -225,6 +225,7 @@ export type Database = {
           date_of_birth: string | null
           diagnosis_year: number | null
           first_name: string
+          gender: string | null
           hobbies: string[] | null
           id: string
           last_name: string
@@ -243,6 +244,7 @@ export type Database = {
           date_of_birth?: string | null
           diagnosis_year?: number | null
           first_name: string
+          gender?: string | null
           hobbies?: string[] | null
           id?: string
           last_name: string
@@ -261,6 +263,7 @@ export type Database = {
           date_of_birth?: string | null
           diagnosis_year?: number | null
           first_name?: string
+          gender?: string | null
           hobbies?: string[] | null
           id?: string
           last_name?: string
