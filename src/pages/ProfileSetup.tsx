@@ -73,6 +73,10 @@ const ProfileSetup = () => {
     if (user) {
       fetchExistingProfile();
     }
+    // Set default avatar if none exists
+    if (!profileData.avatarUrl) {
+      updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/adventurer/svg?seed=${avatarSeed}`);
+    }
   }, [user]);
 
   const fetchExistingProfile = async () => {
@@ -220,7 +224,10 @@ const ProfileSetup = () => {
   const rerollAvatar = () => {
     const newSeed = Math.random().toString(36).substring(7);
     setAvatarSeed(newSeed);
-    const currentStyle = profileData.avatarUrl ? profileData.avatarUrl.split('/')[4] : 'adventurer';
+    // Get current style or default to adventurer
+    const currentStyle = profileData.avatarUrl && profileData.avatarUrl.includes('dicebear') 
+      ? profileData.avatarUrl.split('/')[4] 
+      : 'adventurer';
     updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${currentStyle}/svg?seed=${newSeed}`);
   };
 
@@ -635,12 +642,10 @@ const ProfileSetup = () => {
                       </Button>
                     </label>
                   </div>
-                  {profileData.avatarUrl && (
-                    <Button variant="outline" onClick={rerollAvatar} title="Reroll avatar">
-                      <Shuffle className="w-4 h-4 mr-2" />
-                      Reroll
-                    </Button>
-                  )}
+                  <Button variant="outline" onClick={rerollAvatar} title="Reroll avatar">
+                    <Shuffle className="w-4 h-4 mr-2" />
+                    Reroll
+                  </Button>
                 </div>
                 
                 <p className="text-xs text-muted-foreground">Or choose a DiceBear avatar style</p>
