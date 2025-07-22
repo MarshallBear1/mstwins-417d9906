@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_likes: {
+        Row: {
+          created_at: string
+          id: string
+          like_count: number
+          like_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          like_count?: number
+          like_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          like_count?: number
+          like_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           admin_notes: string | null
@@ -247,6 +274,42 @@ export type Database = {
         }
         Relationships: []
       }
+      robot_announcements: {
+        Row: {
+          announcement_type: string
+          created_at: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          message: string
+          start_date: string | null
+          target_audience: string
+          title: string
+        }
+        Insert: {
+          announcement_type?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          message: string
+          start_date?: string | null
+          target_audience?: string
+          title: string
+        }
+        Update: {
+          announcement_type?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          message?: string
+          start_date?: string | null
+          target_audience?: string
+          title?: string
+        }
+        Relationships: []
+      }
       security_audit_log: {
         Row: {
           created_at: string | null
@@ -277,11 +340,72 @@ export type Database = {
         }
         Relationships: []
       }
+      user_reports: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string | null
+          id: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason?: string
+          reported_user_id?: string
+          reporter_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      check_and_increment_daily_likes: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       enhanced_rate_limit_check: {
         Args: {
           user_id_param: string
@@ -291,9 +415,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_remaining_likes_today: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       get_user_count: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
       }
       log_security_event: {
         Args: {
@@ -321,7 +456,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -448,6 +583,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
