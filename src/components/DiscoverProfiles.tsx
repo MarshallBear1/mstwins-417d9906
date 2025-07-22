@@ -616,12 +616,7 @@ const DiscoverProfiles = () => {
         isLiking={actionLoading}
       />
 
-      {/* User Report Dialog - Always rendered but controlled by its own state */}
-      {currentProfile && (
-        <UserReportDialog 
-          profile={currentProfile}
-        />
-      )}
+      {/* User Report Dialog - Already integrated in ProfileViewDialog */}
     </div>
   );
 };

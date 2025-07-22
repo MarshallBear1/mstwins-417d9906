@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, MapPin, Calendar, Heart, X, Pill, Activity, BookOpen } from "lucide-react";
+import { User, MapPin, Calendar, Heart, X, Pill, Activity, BookOpen, Flag } from "lucide-react";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
+import UserReportDialog from "@/components/UserReportDialog";
 
 interface Profile {
   id: string;
@@ -249,6 +250,42 @@ const ProfileViewDialog = ({
                   {isLiking ? 'Liking...' : 'Like'}
                 </Button>
               </div>
+              
+              {/* Report User Button */}
+              <div className="mt-3 pt-3 border-t border-border/50">
+                <UserReportDialog 
+                  profile={profile}
+                  trigger={
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full text-muted-foreground hover:text-destructive"
+                    >
+                      <Flag className="w-4 h-4 mr-2" />
+                      Report User
+                    </Button>
+                  }
+                />
+              </div>
+            </div>
+          )}
+          
+          {/* Report Button for non-action views */}
+          {!showActions && (
+            <div className="pt-4 border-t border-border/50">
+              <UserReportDialog 
+                profile={profile}
+                trigger={
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    <Flag className="w-4 h-4 mr-2" />
+                    Report User
+                  </Button>
+                }
+              />
             </div>
           )}
         </div>

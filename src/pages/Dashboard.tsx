@@ -17,6 +17,7 @@ import ProfileViewDialog from "@/components/ProfileViewDialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 interface Profile {
   id: string;
@@ -40,6 +41,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { remainingLikes, isLimitEnforced, hasUnlimitedLikes } = useDailyLikes();
   const { currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
+  const { requestNotificationPermission } = useRealtimeNotifications();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("discover");
@@ -98,6 +100,29 @@ const Dashboard = () => {
       setProfileLoading(false);
     }
   };
+
+  // Auto-prompt for browser notifications
+  useEffect(() => {
+    if (!user || !profile) return;
+    
+    // Only prompt once per session to avoid spam
+    const hasPromptedThisSession = sessionStorage.getItem(`notif_prompted_${user.id}`);
+    if (hasPromptedThisSession) return;
+
+    // Prompt after a brief delay when user first accesses dashboard with profile
+    const timer = setTimeout(async () => {
+      if ('Notification' in window && Notification.permission === 'default') {
+        try {
+          await requestNotificationPermission();
+          sessionStorage.setItem(`notif_prompted_${user.id}`, 'true');
+        } catch (error) {
+          console.log('Notification permission request failed:', error);
+        }
+      }
+    }, 3000); // 3 second delay for natural UX
+
+    return () => clearTimeout(timer);
+  }, [user, profile, requestNotificationPermission]);
 
   const fetchLikes = async () => {
     if (!user) return;
