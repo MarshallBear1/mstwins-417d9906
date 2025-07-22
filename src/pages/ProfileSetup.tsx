@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { validateProfileData, sanitizeInput, sanitizeErrorMessage } from "@/lib/security";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -145,37 +146,61 @@ const ProfileSetup = () => {
       return;
     }
 
+    // Validate profile data before saving
+    const validation = validateProfileData(profileData);
+    if (!validation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: validation.errors[0], // Show first error
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Combine custom entries with selected options
+      // Sanitize and combine custom entries with selected options
       const allSymptoms = [...profileData.symptoms];
       if (profileData.customSymptoms.trim()) {
-        allSymptoms.push(...profileData.customSymptoms.split(',').map(s => s.trim()).filter(s => s));
+        const customSymptoms = profileData.customSymptoms
+          .split(',')
+          .map(s => sanitizeInput(s.trim(), 50))
+          .filter(s => s && s.length > 0);
+        allSymptoms.push(...customSymptoms);
       }
 
       const allMedications = [...profileData.medications];
       if (profileData.customMedications.trim()) {
-        allMedications.push(...profileData.customMedications.split(',').map(m => m.trim()).filter(m => m));
+        const customMedications = profileData.customMedications
+          .split(',')
+          .map(m => sanitizeInput(m.trim(), 50))
+          .filter(m => m && m.length > 0);
+        allMedications.push(...customMedications);
       }
 
       const allHobbies = [...profileData.hobbies];
       if (profileData.customHobbies.trim()) {
-        allHobbies.push(...profileData.customHobbies.split(',').map(h => h.trim()).filter(h => h));
+        const customHobbies = profileData.customHobbies
+          .split(',')
+          .map(h => sanitizeInput(h.trim(), 50))
+          .filter(h => h && h.length > 0);
+        allHobbies.push(...customHobbies);
       }
 
+      // Sanitize all text inputs
       const profileToSave = {
         user_id: user.id,
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
+        first_name: sanitizeInput(profileData.firstName, 50),
+        last_name: sanitizeInput(profileData.lastName, 50),
         date_of_birth: profileData.dateOfBirth?.toISOString().split('T')[0] || null,
-        location: profileData.location,
-        ms_subtype: profileData.msSubtype,
+        location: sanitizeInput(profileData.location, 100),
+        ms_subtype: sanitizeInput(profileData.msSubtype, 50),
         diagnosis_year: profileData.diagnosisYear ? parseInt(profileData.diagnosisYear) : null,
         symptoms: allSymptoms,
         medications: allMedications,
         hobbies: allHobbies,
         avatar_url: profileData.avatarUrl,
-        about_me: profileData.aboutMe,
+        about_me: sanitizeInput(profileData.aboutMe, 1000),
       };
 
       const { error } = await supabase
@@ -184,10 +209,11 @@ const ProfileSetup = () => {
 
       if (error) {
         console.error('Profile save error:', error);
+        const sanitizedError = sanitizeErrorMessage(error);
         toast({
           variant: "destructive",
           title: "Error saving profile",
-          description: error.message,
+          description: sanitizedError,
         });
         return;
       }
@@ -199,10 +225,11 @@ const ProfileSetup = () => {
       navigate("/dashboard");
     } catch (error: any) {
       console.error('Profile save error:', error);
+      const sanitizedError = sanitizeErrorMessage(error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to save profile. Please try again.",
+        description: sanitizedError,
       });
     } finally {
       setLoading(false);

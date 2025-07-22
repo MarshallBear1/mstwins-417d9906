@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { analytics } from "@/lib/analytics";
+import { sanitizeInput, checkRateLimit, sanitizeErrorMessage, filterContent } from "@/lib/security";
 
 interface Message {
   id: string;
@@ -290,6 +291,28 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   const sendMessage = async () => {
     if (!user || !selectedMatch || !newMessage.trim()) return;
 
+    // Check rate limit
+    const rateCheck = checkRateLimit(user.id, 'message');
+    if (!rateCheck.allowed) {
+      const resetTime = new Date(rateCheck.resetTime);
+      const resetText = resetTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      alert(`Message rate limit reached. You can send more messages after ${resetText}.`);
+      return;
+    }
+
+    // Sanitize and validate message content
+    const sanitizedContent = sanitizeInput(newMessage.trim(), 2000);
+    if (!sanitizedContent) {
+      alert('Message cannot be empty after processing.');
+      return;
+    }
+
+    // Filter content for potentially harmful patterns
+    const { filtered, flagged } = filterContent(sanitizedContent);
+    if (flagged) {
+      console.warn('Message content was filtered for security:', { original: sanitizedContent, filtered });
+    }
+
     setSending(true);
     const receiverId = selectedMatch.user1_id === user.id 
       ? selectedMatch.user2_id 
@@ -300,7 +323,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         match_id: selectedMatch.id,
         sender_id: user.id,
         receiver_id: receiverId,
-        content: newMessage.trim()
+        content: filtered
       });
 
       const { data, error } = await supabase
@@ -309,14 +332,15 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           match_id: selectedMatch.id,
           sender_id: user.id,
           receiver_id: receiverId,
-          content: newMessage.trim()
+          content: filtered
         })
         .select()
         .single();
 
       if (error) {
         console.error('❌ Error sending message:', error);
-        alert(`Error sending message: ${error.message}`);
+        const sanitizedError = sanitizeErrorMessage(error);
+        alert(`Error sending message: ${sanitizedError}`);
         return;
       }
 
@@ -329,7 +353,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       setMessageHistory(prev => new Map(prev.set(selectedMatch.id, updatedMessages)));
       setNewMessage("");
       
-      // Track message sent
+      // Track message sent (use original length for analytics)
       analytics.messageSent(user.id, receiverId, newMessage.trim().length);
       
       // Update unread count for this match
@@ -345,7 +369,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             type: 'message',
             likerUserId: user.id,
             likedUserId: receiverId,
-            messageContent: newMessage.trim()
+            messageContent: filtered
           }
         });
         
