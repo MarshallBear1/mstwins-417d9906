@@ -22,8 +22,8 @@ const Header = () => {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-              Features
+            <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+              How It Works
             </a>
             <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
               Stories
