@@ -65,7 +65,7 @@ const ProfileSetup = () => {
     customMedications: "",
   });
 
-  const totalSteps = 10;
+  const totalSteps = 9;
   const progress = (currentStep / totalSteps) * 100;
 
   // Fetch existing profile if editing
@@ -94,8 +94,8 @@ const ProfileSetup = () => {
         setExistingProfile(data);
         setShowRobotNotification(false); // Hide notification for existing profiles
         setProfileData({
-          firstName: data.first_name || "",
-          lastName: data.last_name || "",
+          firstName: data.first_name || user.user_metadata?.first_name || "",
+          lastName: data.last_name || user.user_metadata?.last_name || "",
           dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth) : undefined,
           location: data.location || "",
           msSubtype: data.ms_subtype || "",
@@ -109,6 +109,13 @@ const ProfileSetup = () => {
           customSymptoms: "",
           customMedications: "",
         });
+      } else {
+        // For new profiles, get name from user metadata
+        setProfileData(prev => ({
+          ...prev,
+          firstName: user.user_metadata?.first_name || "",
+          lastName: user.user_metadata?.last_name || "",
+        }));
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -325,38 +332,6 @@ const ProfileSetup = () => {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Name Collection</h2>
-              <p className="text-muted-foreground">Let's start with your name</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={profileData.firstName}
-                  onChange={(e) => updateProfileData("firstName", e.target.value)}
-                  placeholder="Sarah"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={profileData.lastName}
-                  onChange={(e) => updateProfileData("lastName", e.target.value)}
-                  placeholder="Johnson"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
               <h2 className="text-2xl font-bold">Date of Birth</h2>
               <p className="text-muted-foreground">When were you born?</p>
             </div>
@@ -433,30 +408,11 @@ const ProfileSetup = () => {
                   </Select>
                 </div>
               </div>
-              
-              {/* Alternative: Manual Date Input */}
-              <div className="pt-4 border-t">
-                <Label htmlFor="manualDate" className="text-sm">Or type your date (MM/DD/YYYY)</Label>
-                <Input
-                  id="manualDate"
-                  type="date"
-                  value={profileData.dateOfBirth ? profileData.dateOfBirth.toISOString().split('T')[0] : ""}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      updateProfileData("dateOfBirth", new Date(e.target.value));
-                    }
-                  }}
-                  max={new Date().toISOString().split('T')[0]}
-                  min="1900-01-01"
-                  className="mt-2"
-                  placeholder="Select or type your birth date"
-                />
-              </div>
             </div>
           </div>
         );
 
-      case 3:
+      case 2:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -476,7 +432,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -503,7 +459,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -526,7 +482,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 6:
+      case 5:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -560,7 +516,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 7:
+      case 6:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -594,7 +550,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 8:
+      case 7:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -634,7 +590,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 9:
+      case 8:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -717,7 +673,7 @@ const ProfileSetup = () => {
           </div>
         );
 
-      case 10:
+      case 9:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -739,6 +695,7 @@ const ProfileSetup = () => {
             </div>
           </div>
         );
+
 
       default:
         return null;

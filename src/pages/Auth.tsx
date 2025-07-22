@@ -41,7 +41,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -51,10 +51,14 @@ const Auth = () => {
           </Link>
           
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="p-2 bg-gradient-primary rounded-lg">
-              <Heart className="w-6 h-6 text-primary-foreground" fill="currentColor" />
+            <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-gray-200 p-1 shadow-sm">
+              <img 
+                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                alt="MSTwins mascot"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <span className="text-2xl font-bold text-foreground">MSTwins</span>
+            <span className="text-2xl font-bold text-blue-600">MSTwins</span>
           </div>
           
           <p className="text-muted-foreground">
@@ -135,16 +139,8 @@ const Auth = () => {
                 </div>
               </div>
 
-              {isSignUp && (
-                <div className="space-y-3">
-                  <div className="text-sm text-muted-foreground">
-                    By creating an account, you agree to our community guidelines focusing on supportive, 
-                    non-romantic connections within the MS community.
-                  </div>
-                </div>
-              )}
 
-              <Button type="submit" variant="hero" className="w-full" size="lg" disabled={loading}>
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" size="lg" disabled={loading}>
                 {loading ? "Loading..." : (isSignUp ? "Create Account" : "Sign In")}
               </Button>
             </form>

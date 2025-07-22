@@ -27,9 +27,6 @@ const Header = () => {
             <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
               Stories
             </a>
-            <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
-              About
-            </a>
           </nav>
 
           {/* CTA Buttons */}

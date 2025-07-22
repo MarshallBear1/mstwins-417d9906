@@ -139,9 +139,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           description: "Your account has been created successfully. Check your email!",
         });
         
-        // Navigate to profile setup after signup
+        // Navigate directly to dashboard after signup, skipping initial profile setup prompt
         setTimeout(() => {
-          window.location.href = '/profile-setup';
+          window.location.href = '/dashboard';
         }, 500);
       } else if (data.user && !data.session) {
         toast({
