@@ -80,6 +80,14 @@ const ProfileSetup = () => {
     }
   }, [user]);
 
+  // Show pro tip notification based on user status
+  useEffect(() => {
+    // Show notification for new users (no existing profile) or when they reach the avatar step
+    if (!existingProfile && currentStep === 8) {
+      setShowRobotNotification(true);
+    }
+  }, [existingProfile, currentStep]);
+
   const fetchExistingProfile = async () => {
     if (!user) return;
     
@@ -97,7 +105,8 @@ const ProfileSetup = () => {
 
       if (data) {
         setExistingProfile(data);
-        setShowRobotNotification(false); // Hide notification for existing profiles
+        // Keep notification visible for existing profiles but hide the main welcome
+        // They might still benefit from tips in specific steps
         setProfileData({
           firstName: data.first_name || user.user_metadata?.first_name || "",
           lastName: data.last_name || user.user_metadata?.last_name || "",
@@ -745,38 +754,34 @@ const ProfileSetup = () => {
                   
                    <div className="grid grid-cols-4 gap-2">
                      {[
-                       { style: "adventurer", name: "Adventurer" },
-                       { style: "avataaars", name: "Cartoon" },
-                       { style: "big-ears", name: "Big Ears" },
-                       { style: "personas", name: "Modern" },
-                       { style: "big-smile", name: "Smiley" },
-                       { style: "bottts", name: "Robot" },
-                       { style: "fun-emoji", name: "Emoji" },
-                       { style: "icons", name: "Icons" },
-                       { style: "identicon", name: "Geometric" },
-                       { style: "initials", name: "Initials" },
-                       { style: "lorelei", name: "Artistic" },
-                       { style: "micah", name: "Minimal" },
-                       { style: "miniavs", name: "Pixel" },
-                       { style: "open-peeps", name: "Peeps" },
-                       { style: "pixel-art", name: "Retro" },
-                       { style: "thumbs", name: "Thumbs" }
-                     ].map(({ style, name }) => (
-                       <Button
-                         key={style}
-                         variant={profileData.avatarUrl?.includes(style) ? "default" : "outline"}
-                         size="sm"
-                         onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`)}
-                         className="h-16 flex flex-col gap-1"
-                       >
-                         <img 
-                           src={`https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`} 
-                           alt={name}
-                           className="w-8 h-8 rounded"
-                         />
-                         <span className="text-xs">{name}</span>
-                       </Button>
-                     ))}
+                       { style: "adventurer", name: "Adventurer", variant: "1" },
+                       { style: "adventurer", name: "Adventurer", variant: "2" },
+                       { style: "avataaars", name: "Cartoon", variant: "1" },
+                       { style: "avataaars", name: "Cartoon", variant: "2" },
+                       { style: "big-ears", name: "Big Ears", variant: "1" },
+                       { style: "big-ears", name: "Big Ears", variant: "2" },
+                       { style: "personas", name: "Modern", variant: "1" },
+                       { style: "personas", name: "Modern", variant: "2" }
+                     ].map(({ style, name, variant }) => {
+                       const seed = variant === "1" ? avatarSeed : `${avatarSeed}-alt`;
+                       const avatarUrl = `https://api.dicebear.com/6.x/${style}/svg?seed=${seed}`;
+                       return (
+                         <Button
+                           key={`${style}-${variant}`}
+                           variant={profileData.avatarUrl === avatarUrl ? "default" : "outline"}
+                           size="sm"
+                           onClick={() => updateProfileData("avatarUrl", avatarUrl)}
+                           className="h-16 flex flex-col gap-1"
+                         >
+                           <img 
+                             src={avatarUrl} 
+                             alt={`${name} ${variant}`}
+                             className="w-8 h-8 rounded"
+                           />
+                           <span className="text-xs">{name}</span>
+                         </Button>
+                       );
+                     })}
                    </div>
                 </div>
               </div>
