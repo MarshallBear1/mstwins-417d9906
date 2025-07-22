@@ -47,21 +47,32 @@ export default function LaunchStats() {
 
   const fetchUserCount = async () => {
     try {
-      console.log('Fetching user count...');
-      const { count, error } = await supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: true });
+      console.log('Fetching user count using RPC function...');
+      const { data, error } = await supabase
+        .rpc('get_user_count');
 
       if (error) {
         console.error('Error fetching user count:', error);
         throw error;
       }
       
-      console.log('User count fetched:', count);
-      setUserCount(count || 0);
+      console.log('User count fetched via RPC:', data);
+      setUserCount(data || 0);
     } catch (error) {
       console.error('Error in fetchUserCount:', error);
-      setUserCount(0);
+      // Fallback: try direct count query for authenticated users
+      try {
+        const { count, error: countError } = await supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true });
+        
+        if (countError) throw countError;
+        console.log('Fallback user count:', count);
+        setUserCount(count || 0);
+      } catch (fallbackError) {
+        console.error('Fallback count also failed:', fallbackError);
+        setUserCount(0);
+      }
     } finally {
       setLoading(false);
     }

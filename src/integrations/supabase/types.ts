@@ -291,6 +291,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_user_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       log_security_event: {
         Args: {
           user_id_param: string
