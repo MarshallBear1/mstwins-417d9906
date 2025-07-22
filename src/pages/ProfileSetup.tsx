@@ -28,6 +28,7 @@ const ProfileSetup = () => {
   const [showRobotNotification, setShowRobotNotification] = useState(true);
   const [avatarSeed, setAvatarSeed] = useState(() => Math.random().toString(36).substring(7));
   const [uploading, setUploading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [profileData, setProfileData] = useState({
     // Step 1: Name Collection
     firstName: "",
@@ -911,6 +912,36 @@ const ProfileSetup = () => {
           {!existingProfile && (
             <div className="mb-8">
               <Progress value={progress} className="h-2" />
+            </div>
+          )}
+
+          {/* Section Navigator for Edit Mode */}
+          {existingProfile && (
+            <div className="mb-6">
+              <div className="grid grid-cols-5 gap-1 text-xs">
+                {[
+                  { step: 1, label: "Name" },
+                  { step: 2, label: "Birth" },
+                  { step: 3, label: "Location" },
+                  { step: 4, label: "MS Type" },
+                  { step: 5, label: "Diagnosis" },
+                  { step: 6, label: "Symptoms" },
+                  { step: 7, label: "Meds" },
+                  { step: 8, label: "Hobbies" },
+                  { step: 9, label: "Avatar" },
+                  { step: 10, label: "About" }
+                ].map((section) => (
+                  <Button
+                    key={section.step}
+                    variant={currentStep === section.step ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentStep(section.step)}
+                    className="h-8 text-xs p-1"
+                  >
+                    {section.label}
+                  </Button>
+                ))}
+              </div>
             </div>
           )}
 
