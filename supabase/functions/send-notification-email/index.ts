@@ -145,7 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
         const emailContent = getEmailContent(type, firstName || 'there', fromUser, message);
 
         const emailResponse = await resend.emails.send({
-          from: "MSTwins <onboarding@resend.dev>",
+          from: "MSTwins <marshall@sharedgenes.org>",
           to: [email],
           subject: emailContent.subject,
           html: emailContent.html,
