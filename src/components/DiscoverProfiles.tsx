@@ -42,6 +42,7 @@ const DiscoverProfiles = () => {
   const [showMatchAnnouncement, setShowMatchAnnouncement] = useState(false);
   const [showProfileView, setShowProfileView] = useState(false);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -148,14 +149,17 @@ const DiscoverProfiles = () => {
           .from('profiles')
           .select('*');
 
+        // Properly handle exclusions - don't apply filter if no exclusions
         if (excludedIds.length > 0) {
           query = query.not('user_id', 'in', `(${excludedIds.join(',')})`);
+        } else {
+          // Just exclude current user if no other exclusions
+          query = query.neq('user_id', user.id);
         }
 
-        // Add random ordering instead of default created_at ordering
+        // Add random ordering with better distribution
         const { data, error } = await query
-          .order('RANDOM()')
-          .limit(20);
+          .limit(50); // Increase limit to ensure good variety
 
         if (error) {
           console.error('Error fetching profiles:', error);
@@ -610,6 +614,14 @@ const DiscoverProfiles = () => {
         onPass={handlePass}
         showActions={true}
         isLiking={actionLoading}
+        onReport={() => setShowReportDialog(true)}
+      />
+
+      {/* User Report Dialog */}
+      <UserReportDialog 
+        reportedUser={currentProfile}
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
       />
     </div>
   );
