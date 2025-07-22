@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,10 +53,42 @@ export default function AdminFeedback() {
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
-    fetchFeedback();
+    // Check if user is already authenticated via localStorage
+    const isAuth = localStorage.getItem('admin_authenticated') === 'true';
+    setIsAuthenticated(isAuth);
+    if (isAuth) {
+      fetchFeedback();
+    } else {
+      setLoading(false);
+    }
   }, []);
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const correctPassword = "SharedGenes2025";
+    
+    if (passwordInput === correctPassword) {
+      setIsAuthenticated(true);
+      localStorage.setItem('admin_authenticated', 'true');
+      setPasswordError("");
+      fetchFeedback();
+    } else {
+      setPasswordError("Incorrect password");
+      setPasswordInput("");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('admin_authenticated');
+    setPasswordInput("");
+    setPasswordError("");
+  };
 
   const fetchFeedback = async () => {
     try {
@@ -122,6 +155,47 @@ export default function AdminFeedback() {
     statusFilter === "all" || item.status === statusFilter
   );
 
+  // Show password form if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Admin Access Required</CardTitle>
+            <CardDescription>
+              Please enter the admin password to access the feedback management system.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <Input
+                  type="password"
+                  placeholder="Enter admin password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className={passwordError ? "border-destructive" : ""}
+                />
+                {passwordError && (
+                  <p className="text-sm text-destructive mt-1">{passwordError}</p>
+                )}
+              </div>
+              <Button type="submit" className="w-full">
+                Access Admin Panel
+              </Button>
+              <Button type="button" variant="outline" className="w-full" asChild>
+                <Link to="/">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to App
+                </Link>
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-6">
@@ -142,7 +216,7 @@ export default function AdminFeedback() {
         <div className="max-w-7xl mx-auto p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="outline" size="sm" asChild>
                 <Link to="/">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to App
@@ -166,6 +240,9 @@ export default function AdminFeedback() {
                   <SelectItem value="closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                Logout
+              </Button>
             </div>
           </div>
         </div>
