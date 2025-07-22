@@ -28,104 +28,119 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`🚀 Processing ${type} email job:`, { likerUserId, likedUserId, messageContent });
 
-    // Get user profiles and emails
-    const [likerProfile, likedProfile] = await Promise.all([
-      supabase.from('profiles').select('first_name').eq('user_id', likerUserId).single(),
-      supabase.from('profiles').select('first_name').eq('user_id', likedUserId).single()
-    ]);
+    // Use background task for email processing to improve performance
+    const emailTask = async () => {
+      try {
+        // Get user profiles and emails
+        const [likerProfile, likedProfile] = await Promise.all([
+          supabase.from('profiles').select('first_name').eq('user_id', likerUserId).single(),
+          supabase.from('profiles').select('first_name').eq('user_id', likedUserId).single()
+        ]);
 
-    console.log('📋 Profile data:', { 
-      likerProfile: likerProfile.data, 
-      likedProfile: likedProfile.data 
-    });
+        console.log('📋 Profile data:', { 
+          likerProfile: likerProfile.data, 
+          likedProfile: likedProfile.data 
+        });
 
-    // Get user emails from auth
-    const [likerAuth, likedAuth] = await Promise.all([
-      supabase.auth.admin.getUserById(likerUserId),
-      supabase.auth.admin.getUserById(likedUserId)
-    ]);
+        // Get user emails from auth
+        const [likerAuth, likedAuth] = await Promise.all([
+          supabase.auth.admin.getUserById(likerUserId),
+          supabase.auth.admin.getUserById(likedUserId)
+        ]);
 
-    const likerEmail = likerAuth.data.user?.email;
-    const likedEmail = likedAuth.data.user?.email;
-    const likerName = likerProfile.data?.first_name;
-    const likedName = likedProfile.data?.first_name;
+        const likerEmail = likerAuth.data.user?.email;
+        const likedEmail = likedAuth.data.user?.email;
+        const likerName = likerProfile.data?.first_name;
+        const likedName = likedProfile.data?.first_name;
 
-    console.log('📧 User details:', { 
-      likerEmail, 
-      likedEmail, 
-      likerName, 
-      likedName,
-      type 
-    });
+        console.log('📧 User details:', { 
+          likerEmail, 
+          likedEmail, 
+          likerName, 
+          likedName,
+          type 
+        });
 
-    // Send appropriate emails
-    if (type === 'like' && likedEmail) {
-      console.log('💙 Sending like notification to:', likedEmail);
-      // Send like notification to liked user
-      const likeEmailResult = await supabase.functions.invoke('send-notification-email', {
-        body: {
-          email: likedEmail,
-          firstName: likedName,
-          type: 'like',
-          fromUser: likerName
+        // Send appropriate emails
+        if (type === 'like' && likedEmail) {
+          console.log('💙 Sending like notification to:', likedEmail);
+          // Send like notification to liked user
+          const likeEmailResult = await supabase.functions.invoke('send-notification-email', {
+            body: {
+              email: likedEmail,
+              firstName: likedName,
+              type: 'like',
+              fromUser: likerName
+            }
+          });
+          console.log('💙 Like email result:', likeEmailResult);
+        } 
+        else if (type === 'match' && likerEmail && likedEmail) {
+          console.log('🤝 Sending match notifications to both users');
+          // Send match notifications to both users in parallel
+          const matchEmailResults = await Promise.all([
+            supabase.functions.invoke('send-notification-email', {
+              body: {
+                email: likerEmail,
+                firstName: likerName,
+                type: 'match',
+                fromUser: likedName
+              }
+            }),
+            supabase.functions.invoke('send-notification-email', {
+              body: {
+                email: likedEmail,
+                firstName: likedName,
+                type: 'match',
+                fromUser: likerName
+              }
+            })
+          ]);
+          console.log('🤝 Match email results:', matchEmailResults);
         }
-      });
-      console.log('💙 Like email result:', likeEmailResult);
-    } 
-    else if (type === 'match' && likerEmail && likedEmail) {
-      console.log('🤝 Sending match notifications to both users');
-      // Send match notifications to both users
-      const matchEmailResults = await Promise.all([
-        supabase.functions.invoke('send-notification-email', {
-          body: {
-            email: likerEmail,
-            firstName: likerName,
-            type: 'match',
-            fromUser: likedName
-          }
-        }),
-        supabase.functions.invoke('send-notification-email', {
-          body: {
-            email: likedEmail,
-            firstName: likedName,
-            type: 'match',
-            fromUser: likerName
-          }
-        })
-      ]);
-      console.log('🤝 Match email results:', matchEmailResults);
-    }
-    else if (type === 'message' && likedEmail) {
-      console.log('💬 Sending message notification to:', likedEmail);
-      // Send message notification
-      const messageEmailResult = await supabase.functions.invoke('send-notification-email', {
-        body: {
-          email: likedEmail,
-          firstName: likedName,
-          type: 'message',
-          fromUser: likerName,
-          message: messageContent
+        else if (type === 'message' && likedEmail) {
+          console.log('💬 Sending message notification to:', likedEmail);
+          // Send message notification
+          const messageEmailResult = await supabase.functions.invoke('send-notification-email', {
+            body: {
+              email: likedEmail,
+              firstName: likedName,
+              type: 'message',
+              fromUser: likerName,
+              message: messageContent
+            }
+          });
+          console.log('💬 Message email result:', messageEmailResult);
         }
-      });
-      console.log('💬 Message email result:', messageEmailResult);
-    }
-    else {
-      console.warn('⚠️ Email not sent - missing data:', {
-        type,
-        likerEmail: !!likerEmail,
-        likedEmail: !!likedEmail,
-        condition: type === 'like' ? 'like && likedEmail' : 
-                  type === 'match' ? 'match && both emails' : 
-                  type === 'message' ? 'message && likedEmail' : 'unknown'
-      });
-    }
+        else {
+          console.warn('⚠️ Email not sent - missing data:', {
+            type,
+            likerEmail: !!likerEmail,
+            likedEmail: !!likedEmail,
+            condition: type === 'like' ? 'like && likedEmail' : 
+                      type === 'match' ? 'match && both emails' : 
+                      type === 'message' ? 'message && likedEmail' : 'unknown'
+          });
+        }
+      } catch (error) {
+        console.error("Background email task failed:", error);
+        throw error;
+      }
+    };
 
-    return new Response(JSON.stringify({ success: true }), {
+    // Start background task and return immediate response
+    EdgeRuntime.waitUntil(emailTask());
+
+    // Return immediate success response
+    return new Response(JSON.stringify({ 
+      success: true, 
+      message: `${type} email notification queued for processing` 
+    }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
-    console.error("Error in email-notification-worker:", error);
+    console.error("Error processing email notification job:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }

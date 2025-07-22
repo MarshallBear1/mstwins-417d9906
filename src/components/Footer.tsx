@@ -1,4 +1,5 @@
 import { Heart, Shield, Users, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -39,7 +40,7 @@ const Footer = () => {
               <li><a href="#about" className="hover:text-background transition-colors">How It Works</a></li>
               <li><a href="#features" className="hover:text-background transition-colors">Features</a></li>
               <li><a href="#testimonials" className="hover:text-background transition-colors">Success Stories</a></li>
-              <li><a href="/auth" className="hover:text-background transition-colors">Join Community</a></li>
+              <li><Link to="/auth" className="hover:text-background transition-colors">Join Community</Link></li>
             </ul>
           </div>
 
@@ -58,8 +59,8 @@ const Footer = () => {
                   Contact Us
                 </a>
               </li>
-              <li><a href="/privacy-policy" className="hover:text-background transition-colors">Privacy Policy</a></li>
-              <li><a href="/terms-of-service" className="hover:text-background transition-colors">Terms of Service</a></li>
+              <li><Link to="/privacy-policy" className="hover:text-background transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-service" className="hover:text-background transition-colors">Terms of Service</Link></li>
               <li>
                 <a 
                   href="mailto:team@sharedgenes.org?subject=Help%20Request" 

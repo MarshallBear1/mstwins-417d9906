@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -32,10 +33,10 @@ const Header = () => {
           {/* CTA Buttons */}
           <div className="flex items-center space-x-4">
             <Button variant="ghost" className="hidden sm:inline-flex" asChild>
-              <a href="/auth">Sign In</a>
+              <Link to="/auth">Sign In</Link>
             </Button>
             <Button className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
-              <a href="/auth">Get Started</a>
+              <Link to="/auth">Get Started</Link>
             </Button>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, ArrowRight, MapPin, Calendar, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   const [currentProfile, setCurrentProfile] = useState(0);
@@ -80,10 +81,10 @@ const Hero = () => {
               className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white" 
               asChild
             >
-              <a href="/auth">
+              <Link to="/auth">
                 Join the Community
                 <ArrowRight className="w-5 h-5 ml-2" />
-              </a>
+              </Link>
             </Button>
           </div>
 

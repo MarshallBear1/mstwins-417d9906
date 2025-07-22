@@ -137,20 +137,36 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { email, firstName, type, fromUser, message }: NotificationEmailRequest = await req.json();
 
-    console.log(`Sending ${type} notification email to:`, email);
+    console.log(`Processing ${type} notification email for:`, email);
 
-    const emailContent = getEmailContent(type, firstName || 'there', fromUser, message);
+    // Use background task for email sending to improve performance
+    const emailTask = async () => {
+      try {
+        const emailContent = getEmailContent(type, firstName || 'there', fromUser, message);
 
-    const emailResponse = await resend.emails.send({
-      from: "MSTwins <notifications@sharedgenes.org>",
-      to: [email],
-      subject: emailContent.subject,
-      html: emailContent.html,
-    });
+        const emailResponse = await resend.emails.send({
+          from: "MSTwins <notifications@sharedgenes.org>",
+          to: [email],
+          subject: emailContent.subject,
+          html: emailContent.html,
+        });
 
-    console.log(`${type} notification email sent successfully:`, emailResponse);
+        console.log(`${type} notification email sent successfully:`, emailResponse);
+        return emailResponse;
+      } catch (error) {
+        console.error(`Background email task failed for ${type}:`, error);
+        throw error;
+      }
+    };
 
-    return new Response(JSON.stringify({ success: true, data: emailResponse }), {
+    // Start background task and return immediate response
+    EdgeRuntime.waitUntil(emailTask());
+
+    // Return immediate success response
+    return new Response(JSON.stringify({ 
+      success: true, 
+      message: `${type} notification email queued for delivery` 
+    }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -158,7 +174,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
-    console.error("Error sending notification email:", error);
+    console.error("Error processing notification email request:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

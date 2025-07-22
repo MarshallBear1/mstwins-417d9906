@@ -111,19 +111,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log('SignUp successful:', data);
 
-      // ALWAYS send welcome email - even if session is null
+      // Send welcome email in background (non-blocking)
       if (data.user) {
         try {
-          console.log('Sending welcome email to:', email);
-          await supabase.functions.invoke('send-welcome-email', {
+          console.log('Queueing welcome email for:', email);
+          // Don't await - send in background for better performance
+          supabase.functions.invoke('send-welcome-email', {
             body: { 
               email: email,
               firstName: firstName || 'friend'
             }
+          }).then((response) => {
+            console.log('Welcome email queued successfully:', response);
+          }).catch((emailError) => {
+            console.error('Error queueing welcome email:', emailError);
+            // Don't fail signup if email fails
           });
-          console.log('Welcome email sent successfully');
         } catch (emailError) {
-          console.error('Error sending welcome email:', emailError);
+          console.error('Error with welcome email request:', emailError);
           // Don't fail signup if email fails
         }
         }
@@ -142,7 +147,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Navigate directly to dashboard after signup, skipping initial profile setup prompt
         setTimeout(() => {
           window.location.href = '/dashboard';
-        }, 500);
+        }, 200); // Reduced delay for snappier UX
       } else if (data.user && !data.session) {
         toast({
           title: "Account Created!",
@@ -186,7 +191,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Navigate to dashboard after signin
       setTimeout(() => {
         window.location.href = '/dashboard';
-      }, 500);
+      }, 200); // Reduced delay for snappier UX
 
       return { error: null };
     } catch (error: any) {
