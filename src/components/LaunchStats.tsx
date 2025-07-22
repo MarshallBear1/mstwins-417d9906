@@ -21,7 +21,22 @@ export default function LaunchStats() {
           schema: 'public',
           table: 'profiles'
         },
-        () => fetchUserCount()
+        () => {
+          console.log('New user joined, updating count...');
+          fetchUserCount();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'profiles'
+        },
+        () => {
+          console.log('User left, updating count...');
+          fetchUserCount();
+        }
       )
       .subscribe();
 
@@ -32,14 +47,20 @@ export default function LaunchStats() {
 
   const fetchUserCount = async () => {
     try {
+      console.log('Fetching user count...');
       const { count, error } = await supabase
         .from('profiles')
         .select('id', { count: 'exact', head: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching user count:', error);
+        throw error;
+      }
+      
+      console.log('User count fetched:', count);
       setUserCount(count || 0);
     } catch (error) {
-      console.error('Error fetching user count:', error);
+      console.error('Error in fetchUserCount:', error);
       setUserCount(0);
     } finally {
       setLoading(false);
