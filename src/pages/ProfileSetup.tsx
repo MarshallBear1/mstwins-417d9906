@@ -743,29 +743,41 @@ const ProfileSetup = () => {
                     Not happy with these avatars? Click "New Options" to generate different ones!
                   </p>
                   
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { style: "adventurer" },
-                      { style: "avataaars" },
-                      { style: "big-ears" },
-                      { style: "personas" }
-                    ].map(({ style }) => (
-                      <Button
-                        key={style}
-                        variant={profileData.avatarUrl?.includes(style) ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`)}
-                        className="h-16 flex flex-col gap-1"
-                      >
-                        <img 
-                          src={`https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`} 
-                          alt={style}
-                          className="w-8 h-8 rounded"
-                        />
-                        <span className="text-xs capitalize">{style}</span>
-                      </Button>
-                    ))}
-                  </div>
+                   <div className="grid grid-cols-4 gap-2">
+                     {[
+                       { style: "adventurer", name: "Adventurer" },
+                       { style: "avataaars", name: "Cartoon" },
+                       { style: "big-ears", name: "Big Ears" },
+                       { style: "personas", name: "Modern" },
+                       { style: "big-smile", name: "Smiley" },
+                       { style: "bottts", name: "Robot" },
+                       { style: "fun-emoji", name: "Emoji" },
+                       { style: "icons", name: "Icons" },
+                       { style: "identicon", name: "Geometric" },
+                       { style: "initials", name: "Initials" },
+                       { style: "lorelei", name: "Artistic" },
+                       { style: "micah", name: "Minimal" },
+                       { style: "miniavs", name: "Pixel" },
+                       { style: "open-peeps", name: "Peeps" },
+                       { style: "pixel-art", name: "Retro" },
+                       { style: "thumbs", name: "Thumbs" }
+                     ].map(({ style, name }) => (
+                       <Button
+                         key={style}
+                         variant={profileData.avatarUrl?.includes(style) ? "default" : "outline"}
+                         size="sm"
+                         onClick={() => updateProfileData("avatarUrl", `https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`)}
+                         className="h-16 flex flex-col gap-1"
+                       >
+                         <img 
+                           src={`https://api.dicebear.com/6.x/${style}/svg?seed=${avatarSeed}`} 
+                           alt={name}
+                           className="w-8 h-8 rounded"
+                         />
+                         <span className="text-xs">{name}</span>
+                       </Button>
+                     ))}
+                   </div>
                 </div>
               </div>
             </div>

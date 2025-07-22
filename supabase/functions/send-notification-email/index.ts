@@ -139,33 +139,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Processing ${type} notification email for:`, email);
 
-    // Use background task for email sending to improve performance
-    const emailTask = async () => {
-      try {
-        const emailContent = getEmailContent(type, firstName || 'there', fromUser, message);
+    // Send email directly to ensure reliability
+    const emailContent = getEmailContent(type, firstName || 'there', fromUser, message);
 
-        const emailResponse = await resend.emails.send({
-          from: "MSTwins <marshall@sharedgenes.org>",
-          to: [email],
-          subject: emailContent.subject,
-          html: emailContent.html,
-        });
+    const emailResponse = await resend.emails.send({
+      from: "MSTwins <marshall@sharedgenes.org>",
+      to: [email],
+      subject: emailContent.subject,
+      html: emailContent.html,
+    });
 
-        console.log(`${type} notification email sent successfully:`, emailResponse);
-        return emailResponse;
-      } catch (error) {
-        console.error(`Background email task failed for ${type}:`, error);
-        throw error;
-      }
-    };
+    console.log(`${type} notification email sent successfully:`, emailResponse);
 
-    // Start background task and return immediate response
-    EdgeRuntime.waitUntil(emailTask());
-
-    // Return immediate success response
     return new Response(JSON.stringify({ 
       success: true, 
-      message: `${type} notification email queued for delivery` 
+      message: `${type} notification email sent successfully`,
+      id: emailResponse.data?.id 
     }), {
       status: 200,
       headers: {
@@ -174,9 +163,15 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
-    console.error("Error processing notification email request:", error);
+    console.error("Error sending notification email:", error);
+    
+    // Return more detailed error information
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.name || 'Unknown error',
+        success: false
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
