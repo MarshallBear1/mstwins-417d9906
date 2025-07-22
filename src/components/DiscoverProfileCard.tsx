@@ -10,6 +10,7 @@ interface Profile {
   last_name: string;
   date_of_birth: string | null;
   location: string;
+  gender: string | null;
   ms_subtype: string | null;
   diagnosis_year: number | null;
   symptoms: string[];
@@ -90,12 +91,18 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
           </div>
         </div>
 
-        {/* Location and Diagnosis */}
+        {/* Location, Gender and Diagnosis */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="w-4 h-4" />
             <span className="text-sm">{profile.location}</span>
           </div>
+          {profile.gender && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <User className="w-4 h-4" />
+              <span className="text-sm">{profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}</span>
+            </div>
+          )}
           {profile.diagnosis_year && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Calendar className="w-4 h-4" />

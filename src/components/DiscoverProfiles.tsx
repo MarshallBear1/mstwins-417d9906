@@ -19,6 +19,7 @@ interface Profile {
   last_name: string;
   date_of_birth: string | null;
   location: string;
+  gender: string | null;
   ms_subtype: string | null;
   diagnosis_year: number | null;
   symptoms: string[];
@@ -510,6 +511,12 @@ const DiscoverProfiles = () => {
                 <MapPin className="w-4 h-4" />
                 <span className="text-sm">{currentProfile.location}</span>
               </div>
+              {currentProfile.gender && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">{currentProfile.gender.charAt(0).toUpperCase() + currentProfile.gender.slice(1)}</span>
+                </div>
+              )}
               {currentProfile.diagnosis_year && (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="w-4 h-4" />

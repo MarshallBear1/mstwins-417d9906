@@ -12,6 +12,7 @@ interface Profile {
   last_name: string;
   date_of_birth: string | null;
   location: string;
+  gender: string | null;
   ms_subtype: string | null;
   diagnosis_year: number | null;
   symptoms: string[];
@@ -134,6 +135,12 @@ const ProfileViewDialog = ({
               <MapPin className="w-4 h-4" />
               <span>{profile.location}</span>
             </div>
+            {profile.gender && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <User className="w-4 h-4" />
+                <span>{profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}</span>
+              </div>
+            )}
             {profile.diagnosis_year && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="w-4 h-4" />

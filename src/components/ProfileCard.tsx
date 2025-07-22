@@ -33,6 +33,7 @@ interface Profile {
   last_name: string;
   date_of_birth: string | null;
   location: string;
+  gender: string | null;
   ms_subtype: string | null;
   diagnosis_year: number | null;
   symptoms: string[];
@@ -61,6 +62,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
     first_name: profile.first_name,
     last_name: profile.last_name,
     location: profile.location,
+    gender: profile.gender || "",
     ms_subtype: profile.ms_subtype || "",
     diagnosis_year: profile.diagnosis_year?.toString() || "",
     date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth) : undefined,
@@ -174,6 +176,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
       first_name: profile.first_name,
       last_name: profile.last_name,
       location: profile.location,
+      gender: profile.gender || "",
       ms_subtype: profile.ms_subtype || "",
       diagnosis_year: profile.diagnosis_year?.toString() || "",
       date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth) : undefined,

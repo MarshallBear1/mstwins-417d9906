@@ -26,6 +26,7 @@ interface Profile {
   last_name: string;
   date_of_birth: string | null;
   location: string;
+  gender: string | null;
   ms_subtype: string | null;
   diagnosis_year: number | null;
   symptoms: string[];
