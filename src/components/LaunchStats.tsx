@@ -46,7 +46,7 @@ export default function LaunchStats() {
     }
   };
 
-  const launchDate = new Date('2025-07-23');
+  const launchDate = new Date('2025-07-22');
   const today = new Date();
   const daysLive = Math.floor((today.getTime() - launchDate.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -55,7 +55,7 @@ export default function LaunchStats() {
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
-          <span>Launched 23/07/2025 • {daysLive >= 0 ? `${daysLive} days live` : 'Launching soon'}</span>
+          <span>Launched 22/07/2025 • {daysLive} days live</span>
         </div>
         
         <div className="flex items-center justify-center gap-6">

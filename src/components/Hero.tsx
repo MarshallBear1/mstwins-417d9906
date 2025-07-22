@@ -194,11 +194,6 @@ const Hero = () => {
             </div>
           </div>
         </div>
-
-        {/* Launch Stats Section */}
-        <div className="mt-16">
-          <LaunchStats />
-        </div>
       </div>
     </section>
   );
