@@ -489,6 +489,44 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               </div>
             )}
 
+            {/* Medications (read-only for now) */}
+            {!isEditing && profile.medications.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Medications</h4>
+                <div className="flex flex-wrap gap-2">
+                  {profile.medications.slice(0, 6).map((medication, index) => (
+                    <Badge key={index} variant="secondary" className="bg-green-100 text-green-700">
+                      {medication}
+                    </Badge>
+                  ))}
+                  {profile.medications.length > 6 && (
+                    <Badge variant="outline">
+                      +{profile.medications.length - 6} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Symptoms (read-only for now) */}
+            {!isEditing && profile.symptoms.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Symptoms</h4>
+                <div className="flex flex-wrap gap-2">
+                  {profile.symptoms.slice(0, 6).map((symptom, index) => (
+                    <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-700">
+                      {symptom}
+                    </Badge>
+                  ))}
+                  {profile.symptoms.length > 6 && (
+                    <Badge variant="outline">
+                      +{profile.symptoms.length - 6} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+
             {isEditing && (
               <div className="text-xs text-muted-foreground">
                 💡 To edit interests, symptoms, and medications, visit the full profile setup.
