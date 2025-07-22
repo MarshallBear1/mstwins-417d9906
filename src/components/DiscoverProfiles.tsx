@@ -146,7 +146,10 @@ const DiscoverProfiles = () => {
           query = query.not('user_id', 'in', `(${excludedIds.join(',')})`);
         }
 
-        const { data, error } = await query.limit(10);
+        // Add random ordering instead of default created_at ordering
+        const { data, error } = await query
+          .order('RANDOM()')
+          .limit(20);
 
         if (error) {
           console.error('Error fetching profiles:', error);
@@ -348,26 +351,26 @@ const DiscoverProfiles = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6 min-h-screen"> {/* Reduced mobile padding */}
       {/* Match Announcement Modal */}
       {showMatchAnnouncement && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
-          <div className="bg-white rounded-2xl p-8 text-center max-w-sm mx-4 shadow-2xl animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 text-center max-w-sm w-full mx-4 shadow-2xl animate-scale-in">
             <div className="mb-6">
               <img 
                 src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
                 alt="MSTwins mascot" 
-                className="w-20 h-20 mx-auto mb-4 animate-bounce"
+                className="w-16 sm:w-20 h-16 sm:h-20 mx-auto mb-4 animate-bounce"
               />
-              <h2 className="text-3xl font-bold text-green-600 mb-2">🎉 It's a Match!</h2>
-              <p className="text-gray-600">
+              <h2 className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">🎉 It's a Match!</h2>
+              <p className="text-gray-600 text-sm sm:text-base">
                 You and {currentProfile?.first_name} {currentProfile?.last_name} liked each other! Start chatting now.
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button 
                 onClick={() => setShowMatchAnnouncement(false)}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm sm:text-base"
               >
                 Continue Discovering
               </button>
@@ -376,7 +379,7 @@ const DiscoverProfiles = () => {
                   setShowMatchAnnouncement(false);
                   // Navigate to matches tab (you'd need to pass this function down from parent)
                 }}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm sm:text-base"
               >
                 Start Chatting
               </button>
@@ -385,7 +388,7 @@ const DiscoverProfiles = () => {
         </div>
       )}
 
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto"> {/* Profile Card Container */}
         <Card className="overflow-hidden shadow-xl animate-scale-in">
           {/* Avatar Section with Gradient Background */}
           <div className="relative h-48 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
@@ -500,23 +503,23 @@ const DiscoverProfiles = () => {
               </div>
             )}
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Improved mobile layout */}
             <div className="space-y-3">
               {/* View Profile Button */}
               <Button 
                 variant="outline" 
-                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
                 onClick={() => setShowProfileView(true)}
               >
                 <Eye className="w-4 h-4 mr-2" />
                 View Full Profile
               </Button>
               
-              {/* Like/Pass Buttons */}
-              <div className="flex gap-3">
+              {/* Like/Pass Buttons - Stack on mobile, side-by-side on larger screens */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button 
                   variant="outline" 
-                  className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12"
                   onClick={handlePass}
                   disabled={actionLoading}
                 >
@@ -524,7 +527,7 @@ const DiscoverProfiles = () => {
                   Pass
                 </Button>
                 <Button 
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
                   onClick={handleLike}
                   disabled={actionLoading}
                 >

@@ -59,14 +59,23 @@ const ProfileViewDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="sr-only">
+      <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[95vh] overflow-y-auto p-0">
+        {/* Close Button - Made more distinct */}
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute top-3 right-3 z-10 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-gray-200 hover:border-gray-300 transition-all duration-200"
+          aria-label="Close profile"
+        >
+          <X className="w-5 h-5 text-gray-700" />
+        </button>
+        
+        <DialogHeader className="sr-only">
+          <DialogTitle>
             {profile.first_name} {profile.last_name}'s Profile
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-6 p-6">{/* Moved padding here for better mobile spacing */}
           {/* Header with Avatar */}
           <div className="relative h-40 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 rounded-lg flex items-center justify-center -mt-6 -mx-6">
             <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
@@ -218,26 +227,28 @@ const ProfileViewDialog = ({
             </div>
           )}
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Fixed mobile positioning */}
           {showActions && (
-            <div className="flex gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={onPass}
-                className="flex-1 hover:bg-red-50 hover:border-red-200 hover:text-red-700"
-                disabled={isLiking}
-              >
-                <X className="w-4 h-4 mr-2" />
-                Pass
-              </Button>
-              <Button
-                onClick={onLike}
-                className="flex-1 bg-gradient-primary hover:opacity-90 text-white"
-                disabled={isLiking}
-              >
-                <Heart className="w-4 h-4 mr-2" />
-                {isLiking ? 'Liking...' : 'Like'}
-              </Button>
+            <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t pt-4 pb-2 -mb-6 -mx-6 px-6">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="outline"
+                  onClick={onPass}
+                  className="flex-1 hover:bg-red-50 hover:border-red-200 hover:text-red-700"
+                  disabled={isLiking}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Pass
+                </Button>
+                <Button
+                  onClick={onLike}
+                  className="flex-1 bg-gradient-primary hover:opacity-90 text-white"
+                  disabled={isLiking}
+                >
+                  <Heart className="w-4 h-4 mr-2" />
+                  {isLiking ? 'Liking...' : 'Like'}
+                </Button>
+              </div>
             </div>
           )}
         </div>
