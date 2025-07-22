@@ -43,7 +43,7 @@ export const useRealtimeNotifications = () => {
 
     // Set up real-time subscription for new notifications
     const channel = supabase
-      .channel('notifications')
+      .channel(`notifications-${user.id}`) // Unique channel per user
       .on(
         'postgres_changes',
         {
@@ -55,25 +55,31 @@ export const useRealtimeNotifications = () => {
         (payload) => {
           const newNotification = payload.new as Notification;
           
-          // Add to notifications list
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
+          // Prevent duplicate notifications by checking if already exists
+          setNotifications(prev => {
+            const exists = prev.some(n => n.id === newNotification.id);
+            if (exists) return prev;
+            
+            // Show toast notification only for new notifications
+            toast({
+              title: newNotification.title,
+              description: newNotification.message,
+              duration: 5000,
+            });
 
-          // Show toast notification
-          toast({
-            title: newNotification.title,
-            description: newNotification.message,
-            duration: 5000,
+            // Play notification sound (optional)
+            try {
+              const audio = new Audio('/notification-sound.mp3');
+              audio.volume = 0.3;
+              audio.play().catch(() => {}); // Ignore if sound fails
+            } catch (error) {
+              // Ignore sound errors
+            }
+            
+            return [newNotification, ...prev];
           });
-
-          // Play notification sound (optional)
-          try {
-            const audio = new Audio('/notification-sound.mp3');
-            audio.volume = 0.3;
-            audio.play().catch(() => {}); // Ignore if sound fails
-          } catch (error) {
-            // Ignore sound errors
-          }
+          
+          setUnreadCount(prev => prev + 1);
         }
       )
       .subscribe();

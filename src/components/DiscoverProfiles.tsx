@@ -393,6 +393,14 @@ const DiscoverProfiles = () => {
                   src={currentProfile.avatar_url} 
                   alt={currentProfile.first_name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
+                  onLoad={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${currentProfile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
+                  }}
+                  style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
                 />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center">

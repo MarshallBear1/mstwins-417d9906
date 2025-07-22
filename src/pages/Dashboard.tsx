@@ -37,6 +37,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("discover");
   const [likes, setLikes] = useState<Profile[]>([]);
   const [likesLoading, setLikesLoading] = useState(false);
+  const [isReturningUser, setIsReturningUser] = useState(false);
   const [showRobotNotification, setShowRobotNotification] = useState(() => {
     return !localStorage.getItem('robotNotificationDismissed');
   });
@@ -49,6 +50,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (user) {
+      // Check if user is returning (has logged in before)
+      const lastLogin = localStorage.getItem(`lastLogin_${user.id}`);
+      setIsReturningUser(!!lastLogin);
+      localStorage.setItem(`lastLogin_${user.id}`, new Date().toISOString());
+      
       fetchProfile();
     }
   }, [user]);
@@ -245,13 +251,21 @@ const Dashboard = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center space-x-4">
                         <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
-                          {likedProfile.avatar_url ? (
-                            <img 
-                              src={likedProfile.avatar_url} 
-                              alt={`${likedProfile.first_name}'s avatar`}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
+                           {likedProfile.avatar_url ? (
+                             <img 
+                               src={likedProfile.avatar_url} 
+                               alt={`${likedProfile.first_name}'s avatar`}
+                               className="w-full h-full object-cover"
+                               loading="lazy"
+                               onLoad={(e) => {
+                                 e.currentTarget.style.opacity = '1';
+                               }}
+                               onError={(e) => {
+                                 e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${likedProfile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
+                               }}
+                               style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
+                             />
+                           ) : (
                             <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
                               <User className="w-8 h-8 text-white" />
                             </div>
@@ -399,10 +413,15 @@ const Dashboard = () => {
               <div className="bg-white rounded-lg p-3 shadow-sm relative">
                 <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
                 <p className="text-sm text-foreground mb-2">
-                  <strong>Great job, {profile.first_name}!</strong> 🎉
+                  <strong>
+                    {isReturningUser ? `Welcome back, ${profile.first_name}!` : `Great job, ${profile.first_name}!`}
+                  </strong> 🎉
                 </p>
                 <p className="text-sm text-foreground">
-                  You are ready to start swiping! Click Discover to see profiles and find your perfect MS community matches.
+                  {isReturningUser 
+                    ? "Ready to continue your journey? Check out new profiles in the Discover section!" 
+                    : "You are ready to start swiping! Click Discover to see profiles and find your perfect MS community matches."
+                  }
                 </p>
               </div>
             </div>
