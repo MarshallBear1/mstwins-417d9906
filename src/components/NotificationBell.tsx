@@ -82,8 +82,8 @@ const NotificationBell = () => {
             onClick={() => setShowNotifications(false)}
           />
           
-          {/* Notifications Panel */}
-          <Card className="absolute right-0 top-12 w-80 max-h-96 z-50 shadow-lg border-0 bg-background/95 backdrop-blur-md">
+          {/* Notifications Panel - Fixed mobile positioning */}
+          <Card className="absolute right-0 top-12 w-80 sm:w-96 max-h-96 z-50 shadow-lg border bg-popover backdrop-blur-md max-w-[calc(100vw-2rem)] mr-2 sm:mr-0">{/* Added max-width and margin for mobile */}
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="text-sm font-medium">Notifications</CardTitle>
               <div className="flex items-center gap-2">
