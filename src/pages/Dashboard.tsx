@@ -12,6 +12,7 @@ import DiscoverProfiles from "@/components/DiscoverProfiles";
 import Messaging from "@/components/Messaging";
 import ProfileCard from "@/components/ProfileCard";
 import ReferralDropdown from "@/components/ReferralDropdown";
+import FeedbackDialog from "@/components/FeedbackDialog";
 
 interface Profile {
   id: string;
@@ -442,6 +443,7 @@ const Dashboard = () => {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <FeedbackDialog />
             <ReferralDropdown />
             <NotificationBell />
           </div>
