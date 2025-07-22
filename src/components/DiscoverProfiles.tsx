@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, X, User, MapPin, Calendar, RefreshCw } from "lucide-react";
+import { Heart, X, User, MapPin, Calendar, RefreshCw, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { analytics } from "@/lib/analytics";
+import ProfileViewDialog from "@/components/ProfileViewDialog";
 
 interface Profile {
   id: string;
@@ -34,6 +35,7 @@ const DiscoverProfiles = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [showingSkipped, setShowingSkipped] = useState(false);
   const [showMatchAnnouncement, setShowMatchAnnouncement] = useState(false);
+  const [showProfileView, setShowProfileView] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -499,37 +501,61 @@ const DiscoverProfiles = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
+            <div className="space-y-3">
+              {/* View Profile Button */}
               <Button 
                 variant="outline" 
-                className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
-                onClick={handlePass}
-                disabled={actionLoading}
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                onClick={() => setShowProfileView(true)}
               >
-                <X className="w-4 h-4 mr-2" />
-                Pass
+                <Eye className="w-4 h-4 mr-2" />
+                View Full Profile
               </Button>
-              <Button 
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={handleLike}
-                disabled={actionLoading}
-              >
-                {actionLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Liking...
-                  </>
-                ) : (
-                  <>
-                    <Heart className="w-4 h-4 mr-2" fill="currentColor" />
-                    Like
-                  </>
-                )}
-              </Button>
+              
+              {/* Like/Pass Buttons */}
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                  onClick={handlePass}
+                  disabled={actionLoading}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Pass
+                </Button>
+                <Button 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={handleLike}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Liking...
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="w-4 h-4 mr-2" fill="currentColor" />
+                      Like
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Profile View Dialog */}
+      <ProfileViewDialog 
+        profile={currentProfile}
+        open={showProfileView}
+        onOpenChange={setShowProfileView}
+        onLike={handleLike}
+        onPass={handlePass}
+        showActions={true}
+        isLiking={actionLoading}
+      />
     </div>
   );
 };

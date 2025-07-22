@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, LogOut } from "lucide-react";
+import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, LogOut, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
@@ -13,6 +13,7 @@ import Messaging from "@/components/Messaging";
 import ProfileCard from "@/components/ProfileCard";
 import ReferralDropdown from "@/components/ReferralDropdown";
 import FeedbackDialog from "@/components/FeedbackDialog";
+import ProfileViewDialog from "@/components/ProfileViewDialog";
 
 interface Profile {
   id: string;
@@ -43,6 +44,8 @@ const Dashboard = () => {
   const [showRobotNotification, setShowRobotNotification] = useState(() => {
     return !localStorage.getItem('robotNotificationDismissed');
   });
+  const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
+  const [showProfileView, setShowProfileView] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -349,56 +352,68 @@ const Dashboard = () => {
                               {likedProfile.ms_subtype}
                             </Badge>
                           )}
-                        </div>
-                        
-                         <div className="flex-shrink-0">
-                           <Button 
-                             size="sm" 
-                             className="bg-gradient-primary hover:opacity-90 text-white"
-                             onClick={async () => {
-                               try {
-                                 console.log('🚀 Starting like back process for:', likedProfile.user_id);
-                                 
-                                 // Check if user already liked this person back
-                                 const { data: existingLike } = await supabase
-                                   .from('likes')
-                                   .select('id')
-                                   .eq('liker_id', user?.id)
-                                   .eq('liked_id', likedProfile.user_id)
-                                   .maybeSingle();
+                         </div>
+                         
+                          <div className="flex-shrink-0 space-y-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                              onClick={() => {
+                                setSelectedProfileForView(likedProfile);
+                                setShowProfileView(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View Profile
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              className="w-full bg-gradient-primary hover:opacity-90 text-white"
+                              onClick={async () => {
+                                try {
+                                  console.log('🚀 Starting like back process for:', likedProfile.user_id);
+                                  
+                                  // Check if user already liked this person back
+                                  const { data: existingLike } = await supabase
+                                    .from('likes')
+                                    .select('id')
+                                    .eq('liker_id', user?.id)
+                                    .eq('liked_id', likedProfile.user_id)
+                                    .maybeSingle();
 
-                                 if (existingLike) {
-                                   console.log('✅ Already liked back');
-                                   fetchLikes(); // Refresh to show updated state
-                                   return;
-                                 }
+                                  if (existingLike) {
+                                    console.log('✅ Already liked back');
+                                    fetchLikes(); // Refresh to show updated state
+                                    return;
+                                  }
 
-                                 // Create a like back
-                                 const { error } = await supabase
-                                   .from('likes')
-                                   .insert({
-                                     liker_id: user?.id,
-                                     liked_id: likedProfile.user_id
-                                   });
+                                  // Create a like back
+                                  const { error } = await supabase
+                                    .from('likes')
+                                    .insert({
+                                      liker_id: user?.id,
+                                      liked_id: likedProfile.user_id
+                                    });
 
-                                 if (error) {
-                                   console.error('❌ Error liking back:', error);
-                                   return;
-                                 }
+                                  if (error) {
+                                    console.error('❌ Error liking back:', error);
+                                    return;
+                                  }
 
-                                 console.log('✅ Liked back successfully!');
-                                 
-                                 // Refresh the likes to show updated state
-                                 fetchLikes();
-                               } catch (error) {
-                                 console.error('❌ Error in like back process:', error);
-                               }
-                             }}
-                           >
-                            <Heart className="w-4 h-4 mr-1" />
-                            Like Back
-                          </Button>
-                        </div>
+                                  console.log('✅ Liked back successfully!');
+                                  
+                                  // Refresh the likes to show updated state
+                                  fetchLikes();
+                                } catch (error) {
+                                  console.error('❌ Error in like back process:', error);
+                                }
+                              }}
+                            >
+                             <Heart className="w-4 h-4 mr-1" />
+                             Like Back
+                           </Button>
+                         </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -510,6 +525,14 @@ const Dashboard = () => {
           })}
         </div>
       </div>
+
+      {/* Profile View Dialog */}
+      <ProfileViewDialog 
+        profile={selectedProfileForView}
+        open={showProfileView}
+        onOpenChange={setShowProfileView}
+        showActions={false}
+      />
     </div>
   );
 };
