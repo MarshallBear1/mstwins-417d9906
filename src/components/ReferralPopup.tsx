@@ -13,22 +13,36 @@ const ReferralPopup = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Show popup every 15 minutes (900000ms) if user is authenticated
+    // Only show popup for authenticated users
     if (user) {
-      // Show first popup after 2 minutes (120000ms)
-      const firstTimeout = setTimeout(() => {
-        setIsVisible(true);
-      }, 120000);
+      const storageKey = `referral_popup_count_${user.id}`;
+      const currentCount = parseInt(localStorage.getItem(storageKey) || '0');
+      
+      // Only show if user hasn't seen it 3 times already
+      if (currentCount < 3) {
+        // Show first popup after 2 minutes (120000ms)
+        const firstTimeout = setTimeout(() => {
+          setIsVisible(true);
+          // Increment counter when showing popup
+          localStorage.setItem(storageKey, (currentCount + 1).toString());
+        }, 120000);
 
-      // Then show every 15 minutes
-      const interval = setInterval(() => {
-        setIsVisible(true);
-      }, 900000);
+        // Then show every 30 minutes (1800000ms) if count is still less than 3
+        const interval = setInterval(() => {
+          const updatedCount = parseInt(localStorage.getItem(storageKey) || '0');
+          if (updatedCount < 3) {
+            setIsVisible(true);
+            localStorage.setItem(storageKey, (updatedCount + 1).toString());
+          } else {
+            clearInterval(interval);
+          }
+        }, 1800000);
 
-      return () => {
-        clearTimeout(firstTimeout);
-        clearInterval(interval);
-      };
+        return () => {
+          clearTimeout(firstTimeout);
+          clearInterval(interval);
+        };
+      }
     }
   }, [user]);
 
