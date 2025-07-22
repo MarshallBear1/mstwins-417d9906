@@ -61,8 +61,8 @@ const NotificationPopup = () => {
   const isLike = currentNotification.type === 'like';
 
   return (
-    <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-      <Card className="w-80 mx-4 shadow-xl border-0 bg-background/95 backdrop-blur-md">
+    <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
+      <Card className="w-80 max-w-[calc(100vw-2rem)] shadow-xl border-0 bg-background/95 backdrop-blur-md">
         <CardContent className="p-4">
           <div className="flex items-start space-x-3">
             {/* Robot mascot */}

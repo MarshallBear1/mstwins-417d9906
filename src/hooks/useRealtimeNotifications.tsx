@@ -128,14 +128,14 @@ export const useRealtimeNotifications = () => {
         (payload) => {
           const newNotification = payload.new as Notification;
           
-          // Prevent duplicate notifications by checking if already exists
+          // Prevent duplicate notifications with better logic
           setNotifications(prev => {
             const exists = prev.some(n => 
               n.id === newNotification.id || 
               (n.type === newNotification.type && 
                n.from_user_id === newNotification.from_user_id && 
                n.user_id === newNotification.user_id &&
-               Math.abs(new Date(n.created_at).getTime() - new Date(newNotification.created_at).getTime()) < 60000) // Within 1 minute
+               Math.abs(new Date(n.created_at).getTime() - new Date(newNotification.created_at).getTime()) < 5000) // Within 5 seconds
             );
             if (exists) {
               console.log('Duplicate notification prevented:', newNotification);
