@@ -46,17 +46,17 @@ const Auth = () => {
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
           {/* Left side - Robot and Avatar for Sign Up */}
           {isSignUp && (
-            <div className="flex-shrink-0 order-2 lg:order-1">
+            <div className="flex-shrink-0 order-2 lg:order-1 lg:mr-8">
               <div className="relative flex justify-center animate-fade-in">
                 <div className="relative">
-                  {/* Speech bubble */}
-                  <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 min-w-max z-10">
+                  {/* Speech bubble - moved further left */}
+                  <div className="absolute -bottom-20 left-0 transform -translate-x-4 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 min-w-max z-10">
                     <p className="text-sm font-medium text-gray-700 whitespace-nowrap">
                       So excited to get you connected to others! 🎉
                     </p>
-                    {/* Speech bubble tail pointing up */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-4 border-b-white"></div>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 translate-y-[1px] w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-4 border-b-gray-200"></div>
+                    {/* Speech bubble tail pointing up - adjusted position */}
+                    <div className="absolute bottom-full left-8 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-4 border-b-white"></div>
+                    <div className="absolute bottom-full left-8 translate-y-[1px] w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-4 border-b-gray-200"></div>
                   </div>
                   
                   {/* Robot character with slow hover animation */}
