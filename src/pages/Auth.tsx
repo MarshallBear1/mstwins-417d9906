@@ -50,13 +50,13 @@ const Auth = () => {
               <div className="relative flex justify-center animate-fade-in">
                 <div className="relative">
                   {/* Speech bubble */}
-                  <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 min-w-max z-10">
+                  <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-200 px-4 py-2 min-w-max z-10">
                     <p className="text-sm font-medium text-gray-700 whitespace-nowrap">
                       So excited to get you connected to others! 🎉
                     </p>
-                    {/* Speech bubble tail */}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-white"></div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 translate-y-[-1px] w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-200"></div>
+                    {/* Speech bubble tail pointing up */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-4 border-b-white"></div>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 translate-y-[1px] w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-4 border-b-gray-200"></div>
                   </div>
                   
                   {/* Robot character with slow hover animation */}
