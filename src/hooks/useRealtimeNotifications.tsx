@@ -19,6 +19,74 @@ export const useRealtimeNotifications = () => {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false);
+
+  // Request browser notification permission
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      console.log('This browser does not support notifications');
+      return false;
+    }
+
+    if (Notification.permission === 'granted') {
+      setBrowserNotificationsEnabled(true);
+      return true;
+    }
+
+    if (Notification.permission !== 'denied') {
+      const permission = await Notification.requestPermission();
+      const enabled = permission === 'granted';
+      setBrowserNotificationsEnabled(enabled);
+      return enabled;
+    }
+
+    return false;
+  };
+
+  // Show browser notification
+  const showBrowserNotification = (title: string, message: string, type: string) => {
+    if (!browserNotificationsEnabled || Notification.permission !== 'granted') {
+      return;
+    }
+
+    const options: NotificationOptions = {
+      body: message,
+      icon: '/favicon.png',
+      badge: '/favicon.png',
+      tag: `ms-dating-${type}`,
+      requireInteraction: false,
+      silent: false,
+    };
+
+    // Add custom icon based on notification type
+    if (type === 'match') {
+      options.icon = '💕';
+    } else if (type === 'like') {
+      options.icon = '❤️';
+    } else if (type === 'message') {
+      options.icon = '💬';
+    }
+
+    const notification = new window.Notification(title, options);
+    
+    // Auto-close after 5 seconds
+    setTimeout(() => {
+      notification.close();
+    }, 5000);
+
+    // Optional: Handle click to focus the app
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+  };
+
+  // Check permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      setBrowserNotificationsEnabled(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -81,6 +149,9 @@ export const useRealtimeNotifications = () => {
               duration: 4000,
             });
 
+            // Show browser notification
+            showBrowserNotification(newNotification.title, newNotification.message, newNotification.type);
+
             // Play notification sound (optional)
             try {
               const audio = new Audio('/notification-sound.mp3');
@@ -141,6 +212,8 @@ export const useRealtimeNotifications = () => {
     notifications,
     unreadCount,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
+    requestNotificationPermission,
+    browserNotificationsEnabled
   };
 };

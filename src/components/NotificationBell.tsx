@@ -1,15 +1,40 @@
 import { useState } from "react";
-import { Bell, Heart, Users, MessageCircle, X } from "lucide-react";
+import { Bell, Heart, Users, MessageCircle, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { formatDistanceToNow } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 const NotificationBell = () => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useRealtimeNotifications();
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead, 
+    requestNotificationPermission, 
+    browserNotificationsEnabled 
+  } = useRealtimeNotifications();
+  const { toast } = useToast();
+
+  const handleEnableBrowserNotifications = async () => {
+    const enabled = await requestNotificationPermission();
+    if (enabled) {
+      toast({
+        title: "Browser notifications enabled",
+        description: "You'll now receive notifications even when the app is closed.",
+      });
+    } else {
+      toast({
+        title: "Browser notifications blocked",
+        description: "Please enable notifications in your browser settings.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -62,6 +87,18 @@ const NotificationBell = () => {
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="text-sm font-medium">Notifications</CardTitle>
               <div className="flex items-center gap-2">
+                {!browserNotificationsEnabled && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEnableBrowserNotifications}
+                    className="text-xs h-6 px-2"
+                    title="Enable browser notifications"
+                  >
+                    <Settings className="w-3 h-3 mr-1" />
+                    Enable
+                  </Button>
+                )}
                 {unreadCount > 0 && (
                   <Button
                     variant="ghost"
