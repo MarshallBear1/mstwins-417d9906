@@ -14,6 +14,9 @@ import ProfileCard from "@/components/ProfileCard";
 import ReferralDropdown from "@/components/ReferralDropdown";
 import FeedbackDialog from "@/components/FeedbackDialog";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
+import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
+import { useDailyLikes } from "@/hooks/useDailyLikes";
+import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 
 interface Profile {
   id: string;
@@ -35,15 +38,14 @@ interface Profile {
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { remainingLikes, isLimitEnforced, hasUnlimitedLikes } = useDailyLikes();
+  const { currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("discover");
   const [likes, setLikes] = useState<Profile[]>([]);
   const [likesLoading, setLikesLoading] = useState(false);
   const [isReturningUser, setIsReturningUser] = useState(false);
-  const [showRobotNotification, setShowRobotNotification] = useState(() => {
-    return !localStorage.getItem('robotNotificationDismissed');
-  });
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
 
@@ -213,12 +215,6 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  const handleDismissRobotNotification = () => {
-    setShowRobotNotification(false);
-    localStorage.setItem('robotNotificationDismissed', 'true');
-  };
-
-
   if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -280,11 +276,11 @@ const Dashboard = () => {
         return <DiscoverProfiles />;
       case "likes":
         return (
-          <div className="p-6">
+          <div className="p-3 sm:p-6">
             <div className="text-center mb-6">
-              <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-bold mb-2">People Who Liked You</h2>
-              <p className="text-muted-foreground">See who's interested in connecting</p>
+              <Users className="w-12 sm:w-16 h-12 sm:h-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-xl sm:text-2xl font-bold mb-2">People Who Liked You</h2>
+              <p className="text-sm sm:text-base text-muted-foreground">See who's interested in connecting</p>
             </div>
             
             {likesLoading ? (
@@ -292,12 +288,12 @@ const Dashboard = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : likes.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {likes.map((likedProfile) => (
                   <Card key={likedProfile.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
                            {likedProfile.avatar_url ? (
                              <img 
                                src={likedProfile.avatar_url} 
@@ -314,24 +310,24 @@ const Dashboard = () => {
                              />
                            ) : (
                             <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-                              <User className="w-8 h-8 text-white" />
+                              <User className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                             </div>
                           )}
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-lg truncate">
+                          <h3 className="font-semibold text-base sm:text-lg truncate">
                             {likedProfile.first_name} {likedProfile.last_name}
                           </h3>
                           
-                          <div className="flex items-center text-sm text-muted-foreground mt-1">
-                            <MapPin className="w-4 h-4 mr-1" />
+                          <div className="flex items-center text-xs sm:text-sm text-muted-foreground mt-1">
+                            <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                             <span className="truncate">{likedProfile.location}</span>
                           </div>
                           
                           {likedProfile.date_of_birth && (
-                            <div className="flex items-center text-sm text-muted-foreground mt-1">
-                              <Calendar className="w-4 h-4 mr-1" />
+                            <div className="flex items-center text-xs sm:text-sm text-muted-foreground mt-1">
+                              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                               <span>
                                 {(() => {
                                   const birth = new Date(likedProfile.date_of_birth);
@@ -348,7 +344,7 @@ const Dashboard = () => {
                           )}
                           
                           {likedProfile.ms_subtype && (
-                            <Badge variant="secondary" className="mt-2">
+                            <Badge variant="secondary" className="mt-2 text-xs">
                               {likedProfile.ms_subtype}
                             </Badge>
                           )}
@@ -358,18 +354,18 @@ const Dashboard = () => {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                              className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
                               onClick={() => {
                                 setSelectedProfileForView(likedProfile);
                                 setShowProfileView(true);
                               }}
                             >
-                              <Eye className="w-4 h-4 mr-1" />
-                              View Profile
+                              <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                              View
                             </Button>
                             <Button 
                               size="sm" 
-                              className="w-full bg-gradient-primary hover:opacity-90 text-white"
+                              className="w-full bg-gradient-primary hover:opacity-90 text-white text-xs sm:text-sm"
                               onClick={async () => {
                                 try {
                                   console.log('🚀 Starting like back process for:', likedProfile.user_id);
@@ -410,7 +406,7 @@ const Dashboard = () => {
                                 }
                               }}
                             >
-                             <Heart className="w-4 h-4 mr-1" />
+                             <Heart className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                              Like Back
                            </Button>
                          </div>
@@ -446,52 +442,56 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <NotificationPopup />
+      
+      {/* Robot Announcement Popup */}
+      {showAnnouncement && currentAnnouncement && (
+        <RobotAnnouncementPopup
+          announcement={currentAnnouncement}
+          onDismiss={() => dismissAnnouncement(currentAnnouncement.id)}
+        />
+      )}
+      
       {/* Header with notifications and referral */}
       <div className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
-        <div className="flex items-center justify-between px-6 py-3">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3">
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-gray-200 p-1 shadow-sm">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-white border border-gray-200 p-1 shadow-sm">
               <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="MSTwins mascot" className="w-full h-full object-contain" />
             </div>
-            <span className="text-lg font-bold text-foreground">
-              MS<span className="text-blue-600">Twins</span>
+            <span className="text-base sm:text-lg font-bold text-foreground">
+              MSTwins
             </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <FeedbackDialog />
-            <ReferralDropdown />
-            <NotificationBell />
-          </div>
-        </div>
-      </div>
-
-      {/* Robot notification - persistent dismissal */}
-      {showRobotNotification && (
-        <div className="bg-green-50 border-b border-green-200 p-4 animate-fade-in">
-          <div className="flex items-start space-x-3">
-            <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="Helpful robot" className="w-12 h-12 rounded-full flex-shrink-0" />
-            <div className="flex-1">
-              <div className="bg-white rounded-lg p-3 shadow-sm relative">
-                <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
-                <p className="text-sm text-foreground mb-2">
-                  <strong>
-                    {isReturningUser ? `Hello, ${profile.first_name}!` : `Great job, ${profile.first_name}!`}
-                  </strong> 🎉
-                </p>
-                <p className="text-sm text-foreground">
-                  {isReturningUser 
-                    ? "Ready to continue your journey? Check out new profiles in the Discover section!" 
-                    : "You are ready to start swiping! Click Discover to see profiles and find your perfect MS community matches."
-                  }
-                </p>
+            {/* Daily Likes Counter */}
+            {isLimitEnforced() && !hasUnlimitedLikes && (
+              <div className="hidden sm:flex items-center space-x-1 bg-primary/10 px-2 py-1 rounded-full">
+                <Heart className="w-3 h-3 text-primary" />
+                <span className="text-xs font-medium text-primary">{remainingLikes}</span>
               </div>
-            </div>
-            <Button variant="ghost" size="sm" onClick={handleDismissRobotNotification} className="flex-shrink-0 p-1 h-auto">
-              <X className="w-4 h-4" />
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Mobile Daily Likes Counter */}
+            {isLimitEnforced() && !hasUnlimitedLikes && (
+              <div className="sm:hidden flex items-center space-x-1 bg-primary/10 px-2 py-1 rounded-full">
+                <Heart className="w-3 h-3 text-primary" />
+                <span className="text-xs font-medium text-primary">{remainingLikes}</span>
+              </div>
+            )}
+            <NotificationBell />
+            <ReferralDropdown />
+            <FeedbackDialog />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Main content with smooth transitions */}
       <div className="flex-1 pb-20">

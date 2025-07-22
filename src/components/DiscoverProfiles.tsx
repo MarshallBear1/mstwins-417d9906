@@ -10,6 +10,7 @@ import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
+import UserReportDialog from "@/components/UserReportDialog";
 
 interface Profile {
   id: string;

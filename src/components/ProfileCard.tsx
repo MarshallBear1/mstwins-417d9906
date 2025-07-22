@@ -17,7 +17,8 @@ import {
   X, 
   LogOut,
   Upload,
-  Camera
+  Camera,
+  Trash2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +55,8 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [editData, setEditData] = useState({
     first_name: profile.first_name,
     last_name: profile.last_name,
@@ -178,6 +181,44 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
       avatar_url: profile.avatar_url || "",
     });
     setIsEditing(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    setDeleting(true);
+    try {
+      // Delete the user account (this will cascade to delete related data due to foreign keys)
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (error) {
+        console.error('Error deleting account:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to delete account. Please contact support.",
+        });
+        return;
+      }
+
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted.",
+      });
+
+      // Sign out the user
+      onSignOut();
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        variant: "destructive", 
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   return (
@@ -532,8 +573,56 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
                 💡 To edit interests, symptoms, and medications, visit the full profile setup.
               </div>
             )}
+
+            {/* Account Settings Section */}
+            {!isEditing && (
+              <div className="pt-4 border-t border-border">
+                <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Account Settings</h4>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                    disabled={deleting}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Account
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Delete Confirmation Dialog */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-background rounded-lg p-6 max-w-sm w-full">
+              <h3 className="font-semibold text-lg mb-2">Delete Account</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Are you sure you want to permanently delete your account? This action cannot be undone and will remove all your data, matches, and messages.
+              </p>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1"
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  {deleting ? "Deleting..." : "Delete Account"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
