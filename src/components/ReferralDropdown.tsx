@@ -9,7 +9,7 @@ const ReferralDropdown = () => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  const referralLink = `${window.location.origin}?ref=user123`; // Would be dynamic based on user ID
+  const referralLink = `https://mstwins.com?ref=user123`; // Would be dynamic based on user ID
   
   const socialLinks = [
     {

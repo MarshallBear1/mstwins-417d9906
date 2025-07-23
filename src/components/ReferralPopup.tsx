@@ -69,7 +69,7 @@ const ReferralPopup = () => {
   };
 
   const copyReferralLink = async () => {
-    const referralLink = `${window.location.origin}?ref=${user?.id}`;
+    const referralLink = `https://mstwins.com?ref=${user?.id}`;
     
     try {
       await navigator.clipboard.writeText(referralLink);
