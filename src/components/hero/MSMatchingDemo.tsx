@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, MapPin, Calendar, X, Check } from "lucide-react";
+import { Heart, MessageCircle, MapPin, Calendar, X, Check, ArrowRight } from "lucide-react";
 import { useState, useEffect, memo } from "react";
+import { Link } from "react-router-dom";
 
 const MSMatchingDemo = memo(() => {
   const [step, setStep] = useState(0);
@@ -118,6 +119,43 @@ const MSMatchingDemo = memo(() => {
         </div>
       )}
 
+      {/* Robot Avatar with Speech Bubble */}
+      {showConversation && (
+        <div className="flex justify-center mt-8 animate-fade-in">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                alt="MSTwins robot"
+                className="w-12 h-12 object-contain"
+              />
+            </div>
+            {/* Speech Bubble */}
+            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">
+              🎉 You've been matched! Start connecting
+              <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-blue-600"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Call to Action */}
+      {showConversation && (
+        <div className="text-center mt-8 animate-fade-in">
+          <Button 
+            variant="hero" 
+            size="lg" 
+            className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white shadow-medium hover:shadow-strong transform hover:scale-105 transition-all duration-300"
+            asChild
+          >
+            <Link to="/auth">
+              Start Connecting Today
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </Button>
+        </div>
+      )}
+
       {/* Status Text */}
       <div className="text-center mt-6">
         {step === 0 && (
@@ -128,9 +166,6 @@ const MSMatchingDemo = memo(() => {
         )}
         {step === 2 && !showConversation && (
           <p className="text-sm text-success font-semibold">It's a match! 💫</p>
-        )}
-        {showConversation && (
-          <p className="text-sm text-success font-semibold">Building meaningful connections...</p>
         )}
       </div>
     </div>
