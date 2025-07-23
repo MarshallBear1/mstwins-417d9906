@@ -133,12 +133,15 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm">{profile.location}</span>
+              {/* MS Type */}
+              {profile.ms_subtype && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">MS Type</h4>
+                  <Badge className="bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200">
+                    {profile.ms_subtype.toUpperCase()}
+                  </Badge>
                 </div>
-              </div>
+              )}
 
               {profile.about_me && (
                 <div>

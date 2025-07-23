@@ -11,6 +11,7 @@ import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
 import UserReportDialog from "@/components/UserReportDialog";
+import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 
 interface Profile {
   id: string;
@@ -457,171 +458,49 @@ const DiscoverProfiles = () => {
         </div>
       )}
 
-      <div className="max-w-md mx-auto"> {/* Profile Card Container */}
-        <Card className="overflow-hidden shadow-xl animate-scale-in">
-          {/* Avatar Section with Gradient Background */}
-          <div className="relative h-48 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-              {currentProfile.avatar_url ? (
-                <img 
-                  src={currentProfile.avatar_url} 
-                  alt={currentProfile.first_name}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  onLoad={(e) => {
-                    e.currentTarget.style.opacity = '1';
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${currentProfile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
-                  }}
-                  style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
-                />
+      <div className="max-w-md mx-auto">
+        <DiscoverProfileCard profile={currentProfile} />
+        
+        {/* Action Buttons */}
+        <div className="mt-4 space-y-3">
+          <Button 
+            variant="outline" 
+            className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
+            onClick={() => setShowProfileView(true)}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            View Full Profile
+          </Button>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button 
+              variant="outline" 
+              className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12"
+              onClick={handlePass}
+              disabled={actionLoading}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Pass
+            </Button>
+            <Button 
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
+              onClick={handleLike}
+              disabled={actionLoading}
+            >
+              {actionLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Liking...
+                </>
               ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <User className="w-8 h-8 text-muted-foreground" />
-                </div>
+                <>
+                  <Heart className="w-4 h-4 mr-2" fill="currentColor" />
+                  Like
+                </>
               )}
-              {/* Online status indicator */}
-              <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white ${
-                isUserOnline(currentProfile.user_id) ? 'bg-green-500' : 'bg-gray-400'
-              }`} />
-            </div>
-            {/* Profile indicator */}
-            <div className="absolute top-4 left-4 bg-white/80 rounded-full px-3 py-1">
-              <span className="text-sm font-medium">
-                {currentIndex + 1} of {profiles.length}
-              </span>
-            </div>
-            {/* Online status badge */}
-            <div className="absolute top-4 right-4 bg-white/90 rounded-full px-3 py-1">
-              <div className="flex items-center gap-1">
-                <div className={`w-2 h-2 rounded-full ${
-                  isUserOnline(currentProfile.user_id) ? 'bg-green-500' : 'bg-gray-400'
-                }`} />
-                <span className="text-xs font-medium">
-                  {isUserOnline(currentProfile.user_id) ? 'Online' : getLastSeenText(currentProfile.last_seen)}
-                </span>
-              </div>
-            </div>
+            </Button>
           </div>
-
-          {/* Profile Content */}
-          <CardContent className="p-6 space-y-4">
-            {/* Name and Age */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-bold">{currentProfile.first_name} {currentProfile.last_name}</h3>
-              {currentProfile.date_of_birth && (
-                <span className="text-xl font-semibold text-muted-foreground">
-                  {calculateAge(currentProfile.date_of_birth)}
-                </span>
-              )}
-            </div>
-
-            {/* Location and Diagnosis */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm">{currentProfile.location}</span>
-              </div>
-              {currentProfile.gender && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <User className="w-4 h-4" />
-                  <span className="text-sm">{currentProfile.gender.charAt(0).toUpperCase() + currentProfile.gender.slice(1)}</span>
-                </div>
-              )}
-              {currentProfile.diagnosis_year && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-sm">Diagnosed in {currentProfile.diagnosis_year}</span>
-                </div>
-              )}
-            </div>
-
-            {/* MS Type */}
-            {currentProfile.ms_subtype && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">MS Type</h4>
-                <span className="text-muted-foreground">{currentProfile.ms_subtype}</span>
-              </div>
-            )}
-
-            {/* Interests */}
-            {currentProfile.hobbies.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Interests</h4>
-                <div className="flex flex-wrap gap-2">
-                  {currentProfile.hobbies.slice(0, 6).map((hobby, index) => (
-                    <Badge 
-                      key={index}
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-700 hover:bg-blue-200"
-                    >
-                      {hobby}
-                    </Badge>
-                  ))}
-                  {currentProfile.hobbies.length > 6 && (
-                    <Badge variant="outline">
-                      +{currentProfile.hobbies.length - 6} more
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* About */}
-            {currentProfile.about_me && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">About</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {currentProfile.about_me}
-                </p>
-              </div>
-            )}
-
-            {/* Action Buttons - Improved mobile layout */}
-            <div className="space-y-3">
-              {/* View Profile Button */}
-              <Button 
-                variant="outline" 
-                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
-                onClick={() => setShowProfileView(true)}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View Full Profile
-              </Button>
-              
-              {/* Like/Pass Buttons - Stack on mobile, side-by-side on larger screens */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button 
-                  variant="outline" 
-                  className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12"
-                  onClick={handlePass}
-                  disabled={actionLoading}
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Pass
-                </Button>
-                <Button 
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
-                  onClick={handleLike}
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Liking...
-                    </>
-                  ) : (
-                    <>
-                      <Heart className="w-4 h-4 mr-2" fill="currentColor" />
-                      Like
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
       {/* Profile View Dialog */}

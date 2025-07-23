@@ -64,7 +64,7 @@ const ExtendedProfileSetup = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching extended profile:', error);
         return;
       }

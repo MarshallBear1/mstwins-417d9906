@@ -307,7 +307,6 @@ const Dashboard = () => {
     { id: "likes", label: "Likes", icon: Users },
     { id: "matches", label: "Matches", icon: MessageCircle },
     { id: "profile", label: "Profile", icon: User },
-    { id: "admin", label: "Debug", icon: Eye },
   ];
 
   const renderContent = () => {
@@ -520,12 +519,6 @@ const Dashboard = () => {
             onProfileUpdate={(updatedProfile) => setProfile({ ...updatedProfile, last_seen: profile.last_seen })}
             onSignOut={handleSignOut}
           />
-        );
-      case "admin":
-        return (
-          <div className="p-6 text-center">
-            <p className="text-muted-foreground">Admin panel removed for security.</p>
-          </div>
         );
       default:
         return null;
