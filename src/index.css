@@ -130,3 +130,21 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes move-glow {
+  0% {
+    background: linear-gradient(90deg, transparent, transparent, hsl(217 91% 60% / 0.8), transparent, transparent);
+  }
+  25% {
+    background: linear-gradient(180deg, transparent, transparent, hsl(217 91% 60% / 0.8), transparent, transparent);
+  }
+  50% {
+    background: linear-gradient(270deg, transparent, transparent, hsl(217 91% 60% / 0.8), transparent, transparent);
+  }
+  75% {
+    background: linear-gradient(0deg, transparent, transparent, hsl(217 91% 60% / 0.8), transparent, transparent);
+  }
+  100% {
+    background: linear-gradient(90deg, transparent, transparent, hsl(217 91% 60% / 0.8), transparent, transparent);
+  }
+}

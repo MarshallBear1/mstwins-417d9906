@@ -38,7 +38,7 @@ const HeroContent = () => {
 
       {/* CTA Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-        <Button variant="hero" size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white shadow-strong relative overflow-hidden before:absolute before:inset-[-2px] before:rounded-lg before:bg-gradient-to-r before:from-transparent before:via-cyan-400 before:to-transparent before:opacity-60 before:animate-[spin_4s_linear_infinite] before:-z-10 after:absolute after:inset-0 after:rounded-lg after:shadow-[0_0_20px_rgba(6,182,212,0.4)] after:animate-pulse after:-z-10" asChild>
+        <Button variant="hero" size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white relative overflow-hidden before:absolute before:inset-[-2px] before:rounded-lg before:bg-gradient-to-r before:from-transparent before:via-blue-400 before:to-transparent before:opacity-80 before:animate-[move-glow_3s_linear_infinite] before:-z-10" asChild>
           <Link to="/auth">
             Join Free Today
             <ArrowRight className="w-5 h-5 ml-2" />
