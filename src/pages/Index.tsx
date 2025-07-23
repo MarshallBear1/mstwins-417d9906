@@ -1,7 +1,7 @@
 
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-
+import OptimizedHowItWorks from "@/components/OptimizedHowItWorks";
 import MatchingAnimation from "@/components/MatchingAnimation";
 import SocialProof from "@/components/SocialProof";
 import TrustSignals from "@/components/TrustSignals";
@@ -17,6 +17,9 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
+        <div id="how-it-works">
+          <OptimizedHowItWorks />
+        </div>
         <MatchingAnimation />
         <TrustSignals />
         <div id="testimonials">

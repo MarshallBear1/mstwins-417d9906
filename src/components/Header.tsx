@@ -20,10 +20,12 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
+            <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+              How It Works
+            </a>
             <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Success Stories
             </a>
-            
           </nav>
 
           {/* Desktop CTA Buttons */}
@@ -46,6 +48,9 @@ const Header = () => {
         {/* Mobile Menu */}
         {mobileMenuOpen && <div className="md:hidden py-4 border-t border-gray-200 bg-white">
             <div className="flex flex-col space-y-4">
+              <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition-colors font-medium" onClick={() => setMobileMenuOpen(false)}>
+                How It Works
+              </a>
               <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors font-medium" onClick={() => setMobileMenuOpen(false)}>
                 Success Stories
               </a>
