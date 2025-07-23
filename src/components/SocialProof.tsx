@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Quote, Star, Users, MessageCircle, Heart } from "lucide-react";
 
@@ -17,7 +18,7 @@ const SocialProof = () => {
       msType: "SPMS",
       testimonial: "The community here gets it. No need to explain why I need to rest or how brain fog affects my work. Just understanding and support.",
       rating: 5,
-      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=MichaelTX&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile&hairColor=auburn&facialHair=medium"
+      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=Michael2&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile"
     },
     {
       name: "Jennifer L.",
@@ -33,7 +34,7 @@ const SocialProof = () => {
       msType: "PPMS",
       testimonial: "Met my best friend here. We video chat weekly and support each other through flares. This platform changed my life.",
       rating: 5,
-      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=DavidChicago&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile&hairColor=black&facialHair=goatee"
+      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=David2&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile"
     }
   ];
 
