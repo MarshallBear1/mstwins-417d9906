@@ -1,6 +1,6 @@
 
 import HeroContent from "./hero/HeroContent";
-import MSMatchingDemo from "./hero/MSMatchingDemo";
+import ConnectionsDemo from "./hero/ConnectionsDemo";
 
 const OptimizedHero = () => {
   return (
@@ -8,7 +8,7 @@ const OptimizedHero = () => {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <HeroContent />
-          <MSMatchingDemo />
+          <ConnectionsDemo />
         </div>
       </div>
     </section>

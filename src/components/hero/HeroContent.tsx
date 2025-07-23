@@ -9,9 +9,7 @@ const HeroContent = () => {
       
       {/* Main Headline */}
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
-        <span className="bg-gradient-hero bg-clip-text text-transparent">
-          Find Your MSTwin
-        </span>
+        Find Your MS<span className="text-blue-600">Twin</span>
       </h1>
       
       {/* Value Proposition */}
