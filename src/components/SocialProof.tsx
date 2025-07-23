@@ -59,9 +59,9 @@ const SocialProof = () => {
     },
     {
       icon: Star,
-      value: "98%",
+      value: "9/10",
       label: "Would Recommend",
-      description: "Members love our platform"
+      description: "9 out of 10 people recommend us"
     }
   ];
 
