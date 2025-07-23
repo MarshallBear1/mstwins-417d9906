@@ -54,6 +54,8 @@ const ProfileViewDialog = ({
   const [isFlipped, setIsFlipped] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [showAllHobbies, setShowAllHobbies] = useState(false);
+  const [showAllSymptoms, setShowAllSymptoms] = useState(false);
+  const [showAllMedications, setShowAllMedications] = useState(false);
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
@@ -370,7 +372,7 @@ const ProfileViewDialog = ({
                         <div>
                           <h5 className="text-sm font-medium text-gray-700 mb-2">Symptoms</h5>
                           <div className="flex flex-wrap gap-2">
-                            {profile.symptoms.map((symptom, index) => (
+                            {(showAllSymptoms ? profile.symptoms : profile.symptoms.slice(0, 6)).map((symptom, index) => (
                               <Badge 
                                 key={index}
                                 variant="outline"
@@ -379,6 +381,14 @@ const ProfileViewDialog = ({
                                 {symptom}
                               </Badge>
                             ))}
+                            {profile.symptoms.length > 6 && (
+                              <button
+                                onClick={() => setShowAllSymptoms(!showAllSymptoms)}
+                                className="text-xs text-orange-600 hover:text-orange-800 underline"
+                              >
+                                {showAllSymptoms ? 'Show less' : `and ${profile.symptoms.length - 6} more`}
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}
@@ -388,7 +398,7 @@ const ProfileViewDialog = ({
                         <div>
                           <h5 className="text-sm font-medium text-gray-700 mb-2">Medications</h5>
                           <div className="flex flex-wrap gap-2">
-                            {profile.medications.map((medication, index) => (
+                            {(showAllMedications ? profile.medications : profile.medications.slice(0, 6)).map((medication, index) => (
                               <Badge 
                                 key={index}
                                 variant="outline"
@@ -397,6 +407,14 @@ const ProfileViewDialog = ({
                                 {medication}
                               </Badge>
                             ))}
+                            {profile.medications.length > 6 && (
+                              <button
+                                onClick={() => setShowAllMedications(!showAllMedications)}
+                                className="text-xs text-green-600 hover:text-green-800 underline"
+                              >
+                                {showAllMedications ? 'Show less' : `and ${profile.medications.length - 6} more`}
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}
