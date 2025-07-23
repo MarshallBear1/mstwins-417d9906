@@ -51,6 +51,7 @@ const DiscoverProfiles = () => {
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   
   const [isFlipped, setIsFlipped] = useState(false);
+  const [showAllHobbies, setShowAllHobbies] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -601,7 +602,7 @@ const DiscoverProfiles = () => {
                 <div>
                   <h4 className="text-sm font-semibold mb-2">Interests</h4>
                   <div className="flex flex-wrap gap-2">
-                    {currentProfile.hobbies.slice(0, 6).map((hobby, index) => (
+                    {(showAllHobbies ? currentProfile.hobbies : currentProfile.hobbies.slice(0, 6)).map((hobby, index) => (
                       <Badge 
                         key={index}
                         variant="secondary"
@@ -611,9 +612,12 @@ const DiscoverProfiles = () => {
                       </Badge>
                     ))}
                     {currentProfile.hobbies.length > 6 && (
-                      <Badge variant="outline">
-                        +{currentProfile.hobbies.length - 6} more
-                      </Badge>
+                      <button
+                        onClick={() => setShowAllHobbies(!showAllHobbies)}
+                        className="px-2 py-1 text-xs text-blue-600 hover:text-blue-800 border border-gray-300 rounded-md hover:bg-blue-50 transition-colors"
+                      >
+                        {showAllHobbies ? 'Show less' : `+${currentProfile.hobbies.length - 6} more`}
+                      </button>
                     )}
                   </div>
                 </div>
