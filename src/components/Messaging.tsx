@@ -759,47 +759,37 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         </div>
       )}
       
-      {/* Profile View Dialog - use consistent profile dialog like in discover */}
-      {(() => {
-        console.log('🔍 Rendering ProfileViewDialog section:', { 
-          selectedMatch: !!selectedMatch, 
-          showProfileView, 
-          hasOtherUser: !!selectedMatch?.other_user 
-        });
-        return null;
-      })()} 
-      {selectedMatch && (
-        <ProfileViewDialog 
-          profile={{
-            id: selectedMatch.other_user.id,
-            user_id: selectedMatch.other_user.user_id,
-            first_name: selectedMatch.other_user.first_name,
-            last_name: selectedMatch.other_user.last_name,
-            date_of_birth: selectedMatch.other_user.date_of_birth || null,
-            location: selectedMatch.other_user.location || '',
-            gender: selectedMatch.other_user.gender || null,
-            ms_subtype: selectedMatch.other_user.ms_subtype || null,
-            diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
-            symptoms: selectedMatch.other_user.symptoms || [],
-            medications: selectedMatch.other_user.medications || [],
-            hobbies: selectedMatch.other_user.hobbies || [],
-            avatar_url: selectedMatch.other_user.avatar_url,
-            about_me: selectedMatch.other_user.about_me || null,
-            last_seen: selectedMatch.other_user.last_seen || null,
-            additional_photos: selectedMatch.other_user.additional_photos || [],
-            selected_prompts: selectedMatch.other_user.selected_prompts || [],
-            extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
-          }}
-          open={showProfileView} 
-          onOpenChange={(open) => {
-            console.log('👁️ ProfileViewDialog onOpenChange called with:', open);
-            console.log('👁️ Current showProfileView state:', showProfileView);
-            setShowProfileView(open);
-            console.log('👁️ setShowProfileView called with:', open);
-          }}
-          showActions={false} 
-        />
-      )}
+      {/* Profile View Dialog - always render when we have match data */}
+      <ProfileViewDialog 
+        profile={selectedMatch ? {
+          id: selectedMatch.other_user.id,
+          user_id: selectedMatch.other_user.user_id,
+          first_name: selectedMatch.other_user.first_name,
+          last_name: selectedMatch.other_user.last_name,
+          date_of_birth: selectedMatch.other_user.date_of_birth || null,
+          location: selectedMatch.other_user.location || '',
+          gender: selectedMatch.other_user.gender || null,
+          ms_subtype: selectedMatch.other_user.ms_subtype || null,
+          diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
+          symptoms: selectedMatch.other_user.symptoms || [],
+          medications: selectedMatch.other_user.medications || [],
+          hobbies: selectedMatch.other_user.hobbies || [],
+          avatar_url: selectedMatch.other_user.avatar_url,
+          about_me: selectedMatch.other_user.about_me || null,
+          last_seen: selectedMatch.other_user.last_seen || null,
+          additional_photos: selectedMatch.other_user.additional_photos || [],
+          selected_prompts: selectedMatch.other_user.selected_prompts || [],
+          extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
+        } : null}
+        open={showProfileView} 
+        onOpenChange={(open) => {
+          console.log('👁️ ProfileViewDialog onOpenChange called with:', open);
+          console.log('👁️ Current showProfileView state:', showProfileView);
+          setShowProfileView(open);
+          console.log('👁️ setShowProfileView called with:', open);
+        }}
+        showActions={false} 
+      />
     </div>
   );
 };
