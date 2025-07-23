@@ -26,7 +26,7 @@ const TrustSignals = () => {
     {
       icon: Award,
       title: "Trusted Platform",
-      description: "4.9/5 rating from 1,000+ verified members"
+      description: "4.9/5 rating from 500+ verified members"
     },
     {
       icon: CheckCircle,
@@ -35,13 +35,6 @@ const TrustSignals = () => {
     }
   ];
 
-  const securityFeatures = [
-    "End-to-end encryption for all messages",
-    "Secure photo sharing with auto-deletion",
-    "Anonymous reporting system",
-    "24/7 community moderation",
-    "Verified member profiles only"
-  ];
 
   return (
     <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
@@ -68,33 +61,18 @@ const TrustSignals = () => {
           ))}
         </div>
 
-        {/* Security Features */}
+        {/* Community Features */}
         <div className="bg-blue-50 rounded-2xl p-8 md:p-12">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Advanced Security Features
-              </h3>
-              <p className="text-gray-600 mb-6">
-                We've implemented military-grade security to ensure your conversations and personal information remain completely private.
-              </p>
-              <ul className="space-y-3">
-                {securityFeatures.map((feature, index) => (
-                  <li key={index} className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+          <div className="text-center">
+            <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Shield className="w-16 h-16 text-white" />
             </div>
-            
-            <div className="text-center">
-              <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Shield className="w-16 h-16 text-white" />
-              </div>
-              <div className="text-3xl font-bold text-blue-600 mb-2">256-bit</div>
-              <div className="text-gray-600">End-to-end encryption</div>
-            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              Safe Community Space
+            </h3>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              Our platform focuses on creating meaningful connections within the MS community through verified profiles and community moderation.
+            </p>
           </div>
         </div>
       </div>

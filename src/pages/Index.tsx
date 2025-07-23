@@ -1,7 +1,7 @@
 
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import OptimizedHowItWorks from "@/components/OptimizedHowItWorks";
+
 import MatchingAnimation from "@/components/MatchingAnimation";
 import SocialProof from "@/components/SocialProof";
 import TrustSignals from "@/components/TrustSignals";
@@ -17,9 +17,6 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
-        <div id="how-it-works">
-          <OptimizedHowItWorks />
-        </div>
         <MatchingAnimation />
         <TrustSignals />
         <div id="testimonials">
@@ -34,7 +31,7 @@ const Index = () => {
                 Ready to Find Your MS Support Network?
               </h2>
               <p className="text-xl text-white/90 mb-8">
-                Join 1,000+ members who've found friendship, support, and understanding in our community.
+                Join 500+ members who've found friendship, support, and understanding in our community.
               </p>
               <Button 
                 variant="secondary" 

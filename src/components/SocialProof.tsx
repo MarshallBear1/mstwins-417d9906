@@ -41,13 +41,13 @@ const SocialProof = () => {
   const metrics = [
     {
       icon: Users,
-      value: "1,000+",
+      value: "500+",
       label: "Active Members",
       description: "Growing community of MS warriors"
     },
     {
       icon: MessageCircle,
-      value: "10,000+",
+      value: "1,000+",
       label: "Connections Made",
       description: "Meaningful friendships formed"
     },

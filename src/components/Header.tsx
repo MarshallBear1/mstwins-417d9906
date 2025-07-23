@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import FeedbackDialog from "@/components/FeedbackDialog";
-import { Users, Menu, X } from "lucide-react";
+import { Users, Menu, X, Heart } from "lucide-react";
 import { useState } from "react";
 
 const Header = () => {
@@ -28,15 +28,18 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-              How It Works
-            </a>
             <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Success Stories
             </a>
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <Users className="w-4 h-4" />
-              <span>1,000+ members</span>
+            <div className="flex items-center space-x-4 text-sm text-gray-600">
+              <div className="flex items-center space-x-1">
+                <Users className="w-4 h-4" />
+                <span>500+ members</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Heart className="w-4 h-4" />
+                <span>1,000 matches made</span>
+              </div>
             </div>
           </nav>
 
@@ -68,22 +71,21 @@ const Header = () => {
           <div className="md:hidden py-4 border-t border-gray-200 bg-white">
             <div className="flex flex-col space-y-4">
               <a 
-                href="#how-it-works" 
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                How It Works
-              </a>
-              <a 
                 href="#testimonials" 
                 className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Success Stories
               </a>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Users className="w-4 h-4" />
-                <span>1,000+ members</span>
+              <div className="flex flex-col space-y-2 text-sm text-gray-600">
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4" />
+                  <span>500+ members</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Heart className="w-4 h-4" />
+                  <span>1,000 matches made</span>
+                </div>
               </div>
               <div className="flex flex-col space-y-2 pt-2">
                 <Button variant="ghost" className="justify-start text-gray-700 hover:text-blue-600" asChild>

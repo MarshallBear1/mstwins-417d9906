@@ -10,7 +10,7 @@ const HeroContent = () => {
       {/* Trust Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
         <Heart className="w-4 h-4" fill="currentColor" />
-        Trusted by 1,000+ MS community members
+        NEWEST PLATFORM (released 22/07/25 - already have 500 users + from 50 countries)
       </div>
       
       {/* Main Headline */}
@@ -32,11 +32,11 @@ const HeroContent = () => {
       <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-primary" />
-          <span className="text-sm text-muted-foreground">1,000+ active members</span>
+          <span className="text-sm text-muted-foreground">500+ members</span>
         </div>
         <div className="flex items-center gap-2">
           <MessageCircle className="w-5 h-5 text-primary" />
-          <span className="text-sm text-muted-foreground">10,000+ connections made</span>
+          <span className="text-sm text-muted-foreground">1,000 matches made</span>
         </div>
         <div className="flex items-center gap-2">
           <Star className="w-5 h-5 text-accent" fill="currentColor" />
@@ -63,8 +63,8 @@ const HeroContent = () => {
           className="text-lg px-8 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white"
           asChild
         >
-          <Link to="#how-it-works">
-            See How It Works
+          <Link to="#testimonials">
+            See Success Stories
           </Link>
         </Button>
       </div>

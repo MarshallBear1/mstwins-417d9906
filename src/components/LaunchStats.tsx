@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Calendar, MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import FeedbackDialog from "@/components/FeedbackDialog";
+import { Users, Calendar, Globe } from "lucide-react";
 
 export default function LaunchStats() {
   const [userCount, setUserCount] = useState<number>(0);
@@ -87,7 +85,7 @@ export default function LaunchStats() {
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
-          <span>Launched 22/07/2025 • {daysLive} days live</span>
+          <span>NEWEST PLATFORM (released 22/07/25)</span>
         </div>
         
         <div className="flex items-center justify-center gap-6">
@@ -97,27 +95,18 @@ export default function LaunchStats() {
               {loading ? (
                 <span className="animate-pulse">...</span>
               ) : (
-                <span>{(userCount + 20).toLocaleString()}</span>
+                <span>500+</span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
-              {(userCount + 20) === 1 ? 'person has' : 'people have'} joined our community
-            </p>
+            <p className="text-sm text-muted-foreground">users</p>
           </div>
-        </div>
-
-        <div className="space-y-3 pt-2">
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            <strong className="text-foreground">Thank you for being here on our journey!</strong> 
-            {" "}We're building this community together, and your voice matters. 
-          </p>
           
-          <div className="flex items-center justify-center gap-2">
-            <MessageSquare className="h-4 w-4 text-accent" />
-            <span className="text-sm text-muted-foreground">
-              Please share your feedback to help us improve
-            </span>
-            <FeedbackDialog />
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 text-2xl font-bold text-primary">
+              <Globe className="h-6 w-6" />
+              <span>50+</span>
+            </div>
+            <p className="text-sm text-muted-foreground">countries</p>
           </div>
         </div>
       </div>
