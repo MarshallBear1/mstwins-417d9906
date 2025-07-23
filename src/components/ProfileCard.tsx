@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ProfileImageViewer from "@/components/ProfileImageViewer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface Profile {
   id: string;
@@ -60,12 +62,14 @@ interface ProfileCardProps {
 const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showImageViewer, setShowImageViewer] = useState(false);
   const [editData, setEditData] = useState({
     first_name: profile.first_name,
     last_name: profile.last_name,
@@ -306,7 +310,10 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
           }}
           >
           <div className="relative h-32 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-            <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
+            <div 
+              className={`relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg ${!isEditing ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+              onClick={!isEditing ? () => setShowImageViewer(true) : undefined}
+            >
               {(isEditing ? editData.avatar_url : profile.avatar_url) ? (
                 <img 
                   src={isEditing ? editData.avatar_url : profile.avatar_url} 
@@ -580,16 +587,6 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               )
             )}
 
-            {/* See More Button */}
-            {!isEditing && hasExtendedContent && (
-              <Button 
-                variant="outline" 
-                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
-                onClick={() => setIsFlipped(!isFlipped)}
-              >
-                See More
-              </Button>
-            )}
 
             {/* Diagnosis Year */}
             {isEditing ? (
@@ -821,6 +818,17 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               )}
             </div>
 
+            {/* See More Button - Moved to after symptoms */}
+            {!isEditing && hasExtendedContent && (
+              <Button 
+                variant="outline" 
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
+                onClick={() => setIsFlipped(!isFlipped)}
+              >
+                See More
+              </Button>
+            )}
+
             {/* Account Settings Section */}
             {!isEditing && (
               <div className="pt-4 border-t border-border">
@@ -829,7 +837,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.location.href = '/extended-profile'}
+                    onClick={() => navigate('/extended-profile')}
                     className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 mb-2"
                   >
                     ✨ Edit Extended Profile
@@ -960,7 +968,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.location.href = '/extended-profile'}
+                  onClick={() => navigate('/extended-profile')}
                   className="text-blue-600 border-blue-200 hover:bg-blue-50"
                 >
                   ✨ Add Extended Profile
@@ -999,6 +1007,14 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
             </div>
           </div>
         )}
+
+        {/* Profile Image Viewer */}
+        <ProfileImageViewer 
+          images={profile.avatar_url ? [profile.avatar_url] : []}
+          currentIndex={0}
+          isOpen={showImageViewer}
+          onClose={() => setShowImageViewer(false)}
+        />
       </div>
     </div>
   );

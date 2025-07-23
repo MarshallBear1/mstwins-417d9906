@@ -9,7 +9,7 @@ import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
-import ProfileViewDialog from "@/components/ProfileViewDialog";
+import ProfileImageViewer from "@/components/ProfileImageViewer";
 
 
 interface Profile {
@@ -47,7 +47,7 @@ const DiscoverProfiles = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [showingSkipped, setShowingSkipped] = useState(false);
   const [showMatchAnnouncement, setShowMatchAnnouncement] = useState(false);
-  const [showProfileView, setShowProfileView] = useState(false);
+  const [showImageViewer, setShowImageViewer] = useState(false);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   
   const [isFlipped, setIsFlipped] = useState(false);
@@ -499,7 +499,7 @@ const DiscoverProfiles = () => {
             <div className="relative h-40 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
               <div 
                 className="relative w-36 h-36 rounded-full overflow-hidden border-4 border-white shadow-lg cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => setShowProfileView(true)}
+                onClick={() => setShowImageViewer(true)}
               >
                 {currentProfile.avatar_url ? (
                   <img 
@@ -815,15 +815,12 @@ const DiscoverProfiles = () => {
         </div>
       </div>
 
-      {/* Profile View Dialog */}
-      <ProfileViewDialog 
-        profile={currentProfile}
-        open={showProfileView}
-        onOpenChange={setShowProfileView}
-        onLike={handleLike}
-        onPass={handlePass}
-        showActions={true}
-        isLiking={actionLoading}
+      {/* Profile Image Viewer */}
+      <ProfileImageViewer 
+        images={currentProfile.avatar_url ? [currentProfile.avatar_url] : []}
+        currentIndex={0}
+        isOpen={showImageViewer}
+        onClose={() => setShowImageViewer(false)}
       />
 
     </div>
