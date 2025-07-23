@@ -34,7 +34,7 @@ const SocialProof = () => {
       msType: "PPMS",
       testimonial: "Met my best friend here. We video chat weekly and support each other through flares. This platform changed my life.",
       rating: 5,
-      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=David2&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile"
+      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=DavidNew&backgroundColor=d1c4e9,c8e6c9&eyes=happy&mouth=smile&hair=shortHairShortCurly&facialHair=beardMajestic"
     }
   ];
 
