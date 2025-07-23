@@ -763,7 +763,10 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
           }}
           open={showProfileView} 
-          onOpenChange={setShowProfileView} 
+          onOpenChange={(open) => {
+            console.log('👁️ ProfileViewDialog onOpenChange:', open);
+            setShowProfileView(open);
+          }}
           showActions={false} 
         />
       )}
