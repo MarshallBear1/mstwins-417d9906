@@ -41,6 +41,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_queue: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          last_attempt: string | null
+          liked_user_id: string
+          liker_user_id: string
+          message_content: string | null
+          processed: boolean | null
+          type: string
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          last_attempt?: string | null
+          liked_user_id: string
+          liker_user_id: string
+          message_content?: string | null
+          processed?: boolean | null
+          type: string
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          last_attempt?: string | null
+          liked_user_id?: string
+          liker_user_id?: string
+          message_content?: string | null
+          processed?: boolean | null
+          type?: string
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           admin_notes: string | null
