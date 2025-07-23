@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Check, X, Upload, Camera, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, ArrowRight, Check, X, Upload, Camera, Plus, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,6 +66,7 @@ const ExtendedProfileSetup = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showRobotPrompt, setShowRobotPrompt] = useState(true);
+  const [showPhotoChoiceDialog, setShowPhotoChoiceDialog] = useState(false);
   
   const [extendedData, setExtendedData] = useState<ExtendedProfileData>({
     additionalPhotos: [],
@@ -156,7 +158,35 @@ const ExtendedProfileSetup = () => {
       });
     } finally {
       setUploading(false);
+      setShowPhotoChoiceDialog(false);
+      // Reset file input
+      const fileInput = document.getElementById('additional-photo-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      const cameraInput = document.getElementById('camera-photo-upload') as HTMLInputElement;
+      if (cameraInput) cameraInput.value = '';
     }
+  };
+
+  const handleAddPhotoClick = () => {
+    if (extendedData.additionalPhotos.length >= 4) {
+      toast({
+        variant: "destructive",
+        title: "Photo limit reached",
+        description: "You can upload up to 4 additional photos.",
+      });
+      return;
+    }
+    setShowPhotoChoiceDialog(true);
+  };
+
+  const handleCameraChoice = () => {
+    const input = document.getElementById('camera-photo-upload') as HTMLInputElement;
+    input?.click();
+  };
+
+  const handleGalleryChoice = () => {
+    const input = document.getElementById('additional-photo-upload') as HTMLInputElement;
+    input?.click();
   };
 
   const removePhoto = (index: number) => {
@@ -300,6 +330,17 @@ const ExtendedProfileSetup = () => {
           {/* Content Card */}
           <Card>
             <CardContent className="p-6 space-y-6">
+              {/* Skip button at top */}
+              <div className="flex justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/dashboard")}
+                  size="sm"
+                >
+                  Skip for Now
+                </Button>
+              </div>
+
               <div className="text-center">
                 <h2 className="text-2xl font-bold mb-2">Add More to Your Story</h2>
                 <p className="text-muted-foreground text-sm">
@@ -336,6 +377,15 @@ const ExtendedProfileSetup = () => {
                     
                     {extendedData.additionalPhotos.length < 4 && (
                       <div className="border-2 border-dashed border-muted rounded-lg h-24 flex items-center justify-center">
+                        {/* Hidden file inputs */}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          disabled={uploading}
+                          className="hidden"
+                          id="additional-photo-upload"
+                        />
                         <input
                           type="file"
                           accept="image/*"
@@ -343,27 +393,24 @@ const ExtendedProfileSetup = () => {
                           onChange={handlePhotoUpload}
                           disabled={uploading}
                           className="hidden"
-                          id="additional-photo-upload"
+                          id="camera-photo-upload"
                         />
-                        <label htmlFor="additional-photo-upload">
-                          <Button
-                            variant="ghost"
-                            className="h-full w-full flex flex-col items-center gap-1"
-                            disabled={uploading}
-                            asChild
-                          >
-                            <span>
-                              {uploading ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
-                              ) : (
-                                <>
-                                  <Plus className="w-4 h-4" />
-                                  <span className="text-xs">Add Photo</span>
-                                </>
-                              )}
-                            </span>
-                          </Button>
-                        </label>
+                        
+                        <Button
+                          variant="ghost"
+                          className="h-full w-full flex flex-col items-center gap-1"
+                          disabled={uploading}
+                          onClick={handleAddPhotoClick}
+                        >
+                          {uploading ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                          ) : (
+                            <>
+                              <Plus className="w-4 h-4" />
+                              <span className="text-xs">Add Photo</span>
+                            </>
+                          )}
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -429,13 +476,7 @@ const ExtendedProfileSetup = () => {
           </Card>
 
           {/* Navigation */}
-          <div className="flex justify-between mt-6">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/dashboard")}
-            >
-              Skip for Now
-            </Button>
+          <div className="flex justify-end mt-6">
             <Button 
               onClick={saveExtendedProfile} 
               disabled={loading || (extendedData.additionalPhotos.length === 0 && extendedData.selectedPrompts.length === 0)}
@@ -454,6 +495,33 @@ const ExtendedProfileSetup = () => {
             </Button>
           </div>
         </div>
+
+        {/* Photo Choice Dialog */}
+        <Dialog open={showPhotoChoiceDialog} onOpenChange={setShowPhotoChoiceDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Photo</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col items-center gap-2"
+                onClick={handleCameraChoice}
+              >
+                <Camera className="w-8 h-8" />
+                <span className="text-sm">Take Photo</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col items-center gap-2"
+                onClick={handleGalleryChoice}
+              >
+                <ImageIcon className="w-8 h-8" />
+                <span className="text-sm">Camera Roll</span>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
