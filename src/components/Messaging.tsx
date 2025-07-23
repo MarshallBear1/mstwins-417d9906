@@ -508,7 +508,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                 {selectedMatch.other_user.ms_subtype && (
                   <div>
                     <h4 className="font-semibold mb-1">MS Type</h4>
-                    <p className="text-sm text-muted-foreground">{selectedMatch.other_user.ms_subtype}</p>
+                    <p className="text-sm text-muted-foreground">{selectedMatch.other_user.ms_subtype.toUpperCase()}</p>
                   </div>
                 )}
                 

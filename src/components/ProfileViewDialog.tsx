@@ -53,6 +53,7 @@ const ProfileViewDialog = ({
   const { isUserOnline, getLastSeenText } = useRealtimePresence();
   const [isFlipped, setIsFlipped] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
+  const [showAllHobbies, setShowAllHobbies] = useState(false);
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
@@ -150,7 +151,7 @@ const ProfileViewDialog = ({
                 {hasExtendedContent && (
                   <button
                     onClick={() => setIsFlipped(!isFlipped)}
-                    className="absolute bottom-4 right-4 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
+                    className="absolute bottom-4 left-4 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
                     aria-label="Flip card"
                   >
                     <ArrowLeftRight className="w-4 h-4 text-gray-700" />
@@ -159,7 +160,7 @@ const ProfileViewDialog = ({
 
                 {/* Additional Photos Indicator */}
                 {profile.additional_photos && profile.additional_photos.length > 0 && (
-                  <div className="absolute bottom-4 left-4 bg-white/90 rounded-full px-3 py-1 shadow-lg">
+                  <div className="absolute bottom-4 right-4 bg-white/90 rounded-full px-3 py-1 shadow-lg">
                     <div className="flex items-center gap-1">
                       <Eye className="w-3 h-3" />
                       <span className="text-xs font-medium">+{profile.additional_photos.length} photos</span>
@@ -206,7 +207,7 @@ const ProfileViewDialog = ({
                 {profile.ms_subtype && (
                   <div className="text-center">
                     <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-sm px-3 py-1">
-                      {profile.ms_subtype}
+                      {profile.ms_subtype.toUpperCase()}
                     </Badge>
                   </div>
                 )}
@@ -225,7 +226,7 @@ const ProfileViewDialog = ({
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2 text-center">Interests</h3>
                     <div className="flex flex-wrap gap-2 justify-center">
-                      {profile.hobbies.slice(0, 6).map((hobby, index) => (
+                      {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 6)).map((hobby, index) => (
                         <Badge 
                           key={index}
                           variant="secondary"
@@ -234,6 +235,14 @@ const ProfileViewDialog = ({
                           {hobby}
                         </Badge>
                       ))}
+                      {profile.hobbies.length > 6 && (
+                        <button
+                          onClick={() => setShowAllHobbies(!showAllHobbies)}
+                          className="text-xs text-blue-600 hover:text-blue-800 underline"
+                        >
+                          {showAllHobbies ? 'Show less' : `and ${profile.hobbies.length - 6} more`}
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

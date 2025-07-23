@@ -383,7 +383,7 @@ const Dashboard = () => {
                             </div>}
                           
                           {likedProfile.ms_subtype && <Badge variant="secondary" className="mt-2 text-xs">
-                              {likedProfile.ms_subtype}
+                              {likedProfile.ms_subtype.toUpperCase()}
                             </Badge>}
                          </div>
                          
