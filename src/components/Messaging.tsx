@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, ArrowLeft, User, Trash2, Eye } from "lucide-react";
+import { Send, ArrowLeft, User, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -523,133 +523,39 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               </p>
             </div>
           </div>
+          <ProfileViewDialog 
+            profile={selectedMatch ? {
+              id: selectedMatch.other_user.id,
+              user_id: selectedMatch.other_user.user_id,
+              first_name: selectedMatch.other_user.first_name,
+              last_name: selectedMatch.other_user.last_name,
+              date_of_birth: selectedMatch.other_user.date_of_birth || null,
+              location: selectedMatch.other_user.location || '',
+              gender: selectedMatch.other_user.gender || null,
+              ms_subtype: selectedMatch.other_user.ms_subtype || null,
+              diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
+              symptoms: selectedMatch.other_user.symptoms || [],
+              medications: selectedMatch.other_user.medications || [],
+              hobbies: selectedMatch.other_user.hobbies || [],
+              avatar_url: selectedMatch.other_user.avatar_url,
+              about_me: selectedMatch.other_user.about_me || null,
+              last_seen: selectedMatch.other_user.last_seen || null,
+              additional_photos: selectedMatch.other_user.additional_photos || [],
+              selected_prompts: selectedMatch.other_user.selected_prompts || [],
+              extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
+            } : null}
+            open={showProfileView}
+            onOpenChange={setShowProfileView}
+            showActions={false}
+          />
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm" 
-            className="mr-2"
-            onClick={() => {
-              console.log('👁️ View profile clicked, selectedMatch:', selectedMatch);
-              console.log('👁️ Other user data:', selectedMatch?.other_user);
-              setShowProfileView(true);
-            }}
+            className="mr-2 text-xs"
+            onClick={() => setShowProfileView(true)}
           >
-            <Eye className="w-4 h-4" />
+            View Profile
           </Button>
-          <Dialog open={showProfileView} onOpenChange={setShowProfileView}>
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mr-2 text-xs"
-              >
-                View Profile
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[450px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {selectedMatch?.other_user.first_name} {selectedMatch?.other_user.last_name}'s Profile
-                </DialogTitle>
-              </DialogHeader>
-              
-              {selectedMatch?.other_user && (
-                <div className="space-y-4">
-                  {/* Avatar */}
-                  <div className="flex justify-center">
-                    <img 
-                      src={selectedMatch.other_user.avatar_url || `https://api.dicebear.com/6.x/avataaars/svg?seed=${selectedMatch.other_user.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`} 
-                      alt={`${selectedMatch.other_user.first_name}'s profile`}
-                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-xl"
-                    />
-                  </div>
-                  
-                  {/* Basic Info */}
-                  <div className="text-center space-y-2">
-                    <h2 className="text-xl font-bold">
-                      {selectedMatch.other_user.first_name} {selectedMatch.other_user.last_name}
-                    </h2>
-                    <p className="text-muted-foreground">{selectedMatch.other_user.location}</p>
-                    {selectedMatch.other_user.ms_subtype && (
-                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                        {selectedMatch.other_user.ms_subtype.toUpperCase()}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  {/* About */}
-                  {selectedMatch.other_user.about_me && (
-                    <div>
-                      <h3 className="font-semibold mb-2">About</h3>
-                      <p className="text-sm text-muted-foreground">{selectedMatch.other_user.about_me}</p>
-                    </div>
-                  )}
-                  
-                  {/* Hobbies */}
-                  {selectedMatch.other_user.hobbies && selectedMatch.other_user.hobbies.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold mb-2">Interests</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedMatch.other_user.hobbies.map((hobby, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {hobby}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Health Info */}
-                  {((selectedMatch.other_user.symptoms && selectedMatch.other_user.symptoms.length > 0) || 
-                    (selectedMatch.other_user.medications && selectedMatch.other_user.medications.length > 0)) && (
-                    <div className="space-y-3">
-                      <h3 className="font-semibold">Health Information</h3>
-                      
-                      {selectedMatch.other_user.symptoms && selectedMatch.other_user.symptoms.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Symptoms</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedMatch.other_user.symptoms.map((symptom, index) => (
-                              <Badge key={index} variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
-                                {symptom}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {selectedMatch.other_user.medications && selectedMatch.other_user.medications.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Medications</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedMatch.other_user.medications.map((medication, index) => (
-                              <Badge key={index} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                {medication}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Prompts */}
-                  {selectedMatch.other_user.selected_prompts && selectedMatch.other_user.selected_prompts.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold mb-3">About Me</h3>
-                      <div className="space-y-3">
-                        {selectedMatch.other_user.selected_prompts.map((prompt, index) => (
-                          <div key={index} className="bg-muted/50 rounded-lg p-3">
-                            <p className="text-sm font-medium text-muted-foreground mb-1">{prompt.question}</p>
-                            <p className="text-sm">{prompt.answer}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
