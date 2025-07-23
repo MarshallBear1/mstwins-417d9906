@@ -1,11 +1,12 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, ArrowRight, MapPin, Calendar, X } from "lucide-react";
+import { Heart, ArrowRight, MapPin, Calendar, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const ProfileDemo = () => {
   const [currentProfile, setCurrentProfile] = useState(0);
+  const [showFullAbout, setShowFullAbout] = useState(false);
   
   const demoProfiles = [
     {
@@ -117,9 +118,31 @@ const ProfileDemo = () => {
           {/* About */}
           <div>
             <h4 className="text-sm font-semibold text-gray-900 mb-2">About</h4>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {profile.about}
-            </p>
+            <div className="space-y-2">
+              <p className={`text-sm text-gray-600 leading-relaxed transition-all duration-300 ${
+                showFullAbout ? '' : 'line-clamp-2'
+              }`}>
+                {profile.about}
+              </p>
+              {profile.about.length > 80 && (
+                <button
+                  onClick={() => setShowFullAbout(!showFullAbout)}
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                >
+                  {showFullAbout ? (
+                    <>
+                      See Less
+                      <ChevronUp className="w-3 h-3" />
+                    </>
+                  ) : (
+                    <>
+                      See More
+                      <ChevronDown className="w-3 h-3" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Action Buttons */}

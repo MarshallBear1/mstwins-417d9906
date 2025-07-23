@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, Calendar } from "lucide-react";
+import { User, MapPin, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 const MatchingAnimation = () => {
   const sarahProfile = {
     id: "1",
@@ -44,7 +45,11 @@ const MatchingAnimation = () => {
     profile
   }: {
     profile: typeof sarahProfile;
-  }) => <Card className="w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+  }) => {
+    const [showFullAbout, setShowFullAbout] = useState(false);
+    
+    return (
+      <Card className="w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
       {/* Header with gradient background */}
       <div className="relative h-32 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
         <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
@@ -110,12 +115,36 @@ const MatchingAnimation = () => {
         {/* About */}
         <div>
           <h4 className="text-sm font-semibold mb-2">About</h4>
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-            {profile.about_me}
-          </p>
+          <div className="space-y-2">
+            <p className={`text-sm text-muted-foreground leading-relaxed transition-all duration-300 ${
+              showFullAbout ? '' : 'line-clamp-2'
+            }`}>
+              {profile.about_me}
+            </p>
+            {profile.about_me.length > 80 && (
+              <button
+                onClick={() => setShowFullAbout(!showFullAbout)}
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
+                {showFullAbout ? (
+                  <>
+                    See Less
+                    <ChevronUp className="w-3 h-3" />
+                  </>
+                ) : (
+                  <>
+                    See More
+                    <ChevronDown className="w-3 h-3" />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </CardContent>
-    </Card>;
+    </Card>
+    );
+  };
   return (
     <div className="space-y-6">
       <div className="text-center">
