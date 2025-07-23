@@ -763,8 +763,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       {selectedMatch && (
         <ProfileViewDialog 
           profile={{
-            id: selectedMatch.other_user.user_id || (selectedMatch.user1_id === user?.id ? selectedMatch.user2_id : selectedMatch.user1_id),
-            user_id: selectedMatch.user1_id === user?.id ? selectedMatch.user2_id : selectedMatch.user1_id,
+            id: selectedMatch.other_user.id,
+            user_id: selectedMatch.other_user.user_id,
             first_name: selectedMatch.other_user.first_name,
             last_name: selectedMatch.other_user.last_name,
             date_of_birth: selectedMatch.other_user.date_of_birth || null,
