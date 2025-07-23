@@ -74,7 +74,7 @@ export const useDailyLikes = () => {
   };
 
   const isLimitEnforced = () => {
-    const enforcementDate = new Date('2025-07-23');
+    const enforcementDate = new Date('2025-07-24');
     const today = new Date();
     return today >= enforcementDate;
   };
