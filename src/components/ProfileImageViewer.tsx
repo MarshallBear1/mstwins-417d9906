@@ -25,9 +25,9 @@ const ProfileImageViewer = ({ images, currentIndex, isOpen, onClose }: ProfileIm
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[70vh] p-6 bg-white">
+      <DialogContent className="max-w-md max-h-[70vh] p-6 bg-white [&>button]:hidden">
         <div className="relative w-full h-full flex items-center justify-center">
-          {/* Close button */}
+          {/* Custom close button to replace the default one */}
           <Button
             variant="ghost"
             size="sm"

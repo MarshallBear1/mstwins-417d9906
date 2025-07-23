@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,6 @@ import { User, MapPin, Calendar, Heart, X, Pill, Activity, BookOpen, Flag, Eye, 
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import UserReportDialog from "@/components/UserReportDialog";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
-import { useState } from "react";
 
 interface Profile {
   id: string;
@@ -56,6 +56,16 @@ const ProfileViewDialog = ({
   const [showAllHobbies, setShowAllHobbies] = useState(false);
   const [showAllSymptoms, setShowAllSymptoms] = useState(false);
   const [showAllMedications, setShowAllMedications] = useState(false);
+
+  // Reset all expanded states when dialog opens/closes
+  React.useEffect(() => {
+    if (!open) {
+      setIsFlipped(false);
+      setShowAllHobbies(false);
+      setShowAllSymptoms(false);
+      setShowAllMedications(false);
+    }
+  }, [open]);
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
