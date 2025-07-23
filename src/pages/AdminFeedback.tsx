@@ -10,6 +10,8 @@ import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowLeft, Mail, MessageSquare, Clock, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AnnouncementEmailSender from "@/components/AnnouncementEmailSender";
 
 interface Feedback {
   id: string;
@@ -249,161 +251,174 @@ export default function AdminFeedback() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Feedback List */}
-          <div className="lg:col-span-2 space-y-4">
-            {filteredFeedback.length === 0 ? (
-              <Card>
-                <CardContent className="flex items-center justify-center h-32">
-                  <p className="text-muted-foreground">No feedback found</p>
-                </CardContent>
-              </Card>
-            ) : (
-              filteredFeedback.map((item) => (
-                <Card 
-                  key={item.id} 
-                  className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                    selectedFeedback?.id === item.id ? "ring-2 ring-primary" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedFeedback(item);
-                    setAdminNotes(item.admin_notes || "");
-                  }}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-base">{item.subject}</CardTitle>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline" className={typeColors[item.type as keyof typeof typeColors]}>
-                            {item.type}
-                          </Badge>
-                          <Badge variant="outline" className={priorityColors[item.priority as keyof typeof priorityColors]}>
-                            {item.priority}
-                          </Badge>
-                          <Badge variant="outline" className={statusColors[item.status as keyof typeof statusColors]}>
-                            {item.status.replace("_", " ")}
-                          </Badge>
+        <Tabs defaultValue="feedback" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+            <TabsTrigger value="feedback">Feedback Management</TabsTrigger>
+            <TabsTrigger value="emails">Send Emails</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="feedback" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Feedback List */}
+              <div className="lg:col-span-2 space-y-4">
+                {filteredFeedback.length === 0 ? (
+                  <Card>
+                    <CardContent className="flex items-center justify-center h-32">
+                      <p className="text-muted-foreground">No feedback found</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  filteredFeedback.map((item) => (
+                    <Card 
+                      key={item.id} 
+                      className={`cursor-pointer transition-colors hover:bg-muted/50 ${
+                        selectedFeedback?.id === item.id ? "ring-2 ring-primary" : ""
+                      }`}
+                      onClick={() => {
+                        setSelectedFeedback(item);
+                        setAdminNotes(item.admin_notes || "");
+                      }}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <CardTitle className="text-base">{item.subject}</CardTitle>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className={typeColors[item.type as keyof typeof typeColors]}>
+                                {item.type}
+                              </Badge>
+                              <Badge variant="outline" className={priorityColors[item.priority as keyof typeof priorityColors]}>
+                                {item.priority}
+                              </Badge>
+                              <Badge variant="outline" className={statusColors[item.status as keyof typeof statusColors]}>
+                                {item.status.replace("_", " ")}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {item.message}
-                    </p>
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        {item.user_id && (
-                          <div className="flex items-center space-x-1">
-                            <User className="h-3 w-3" />
-                            <span>User</span>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {item.message}
+                        </p>
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            {item.user_id && (
+                              <div className="flex items-center space-x-1">
+                                <User className="h-3 w-3" />
+                                <span>User</span>
+                              </div>
+                            )}
+                            {item.email && (
+                              <div className="flex items-center space-x-1">
+                                <Mail className="h-3 w-3" />
+                                <span>{item.email}</span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                        {item.email && (
-                          <div className="flex items-center space-x-1">
-                            <Mail className="h-3 w-3" />
-                            <span>{item.email}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
 
-          {/* Feedback Detail */}
-          <div className="lg:col-span-1">
-            {selectedFeedback ? (
-              <Card className="sticky top-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <MessageSquare className="h-5 w-5" />
-                    <span>Feedback Details</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Subject</h4>
-                    <p className="text-sm">{selectedFeedback.subject}</p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium mb-2">Message</h4>
-                    <p className="text-sm whitespace-pre-wrap">{selectedFeedback.message}</p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium mb-2">Status</h4>
-                    <Select 
-                      value={selectedFeedback.status} 
-                      onValueChange={(value) => updateFeedbackStatus(selectedFeedback.id, value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium mb-2">Admin Notes</h4>
-                    <Textarea
-                      value={adminNotes}
-                      onChange={(e) => setAdminNotes(e.target.value)}
-                      placeholder="Add internal notes about this feedback..."
-                      className="min-h-[100px]"
-                    />
-                    <Button
-                      size="sm"
-                      className="mt-2 w-full"
-                      onClick={() => updateFeedbackStatus(selectedFeedback.id, selectedFeedback.status, adminNotes)}
-                    >
-                      Save Notes
-                    </Button>
-                  </div>
-
-                  <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
-                    <div>
-                      <strong>Created:</strong> {new Date(selectedFeedback.created_at).toLocaleString()}
-                    </div>
-                    <div>
-                      <strong>Priority:</strong> {selectedFeedback.priority}
-                    </div>
-                    <div>
-                      <strong>Type:</strong> {selectedFeedback.type}
-                    </div>
-                    {selectedFeedback.email && (
+              {/* Feedback Detail */}
+              <div className="lg:col-span-1">
+                {selectedFeedback ? (
+                  <Card className="sticky top-6">
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <MessageSquare className="h-5 w-5" />
+                        <span>Feedback Details</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                       <div>
-                        <strong>Email:</strong> {selectedFeedback.email}
+                        <h4 className="font-medium mb-2">Subject</h4>
+                        <p className="text-sm">{selectedFeedback.subject}</p>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="flex items-center justify-center h-48">
-                  <div className="text-center">
-                    <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Select feedback to view details</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
+
+                      <div>
+                        <h4 className="font-medium mb-2">Message</h4>
+                        <p className="text-sm whitespace-pre-wrap">{selectedFeedback.message}</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium mb-2">Status</h4>
+                        <Select 
+                          value={selectedFeedback.status} 
+                          onValueChange={(value) => updateFeedbackStatus(selectedFeedback.id, value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="open">Open</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="resolved">Resolved</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium mb-2">Admin Notes</h4>
+                        <Textarea
+                          value={adminNotes}
+                          onChange={(e) => setAdminNotes(e.target.value)}
+                          placeholder="Add internal notes about this feedback..."
+                          className="min-h-[100px]"
+                        />
+                        <Button
+                          size="sm"
+                          className="mt-2 w-full"
+                          onClick={() => updateFeedbackStatus(selectedFeedback.id, selectedFeedback.status, adminNotes)}
+                        >
+                          Save Notes
+                        </Button>
+                      </div>
+
+                      <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
+                        <div>
+                          <strong>Created:</strong> {new Date(selectedFeedback.created_at).toLocaleString()}
+                        </div>
+                        <div>
+                          <strong>Priority:</strong> {selectedFeedback.priority}
+                        </div>
+                        <div>
+                          <strong>Type:</strong> {selectedFeedback.type}
+                        </div>
+                        {selectedFeedback.email && (
+                          <div>
+                            <strong>Email:</strong> {selectedFeedback.email}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="flex items-center justify-center h-48">
+                      <div className="text-center">
+                        <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">Select feedback to view details</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="emails" className="mt-6">
+            <AnnouncementEmailSender />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
