@@ -760,6 +760,14 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       )}
       
       {/* Profile View Dialog - use consistent profile dialog like in discover */}
+      {(() => {
+        console.log('🔍 Rendering ProfileViewDialog section:', { 
+          selectedMatch: !!selectedMatch, 
+          showProfileView, 
+          hasOtherUser: !!selectedMatch?.other_user 
+        });
+        return null;
+      })()} 
       {selectedMatch && (
         <ProfileViewDialog 
           profile={{
@@ -784,8 +792,10 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           }}
           open={showProfileView} 
           onOpenChange={(open) => {
-            console.log('👁️ ProfileViewDialog onOpenChange:', open);
+            console.log('👁️ ProfileViewDialog onOpenChange called with:', open);
+            console.log('👁️ Current showProfileView state:', showProfileView);
             setShowProfileView(open);
+            console.log('👁️ setShowProfileView called with:', open);
           }}
           showActions={false} 
         />
