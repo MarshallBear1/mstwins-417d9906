@@ -1,17 +1,11 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, ArrowRight, Star, Users, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-
 const HeroContent = () => {
-  return (
-    <div className="text-center lg:text-left space-y-8 animate-fade-in">
+  return <div className="text-center lg:text-left space-y-8 animate-fade-in">
       {/* Trust Badge */}
-      <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
-        <Heart className="w-4 h-4" fill="currentColor" />
-        NEWEST PLATFORM (released 22/07/25 - already have 500 users + from 50 countries)
-      </div>
+      
       
       {/* Main Headline */}
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
@@ -46,23 +40,13 @@ const HeroContent = () => {
 
       {/* CTA Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-        <Button 
-          variant="hero" 
-          size="lg" 
-          className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white shadow-strong" 
-          asChild
-        >
+        <Button variant="hero" size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white shadow-strong" asChild>
           <Link to="/auth">
             Join Free Today
             <ArrowRight className="w-5 h-5 ml-2" />
           </Link>
         </Button>
-        <Button 
-          variant="outline" 
-          size="lg"
-          className="text-lg px-8 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white"
-          asChild
-        >
+        <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white" asChild>
           <Link to="#testimonials">
             See Success Stories
           </Link>
@@ -84,8 +68,6 @@ const HeroContent = () => {
           <span>No Dating</span>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default HeroContent;
