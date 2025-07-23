@@ -1,21 +1,30 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import ReferralPopup from "@/components/ReferralPopup";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { AuthProvider } from "./hooks/useAuth";
 import { analytics } from "./lib/analytics";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import ProfileSetup from "./pages/ProfileSetup";
-import ExtendedProfileSetup from "./components/ExtendedProfileSetup";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import AdminFeedback from "./pages/AdminFeedback";
-import NotFound from "./pages/NotFound";
+import OptimizedIndex from "./pages/OptimizedIndex";
+
+// Lazy load non-critical pages
+const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
+const ExtendedProfileSetup = lazy(() => import("./components/ExtendedProfileSetup"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const AdminFeedback = lazy(() => import("./pages/AdminFeedback"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
 
 const RouteTracker = () => {
   const location = useLocation();
@@ -27,7 +36,14 @@ const RouteTracker = () => {
   return null;
 };
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -38,16 +54,47 @@ const App = () => (
         <BrowserRouter>
           <RouteTracker />
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile-setup" element={<ProfileSetup />} />
-            <Route path="/extended-profile" element={<ExtendedProfileSetup />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/admin/feedback" element={<AdminFeedback />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<OptimizedIndex />} />
+            <Route path="/auth" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <Auth />
+              </Suspense>
+            } />
+            <Route path="/dashboard" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <Dashboard />
+              </Suspense>
+            } />
+            <Route path="/profile-setup" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <ProfileSetup />
+              </Suspense>
+            } />
+            <Route path="/extended-profile" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <ExtendedProfileSetup />
+              </Suspense>
+            } />
+            <Route path="/privacy-policy" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <PrivacyPolicy />
+              </Suspense>
+            } />
+            <Route path="/terms-of-service" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <TermsOfService />
+              </Suspense>
+            } />
+            <Route path="/admin/feedback" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <AdminFeedback />
+              </Suspense>
+            } />
+            <Route path="*" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <NotFound />
+              </Suspense>
+            } />
           </Routes>
           <ReferralPopup />
         </BrowserRouter>
