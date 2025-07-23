@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, MapPin, Calendar } from "lucide-react";
-
 const MatchingAnimation = () => {
   const sarahProfile = {
     id: "1",
@@ -15,46 +14,41 @@ const MatchingAnimation = () => {
     medications: ["Tecfidera", "Vitamin D"],
     hobbies: ["Reading", "Yoga", "Cooking"],
     avatar_url: "https://api.dicebear.com/6.x/avataaars/svg?seed=Sarah&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile",
-    about_me: "Love connecting with others who understand the MS journey. Always looking for new friends!",
+    about_me: "Love connecting with others who understand the MS journey. Always looking for new friends!"
   };
-
   const alexProfile = {
     id: "2",
     first_name: "Alex",
     last_name: "Chen",
     date_of_birth: "1985-07-22",
-    location: "Chicago, IL", 
+    location: "Chicago, IL",
     ms_subtype: "PPMS",
     diagnosis_year: 2015,
     symptoms: ["Balance issues", "Cognitive fog"],
     medications: ["Ocrevus", "Baclofen"],
     hobbies: ["Photography", "Chess", "Hiking"],
     avatar_url: "https://api.dicebear.com/6.x/avataaars/svg?seed=Alex&backgroundColor=c0aede,d1c4e9&eyes=happy&mouth=smile",
-    about_me: "Photographer and chess enthusiast. Would love to meet others with similar interests!",
+    about_me: "Photographer and chess enthusiast. Would love to meet others with similar interests!"
   };
-
   const calculateAge = (birthDate: string) => {
     const today = new Date();
     const birth = new Date(birthDate);
     const age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (monthDiff < 0 || monthDiff === 0 && today.getDate() < birth.getDate()) {
       return age - 1;
     }
     return age;
   };
-
-  const ProfileCard = ({ profile }: { profile: typeof sarahProfile }) => (
-    <Card className="w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+  const ProfileCard = ({
+    profile
+  }: {
+    profile: typeof sarahProfile;
+  }) => <Card className="w-full max-w-sm mx-auto overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
       {/* Header with gradient background */}
       <div className="relative h-32 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
         <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
-          <img 
-            src={profile.avatar_url} 
-            alt={profile.first_name}
-            className="w-full h-full object-cover"
-          />
+          <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover" />
           {/* Online status indicator */}
           <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white bg-green-500" />
         </div>
@@ -97,15 +91,9 @@ const MatchingAnimation = () => {
         <div>
           <h4 className="text-sm font-semibold mb-2">Medications</h4>
           <div className="flex flex-wrap gap-2">
-            {profile.medications.map((medication, index) => (
-              <Badge 
-                key={index}
-                variant="outline"
-                className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 text-xs"
-              >
+            {profile.medications.map((medication, index) => <Badge key={index} variant="outline" className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 text-xs">
                 {medication}
-              </Badge>
-            ))}
+              </Badge>)}
           </div>
         </div>
 
@@ -113,15 +101,9 @@ const MatchingAnimation = () => {
         <div>
           <h4 className="text-sm font-semibold mb-2">Interests</h4>
           <div className="flex flex-wrap gap-2">
-            {profile.hobbies.slice(0, 3).map((hobby, index) => (
-              <Badge 
-                key={index}
-                variant="secondary"
-                className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs"
-              >
+            {profile.hobbies.slice(0, 3).map((hobby, index) => <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs">
                 {hobby}
-              </Badge>
-            ))}
+              </Badge>)}
           </div>
         </div>
 
@@ -133,62 +115,7 @@ const MatchingAnimation = () => {
           </p>
         </div>
       </CardContent>
-    </Card>
-  );
-
-  return (
-    <section className="py-16 bg-gradient-to-b from-white to-blue-50/30">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            See How Connections Happen
-          </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            When you both like each other, a match is created and you can start chatting!
-          </p>
-        </div>
-
-        <div className="flex flex-col lg:flex-row justify-center items-center gap-8 lg:gap-16">
-          {/* Sarah's Profile */}
-          <div className="animate-fade-in">
-            <ProfileCard profile={sarahProfile} />
-          </div>
-
-          {/* Matching Animation */}
-          <div className="flex flex-col items-center space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-blue-400 rounded-full animate-ping"></div>
-              <div className="w-3 h-3 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-3 h-3 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-4 animate-scale-in">
-              <div className="text-white text-2xl font-bold">✨</div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-purple-400 rounded-full animate-ping"></div>
-              <div className="w-3 h-3 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-3 h-3 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
-            </div>
-          </div>
-
-          {/* Alex's Profile */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <ProfileCard profile={alexProfile} />
-          </div>
-        </div>
-
-        {/* Match Message */}
-        <div className="text-center mt-12">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full px-8 py-4 animate-fade-in border border-blue-200" style={{ animationDelay: '1s' }}>
-            <div className="text-2xl">🎉</div>
-            <span className="text-blue-700 font-semibold text-lg">It's a Match! Now you can start chatting.</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+    </Card>;
+  return;
 };
-
 export default MatchingAnimation;
