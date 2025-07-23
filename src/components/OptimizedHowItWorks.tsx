@@ -58,7 +58,7 @@ const OptimizedHowItWorks = () => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            How MSTwins Works
+            How MS<span className="text-blue-600">Twins</span> Works
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Simple, safe, and designed specifically for the MS community

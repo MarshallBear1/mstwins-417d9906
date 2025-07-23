@@ -29,7 +29,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-2xl font-semibold text-foreground mb-4">1. Acceptance of Terms</h2>
                 <p className="text-muted-foreground">
-                  By accessing and using MSTwins, you agree to be bound by these Terms of Service and our Privacy Policy. 
+                  By accessing and using MS<span className="text-blue-600">Twins</span>, you agree to be bound by these Terms of Service and our Privacy Policy. 
                   If you do not agree to these terms, please do not use our service.
                 </p>
               </section>
@@ -37,7 +37,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-2xl font-semibold text-foreground mb-4">2. Description of Service</h2>
                 <p className="text-muted-foreground mb-4">
-                  MSTwins is a community platform designed to connect individuals living with Multiple Sclerosis. 
+                  MS<span className="text-blue-600">Twins</span> is a community platform designed to connect individuals living with Multiple Sclerosis. 
                   Our service facilitates:
                 </p>
                 <ul className="list-disc pl-6 text-muted-foreground space-y-2">
@@ -47,13 +47,13 @@ const TermsOfService = () => {
                   <li>Facilitating communication between community members</li>
                 </ul>
                 <p className="text-muted-foreground mt-4">
-                  <strong>Important:</strong> MSTwins is not a dating platform and is not intended for romantic relationships.
+                  <strong>Important:</strong> MS<span className="text-blue-600">Twins</span> is not a dating platform and is not intended for romantic relationships.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-semibold text-foreground mb-4">3. User Eligibility</h2>
-                <p className="text-muted-foreground mb-4">To use MSTwins, you must:</p>
+                <p className="text-muted-foreground mb-4">To use MS<span className="text-blue-600">Twins</span>, you must:</p>
                 <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                   <li>Be at least 18 years old</li>
                   <li>Have a connection to the MS community (personal diagnosis, caregiver, or supporter)</li>
@@ -78,7 +78,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-2xl font-semibold text-foreground mb-4">5. Medical Disclaimer</h2>
                 <p className="text-muted-foreground">
-                  MSTwins is not a medical service and does not provide medical advice, diagnosis, or treatment. 
+                  MS<span className="text-blue-600">Twins</span> is not a medical service and does not provide medical advice, diagnosis, or treatment. 
                   Information shared on our platform should not be considered medical advice. Always consult 
                   with qualified healthcare professionals for medical guidance.
                 </p>
@@ -109,7 +109,7 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-2xl font-semibold text-foreground mb-4">8. Limitation of Liability</h2>
                 <p className="text-muted-foreground">
-                  MSTwins is provided "as is" without warranties of any kind. We are not liable for any damages 
+                  MS<span className="text-blue-600">Twins</span> is provided "as is" without warranties of any kind. We are not liable for any damages 
                   arising from your use of the platform, interactions with other users, or any content shared 
                   on the service.
                 </p>

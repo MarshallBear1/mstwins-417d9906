@@ -108,7 +108,7 @@ const ReferralDropdown = () => {
               {/* Description */}
               <div className="text-sm text-muted-foreground">
                 <p className="mb-2">Help grow our MS support community! 💙</p>
-                <p>Share MSTwins with friends who could benefit from connecting with others on similar journeys.</p>
+                <p>Share MS<span className="text-blue-600">Twins</span> with friends who could benefit from connecting with others on similar journeys.</p>
               </div>
 
               {/* Copy Link Section */}

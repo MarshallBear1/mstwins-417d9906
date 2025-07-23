@@ -77,7 +77,7 @@ const SocialProof = () => {
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Real stories from real people who found their support network with MSTwins.
+            Real stories from real people who found their support network with MS<span className="text-blue-600">Twins</span>.
           </p>
         </div>
 

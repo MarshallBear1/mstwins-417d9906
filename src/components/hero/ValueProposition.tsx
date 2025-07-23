@@ -37,7 +37,7 @@ const ValueProposition = () => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Why Choose MSTwins?
+            Why Choose MS<span className="text-blue-600">Twins</span>?
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             The only platform designed specifically for the MS community

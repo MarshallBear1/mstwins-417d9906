@@ -933,7 +933,7 @@ const ProfileSetup = () => {
               <div className="bg-white rounded-lg p-3 shadow-sm relative">
                 <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
                 <p className="text-sm text-foreground mb-2">
-                  <strong>Welcome to MSTwins!</strong> 🎉
+                  <strong>Welcome to MS<span className="text-blue-600">Twins</span>!</strong> 🎉
                 </p>
                 <p className="text-sm text-foreground">
                   Let's create your profile so you can start connecting with the MS community. Take your time with each step!

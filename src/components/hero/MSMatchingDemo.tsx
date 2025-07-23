@@ -121,7 +121,7 @@ const MSMatchingDemo = memo(() => {
       {/* Status Text */}
       <div className="text-center mt-6">
         {step === 0 && (
-          <p className="text-sm text-muted-foreground">Finding your perfect MSTwin...</p>
+          <p className="text-sm text-muted-foreground">Finding your perfect MS<span className="text-blue-600">Twin</span>...</p>
         )}
         {step === 1 && (
           <p className="text-sm text-muted-foreground">Analyzing compatibility...</p>

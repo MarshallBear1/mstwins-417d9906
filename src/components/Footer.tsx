@@ -78,7 +78,7 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-center md:text-left">
               <p className="text-background/60 text-sm">
-                © 2025 MSTwins. Supporting the MS community with care and understanding.
+                © 2025 MS<span className="text-blue-600">Twins</span>. Supporting the MS community with care and understanding.
               </p>
               <p className="text-background/60 text-xs mt-1">
                 Contact us: <a href="mailto:team@sharedgenes.org" className="hover:text-background transition-colors">team@sharedgenes.org</a>

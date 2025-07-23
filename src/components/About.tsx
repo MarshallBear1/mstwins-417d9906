@@ -7,10 +7,10 @@ const About = () => {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            About MSTwins
+            About MS<span className="text-blue-600">Twins</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            MSTwins is a supportive community platform designed specifically for people living with Multiple Sclerosis. 
+            MS<span className="text-blue-600">Twins</span> is a supportive community platform designed specifically for people living with Multiple Sclerosis. 
             We help you find meaningful connections, share experiences, and build lasting friendships.
           </p>
         </div>
@@ -19,7 +19,7 @@ const About = () => {
           <div className="space-y-6">
             <h3 className="text-2xl font-bold text-foreground">Our Mission</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Living with MS can feel isolating, but it doesn&apos;t have to be. MSTwins connects individuals who understand 
+              Living with MS can feel isolating, but it doesn&apos;t have to be. MS<span className="text-blue-600">Twins</span> connects individuals who understand 
               the unique challenges and experiences of living with Multiple Sclerosis. Our platform focuses on building 
               genuine friendships and support networks, not romantic relationships.
             </p>
@@ -95,7 +95,7 @@ const About = () => {
             A Safe Space for the MS Community
           </h3>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            MSTwins is built with privacy and safety as our top priorities. We understand the sensitive nature 
+            MS<span className="text-blue-600">Twins</span> is built with privacy and safety as our top priorities. We understand the sensitive nature 
             of health information and provide a secure environment where you can connect with confidence.
           </p>
         </div>

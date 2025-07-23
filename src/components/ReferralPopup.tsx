@@ -69,7 +69,7 @@ const ReferralPopup = () => {
   };
 
   const copyReferralLink = async () => {
-    const referralLink = `https://mstwins.com?ref=${user?.id}`;
+    const referralLink = `https://mstwins.com?ref=${user?.id}`;	
     
     try {
       await navigator.clipboard.writeText(referralLink);
@@ -112,7 +112,7 @@ const ReferralPopup = () => {
           <div className="space-y-2">
             <CardTitle className="text-xl">Help Us Grow! 💙</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Would you share MSTwins with friends who could benefit from our supportive MS community?
+              Would you share MS<span className="text-blue-600">Twins</span> with friends who could benefit from our supportive MS community?
             </p>
           </div>
         </CardHeader>

@@ -116,6 +116,17 @@ const MatchingAnimation = () => {
         </div>
       </CardContent>
     </Card>;
-  return;
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-4">Featured Profiles</h2>
+        <p className="text-muted-foreground">Connect with others in your area</p>
+      </div>
+      <div className="grid md:grid-cols-2 gap-6">
+        <ProfileCard profile={sarahProfile} />
+        <ProfileCard profile={alexProfile} />
+      </div>
+    </div>
+  );
 };
 export default MatchingAnimation;

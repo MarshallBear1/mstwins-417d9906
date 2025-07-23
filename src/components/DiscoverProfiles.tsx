@@ -399,7 +399,7 @@ const DiscoverProfiles = () => {
                 No new profiles to discover right now.
               </p>
               <p className="text-sm text-muted-foreground mb-6">
-                More profiles will appear as new users join the MSTwins community. Check back later to find your perfect matches!
+                More profiles will appear as new users join the MS<span className="text-blue-600">Twins</span> community. Check back later to find your perfect matches!
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
