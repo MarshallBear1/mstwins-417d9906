@@ -46,7 +46,7 @@ const OptimizedIndex = () => {
         </div>
         
         {/* Final CTA Section */}
-        <section className="py-20 bg-background">
+        <section className="py-12 bg-background">
           <div className="container mx-auto px-6 text-center">
             <div className="max-w-3xl mx-auto">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
@@ -70,15 +70,6 @@ const OptimizedIndex = () => {
                 100% free • No credit card required • Join in under 2 minutes
               </p>
             </div>
-          </div>
-        </section>
-        
-        {/* Launch Stats at bottom of page */}
-        <section className="py-16 px-6 lg:px-8 bg-gray-50">
-          <div className="container mx-auto">
-            <Suspense fallback={<LoadingSpinner />}>
-              <LaunchStatsLazy />
-            </Suspense>
           </div>
         </section>
       </main>

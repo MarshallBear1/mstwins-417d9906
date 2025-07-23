@@ -66,7 +66,7 @@ const SocialProof = () => {
   ];
 
   return (
-    <section className="py-24 bg-gradient-subtle">
+    <section className="py-16 bg-gradient-subtle">
       <div className="container mx-auto px-6 lg:px-8">
         {/* Header */}
         <div className="text-center space-y-4 mb-16">
