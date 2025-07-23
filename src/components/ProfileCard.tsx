@@ -178,7 +178,11 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
         return;
       }
 
-      const publicURL = `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${filePath}`;
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+      
+      const publicURL = publicUrlData.publicUrl;
 
       const { error: updateError } = await supabase
         .from('profiles')
