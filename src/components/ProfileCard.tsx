@@ -18,7 +18,8 @@ import {
   LogOut,
   Upload,
   Camera,
-  Trash2
+  Trash2,
+  ArrowLeftRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,9 +58,10 @@ interface ProfileCardProps {
 }
 
 const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) => {
-  const { toast } = useToast();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -278,12 +280,33 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
     }));
   };
 
+  const hasExtendedContent = profile.additional_photos?.length || 
+                           profile.selected_prompts?.length || 
+                           profile.medications?.length || 
+                           profile.symptoms?.length;
+
   return (
     <div className="p-6">
-      <div className="max-w-md mx-auto">
-        <Card className="overflow-hidden shadow-xl">
-          <div className="relative h-48 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+      <div className="max-w-md mx-auto" style={{ perspective: '1000px' }}>
+        <div 
+          className={`relative w-full transition-transform duration-700`}
+          style={{ 
+            transformStyle: 'preserve-3d',
+            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+          }}
+        >
+          {/* Front Side */}
+          <Card className={`overflow-hidden shadow-xl ${
+            isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+          style={{ 
+            backfaceVisibility: 'hidden',
+            position: isFlipped ? 'absolute' : 'relative',
+            zIndex: isFlipped ? 1 : 2
+          }}
+          >
+          <div className="relative h-32 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
+            <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
               {(isEditing ? editData.avatar_url : profile.avatar_url) ? (
                 <img 
                   src={isEditing ? editData.avatar_url : profile.avatar_url} 
@@ -322,6 +345,19 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
                 </div>
               )}
             </div>
+
+            {/* Flip button */}
+            {!isEditing && hasExtendedContent && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsFlipped(!isFlipped)}
+                className="absolute top-3 left-3 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg animate-pulse"
+              >
+                <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
+              </Button>
+            )}
+
             <div className="absolute top-4 right-4 flex space-x-2">
               {isEditing ? (
                 <>
@@ -522,6 +558,39 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               )}
             </div>
 
+            {/* About Me */}
+            {isEditing ? (
+              <div>
+                <label className="text-sm font-medium mb-2 block">About Me</label>
+                <Textarea
+                  value={editData.about_me}
+                  onChange={(e) => setEditData(prev => ({ ...prev, about_me: e.target.value }))}
+                  placeholder="Tell us about yourself..."
+                  className="min-h-[80px]"
+                />
+              </div>
+            ) : (
+              profile.about_me && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">About</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {profile.about_me}
+                  </p>
+                </div>
+              )
+            )}
+
+            {/* See More Button */}
+            {!isEditing && hasExtendedContent && (
+              <Button 
+                variant="outline" 
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
+                onClick={() => setIsFlipped(!isFlipped)}
+              >
+                See More
+              </Button>
+            )}
+
             {/* Diagnosis Year */}
             {isEditing ? (
               <div>
@@ -568,28 +637,6 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
                 <div>
                   <h4 className="text-sm font-semibold mb-2">MS Type</h4>
                   <span className="text-muted-foreground">{profile.ms_subtype.toUpperCase()}</span>
-                </div>
-              )
-            )}
-
-            {/* About Me */}
-            {isEditing ? (
-              <div>
-                <label className="text-sm font-medium mb-2 block">About Me</label>
-                <Textarea
-                  value={editData.about_me}
-                  onChange={(e) => setEditData(prev => ({ ...prev, about_me: e.target.value }))}
-                  placeholder="Tell us about yourself..."
-                  className="min-h-[80px]"
-                />
-              </div>
-            ) : (
-              profile.about_me && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">About</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {profile.about_me}
-                  </p>
                 </div>
               )
             )}
@@ -802,6 +849,128 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
             )}
           </CardContent>
         </Card>
+
+        {/* Back Side - Extended Profile */}
+        <Card className={`overflow-hidden shadow-xl ${
+          !isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+        style={{ 
+          backfaceVisibility: 'hidden',
+          transform: 'rotateY(180deg)',
+          position: !isFlipped ? 'absolute' : 'relative',
+          top: !isFlipped ? 0 : 'auto',
+          zIndex: !isFlipped ? 1 : 2
+        }}
+        >
+          <div className="relative h-32 bg-gradient-to-br from-purple-400 via-purple-300 to-pink-300 flex items-center justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFlipped(!isFlipped)}
+              className="absolute top-3 left-3 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg"
+            >
+              <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
+            </Button>
+            <div className="text-center text-white">
+              <h3 className="text-lg font-bold">My Extended Profile</h3>
+            </div>
+          </div>
+
+          <CardContent className="p-6 space-y-4">
+            {/* Medications */}
+            {profile.medications?.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Medications</h4>
+                <div className="flex flex-wrap gap-2">
+                  {profile.medications.map((medication, index) => (
+                    <Badge 
+                      key={index}
+                      variant="outline"
+                      className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 text-xs"
+                    >
+                      {medication}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Symptoms */}
+            {profile.symptoms?.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Symptoms</h4>
+                <div className="flex flex-wrap gap-2">
+                  {profile.symptoms.map((symptom, index) => (
+                    <Badge 
+                      key={index}
+                      variant="outline"
+                      className="bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 text-xs"
+                    >
+                      {symptom}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Additional Photos */}
+            {profile.additional_photos && profile.additional_photos.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold mb-2">More Photos</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {profile.additional_photos.map((photo, index) => (
+                    <div
+                      key={index}
+                      className="aspect-square overflow-hidden rounded-lg border"
+                    >
+                      <img
+                        src={photo}
+                        alt={`Photo ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Personal Stories */}
+            {profile.selected_prompts && profile.selected_prompts.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold">Personal Stories</h4>
+                {profile.selected_prompts.map((prompt, index) => (
+                  <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {prompt.question}
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      {prompt.answer}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* No Extended Content */}
+            {!hasExtendedContent && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground text-sm mb-4">
+                  No extended profile details yet.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.href = '/extended-profile'}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  ✨ Add Extended Profile
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        </div>
+      </div>
 
         {/* Delete Confirmation Dialog */}
         {showDeleteConfirm && (

@@ -482,7 +482,7 @@ const DiscoverProfiles = () => {
           }}
           >
             {/* Avatar Section with Gradient Background */}
-            <div className="relative h-48 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
+            <div className="relative h-40 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
               <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
                 {currentProfile.avatar_url ? (
                   <img 
@@ -546,7 +546,7 @@ const DiscoverProfiles = () => {
                 )}
               </div>
 
-              {/* Location and Diagnosis */}
+              {/* Location, Gender and Diagnosis */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="w-4 h-4" />
@@ -603,7 +603,7 @@ const DiscoverProfiles = () => {
               {currentProfile.about_me && (
                 <div>
                   <h4 className="text-sm font-semibold mb-2">About</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
                     {currentProfile.about_me}
                   </p>
                 </div>
@@ -614,10 +614,10 @@ const DiscoverProfiles = () => {
                 <Button 
                   variant="outline" 
                   className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
-                  onClick={() => setShowProfileView(true)}
+                  onClick={() => setIsFlipped(!isFlipped)}
                 >
                   <Eye className="w-4 h-4 mr-2" />
-                  View Full Profile
+                  See More
                 </Button>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -664,7 +664,7 @@ const DiscoverProfiles = () => {
             zIndex: !isFlipped ? 1 : 2
           }}
           >
-            <div className="relative h-48 bg-gradient-to-br from-purple-400 via-purple-300 to-pink-300 flex items-center justify-center">
+            <div className="relative h-40 bg-gradient-to-br from-purple-400 via-purple-300 to-pink-300 flex items-center justify-center">
               <Button
                 variant="ghost"
                 size="sm"
@@ -758,10 +758,10 @@ const DiscoverProfiles = () => {
                 <Button 
                   variant="outline" 
                   className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
-                  onClick={() => setShowProfileView(true)}
+                  onClick={() => setIsFlipped(!isFlipped)}
                 >
                   <Eye className="w-4 h-4 mr-2" />
-                  View Full Profile
+                  See Less
                 </Button>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
