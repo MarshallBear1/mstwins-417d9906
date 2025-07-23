@@ -535,6 +535,17 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           >
             <Eye className="w-4 h-4" />
           </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mr-2 text-xs"
+            onClick={() => {
+              console.log('👤 View Profile button clicked');
+              setShowProfileView(true);
+            }}
+          >
+            View Profile
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
