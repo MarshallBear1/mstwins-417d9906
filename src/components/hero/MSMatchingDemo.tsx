@@ -65,11 +65,15 @@ const MSMatchingDemo = memo(() => {
         {step >= 2 && (
           <div className="absolute z-10 animate-scale-in">
             <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-blue-100 flex items-center justify-center animate-bounce">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-blue-100 flex items-center justify-center">
                 <img 
                   src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
                   alt="MSTwins robot"
-                  className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
+                  className="w-14 h-14 sm:w-16 sm:h-16 object-contain animate-pulse"
+                  style={{ 
+                    animation: 'gentle-float 3s ease-in-out infinite',
+                    animationDelay: '0.5s'
+                  }}
                 />
               </div>
               {/* Speech Bubble */}
