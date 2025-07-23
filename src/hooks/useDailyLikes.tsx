@@ -15,12 +15,14 @@ export const useDailyLikes = () => {
 
     const fetchRemainingLikes = async () => {
       try {
+        console.log('🔄 Fetching remaining likes for user:', user?.id);
         const { data, error } = await supabase.rpc('get_remaining_likes_today');
         
         if (error) {
           console.error('Error fetching remaining likes:', error);
           setRemainingLikes(999); // Default to unlimited on error
         } else {
+          console.log('✅ Remaining likes fetched:', data);
           setRemainingLikes(data || 0);
         }
       } catch (error) {
@@ -38,12 +40,12 @@ export const useDailyLikes = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  const checkCanLike = async (): Promise<boolean> => {
+  const checkCanLike = async (targetUserId: string): Promise<boolean> => {
     if (!user) return false;
     
     try {
       const { data, error } = await supabase.rpc('check_and_increment_daily_likes', {
-        target_user_id: 'dummy' // We'll pass the actual target in the like function
+        target_user_id: targetUserId
       });
       
       if (error) {

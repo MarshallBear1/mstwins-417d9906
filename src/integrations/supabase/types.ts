@@ -581,6 +581,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      reset_daily_likes_for_user: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       trigger_email_queue_processing: {
         Args: Record<PropertyKey, never>
         Returns: Json
