@@ -46,13 +46,13 @@ const OptimizedIndex = () => {
         </div>
         
         {/* Final CTA Section */}
-        <section className="py-20 bg-gradient-hero">
+        <section className="py-20 bg-background">
           <div className="container mx-auto px-6 text-center">
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                 Ready to Find Your MS Support Network?
               </h2>
-              <p className="text-xl text-white/90 mb-8">
+              <p className="text-xl text-muted-foreground mb-8">
                 Join 500+ members who've found friendship, support, and understanding in our community.
               </p>
               <Button 
@@ -66,7 +66,7 @@ const OptimizedIndex = () => {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
-              <p className="text-sm text-white/75 mt-4">
+              <p className="text-sm text-muted-foreground mt-4">
                 100% free • No credit card required • Join in under 2 minutes
               </p>
             </div>
