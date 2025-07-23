@@ -49,23 +49,35 @@ const MSMatchingDemo = memo(() => {
       <div className="relative h-80 flex items-center justify-center">
         {/* Left Profile (You) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[-120px]' : 'translate-x-0'
+          step >= 1 ? 'translate-x-[-160px]' : 'translate-x-0'
         }`}>
           <ProfileCard profile={profiles[1]} isYou={true} />
         </div>
 
         {/* Right Profile (Sarah) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[120px] opacity-100' : 'translate-x-[200px] opacity-0'
+          step >= 1 ? 'translate-x-[160px] opacity-100' : 'translate-x-[200px] opacity-0'
         }`}>
           <ProfileCard profile={profiles[0]} />
         </div>
 
-        {/* Match Animation */}
+        {/* Robot Match Animation */}
         {step >= 2 && (
           <div className="absolute z-10 animate-scale-in">
-            <div className="bg-gradient-to-r from-pink-500 to-red-500 rounded-full p-3 shadow-xl">
-              <Heart className="w-8 h-8 text-white" fill="currentColor" />
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                <img 
+                  src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                  alt="MSTwins robot"
+                  className="w-12 h-12 object-contain"
+                />
+              </div>
+              {/* Speech Bubble */}
+              <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium text-center min-w-max">
+                <div>🎉 You've been matched!</div>
+                <div>Start connecting</div>
+                <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-blue-600"></div>
+              </div>
             </div>
           </div>
         )}
@@ -119,25 +131,6 @@ const MSMatchingDemo = memo(() => {
         </div>
       )}
 
-      {/* Robot Avatar with Speech Bubble */}
-      {showConversation && (
-        <div className="flex justify-center mt-8 animate-fade-in">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
-                alt="MSTwins robot"
-                className="w-12 h-12 object-contain"
-              />
-            </div>
-            {/* Speech Bubble */}
-            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">
-              🎉 You've been matched! Start connecting
-              <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-blue-600"></div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Call to Action */}
       {showConversation && (
