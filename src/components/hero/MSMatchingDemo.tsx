@@ -65,7 +65,7 @@ const MSMatchingDemo = memo(() => {
         {step >= 2 && (
           <div className="absolute z-10 animate-scale-in">
             <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-blue-100 flex items-center justify-center">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-blue-100 flex items-center justify-center animate-bounce">
                 <img 
                   src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
                   alt="MSTwins robot"

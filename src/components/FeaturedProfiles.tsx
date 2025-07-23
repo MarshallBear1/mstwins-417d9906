@@ -99,7 +99,7 @@ const FeaturedProfiles = () => {
     const isFlipped = flippedCards[profile.id];
 
     return (
-      <div className="relative h-[500px] w-full" style={{ perspective: '1000px' }}>
+      <div className="relative h-[520px] w-full max-w-md mx-auto" style={{ perspective: '1000px' }}>
         <div 
           className={`relative w-full h-full transition-transform duration-700 preserve-3d ${
             isFlipped ? 'rotate-y-180' : ''
@@ -115,18 +115,18 @@ const FeaturedProfiles = () => {
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white bg-green-500" />
               </div>
               
-              {/* Flip button */}
+              {/* Flip button with bounce animation */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute top-2 right-2 text-white hover:bg-white/20 p-2"
+                className="absolute top-2 right-2 text-white hover:bg-white/20 p-2 animate-bounce"
                 onClick={() => toggleFlip(profile.id)}
               >
                 <ArrowLeftRight className="w-4 h-4" />
               </Button>
             </div>
 
-            <CardContent className="p-4 space-y-3">
+            <CardContent className="p-4 space-y-3 flex flex-col h-[calc(100%-8rem)]">
               {/* Name, Age, and Online Status */}
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xl font-bold">{profile.first_name} {profile.last_name}</h3>
@@ -174,11 +174,23 @@ const FeaturedProfiles = () => {
               </div>
 
               {/* About */}
-              <div>
+              <div className="flex-1">
                 <h4 className="text-sm font-semibold mb-2">About</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
                   {profile.about_me}
                 </p>
+              </div>
+
+              {/* See More button */}
+              <div className="mt-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  onClick={() => toggleFlip(profile.id)}
+                >
+                  See More →
+                </Button>
               </div>
 
               {/* Action buttons */}
@@ -202,11 +214,11 @@ const FeaturedProfiles = () => {
                 <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover" />
               </div>
               
-              {/* Flip button */}
+              {/* Flip button with bounce animation */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute top-2 right-2 text-white hover:bg-white/20 p-2"
+                className="absolute top-2 right-2 text-white hover:bg-white/20 p-2 animate-bounce"
                 onClick={() => toggleFlip(profile.id)}
               >
                 <ArrowLeftRight className="w-4 h-4" />
@@ -263,7 +275,7 @@ const FeaturedProfiles = () => {
   };
 
   return (
-    <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+    <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
       {featuredProfiles.map((profile) => (
         <ProfileCard key={profile.id} profile={profile} />
       ))}
