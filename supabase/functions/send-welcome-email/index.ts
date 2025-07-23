@@ -60,6 +60,9 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
 
               <div style="text-align: center; margin-top: 30px;">
+                <a href="https://mstwins.com" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; margin-bottom: 20px;">
+                  Visit MStwins.com
+                </a>
                 <p style="color: #888; font-size: 14px;">
                   🚫 Not for dating • 💙 MS support network • 🤝 Community focused
                 </p>
