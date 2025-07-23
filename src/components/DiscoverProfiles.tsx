@@ -169,8 +169,9 @@ const DiscoverProfiles = () => {
           query = query.neq('user_id', user.id);
         }
 
-        // Add random ordering with better distribution
+        // Order by last_seen to prioritize recently online users, then by random
         const { data, error } = await query
+          .order('last_seen', { ascending: false, nullsFirst: false })
           .limit(50); // Increase limit to ensure good variety
 
         if (error) {
@@ -350,11 +351,9 @@ const DiscoverProfiles = () => {
         }
       }
       
-      // Move to next profile after a brief delay for better UX
-      setTimeout(() => {
-        handleNext();
-        setActionLoading(false);
-      }, 150);
+      // Move to next profile immediately for seamless experience
+      handleNext();
+      setActionLoading(false);
       
     } catch (error) {
       console.error('❌ Error recording pass:', error);
