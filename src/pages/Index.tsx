@@ -2,11 +2,11 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import OptimizedHowItWorks from "@/components/OptimizedHowItWorks";
-
 import SocialProof from "@/components/SocialProof";
 import TrustSignals from "@/components/TrustSignals";
 import Footer from "@/components/Footer";
 import LaunchStats from "@/components/LaunchStats";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -14,6 +14,11 @@ import { Link } from "react-router-dom";
 const Index = () => {
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="MSTwins - Multiple Sclerosis Support Community | Connect with Others Living with MS"
+        description="Join MSTwins, the supportive community for people living with Multiple Sclerosis. Connect, share experiences, and find friendship with others who understand your MS journey."
+        canonical="https://mstwins.com/"
+      />
       <Header />
       <main>
         <Hero />

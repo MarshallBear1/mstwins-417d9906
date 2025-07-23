@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { validateProfileData, sanitizeInput, sanitizeErrorMessage } from "@/lib/security";
+import SEO from "@/components/SEO";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -920,6 +921,11 @@ const ProfileSetup = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <SEO 
+        title="Profile Setup - MSTwins Multiple Sclerosis Support Community"
+        description="Complete your MSTwins profile to connect with others living with Multiple Sclerosis. Share your story and find your support network."
+        canonical="https://mstwins.com/profile-setup"
+      />
       {/* Robot Welcome Message - Only for new users */}
       {showRobotNotification && !existingProfile && (
         <div className="bg-green-50 border-b border-green-200 p-4">

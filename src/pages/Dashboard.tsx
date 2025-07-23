@@ -18,6 +18,7 @@ import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import SEO from "@/components/SEO";
 interface Profile {
   id: string;
   user_id: string;
@@ -453,6 +454,11 @@ const Dashboard = () => {
     }
   };
   return <div className="min-h-screen bg-gradient-subtle">
+      <SEO 
+        title="MSTwins Dashboard - Your Multiple Sclerosis Support Community"
+        description="Access your MSTwins dashboard to discover new connections, view matches, and connect with others living with Multiple Sclerosis in our supportive community."
+        canonical="https://mstwins.com/dashboard"
+      />
       <NotificationPopup />
       
       {/* Robot Announcement Popup */}

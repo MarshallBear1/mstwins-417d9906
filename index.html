@@ -10,7 +10,7 @@
     <meta name="author" content="MSTwins" />
     <meta name="robots" content="index, follow" />
     <meta name="language" content="English" />
-    <link rel="canonical" href="https://mstwins.lovable.app/" />
+    <link rel="canonical" href="https://mstwins.com/" />
     <link rel="icon" href="/lovable-uploads/12ed1bc0-edda-4671-980b-abb51d882b50.png" type="image/png">
 
     <!-- Preconnect to external domains -->
@@ -18,7 +18,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://api.dicebear.com">
     
-    <!-- Preload critical resources -->
+    <!-- Preload critical resources with high priority -->
+    <link rel="preload" href="/hero.webp" as="image" fetchpriority="high">
     <link rel="preload" href="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" as="image">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
@@ -30,8 +31,8 @@
     <meta property="og:title" content="MSTwins - Connect with Others Living with Multiple Sclerosis" />
     <meta property="og:description" content="Join MSTwins, the supportive community for people living with Multiple Sclerosis. Connect, share experiences, and find friendship with others who understand your MS journey." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://mstwins.lovable.app/" />
-    <meta property="og:image" content="https://mstwins.lovable.app/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" />
+    <meta property="og:url" content="https://mstwins.com/" />
+    <meta property="og:image" content="https://mstwins.com/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="MSTwins" />
@@ -40,7 +41,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="MSTwins - Connect with Others Living with Multiple Sclerosis" />
     <meta name="twitter:description" content="Join MSTwins, the supportive community for people living with Multiple Sclerosis. Connect, share experiences, and find friendship." />
-    <meta name="twitter:image" content="https://mstwins.lovable.app/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" />
+    <meta name="twitter:image" content="https://mstwins.com/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" />
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -49,10 +50,10 @@
       "@type": "WebSite",
       "name": "MSTwins",
       "description": "Supportive community for people living with Multiple Sclerosis",
-      "url": "https://mstwins.lovable.app/",
+      "url": "https://mstwins.com/",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://mstwins.lovable.app/search?q={search_term_string}",
+        "target": "https://mstwins.com/search?q={search_term_string}",
         "query-input": "required name=search_term_string"
       },
       "publisher": {
@@ -60,7 +61,7 @@
         "name": "MSTwins",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://mstwins.lovable.app/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png"
+          "url": "https://mstwins.com/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png"
         }
       }
     }
@@ -109,6 +110,6 @@
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" defer></script>
   </body>
 </html>

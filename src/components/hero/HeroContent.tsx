@@ -10,7 +10,7 @@ const HeroContent = () => {
       {/* Main Headline */}
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
         <span className="text-foreground">
-          Find Your MS<span className="text-blue-600">Twin</span>
+          Multiple Sclerosis Support Community - Find Your MS<span className="text-blue-600">Twin</span>
         </span>
       </h1>
       

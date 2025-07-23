@@ -3,6 +3,7 @@ import { lazy, Suspense } from "react";
 import Header from "@/components/Header";
 import OptimizedHero from "@/components/OptimizedHero";
 import CriticalCSS from "@/components/CriticalCSS";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -24,6 +25,11 @@ const LoadingSpinner = () => (
 const OptimizedIndex = () => {
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="MSTwins - Multiple Sclerosis Support Community | Connect with Others Living with MS"
+        description="Join MSTwins, the supportive community for people living with Multiple Sclerosis. Connect, share experiences, and find friendship with others who understand your MS journey."
+        canonical="https://mstwins.com/"
+      />
       <CriticalCSS />
       <Header />
       <main>

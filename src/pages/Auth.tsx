@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Heart, ArrowLeft, Mail, Lock, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import SEO from "@/components/SEO";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(true); // Default to sign up
@@ -42,6 +43,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-6">
+      <SEO 
+        title={isSignUp ? "Join MSTwins - Multiple Sclerosis Support Community | Sign Up Free" : "Sign In to MSTwins - MS Support Community"}
+        description={isSignUp ? "Create your free account on MSTwins and connect with others living with Multiple Sclerosis. Find friendship, support, and understanding in our safe community." : "Sign in to your MSTwins account and reconnect with your Multiple Sclerosis support community. Access messages, matches, and more."}
+        canonical="https://mstwins.com/auth"
+      />
       <div className="w-full max-w-6xl">
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
           {/* Left side - Robot and Avatar for Sign Up */}
@@ -85,9 +91,9 @@ const Auth = () => {
             {/* Auth Card */}
             <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95">
               <CardHeader className="text-center pb-6">
-                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {isSignUp ? "Get Started" : "Welcome Back"}
-                </CardTitle>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  {isSignUp ? "Join Multiple Sclerosis Support Community" : "Welcome Back to MS Support"}
+                </h1>
                 <CardDescription className="text-base mt-2">
                   {isSignUp 
                     ? "Create your account to start connecting with others who understand your journey" 
