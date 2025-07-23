@@ -10,6 +10,7 @@ import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
+import LikeLimitWarning from "@/components/LikeLimitWarning";
 
 
 interface Profile {
@@ -298,12 +299,9 @@ const DiscoverProfiles = () => {
         console.log('🎉 Match announcement shown!');
       }
       
-      // Show reminder about like limits when user has few remaining
-      if (isLimitEnforced() && remainingLikes <= 3 && remainingLikes > 0) {
-        toast({
-          title: "Like Limit Reminder",
-          description: `You have ${remainingLikes - 1} likes remaining today.`,
-        });
+      // Show popup when user has 3 likes remaining to explain the purpose
+      if (isLimitEnforced() && remainingLikes === 3) {
+        setShowLimitWarning(true);
       }
 
       // IMPORTANT: Move to next profile AFTER like is successfully processed
@@ -851,6 +849,13 @@ const DiscoverProfiles = () => {
         currentIndex={0}
         isOpen={showImageViewer}
         onClose={() => setShowImageViewer(false)}
+      />
+
+      {/* Like Limit Warning Dialog */}
+      <LikeLimitWarning 
+        open={showLimitWarning}
+        onOpenChange={setShowLimitWarning}
+        remainingLikes={remainingLikes}
       />
 
     </div>
