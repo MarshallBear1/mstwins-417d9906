@@ -480,6 +480,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      trigger_email_queue_processing: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       update_user_last_seen: {
         Args: { user_id_param: string }
         Returns: undefined
