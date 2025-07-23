@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, X, User, MapPin, Calendar, RefreshCw, Eye, AlertTriangle } from "lucide-react";
+import { Heart, X, User, MapPin, Calendar, RefreshCw, Eye, AlertTriangle, ArrowLeftRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
@@ -10,8 +10,7 @@ import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
-import UserReportDialog from "@/components/UserReportDialog";
-import DiscoverProfileCard from "@/components/DiscoverProfileCard";
+
 
 interface Profile {
   id: string;
@@ -50,7 +49,8 @@ const DiscoverProfiles = () => {
   const [showMatchAnnouncement, setShowMatchAnnouncement] = useState(false);
   const [showProfileView, setShowProfileView] = useState(false);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
-  const [showReportDialog, setShowReportDialog] = useState(false);
+  
+  const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -420,8 +420,13 @@ const DiscoverProfiles = () => {
     );
   }
 
+  const hasExtendedContent = currentProfile.additional_photos?.length || 
+                           currentProfile.selected_prompts?.length || 
+                           currentProfile.medications?.length || 
+                           currentProfile.symptoms?.length;
+
   return (
-    <div className="p-3 sm:p-6 min-h-screen"> {/* Reduced mobile padding */}
+    <div className="p-3 sm:p-6 min-h-screen">
       {/* Match Announcement Modal */}
       {showMatchAnnouncement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4">
@@ -458,48 +463,338 @@ const DiscoverProfiles = () => {
         </div>
       )}
 
-      <div className="max-w-md mx-auto">
-        <DiscoverProfileCard profile={currentProfile} />
-        
-        {/* Action Buttons */}
-        <div className="mt-4 space-y-3">
-          <Button 
-            variant="outline" 
-            className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
-            onClick={() => setShowProfileView(true)}
+      <div className="max-w-md mx-auto" style={{ perspective: '1000px' }}>
+        <div 
+          className={`relative w-full transition-transform duration-700`}
+          style={{ 
+            transformStyle: 'preserve-3d',
+            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+          }}
+        >
+          {/* Front Side - Original Card */}
+          <Card className={`overflow-hidden shadow-xl animate-scale-in ${
+            isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+          style={{ 
+            backfaceVisibility: 'hidden',
+            position: isFlipped ? 'absolute' : 'relative',
+            zIndex: isFlipped ? 1 : 2
+          }}
           >
-            <Eye className="w-4 h-4 mr-2" />
-            View Full Profile
-          </Button>
-          
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button 
-              variant="outline" 
-              className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12"
-              onClick={handlePass}
-              disabled={actionLoading}
-            >
-              <X className="w-4 h-4 mr-2" />
-              Pass
-            </Button>
-            <Button 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
-              onClick={handleLike}
-              disabled={actionLoading}
-            >
-              {actionLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Liking...
-                </>
-              ) : (
-                <>
-                  <Heart className="w-4 h-4 mr-2" fill="currentColor" />
-                  Like
-                </>
+            {/* Avatar Section with Gradient Background */}
+            <div className="relative h-48 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
+              <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                {currentProfile.avatar_url ? (
+                  <img 
+                    src={currentProfile.avatar_url} 
+                    alt={currentProfile.first_name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onLoad={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${currentProfile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
+                    }}
+                    style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <User className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                )}
+                {/* Online status indicator */}
+                <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white ${
+                  isUserOnline(currentProfile.user_id) ? 'bg-green-500' : 'bg-gray-400'
+                }`} />
+              </div>
+
+              {/* Flip button */}
+              {hasExtendedContent && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsFlipped(!isFlipped)}
+                  className="absolute top-3 right-3 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg animate-pulse"
+                >
+                  <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
+                </Button>
               )}
-            </Button>
-          </div>
+              
+              {/* Online status badge */}
+              <div className="absolute top-4 left-4 bg-white/90 rounded-full px-3 py-1">
+                <div className="flex items-center gap-1">
+                  <div className={`w-2 h-2 rounded-full ${
+                    isUserOnline(currentProfile.user_id) ? 'bg-green-500' : 'bg-gray-400'
+                  }`} />
+                  <span className="text-xs font-medium">
+                    {isUserOnline(currentProfile.user_id) ? 'Online' : getLastSeenText(currentProfile.last_seen)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Content */}
+            <CardContent className="p-6 space-y-4">
+              {/* Name and Age */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-bold">{currentProfile.first_name} {currentProfile.last_name}</h3>
+                {currentProfile.date_of_birth && (
+                  <span className="text-xl font-semibold text-muted-foreground">
+                    {calculateAge(currentProfile.date_of_birth)}
+                  </span>
+                )}
+              </div>
+
+              {/* Location and Diagnosis */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-sm">{currentProfile.location}</span>
+                </div>
+                {currentProfile.gender && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <User className="w-4 h-4" />
+                    <span className="text-sm">{currentProfile.gender.charAt(0).toUpperCase() + currentProfile.gender.slice(1)}</span>
+                  </div>
+                )}
+                {currentProfile.diagnosis_year && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-sm">Diagnosed in {currentProfile.diagnosis_year}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* MS Type */}
+              {currentProfile.ms_subtype && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">MS Type</h4>
+                  <Badge className="bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200">
+                    {currentProfile.ms_subtype.toUpperCase()}
+                  </Badge>
+                </div>
+              )}
+
+              {/* Interests */}
+              {currentProfile.hobbies.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">Interests</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {currentProfile.hobbies.slice(0, 6).map((hobby, index) => (
+                      <Badge 
+                        key={index}
+                        variant="secondary"
+                        className="bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      >
+                        {hobby}
+                      </Badge>
+                    ))}
+                    {currentProfile.hobbies.length > 6 && (
+                      <Badge variant="outline">
+                        +{currentProfile.hobbies.length - 6} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* About */}
+              {currentProfile.about_me && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">About</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {currentProfile.about_me}
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
+                  onClick={() => setShowProfileView(true)}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Full Profile
+                </Button>
+                
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12"
+                    onClick={handlePass}
+                    disabled={actionLoading}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Pass
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
+                    onClick={handleLike}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Liking...
+                      </>
+                    ) : (
+                      <>
+                        <Heart className="w-4 h-4 mr-2" fill="currentColor" />
+                        Like
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Back Side - Extended Profile */}
+          <Card className={`overflow-hidden shadow-xl ${
+            !isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+          style={{ 
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            position: !isFlipped ? 'absolute' : 'relative',
+            top: !isFlipped ? 0 : 'auto',
+            zIndex: !isFlipped ? 1 : 2
+          }}
+          >
+            <div className="relative h-48 bg-gradient-to-br from-purple-400 via-purple-300 to-pink-300 flex items-center justify-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsFlipped(!isFlipped)}
+                className="absolute top-3 right-3 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg"
+              >
+                <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
+              </Button>
+              <div className="text-center text-white">
+                <h3 className="text-lg font-bold">{currentProfile.first_name}'s Details</h3>
+              </div>
+            </div>
+
+            <CardContent className="p-6 space-y-4">
+              {/* Medications */}
+              {currentProfile.medications?.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">Medications</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {currentProfile.medications.map((medication, index) => (
+                      <Badge 
+                        key={index}
+                        variant="outline"
+                        className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 text-xs"
+                      >
+                        {medication}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Symptoms */}
+              {currentProfile.symptoms?.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">Symptoms</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {currentProfile.symptoms.map((symptom, index) => (
+                      <Badge 
+                        key={index}
+                        variant="outline"
+                        className="bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 text-xs"
+                      >
+                        {symptom}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Photos */}
+              {currentProfile.additional_photos && currentProfile.additional_photos.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">More Photos</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {currentProfile.additional_photos.map((photo, index) => (
+                      <div
+                        key={index}
+                        className="aspect-square overflow-hidden rounded-lg border"
+                      >
+                        <img
+                          src={photo}
+                          alt={`Photo ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Personal Stories */}
+              {currentProfile.selected_prompts && currentProfile.selected_prompts.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">Personal Stories</h4>
+                  {currentProfile.selected_prompts.map((prompt, index) => (
+                    <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        {prompt.question}
+                      </p>
+                      <p className="text-sm leading-relaxed">
+                        {prompt.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
+                  onClick={() => setShowProfileView(true)}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Full Profile
+                </Button>
+                
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12"
+                    onClick={handlePass}
+                    disabled={actionLoading}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Pass
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
+                    onClick={handleLike}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Liking...
+                      </>
+                    ) : (
+                      <>
+                        <Heart className="w-4 h-4 mr-2" fill="currentColor" />
+                        Like
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -514,7 +809,6 @@ const DiscoverProfiles = () => {
         isLiking={actionLoading}
       />
 
-      {/* User Report Dialog - Already integrated in ProfileViewDialog */}
     </div>
   );
 };
