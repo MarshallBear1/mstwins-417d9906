@@ -5,7 +5,7 @@ import { Quote, Star, Users, MessageCircle, Heart } from "lucide-react";
 const SocialProof = () => {
   const testimonials = [
     {
-      name: "Sarah M.",
+      name: "Michael R.",
       location: "Portland, OR",
       msType: "RRMS",
       testimonial: "I found my support network here. People who actually understand what fatigue means and don't judge when I need to cancel plans.",
@@ -13,7 +13,7 @@ const SocialProof = () => {
       avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=SarahNew&backgroundColor=ffb3ba,ffc9de&eyes=happy&mouth=smile&hair=longHairBigHair"
     },
     {
-      name: "Michael R.",
+      name: "Sarah M.",
       location: "Austin, TX", 
       msType: "SPMS",
       testimonial: "The community here gets it. No need to explain why I need to rest or how brain fog affects my work. Just understanding and support.",
