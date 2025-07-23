@@ -10,7 +10,7 @@ const SocialProof = () => {
       msType: "RRMS",
       testimonial: "I found my support network here. People who actually understand what fatigue means and don't judge when I need to cancel plans.",
       rating: 5,
-      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=Sarah2&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile"
+      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=SarahNew&backgroundColor=ffb3ba,ffc9de&eyes=happy&mouth=smile&hair=longHairBigHair"
     },
     {
       name: "Michael R.",
