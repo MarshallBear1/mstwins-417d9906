@@ -412,13 +412,16 @@ const DiscoverProfiles = () => {
                   onClick={() => {
                     const newSkippedState = !showingSkipped;
                     setShowingSkipped(newSkippedState);
+                    setCurrentIndex(0); // Reset to first profile
                     // If switching to skipped view, auto-fetch skipped profiles
                     if (newSkippedState) {
                       setTimeout(() => {
                         fetchProfiles();
                       }, 100);
                     } else {
-                      fetchProfiles();
+                      setTimeout(() => {
+                        fetchProfiles();
+                      }, 100);
                     }
                   }}
                   className="flex items-center gap-2"

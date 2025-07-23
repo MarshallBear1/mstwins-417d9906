@@ -125,14 +125,16 @@ const ProfileViewDialog = ({
                   }`} />
                 </div>
 
-                {/* Close Button */}
-                <button
-                  onClick={() => onOpenChange(false)}
-                  className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200"
-                  aria-label="Close profile"
-                >
-                  <X className="w-5 h-5 text-gray-700" />
-                </button>
+                {/* Close Button - Only show on front side when not flipped */}
+                {!hasExtendedContent && (
+                  <button
+                    onClick={() => onOpenChange(false)}
+                    className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200"
+                    aria-label="Close profile"
+                  >
+                    <X className="w-5 h-5 text-gray-700" />
+                  </button>
+                )}
 
                 {/* Online Status Badge */}
                 <div className="absolute top-4 left-4 bg-white/90 rounded-full px-3 py-1 shadow-lg">
