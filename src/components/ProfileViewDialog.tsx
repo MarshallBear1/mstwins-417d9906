@@ -312,22 +312,13 @@ const ProfileViewDialog = ({
                 <div className="relative bg-gradient-to-br from-purple-400/20 via-pink-300/20 to-orange-300/20 p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold text-gray-900">More About {profile.first_name}</h3>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setIsFlipped(false)}
-                        className="bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200"
-                        aria-label="Flip back"
-                      >
-                        <ArrowLeftRight className="w-4 h-4 text-gray-700" />
-                      </button>
-                      <button
-                        onClick={() => onOpenChange(false)}
-                        className="bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200"
-                        aria-label="Close profile"
-                      >
-                        <X className="w-4 h-4 text-gray-700" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setIsFlipped(false)}
+                      className="bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200"
+                      aria-label="Flip back"
+                    >
+                      <ArrowLeftRight className="w-4 h-4 text-gray-700" />
+                    </button>
                   </div>
                 </div>
 
