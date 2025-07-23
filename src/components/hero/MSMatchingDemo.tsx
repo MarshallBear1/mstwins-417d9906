@@ -49,14 +49,14 @@ const MSMatchingDemo = memo(() => {
       <div className="relative h-80 flex items-center justify-center">
         {/* Left Profile (You) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[-160px]' : 'translate-x-0'
+          step >= 1 ? 'translate-x-[-180px] sm:translate-x-[-200px]' : 'translate-x-0'
         }`}>
           <ProfileCard profile={profiles[1]} isYou={true} />
         </div>
 
         {/* Right Profile (Sarah) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[160px] opacity-100' : 'translate-x-[200px] opacity-0'
+          step >= 1 ? 'translate-x-[180px] sm:translate-x-[200px] opacity-100' : 'translate-x-[200px] opacity-0'
         }`}>
           <ProfileCard profile={profiles[0]} />
         </div>
@@ -65,15 +65,15 @@ const MSMatchingDemo = memo(() => {
         {step >= 2 && (
           <div className="absolute z-10 animate-scale-in">
             <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-blue-100 flex items-center justify-center">
                 <img 
                   src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
                   alt="MSTwins robot"
-                  className="w-12 h-12 object-contain"
+                  className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
                 />
               </div>
               {/* Speech Bubble */}
-              <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium text-center min-w-max">
+              <div className="absolute -top-18 sm:-top-20 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium text-center min-w-max">
                 <div>🎉 You've been matched!</div>
                 <div>Start connecting</div>
                 <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-blue-600"></div>
@@ -167,10 +167,10 @@ const MSMatchingDemo = memo(() => {
 
 const ProfileCard = ({ profile, isYou = false }: { profile: any; isYou?: boolean }) => {
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden w-32 hover:shadow-xl transition-shadow">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden w-36 sm:w-40 hover:shadow-xl transition-shadow">
       {/* Avatar */}
-      <div className="relative h-20 bg-gradient-to-br from-blue-400 to-teal-300 flex items-center justify-center">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
+      <div className="relative h-24 bg-gradient-to-br from-blue-400 to-teal-300 flex items-center justify-center">
+        <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white">
           <img 
             src={profile.avatar} 
             alt={profile.name}
@@ -179,7 +179,7 @@ const ProfileCard = ({ profile, isYou = false }: { profile: any; isYou?: boolean
           />
         </div>
         {isYou && (
-          <div className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-1 rounded">
+          <div className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded">
             You
           </div>
         )}
@@ -188,23 +188,23 @@ const ProfileCard = ({ profile, isYou = false }: { profile: any; isYou?: boolean
       {/* Content */}
       <div className="p-3 space-y-2">
         <div className="text-center">
-          <h3 className="font-semibold text-gray-900 text-sm">{profile.name}</h3>
-          <span className="text-xs text-gray-600">{profile.age}</span>
+          <h3 className="font-semibold text-gray-900 text-base">{profile.name}</h3>
+          <span className="text-sm text-gray-600">{profile.age}</span>
         </div>
 
         <div className="space-y-1">
           <div className="flex items-center gap-1 text-gray-600">
-            <MapPin className="w-3 h-3" />
+            <MapPin className="w-3.5 h-3.5" />
             <span className="text-xs truncate">{profile.location}</span>
           </div>
           <div className="flex items-center gap-1 text-gray-600">
-            <Calendar className="w-3 h-3" />
+            <Calendar className="w-3.5 h-3.5" />
             <span className="text-xs">{profile.diagnosedYear}</span>
           </div>
         </div>
 
         <div className="text-center">
-          <Badge className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5">
+          <Badge className="bg-blue-100 text-blue-700 text-xs px-2 py-1">
             {profile.msType}
           </Badge>
         </div>
@@ -213,7 +213,7 @@ const ProfileCard = ({ profile, isYou = false }: { profile: any; isYou?: boolean
           {profile.interests.slice(0, 2).map((interest: string, index: number) => (
             <span 
               key={index}
-              className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
+              className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
             >
               {interest}
             </span>
