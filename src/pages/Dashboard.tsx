@@ -544,22 +544,16 @@ const Dashboard = () => {
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-white border border-gray-200 p-1 shadow-sm">
               <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="MSTwins mascot" className="w-full h-full object-contain" />
             </div>
-            <span className="text-base sm:text-lg font-bold text-foreground">
-              MSTwins
+            <span className="text-base sm:text-lg font-bold">
+              <span className="text-black">MS</span>
+              <span className="text-blue-600">Twins</span>
             </span>
-            {/* Daily Likes Counter */}
-            {isLimitEnforced() && !hasUnlimitedLikes && (
-              <div className="hidden sm:flex items-center space-x-1 bg-primary/10 px-2 py-1 rounded-full">
-                <Heart className="w-3 h-3 text-primary" />
-                <span className="text-xs font-medium text-primary">{remainingLikes}</span>
-              </div>
-            )}
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Mobile Daily Likes Counter */}
+            {/* Daily Likes Counter */}
             {isLimitEnforced() && !hasUnlimitedLikes && (
-              <div className="sm:hidden flex items-center space-x-1 bg-primary/10 px-2 py-1 rounded-full">
+              <div className="flex items-center space-x-1 bg-primary/10 px-2 py-1 rounded-full">
                 <Heart className="w-3 h-3 text-primary" />
                 <span className="text-xs font-medium text-primary">{remainingLikes}</span>
               </div>

@@ -1,31 +1,32 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   User, 
-  MapPin, 
-  Calendar as CalendarIcon, 
   Edit, 
   Save, 
   X, 
+  Upload, 
+  Calendar,
+  MapPin,
+  Heart,
+  MessageSquare,
+  Gift,
+  Pill,
+  Activity,
   LogOut,
-  Upload,
-  Camera,
-  Trash2,
-  ArrowLeftRight
+  ChevronDown,
+  ChevronUp,
+  Plus
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import ClickableProfilePicture from "./ClickableProfilePicture";
 
 interface Profile {
   id: string;
@@ -42,7 +43,7 @@ interface Profile {
   hobbies: string[];
   avatar_url: string | null;
   about_me: string | null;
-  last_seen?: string | null;
+  last_seen: string | null;
   additional_photos?: string[];
   selected_prompts?: {
     question: string;
@@ -53,36 +54,54 @@ interface Profile {
 
 interface ProfileCardProps {
   profile: Profile;
-  onProfileUpdate: (updatedProfile: Profile) => void;
+  onProfileUpdate: (profile: Profile) => void;
   onSignOut: () => void;
 }
 
 const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [editData, setEditData] = useState({
+  const [editForm, setEditForm] = useState({
     first_name: profile.first_name,
     last_name: profile.last_name,
     location: profile.location,
-    gender: profile.gender || "",
-    ms_subtype: profile.ms_subtype || "",
-    diagnosis_year: profile.diagnosis_year?.toString() || "",
-    date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth) : undefined,
-    about_me: profile.about_me || "",
-    avatar_url: profile.avatar_url || "",
-    symptoms: profile.symptoms || [],
-    medications: profile.medications || [],
-    hobbies: profile.hobbies || [],
-    newSymptom: "",
-    newMedication: "",
-    newHobby: ""
+    about_me: profile.about_me || '',
+    hobbies: profile.hobbies,
+    symptoms: profile.symptoms,
+    medications: profile.medications,
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  const addArrayItem = (field: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: [...(prev[field] as string[]), ''],
+    }));
+  };
+
+  const updateArrayItem = (field: string, index: number, value: string) => {
+    setEditForm(prev => {
+      const updatedArray = [...(prev[field] as string[])];
+      updatedArray[index] = value;
+      return { ...prev, [field]: updatedArray };
+    });
+  };
+
+  const removeArrayItem = (field: string, index: number) => {
+    setEditForm(prev => {
+      const updatedArray = [...(prev[field] as string[])];
+      updatedArray.splice(index, 1);
+      return { ...prev, [field]: updatedArray };
+    });
+  };
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
@@ -97,909 +116,433 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
     return age;
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
-
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Math.random()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      setEditData(prev => ({ ...prev, avatar_url: data.publicUrl }));
-      
-      toast({
-        title: "Photo uploaded successfully!",
-        description: "Your profile picture has been updated.",
-      });
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      toast({
-        variant: "destructive",
-        title: "Upload failed",
-        description: error.message,
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSave = async () => {
-    setSaving(true);
     try {
-      const updateData = {
-        first_name: editData.first_name,
-        last_name: editData.last_name,
-        location: editData.location,
-        gender: editData.gender || null,
-        ms_subtype: editData.ms_subtype || null,
-        diagnosis_year: editData.diagnosis_year ? parseInt(editData.diagnosis_year) : null,
-        date_of_birth: editData.date_of_birth ? editData.date_of_birth.toISOString().split('T')[0] : null,
-        about_me: editData.about_me || null,
-        avatar_url: editData.avatar_url || null,
-        symptoms: editData.symptoms,
-        medications: editData.medications,
-        hobbies: editData.hobbies,
-      };
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('profiles')
-        .update(updateData)
-        .eq('user_id', profile.user_id)
-        .select()
-        .single();
+        .update({
+          first_name: editForm.first_name,
+          last_name: editForm.last_name,
+          location: editForm.location,
+          about_me: editForm.about_me,
+          hobbies: editForm.hobbies,
+          symptoms: editForm.symptoms,
+          medications: editForm.medications,
+        })
+        .eq('user_id', user?.id);
 
       if (error) {
         console.error('Error updating profile:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to update profile. Please try again.",
-        });
+        toast.error('Failed to update profile. Please try again.');
         return;
       }
 
-      onProfileUpdate({
-        ...data,
-        selected_prompts: Array.isArray(data.selected_prompts) ? data.selected_prompts as { question: string; answer: string; }[] : []
-      });
+      // Optimistically update the profile
+      const updatedProfile = {
+        ...profile,
+        first_name: editForm.first_name,
+        last_name: editForm.last_name,
+        location: editForm.location,
+        about_me: editForm.about_me,
+        hobbies: editForm.hobbies,
+        symptoms: editForm.symptoms,
+        medications: editForm.medications,
+      };
+
+      onProfileUpdate(updatedProfile);
       setIsEditing(false);
-      toast({
-        title: "Profile Updated! ✨",
-        description: "Your changes have been saved successfully.",
-      });
+      toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-      });
-    } finally {
-      setSaving(false);
+      toast.error('Failed to update profile. Please try again.');
     }
   };
 
-  const handleCancel = () => {
-    setEditData({
-      first_name: profile.first_name,
-      last_name: profile.last_name,
-      location: profile.location,
-      gender: profile.gender || "",
-      ms_subtype: profile.ms_subtype || "",
-      diagnosis_year: profile.diagnosis_year?.toString() || "",
-      date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth) : undefined,
-      about_me: profile.about_me || "",
-      avatar_url: profile.avatar_url || "",
-      symptoms: profile.symptoms || [],
-      medications: profile.medications || [],
-      hobbies: profile.hobbies || [],
-      newSymptom: "",
-      newMedication: "",
-      newHobby: ""
-    });
-    setIsEditing(false);
-  };
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const handleDeleteAccount = async () => {
-    if (!user) return;
-    
-    setDeleting(true);
+    setIsUploading(true);
     try {
-      // First delete profile data
-      await supabase
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Error uploading avatar:', uploadError);
+        toast.error('Failed to upload avatar. Please try again.');
+        return;
+      }
+
+      const publicURL = `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${filePath}`;
+
+      const { error: updateError } = await supabase
         .from('profiles')
-        .delete()
-        .eq('user_id', user.id);
+        .update({ avatar_url: publicURL })
+        .eq('user_id', user?.id);
 
-      // Delete other user data
-      await Promise.all([
-        supabase.from('likes').delete().eq('liker_id', user.id),
-        supabase.from('likes').delete().eq('liked_id', user.id),
-        supabase.from('messages').delete().eq('sender_id', user.id),
-        supabase.from('messages').delete().eq('receiver_id', user.id),
-        supabase.from('matches').delete().or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`),
-        supabase.from('notifications').delete().eq('user_id', user.id),
-        supabase.from('passes').delete().eq('passer_id', user.id),
-        supabase.from('passes').delete().eq('passed_id', user.id),
-        supabase.from('feedback').delete().eq('user_id', user.id),
-        supabase.from('user_reports').delete().eq('reporter_id', user.id)
-      ]);
+      if (updateError) {
+        console.error('Error updating profile with avatar:', updateError);
+        toast.error('Failed to update profile with avatar. Please try again.');
+        return;
+      }
 
-      // Finally sign out the user (this will effectively "delete" their auth account from their perspective)
-      await supabase.auth.signOut();
-      
-      toast({
-        title: "Account Deleted",
-        description: "Your account and all data have been permanently deleted.",
-      });
-
-      // Navigate to home
-      window.location.href = '/';
+      // Optimistically update the profile
+      const updatedProfile = { ...profile, avatar_url: publicURL };
+      onProfileUpdate(updatedProfile);
+      toast.success('Avatar updated successfully!');
     } catch (error) {
-      console.error('Error deleting account:', error);
-      toast({
-        variant: "destructive", 
-        title: "Error",
-        description: "Failed to delete account. Please try again or contact support.",
-      });
+      console.error('Error uploading avatar:', error);
+      toast.error('Failed to upload avatar. Please try again.');
     } finally {
-      setDeleting(false);
-      setShowDeleteConfirm(false);
+      setIsUploading(false);
     }
   };
 
-  // Helper functions for managing arrays
-  const addItem = (arrayField: 'symptoms' | 'medications' | 'hobbies', inputField: 'newSymptom' | 'newMedication' | 'newHobby') => {
-    const value = editData[inputField].trim();
-    if (value && !editData[arrayField].includes(value)) {
-      setEditData(prev => ({
-        ...prev,
-        [arrayField]: [...prev[arrayField], value],
-        [inputField]: ""
-      }));
-    }
-  };
-
-  const removeItem = (arrayField: 'symptoms' | 'medications' | 'hobbies', item: string) => {
-    setEditData(prev => ({
-      ...prev,
-      [arrayField]: prev[arrayField].filter(i => i !== item)
-    }));
-  };
-
-  const hasExtendedContent = profile.additional_photos?.length || 
-                           profile.selected_prompts?.length || 
-                           profile.medications?.length || 
-                           profile.symptoms?.length;
-
-  return (
-    <div className="p-6">
-      <div className="max-w-md mx-auto" style={{ perspective: '1000px' }}>
-        <div 
-          className={`relative w-full transition-transform duration-700`}
-          style={{ 
-            transformStyle: 'preserve-3d',
-            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
-          }}
-        >
-          {/* Front Side */}
-          <Card className={`overflow-hidden shadow-xl ${
-            isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}
-          style={{ 
-            backfaceVisibility: 'hidden',
-            position: isFlipped ? 'absolute' : 'relative',
-            zIndex: isFlipped ? 1 : 2
-          }}
+  const renderArrayField = (field: string, label: string, icon: React.ComponentType<any>) => (
+    <div className="space-y-2">
+      <Label htmlFor={field}>{label}</Label>
+      {editForm[field] && (editForm[field] as string[]).map((item, index) => (
+        <div key={index} className="flex items-center space-x-2">
+          <Input
+            id={`${field}-${index}`}
+            value={item}
+            onChange={(e) => updateArrayItem(field, index, e.target.value)}
+            placeholder={label.slice(0, -1)}
+          />
+          <Button
+            onClick={() => removeArrayItem(field, index)}
+            variant="ghost"
+            size="sm"
+            className="text-red-500 hover:bg-red-100"
           >
-          <div className="relative h-32 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-            <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
-              {(isEditing ? editData.avatar_url : profile.avatar_url) ? (
-                <img 
-                  src={isEditing ? editData.avatar_url : profile.avatar_url} 
-                  alt={profile.first_name} 
-                  className="w-full h-full object-cover" 
-                />
-              ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <User className="w-8 h-8 text-muted-foreground" />
-                </div>
-              )}
-              
-              {/* Upload Button in Edit Mode */}
-              {isEditing && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                  <label htmlFor="avatar-upload" className="cursor-pointer">
-                    <div className="text-white text-center">
-                      <Camera className="w-6 h-6 mx-auto mb-1" />
-                      <span className="text-xs">Change</span>
-                    </div>
-                  </label>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    disabled={uploading}
-                  />
-                </div>
-              )}
-              
-              {uploading && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                </div>
-              )}
-            </div>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      ))}
+      <Button
+        onClick={() => addArrayItem(field)}
+        variant="secondary"
+        size="sm"
+        className="w-full flex items-center justify-center gap-2"
+      >
+        <Plus className="w-4 h-4" />
+        Add {label.slice(0, -1)}
+      </Button>
+    </div>
+  );
 
-            {/* Flip button */}
-            {!isEditing && hasExtendedContent && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsFlipped(!isFlipped)}
-                className="absolute top-3 left-3 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg animate-pulse"
-              >
-                <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
-              </Button>
-            )}
-
-            <div className="absolute top-4 right-4 flex space-x-2">
-              {isEditing ? (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleCancel}
-                    className="bg-white/80 hover:bg-white"
-                    disabled={saving}
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Cancel
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleSave}
-                    className="bg-white/80 hover:bg-white text-green-600"
-                    disabled={saving}
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    {saving ? 'Saving...' : 'Save'}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setIsEditing(true)}
-                    className="bg-white/80 hover:bg-white"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={onSignOut}
-                    className="bg-white/80 hover:bg-white text-red-600"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-          
-          <CardContent className="p-6 space-y-4">
-            {/* Name and Age */}
-            <div className="flex items-center justify-between">
-              {isEditing ? (
-                <div className="flex gap-2 flex-1">
-                  <Input
-                    value={editData.first_name}
-                    onChange={(e) => setEditData(prev => ({ ...prev, first_name: e.target.value }))}
-                    placeholder="First name"
-                    className="flex-1"
+  if (isEditing) {
+    return (
+      <div className="p-3 sm:p-6 max-w-2xl mx-auto">
+        <Card className="shadow-lg">
+          <CardHeader className="text-center">
+            <h2 className="text-2xl font-bold">Edit Profile</h2>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Avatar Upload */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-primary border-4 border-white shadow-lg">
+                {profile.avatar_url ? (
+                  <img 
+                    src={profile.avatar_url} 
+                    alt={`${profile.first_name}'s avatar`}
+                    className="w-full h-full object-cover"
                   />
-                  <Input
-                    value={editData.last_name}
-                    onChange={(e) => setEditData(prev => ({ ...prev, last_name: e.target.value }))}
-                    placeholder="Last name"
-                    className="flex-1"
-                  />
-                </div>
-              ) : (
-                <h3 className="text-2xl font-bold">{profile.first_name} {profile.last_name}</h3>
-              )}
-              {profile.date_of_birth && !isEditing && (
-                <span className="text-xl font-semibold text-muted-foreground">
-                  {calculateAge(profile.date_of_birth)}
-                </span>
-              )}
-            </div>
-
-            {/* Date of Birth (only when editing) - Enhanced Year Selection */}
-            {isEditing && (
-              <div className="space-y-4">
-                <label className="text-sm font-medium mb-2 block">Date of Birth</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <Label htmlFor="birthMonth" className="text-xs">Month</Label>
-                    <Select 
-                      value={editData.date_of_birth ? (editData.date_of_birth.getMonth() + 1).toString() : ""} 
-                      onValueChange={(month) => {
-                        const currentDate = editData.date_of_birth || new Date();
-                        const newDate = new Date(currentDate.getFullYear(), parseInt(month) - 1, currentDate.getDate());
-                        setEditData(prev => ({ ...prev, date_of_birth: newDate }));
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Month" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: 12 }, (_, i) => (
-                          <SelectItem key={i + 1} value={(i + 1).toString()}>
-                            {new Date(2000, i, 1).toLocaleDateString('en', { month: 'long' })}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                ) : (
+                  <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                    <User className="w-16 h-16 text-white" />
                   </div>
-                  <div>
-                    <Label htmlFor="birthDay" className="text-xs">Day</Label>
-                    <Select 
-                      value={editData.date_of_birth ? editData.date_of_birth.getDate().toString() : ""} 
-                      onValueChange={(day) => {
-                        const currentDate = editData.date_of_birth || new Date();
-                        const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), parseInt(day));
-                        setEditData(prev => ({ ...prev, date_of_birth: newDate }));
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Day" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: 31 }, (_, i) => (
-                          <SelectItem key={i + 1} value={(i + 1).toString()}>
-                            {i + 1}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="birthYear" className="text-xs">Year</Label>
-                    <Select 
-                      value={editData.date_of_birth ? editData.date_of_birth.getFullYear().toString() : ""} 
-                      onValueChange={(year) => {
-                        const currentDate = editData.date_of_birth || new Date();
-                        const newDate = new Date(parseInt(year), currentDate.getMonth(), currentDate.getDate());
-                        setEditData(prev => ({ ...prev, date_of_birth: newDate }));
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Year" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-48">
-                        {Array.from({ length: 100 }, (_, i) => {
-                          const year = new Date().getFullYear() - i;
-                          return (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                )}
               </div>
-            )}
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="avatar-upload"
+                />
+                <label
+                  htmlFor="avatar-upload"
+                  className="cursor-pointer bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  {isUploading ? 'Uploading...' : 'Change Photo'}
+                </label>
+              </div>
+            </div>
 
-            {/* Gender */}
-            <div className="space-y-2">
-              {isEditing ? (
-                <div>
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select value={editData.gender || ''} onValueChange={(value) => setEditData(prev => ({ ...prev, gender: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="non-binary">Non-binary</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : profile.gender && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <User className="w-4 h-4" />
-                  <span>{profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}</span>
-                </div>
-              )}
+            {/* Name Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name</Label>
+                <Input
+                  id="first_name"
+                  value={editForm.first_name}
+                  onChange={(e) => setEditForm({...editForm, first_name: e.target.value})}
+                  placeholder="First name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name</Label>
+                <Input
+                  id="last_name"
+                  value={editForm.last_name}
+                  onChange={(e) => setEditForm({...editForm, last_name: e.target.value})}
+                  placeholder="Last name"
+                />
+              </div>
             </div>
 
             {/* Location */}
             <div className="space-y-2">
-              {isEditing ? (
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Location</label>
-                  <Input
-                    value={editData.location}
-                    onChange={(e) => setEditData(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="City, State/Province, Country"
-                  />
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm">{profile.location}</span>
-                </div>
-              )}
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={editForm.location}
+                onChange={(e) => setEditForm({...editForm, location: e.target.value})}
+                placeholder="City, State"
+              />
             </div>
 
             {/* About Me */}
-            {isEditing ? (
-              <div>
-                <label className="text-sm font-medium mb-2 block">About Me</label>
-                <Textarea
-                  value={editData.about_me}
-                  onChange={(e) => setEditData(prev => ({ ...prev, about_me: e.target.value }))}
-                  placeholder="Tell us about yourself..."
-                  className="min-h-[80px]"
-                />
-              </div>
-            ) : (
-              profile.about_me && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">About</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {profile.about_me}
-                  </p>
-                </div>
-              )
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="about_me">About Me</Label>
+              <Textarea
+                id="about_me"
+                value={editForm.about_me}
+                onChange={(e) => setEditForm({...editForm, about_me: e.target.value})}
+                placeholder="Tell us about yourself..."
+                rows={4}
+              />
+            </div>
 
-            {/* See More Button */}
-            {!isEditing && hasExtendedContent && (
-              <Button 
-                variant="outline" 
-                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-12"
-                onClick={() => setIsFlipped(!isFlipped)}
+            {/* Hobbies */}
+            {renderArrayField('hobbies', 'Hobbies', Gift)}
+
+            {/* Symptoms */}
+            {renderArrayField('symptoms', 'Symptoms', Activity)}
+
+            {/* Medications */}
+            {renderArrayField('medications', 'Medications', Pill)}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-4 pt-4">
+              <Button
+                onClick={() => setIsEditing(false)}
+                variant="outline"
+                className="flex items-center gap-2"
               >
-                See More
+                <X className="w-4 h-4" />
+                Cancel
               </Button>
-            )}
-
-            {/* Diagnosis Year */}
-            {isEditing ? (
-              <div>
-                <label className="text-sm font-medium mb-2 block">Diagnosis Year</label>
-                <Input
-                  type="number"
-                  value={editData.diagnosis_year}
-                  onChange={(e) => setEditData(prev => ({ ...prev, diagnosis_year: e.target.value }))}
-                  placeholder="Year diagnosed"
-                  min="1950"
-                  max={new Date().getFullYear()}
-                />
-              </div>
-            ) : (
-              profile.diagnosis_year && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <CalendarIcon className="w-4 h-4" />
-                  <span className="text-sm">Diagnosed in {profile.diagnosis_year}</span>
-                </div>
-              )
-            )}
-
-            {/* MS Type */}
-            {isEditing ? (
-              <div>
-                <label className="text-sm font-medium mb-2 block">MS Type</label>
-                <Select value={editData.ms_subtype} onValueChange={(value) => setEditData(prev => ({ ...prev, ms_subtype: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your MS subtype" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rrms">Relapsing-Remitting MS (RRMS)</SelectItem>
-                    <SelectItem value="ppms">Primary Progressive MS (PPMS)</SelectItem>
-                    <SelectItem value="spms">Secondary Progressive MS (SPMS)</SelectItem>
-                    <SelectItem value="prms">Progressive-Relapsing MS (PRMS)</SelectItem>
-                    <SelectItem value="cis">Clinically Isolated Syndrome (CIS)</SelectItem>
-                    <SelectItem value="rms">Radiologically Isolated Syndrome (RIS)</SelectItem>
-                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              profile.ms_subtype && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">MS Type</h4>
-                  <span className="text-muted-foreground">{profile.ms_subtype.toUpperCase()}</span>
-                </div>
-              )
-            )}
-
-            {/* Interests/Hobbies - Editable */}
-            <div>
-              <h4 className="text-sm font-semibold mb-2">Interests</h4>
-              {isEditing ? (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
-                    {editData.hobbies.map((hobby, index) => (
-                      <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700 pr-1">
-                        {hobby}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="ml-1 h-4 w-4 p-0 hover:bg-blue-200"
-                          onClick={() => removeItem('hobbies', hobby)}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      value={editData.newHobby}
-                      onChange={(e) => setEditData(prev => ({ ...prev, newHobby: e.target.value }))}
-                      placeholder="Add an interest..."
-                      className="flex-1"
-                      onKeyPress={(e) => e.key === 'Enter' && addItem('hobbies', 'newHobby')}
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => addItem('hobbies', 'newHobby')}
-                      disabled={!editData.newHobby.trim()}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {profile.hobbies.length > 0 ? (
-                    <>
-                      {profile.hobbies.slice(0, 6).map((hobby, index) => (
-                        <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700">
-                          {hobby}
-                        </Badge>
-                      ))}
-                      {profile.hobbies.length > 6 && (
-                        <Badge variant="outline">
-                          +{profile.hobbies.length - 6} more
-                        </Badge>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-sm text-muted-foreground italic">No interests added yet</span>
-                  )}
-                </div>
-              )}
+              <Button
+                onClick={handleSave}
+                className="bg-gradient-primary hover:opacity-90 flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                Save Changes
+              </Button>
             </div>
-
-            {/* Medications - Editable */}
-            <div>
-              <h4 className="text-sm font-semibold mb-2">Medications</h4>
-              {isEditing ? (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
-                    {editData.medications.map((medication, index) => (
-                      <Badge key={index} variant="secondary" className="bg-green-100 text-green-700 pr-1">
-                        {medication}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="ml-1 h-4 w-4 p-0 hover:bg-green-200"
-                          onClick={() => removeItem('medications', medication)}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      value={editData.newMedication}
-                      onChange={(e) => setEditData(prev => ({ ...prev, newMedication: e.target.value }))}
-                      placeholder="Add a medication..."
-                      className="flex-1"
-                      onKeyPress={(e) => e.key === 'Enter' && addItem('medications', 'newMedication')}
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => addItem('medications', 'newMedication')}
-                      disabled={!editData.newMedication.trim()}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {profile.medications.length > 0 ? (
-                    <>
-                      {profile.medications.slice(0, 6).map((medication, index) => (
-                        <Badge key={index} variant="secondary" className="bg-green-100 text-green-700">
-                          {medication}
-                        </Badge>
-                      ))}
-                      {profile.medications.length > 6 && (
-                        <Badge variant="outline">
-                          +{profile.medications.length - 6} more
-                        </Badge>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-sm text-muted-foreground italic">No medications added yet</span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Symptoms - Editable */}
-            <div>
-              <h4 className="text-sm font-semibold mb-2">Symptoms</h4>
-              {isEditing ? (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
-                    {editData.symptoms.map((symptom, index) => (
-                      <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-700 pr-1">
-                        {symptom}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="ml-1 h-4 w-4 p-0 hover:bg-orange-200"
-                          onClick={() => removeItem('symptoms', symptom)}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      value={editData.newSymptom}
-                      onChange={(e) => setEditData(prev => ({ ...prev, newSymptom: e.target.value }))}
-                      placeholder="Add a symptom..."
-                      className="flex-1"
-                      onKeyPress={(e) => e.key === 'Enter' && addItem('symptoms', 'newSymptom')}
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => addItem('symptoms', 'newSymptom')}
-                      disabled={!editData.newSymptom.trim()}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {profile.symptoms.length > 0 ? (
-                    <>
-                      {profile.symptoms.slice(0, 6).map((symptom, index) => (
-                        <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-700">
-                          {symptom}
-                        </Badge>
-                      ))}
-                      {profile.symptoms.length > 6 && (
-                        <Badge variant="outline">
-                          +{profile.symptoms.length - 6} more
-                        </Badge>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-sm text-muted-foreground italic">No symptoms added yet</span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Account Settings Section */}
-            {!isEditing && (
-              <div className="pt-4 border-t border-border">
-                <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Account Settings</h4>
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.location.href = '/extended-profile'}
-                    className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 mb-2"
-                  >
-                    ✨ Edit Extended Profile
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                    disabled={deleting}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Account
-                  </Button>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
+      </div>
+    );
+  }
 
-        {/* Back Side - Extended Profile */}
-        <Card className={`overflow-hidden shadow-xl ${
-          !isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`}
-        style={{ 
-          backfaceVisibility: 'hidden',
-          transform: 'rotateY(180deg)',
-          position: !isFlipped ? 'absolute' : 'relative',
-          top: !isFlipped ? 0 : 'auto',
-          zIndex: !isFlipped ? 1 : 2
-        }}
-        >
-          <div className="relative h-32 bg-gradient-to-br from-purple-400 via-purple-300 to-pink-300 flex items-center justify-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsFlipped(!isFlipped)}
-              className="absolute top-3 left-3 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg"
-            >
-              <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
-            </Button>
-            <div className="text-center text-white">
-              <h3 className="text-lg font-bold">My Extended Profile</h3>
+  return (
+    <div className="p-3 sm:p-6 max-w-2xl mx-auto">
+      <Card className="shadow-lg overflow-hidden">
+        <div className="relative h-32 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300">
+          <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
+            <ClickableProfilePicture
+              avatarUrl={profile.avatar_url}
+              additionalPhotos={profile.additional_photos}
+              firstName={profile.first_name}
+              className="w-32 h-32 rounded-full border-4 border-white shadow-lg"
+            />
+          </div>
+        </div>
+        
+        <CardContent className="pt-20 pb-6">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold mb-2">
+              {profile.first_name} {profile.last_name}
+            </h2>
+            
+            <div className="flex items-center justify-center text-muted-foreground mb-2">
+              <MapPin className="w-4 h-4 mr-1" />
+              <span>{profile.location}</span>
             </div>
+
+            {profile.date_of_birth && (
+              <div className="flex items-center justify-center text-muted-foreground mb-4">
+                <Calendar className="w-4 h-4 mr-1" />
+                <span>{calculateAge(profile.date_of_birth)} years old</span>
+              </div>
+            )}
+
+            <Button
+              onClick={() => setIsEditing(true)}
+              className="mb-4"
+              variant="outline"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Profile
+            </Button>
           </div>
 
-          <CardContent className="p-6 space-y-4">
-            {/* Medications */}
-            {profile.medications?.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Medications</h4>
+          {/* MS Information */}
+          {profile.ms_subtype && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">MS Information</h3>
+              <Badge className="bg-pink-100 text-pink-700 border-pink-200">
+                {profile.ms_subtype.toUpperCase()}
+              </Badge>
+              {profile.diagnosis_year && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Diagnosed in {profile.diagnosis_year}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* About Me */}
+          {profile.about_me && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">About Me</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {profile.about_me}
+              </p>
+            </div>
+          )}
+
+          {/* Hobbies */}
+          {profile.hobbies && profile.hobbies.length > 0 && (
+            <div className="mb-6">
+              <button
+                onClick={() => toggleSection('hobbies')}
+                className="flex items-center justify-between w-full text-left mb-3"
+              >
+                <h3 className="text-lg font-semibold flex items-center">
+                  <Gift className="w-5 h-5 mr-2" />
+                  Hobbies & Interests
+                </h3>
+                {expandedSections.hobbies ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </button>
+              
+              {expandedSections.hobbies && (
                 <div className="flex flex-wrap gap-2">
-                  {profile.medications.map((medication, index) => (
-                    <Badge 
-                      key={index}
-                      variant="outline"
-                      className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 text-xs"
-                    >
-                      {medication}
+                  {profile.hobbies.map((hobby, index) => (
+                    <Badge key={index} variant="secondary">
+                      {hobby}
                     </Badge>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
-            {/* Symptoms */}
-            {profile.symptoms?.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Symptoms</h4>
+          {/* Symptoms */}
+          {profile.symptoms && profile.symptoms.length > 0 && (
+            <div className="mb-6">
+              <button
+                onClick={() => toggleSection('symptoms')}
+                className="flex items-center justify-between w-full text-left mb-3"
+              >
+                <h3 className="text-lg font-semibold flex items-center">
+                  <Activity className="w-5 h-5 mr-2" />
+                  Symptoms
+                </h3>
+                {expandedSections.symptoms ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </button>
+              
+              {expandedSections.symptoms && (
                 <div className="flex flex-wrap gap-2">
                   {profile.symptoms.map((symptom, index) => (
-                    <Badge 
-                      key={index}
-                      variant="outline"
-                      className="bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 text-xs"
-                    >
+                    <Badge key={index} variant="outline">
                       {symptom}
                     </Badge>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
-            {/* Additional Photos */}
-            {profile.additional_photos && profile.additional_photos.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">More Photos</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {profile.additional_photos.map((photo, index) => (
-                    <div
-                      key={index}
-                      className="aspect-square overflow-hidden rounded-lg border"
-                    >
-                      <img
-                        src={photo}
-                        alt={`Photo ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+          {/* Medications */}
+          {profile.medications && profile.medications.length > 0 && (
+            <div className="mb-6">
+              <button
+                onClick={() => toggleSection('medications')}
+                className="flex items-center justify-between w-full text-left mb-3"
+              >
+                <h3 className="text-lg font-semibold flex items-center">
+                  <Pill className="w-5 h-5 mr-2" />
+                  Medications
+                </h3>
+                {expandedSections.medications ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </button>
+              
+              {expandedSections.medications && (
+                <div className="flex flex-wrap gap-2">
+                  {profile.medications.map((medication, index) => (
+                    <Badge key={index} variant="outline">
+                      {medication}
+                    </Badge>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Personal Stories */}
-            {profile.selected_prompts && profile.selected_prompts.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold">Personal Stories</h4>
-                {profile.selected_prompts.map((prompt, index) => (
-                  <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      {prompt.question}
-                    </p>
-                    <p className="text-sm leading-relaxed">
-                      {prompt.answer}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* No Extended Content */}
-            {!hasExtendedContent && (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground text-sm mb-4">
-                  No extended profile details yet.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.location.href = '/extended-profile'}
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                >
-                  ✨ Add Extended Profile
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </div>
-
-        {/* Delete Confirmation Dialog */}
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="bg-background rounded-lg p-6 max-w-sm w-full">
-              <h3 className="font-semibold text-lg mb-2">Delete Account</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Are you sure you want to permanently delete your account? This action cannot be undone and will remove all your data, matches, and messages.
-              </p>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1"
-                  disabled={deleting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleDeleteAccount}
-                  disabled={deleting}
-                  className="flex-1 bg-red-600 hover:bg-red-700"
-                >
-                  {deleting ? "Deleting..." : "Delete Account"}
-                </Button>
-              </div>
+              )}
             </div>
+          )}
+
+          {/* Extended Profile Prompt */}
+          {!profile.extended_profile_completed && (
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h4 className="font-semibold text-blue-900 mb-2">💡 Make Your Profile Stand Out!</h4>
+              <p className="text-blue-700 text-sm mb-3">
+                Add more photos and personal stories to increase your chances of making meaningful connections.
+              </p>
+              <Button 
+                size="sm" 
+                onClick={() => window.location.href = '/extended-profile'}
+                className="bg-gradient-primary hover:opacity-90 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add More Details
+              </Button>
+            </div>
+          )}
+
+          {/* Sign Out Button */}
+          <div className="text-center pt-4 border-t">
+            <Button
+              onClick={onSignOut}
+              variant="outline"
+              className="text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
-        )}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
