@@ -120,7 +120,7 @@ const handler = async (req: Request): Promise<Response> => {
       const emailTemplate = getEmailTemplate("Preview User");
       
       const emailResponse = await resend.emails.send({
-        from: "MST wins Team <onboarding@resend.dev>",
+        from: "MST wins Team <noreply@sharedgenes.org>",
         to: [preview_email],
         subject: `[PREVIEW] ${emailTemplate.subject}`,
         html: emailTemplate.html,
@@ -216,7 +216,7 @@ const handler = async (req: Request): Promise<Response> => {
           const personalizedTemplate = getEmailTemplate(firstName);
           
           const result = await resend.emails.send({
-            from: "MST wins Team <onboarding@resend.dev>",
+            from: "MST wins Team <noreply@sharedgenes.org>",
             to: [email!],
             subject: personalizedTemplate.subject,
             html: personalizedTemplate.html,
