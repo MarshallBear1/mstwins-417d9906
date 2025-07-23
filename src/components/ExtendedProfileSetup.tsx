@@ -389,7 +389,7 @@ const ExtendedProfileSetup = () => {
                         <input
                           type="file"
                           accept="image/*"
-                          capture="environment"
+                          capture="user"
                           onChange={handlePhotoUpload}
                           disabled={uploading}
                           className="hidden"
