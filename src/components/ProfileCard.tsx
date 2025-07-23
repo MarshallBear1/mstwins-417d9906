@@ -970,7 +970,6 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
           </CardContent>
         </Card>
         </div>
-      </div>
 
         {/* Delete Confirmation Dialog */}
         {showDeleteConfirm && (
