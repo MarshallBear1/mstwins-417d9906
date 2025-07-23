@@ -68,6 +68,12 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
     date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth) : undefined,
     about_me: profile.about_me || "",
     avatar_url: profile.avatar_url || "",
+    symptoms: profile.symptoms || [],
+    medications: profile.medications || [],
+    hobbies: profile.hobbies || [],
+    newSymptom: "",
+    newMedication: "",
+    newHobby: ""
   });
 
   const calculateAge = (birthDate: string | null) => {
@@ -129,11 +135,15 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
         first_name: editData.first_name,
         last_name: editData.last_name,
         location: editData.location,
+        gender: editData.gender || null,
         ms_subtype: editData.ms_subtype || null,
         diagnosis_year: editData.diagnosis_year ? parseInt(editData.diagnosis_year) : null,
         date_of_birth: editData.date_of_birth ? editData.date_of_birth.toISOString().split('T')[0] : null,
         about_me: editData.about_me || null,
         avatar_url: editData.avatar_url || null,
+        symptoms: editData.symptoms,
+        medications: editData.medications,
+        hobbies: editData.hobbies,
       };
 
       const { data, error } = await supabase
@@ -182,6 +192,12 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
       date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth) : undefined,
       about_me: profile.about_me || "",
       avatar_url: profile.avatar_url || "",
+      symptoms: profile.symptoms || [],
+      medications: profile.medications || [],
+      hobbies: profile.hobbies || [],
+      newSymptom: "",
+      newMedication: "",
+      newHobby: ""
     });
     setIsEditing(false);
   };
@@ -191,37 +207,66 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
     
     setDeleting(true);
     try {
-      // Delete the user account (this will cascade to delete related data due to foreign keys)
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
-      
-      if (error) {
-        console.error('Error deleting account:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to delete account. Please contact support.",
-        });
-        return;
-      }
+      // First delete profile data
+      await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', user.id);
 
+      // Delete other user data
+      await Promise.all([
+        supabase.from('likes').delete().eq('liker_id', user.id),
+        supabase.from('likes').delete().eq('liked_id', user.id),
+        supabase.from('messages').delete().eq('sender_id', user.id),
+        supabase.from('messages').delete().eq('receiver_id', user.id),
+        supabase.from('matches').delete().or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`),
+        supabase.from('notifications').delete().eq('user_id', user.id),
+        supabase.from('passes').delete().eq('passer_id', user.id),
+        supabase.from('passes').delete().eq('passed_id', user.id),
+        supabase.from('feedback').delete().eq('user_id', user.id),
+        supabase.from('user_reports').delete().eq('reporter_id', user.id)
+      ]);
+
+      // Finally sign out the user (this will effectively "delete" their auth account from their perspective)
+      await supabase.auth.signOut();
+      
       toast({
         title: "Account Deleted",
-        description: "Your account has been permanently deleted.",
+        description: "Your account and all data have been permanently deleted.",
       });
 
-      // Sign out the user
-      onSignOut();
+      // Navigate to home
+      window.location.href = '/';
     } catch (error) {
       console.error('Error deleting account:', error);
       toast({
         variant: "destructive", 
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: "Failed to delete account. Please try again or contact support.",
       });
     } finally {
       setDeleting(false);
       setShowDeleteConfirm(false);
     }
+  };
+
+  // Helper functions for managing arrays
+  const addItem = (arrayField: 'symptoms' | 'medications' | 'hobbies', inputField: 'newSymptom' | 'newMedication' | 'newHobby') => {
+    const value = editData[inputField].trim();
+    if (value && !editData[arrayField].includes(value)) {
+      setEditData(prev => ({
+        ...prev,
+        [arrayField]: [...prev[arrayField], value],
+        [inputField]: ""
+      }));
+    }
+  };
+
+  const removeItem = (arrayField: 'symptoms' | 'medications' | 'hobbies', item: string) => {
+    setEditData(prev => ({
+      ...prev,
+      [arrayField]: prev[arrayField].filter(i => i !== item)
+    }));
   };
 
   return (
@@ -540,68 +585,185 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               )
             )}
 
-            {/* Interests (read-only for now) */}
-            {!isEditing && profile.hobbies.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Interests</h4>
+            {/* Interests/Hobbies - Editable */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Interests</h4>
+              {isEditing ? (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
+                    {editData.hobbies.map((hobby, index) => (
+                      <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700 pr-1">
+                        {hobby}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="ml-1 h-4 w-4 p-0 hover:bg-blue-200"
+                          onClick={() => removeItem('hobbies', hobby)}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={editData.newHobby}
+                      onChange={(e) => setEditData(prev => ({ ...prev, newHobby: e.target.value }))}
+                      placeholder="Add an interest..."
+                      className="flex-1"
+                      onKeyPress={(e) => e.key === 'Enter' && addItem('hobbies', 'newHobby')}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => addItem('hobbies', 'newHobby')}
+                      disabled={!editData.newHobby.trim()}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              ) : (
                 <div className="flex flex-wrap gap-2">
-                  {profile.hobbies.slice(0, 6).map((hobby, index) => (
-                    <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700">
-                      {hobby}
-                    </Badge>
-                  ))}
-                  {profile.hobbies.length > 6 && (
-                    <Badge variant="outline">
-                      +{profile.hobbies.length - 6} more
-                    </Badge>
+                  {profile.hobbies.length > 0 ? (
+                    <>
+                      {profile.hobbies.slice(0, 6).map((hobby, index) => (
+                        <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-700">
+                          {hobby}
+                        </Badge>
+                      ))}
+                      {profile.hobbies.length > 6 && (
+                        <Badge variant="outline">
+                          +{profile.hobbies.length - 6} more
+                        </Badge>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">No interests added yet</span>
                   )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Medications (read-only for now) */}
-            {!isEditing && profile.medications.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Medications</h4>
+            {/* Medications - Editable */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Medications</h4>
+              {isEditing ? (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
+                    {editData.medications.map((medication, index) => (
+                      <Badge key={index} variant="secondary" className="bg-green-100 text-green-700 pr-1">
+                        {medication}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="ml-1 h-4 w-4 p-0 hover:bg-green-200"
+                          onClick={() => removeItem('medications', medication)}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={editData.newMedication}
+                      onChange={(e) => setEditData(prev => ({ ...prev, newMedication: e.target.value }))}
+                      placeholder="Add a medication..."
+                      className="flex-1"
+                      onKeyPress={(e) => e.key === 'Enter' && addItem('medications', 'newMedication')}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => addItem('medications', 'newMedication')}
+                      disabled={!editData.newMedication.trim()}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              ) : (
                 <div className="flex flex-wrap gap-2">
-                  {profile.medications.slice(0, 6).map((medication, index) => (
-                    <Badge key={index} variant="secondary" className="bg-green-100 text-green-700">
-                      {medication}
-                    </Badge>
-                  ))}
-                  {profile.medications.length > 6 && (
-                    <Badge variant="outline">
-                      +{profile.medications.length - 6} more
-                    </Badge>
+                  {profile.medications.length > 0 ? (
+                    <>
+                      {profile.medications.slice(0, 6).map((medication, index) => (
+                        <Badge key={index} variant="secondary" className="bg-green-100 text-green-700">
+                          {medication}
+                        </Badge>
+                      ))}
+                      {profile.medications.length > 6 && (
+                        <Badge variant="outline">
+                          +{profile.medications.length - 6} more
+                        </Badge>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">No medications added yet</span>
                   )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Symptoms (read-only for now) */}
-            {!isEditing && profile.symptoms.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Symptoms</h4>
+            {/* Symptoms - Editable */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Symptoms</h4>
+              {isEditing ? (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
+                    {editData.symptoms.map((symptom, index) => (
+                      <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-700 pr-1">
+                        {symptom}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="ml-1 h-4 w-4 p-0 hover:bg-orange-200"
+                          onClick={() => removeItem('symptoms', symptom)}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={editData.newSymptom}
+                      onChange={(e) => setEditData(prev => ({ ...prev, newSymptom: e.target.value }))}
+                      placeholder="Add a symptom..."
+                      className="flex-1"
+                      onKeyPress={(e) => e.key === 'Enter' && addItem('symptoms', 'newSymptom')}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => addItem('symptoms', 'newSymptom')}
+                      disabled={!editData.newSymptom.trim()}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              ) : (
                 <div className="flex flex-wrap gap-2">
-                  {profile.symptoms.slice(0, 6).map((symptom, index) => (
-                    <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-700">
-                      {symptom}
-                    </Badge>
-                  ))}
-                  {profile.symptoms.length > 6 && (
-                    <Badge variant="outline">
-                      +{profile.symptoms.length - 6} more
-                    </Badge>
+                  {profile.symptoms.length > 0 ? (
+                    <>
+                      {profile.symptoms.slice(0, 6).map((symptom, index) => (
+                        <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-700">
+                          {symptom}
+                        </Badge>
+                      ))}
+                      {profile.symptoms.length > 6 && (
+                        <Badge variant="outline">
+                          +{profile.symptoms.length - 6} more
+                        </Badge>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">No symptoms added yet</span>
                   )}
                 </div>
-              </div>
-            )}
-
-            {isEditing && (
-              <div className="text-xs text-muted-foreground">
-                💡 To edit interests, symptoms, and medications, visit the full profile setup.
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Account Settings Section */}
             {!isEditing && (

@@ -15,6 +15,7 @@ import ReferralDropdown from "@/components/ReferralDropdown";
 import FeedbackDialog from "@/components/FeedbackDialog";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
+import EmailQueueMonitor from "@/components/EmailQueueMonitor";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
@@ -294,6 +295,7 @@ const Dashboard = () => {
     { id: "likes", label: "Likes", icon: Users },
     { id: "matches", label: "Matches", icon: MessageCircle },
     { id: "profile", label: "Profile", icon: User },
+    { id: "admin", label: "Debug", icon: Eye },
   ];
 
   const renderContent = () => {
@@ -459,6 +461,12 @@ const Dashboard = () => {
             onProfileUpdate={(updatedProfile) => setProfile({ ...updatedProfile, last_seen: profile.last_seen })}
             onSignOut={handleSignOut}
           />
+        );
+      case "admin":
+        return (
+          <div className="p-6">
+            <EmailQueueMonitor />
+          </div>
         );
       default:
         return null;
