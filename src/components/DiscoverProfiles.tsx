@@ -28,6 +28,12 @@ interface Profile {
   avatar_url: string | null;
   about_me: string | null;
   last_seen: string | null;
+  additional_photos?: string[];
+  selected_prompts?: {
+    question: string;
+    answer: string;
+  }[];
+  extended_profile_completed?: boolean;
 }
 
 const DiscoverProfiles = () => {
@@ -103,7 +109,10 @@ const DiscoverProfiles = () => {
               .in('user_id', availableSkippedIds);
             
             console.log(`✅ Found ${skippedProfiles?.length || 0} available skipped profiles`);
-            setProfiles(skippedProfiles || []);
+            setProfiles((skippedProfiles || []).map(profile => ({
+              ...profile,
+              selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as { question: string; answer: string; }[] : []
+            })));
           } else {
             console.log('📭 No skipped profiles available (all are now matched or liked)');
             setProfiles([]);
@@ -168,7 +177,10 @@ const DiscoverProfiles = () => {
         }
 
         console.log(`✅ Found ${data?.length || 0} available profiles`);
-        setProfiles(data || []);
+        setProfiles((data || []).map(profile => ({
+          ...profile,
+          selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as { question: string; answer: string; }[] : []
+        })));
       }
       setCurrentIndex(0);
     } catch (error) {

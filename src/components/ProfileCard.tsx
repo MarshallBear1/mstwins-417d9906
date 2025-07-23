@@ -42,6 +42,12 @@ interface Profile {
   avatar_url: string | null;
   about_me: string | null;
   last_seen?: string | null;
+  additional_photos?: string[];
+  selected_prompts?: {
+    question: string;
+    answer: string;
+  }[];
+  extended_profile_completed?: boolean;
 }
 
 interface ProfileCardProps {
@@ -163,7 +169,10 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
         return;
       }
 
-      onProfileUpdate(data);
+      onProfileUpdate({
+        ...data,
+        selected_prompts: Array.isArray(data.selected_prompts) ? data.selected_prompts as { question: string; answer: string; }[] : []
+      });
       setIsEditing(false);
       toast({
         title: "Profile Updated! ✨",
@@ -770,6 +779,14 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               <div className="pt-4 border-t border-border">
                 <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Account Settings</h4>
                 <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.location.href = '/extended-profile'}
+                    className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 mb-2"
+                  >
+                    ✨ Edit Extended Profile
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"

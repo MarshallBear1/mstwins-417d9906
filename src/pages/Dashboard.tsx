@@ -15,7 +15,7 @@ import ReferralDropdown from "@/components/ReferralDropdown";
 import FeedbackDialog from "@/components/FeedbackDialog";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
-import EmailQueueMonitor from "@/components/EmailQueueMonitor";
+
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
@@ -523,8 +523,8 @@ const Dashboard = () => {
         );
       case "admin":
         return (
-          <div className="p-6">
-            <EmailQueueMonitor />
+          <div className="p-6 text-center">
+            <p className="text-muted-foreground">Admin panel removed for security.</p>
           </div>
         );
       default:
