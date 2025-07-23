@@ -155,19 +155,41 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Found ${profiles.length} profiles`);
 
-    // Get email addresses from auth.users table
+    // Get email addresses from auth.users table - fetch ALL users with pagination
     const userIds = profiles.map(p => p.user_id);
     
-    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+    let allUsers = [];
+    let page = 1;
+    const perPage = 1000; // Max allowed by Supabase
     
-    if (usersError) {
-      throw new Error(`Failed to fetch users: ${usersError.message}`);
+    while (true) {
+      const { data: users, error: usersError } = await supabase.auth.admin.listUsers({
+        page: page,
+        perPage: perPage
+      });
+      
+      if (usersError) {
+        throw new Error(`Failed to fetch users: ${usersError.message}`);
+      }
+      
+      if (!users || users.users.length === 0) {
+        break;
+      }
+      
+      allUsers.push(...users.users);
+      
+      // If we got fewer users than perPage, we've reached the end
+      if (users.users.length < perPage) {
+        break;
+      }
+      
+      page++;
     }
-
-    console.log(`Found ${users.users.length} users`);
+    
+    console.log(`Found ${allUsers.length} total users`);
 
     // Create a map of user_id to email and match with profiles
-    const userEmailMap = new Map(users.users.map(user => [user.id, user.email]));
+    const userEmailMap = new Map(allUsers.map(user => [user.id, user.email]));
     
     const emailList = profiles
       .map(profile => ({
