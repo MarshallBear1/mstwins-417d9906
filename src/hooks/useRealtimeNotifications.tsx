@@ -81,10 +81,15 @@ export const useRealtimeNotifications = () => {
     };
   };
 
-  // Check permission on mount
+  // Check permission on mount and auto-request if needed
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      setBrowserNotificationsEnabled(true);
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        setBrowserNotificationsEnabled(true);
+      } else if (Notification.permission === 'default') {
+        // Auto-request permission on first load
+        requestNotificationPermission();
+      }
     }
   }, []);
 
