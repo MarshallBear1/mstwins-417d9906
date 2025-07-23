@@ -346,6 +346,30 @@ export type Database = {
         }
         Relationships: []
       }
+      re_engagement_emails: {
+        Row: {
+          created_at: string
+          email_type: string
+          id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_type: string
+          id?: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_type?: string
+          id?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       robot_announcements: {
         Row: {
           announcement_type: string
@@ -521,6 +545,17 @@ export type Database = {
       get_user_count: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      get_users_needing_re_engagement: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          email: string
+          first_name: string
+          last_seen: string
+          hours_offline: number
+          email_type: string
+        }[]
       }
       has_role: {
         Args: {

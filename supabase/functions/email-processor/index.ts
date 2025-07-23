@@ -206,6 +206,52 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // 3. Process re-engagement emails
+    console.log('🔄 Processing re-engagement emails...');
+    
+    const { data: reEngagementUsers, error: reEngagementError } = await supabase
+      .rpc('get_users_needing_re_engagement');
+
+    if (reEngagementError) {
+      console.error('❌ Error fetching re-engagement users:', reEngagementError);
+    } else if (reEngagementUsers && reEngagementUsers.length > 0) {
+      console.log(`🔄 Found ${reEngagementUsers.length} users needing re-engagement emails`);
+
+      for (const user of reEngagementUsers) {
+        try {
+          console.log(`Sending ${user.email_type} re-engagement email to ${user.email}`);
+
+          const emailResult = await supabase.functions.invoke('send-re-engagement-email', {
+            body: {
+              email: user.email,
+              firstName: user.first_name,
+              emailType: user.email_type,
+              hoursOffline: user.hours_offline
+            }
+          });
+
+          if (emailResult?.error) {
+            throw new Error(`Re-engagement email error: ${JSON.stringify(emailResult.error)}`);
+          }
+
+          // Record that we sent this re-engagement email
+          await supabase
+            .from('re_engagement_emails')
+            .insert({
+              user_id: user.user_id,
+              email_type: user.email_type
+            });
+
+          processedCount++;
+          console.log(`✅ Successfully sent ${user.email_type} re-engagement email to ${user.email}`);
+
+        } catch (error) {
+          console.error(`❌ Error processing re-engagement email for ${user.user_id}:`, error);
+          errorCount++;
+        }
+      }
+    }
+
     console.log(`📊 Email processing complete: ${processedCount} processed, ${errorCount} errors`);
 
     return new Response(JSON.stringify({ 
