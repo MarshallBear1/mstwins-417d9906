@@ -465,8 +465,9 @@ const Dashboard = () => {
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-white border border-gray-200 p-1 shadow-sm">
               <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="MSTwins mascot" className="w-full h-full object-contain" />
             </div>
-            <span className="text-base sm:text-lg font-bold text-foreground">
-              MSTwins
+            <span className="text-base sm:text-lg font-bold">
+              <span className="text-black">MS</span>
+              <span className="text-blue-600">Twins</span>
             </span>
             {/* Daily Likes Counter */}
             {isLimitEnforced() && !hasUnlimitedLikes}
