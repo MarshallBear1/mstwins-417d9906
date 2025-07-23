@@ -41,6 +41,27 @@ export type Database = {
         }
         Relationships: []
       }
+      email_processing_log: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          triggered_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          triggered_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          triggered_at?: string
+        }
+        Relationships: []
+      }
       email_queue: {
         Row: {
           attempts: number | null
@@ -444,6 +465,33 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      welcome_email_queue: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          processed: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          processed?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          processed?: boolean
           user_id?: string
         }
         Relationships: []
