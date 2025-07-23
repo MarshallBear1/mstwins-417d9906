@@ -541,7 +541,16 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             className="mr-2 text-xs"
             onClick={() => {
               console.log('👤 View Profile button clicked');
+              console.log('👤 showProfileView before:', showProfileView);
+              console.log('👤 selectedMatch:', selectedMatch);
+              console.log('👤 Profile data being passed:', {
+                id: selectedMatch?.other_user.user_id || (selectedMatch?.user1_id === user?.id ? selectedMatch?.user2_id : selectedMatch?.user1_id),
+                user_id: selectedMatch?.user1_id === user?.id ? selectedMatch?.user2_id : selectedMatch?.user1_id,
+                first_name: selectedMatch?.other_user.first_name,
+                last_name: selectedMatch?.other_user.last_name,
+              });
               setShowProfileView(true);
+              console.log('👤 showProfileView after setShowProfileView(true)');
             }}
           >
             View Profile
