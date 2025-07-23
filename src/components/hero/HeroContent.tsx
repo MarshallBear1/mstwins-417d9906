@@ -38,16 +38,12 @@ const HeroContent = () => {
 
       {/* CTA Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-        <div className="relative inline-block">
-          <div className="animated-border-box-glow"></div>
-          <div className="animated-border-box"></div>
-          <Button variant="hero" size="lg" className="relative z-10 text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white border-0" asChild>
-            <Link to="/auth">
-              Join Free Today
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-          </Button>
-        </div>
+        <Button variant="hero" size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-medium hover:shadow-strong transform hover:scale-105 transition-all duration-300" asChild>
+          <Link to="/auth">
+            Join Free Today
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Link>
+        </Button>
         <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white" asChild>
           <a href="#testimonials">
             See Success Stories

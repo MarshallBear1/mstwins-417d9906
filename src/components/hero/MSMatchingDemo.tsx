@@ -49,14 +49,14 @@ const MSMatchingDemo = memo(() => {
       <div className="relative h-80 flex items-center justify-center">
         {/* Left Profile (You) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[-180px] sm:translate-x-[-200px]' : 'translate-x-0'
+          step >= 1 ? 'translate-x-[-120px] sm:translate-x-[-180px] lg:translate-x-[-200px]' : 'translate-x-0'
         }`}>
           <ProfileCard profile={profiles[1]} isYou={true} />
         </div>
 
         {/* Right Profile (Sarah) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[180px] sm:translate-x-[200px] opacity-100' : 'translate-x-[200px] opacity-0'
+          step >= 1 ? 'translate-x-[120px] sm:translate-x-[180px] lg:translate-x-[200px] opacity-100' : 'translate-x-[200px] opacity-0'
         }`}>
           <ProfileCard profile={profiles[0]} />
         </div>
@@ -171,7 +171,7 @@ const MSMatchingDemo = memo(() => {
 
 const ProfileCard = ({ profile, isYou = false }: { profile: any; isYou?: boolean }) => {
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden w-36 sm:w-40 hover:shadow-xl transition-shadow">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden w-32 sm:w-36 lg:w-40 hover:shadow-xl transition-shadow">
       {/* Avatar */}
       <div className="relative h-24 bg-gradient-to-br from-blue-400 to-teal-300 flex items-center justify-center">
         <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white">
