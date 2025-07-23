@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { analytics } from "@/lib/analytics";
 import { sanitizeInput, checkRateLimit, sanitizeErrorMessage, filterContent } from "@/lib/security";
+import ProfileViewDialog from "@/components/ProfileViewDialog";
 
 interface Message {
   id: string;
@@ -30,6 +31,8 @@ interface Match {
   user2_id: string;
   created_at: string;
   other_user: {
+    id?: string;
+    user_id?: string;
     first_name: string;
     last_name: string;
     avatar_url: string | null;
@@ -41,6 +44,14 @@ interface Match {
     hobbies?: string[];
     symptoms?: string[];
     medications?: string[];
+    gender?: string;
+    last_seen?: string;
+    additional_photos?: string[];
+    selected_prompts?: {
+      question: string;
+      answer: string;
+    }[];
+    extended_profile_completed?: boolean;
   };
   unread_count: number;
 }
@@ -61,13 +72,14 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [showProfileView, setShowProfileView] = useState(false);
   const { isUserOnline, setTyping, getTypingUsers } = useRealtimePresence();
 
   useEffect(() => {
     if (user) {
       fetchMatches();
       
-      // Set up real-time subscription for new messages
+      // Set up real-time subscription for new messages in all matches
       const messageChannel = supabase
         .channel('message-updates')
         .on(
@@ -75,47 +87,55 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           {
             event: 'INSERT',
             schema: 'public',
-            table: 'messages',
-            filter: `receiver_id=eq.${user.id}`
+            table: 'messages'
           },
           (payload) => {
             console.log('📨 New message received:', payload);
             const newMessage = payload.new as Message;
             
-            // Always update the message history cache
-            setMessageHistory(prev => {
-              const existingMessages = prev.get(newMessage.match_id) || [];
-              const updatedMessages = [...existingMessages, newMessage];
-              return new Map(prev.set(newMessage.match_id, updatedMessages));
-            });
-            
-            // Update messages if viewing this match
-            if (selectedMatch?.id === newMessage.match_id) {
-              setMessages(prev => [...prev, newMessage]);
+            // Check if this message involves the current user (either as sender or receiver)
+            if (newMessage.sender_id === user.id || newMessage.receiver_id === user.id) {
+              console.log('📨 Message involves current user, updating UI');
+              
+              // Always update the message history cache
+              setMessageHistory(prev => {
+                const existingMessages = prev.get(newMessage.match_id) || [];
+                // Check if message already exists to prevent duplicates
+                const messageExists = existingMessages.some(msg => msg.id === newMessage.id);
+                if (!messageExists) {
+                  const updatedMessages = [...existingMessages, newMessage];
+                  return new Map(prev.set(newMessage.match_id, updatedMessages));
+                }
+                return prev;
+              });
+              
+              // Update messages if viewing this match
+              if (selectedMatch?.id === newMessage.match_id) {
+                setMessages(prev => {
+                  // Check if message already exists to prevent duplicates
+                  const messageExists = prev.some(msg => msg.id === newMessage.id);
+                  if (!messageExists) {
+                    return [...prev, newMessage];
+                  }
+                  return prev;
+                });
+                
+                // Auto-mark as read if user is receiver and viewing the conversation
+                if (newMessage.receiver_id === user.id) {
+                  setTimeout(() => {
+                    supabase
+                      .from('messages')
+                      .update({ is_read: true })
+                      .eq('id', newMessage.id);
+                  }, 1000);
+                }
+              }
+              
+              // Refresh matches to update unread counts (only if not sender)
+              if (newMessage.receiver_id === user.id) {
+                fetchMatches();
+              }
             }
-            
-            // Refresh matches to update unread counts
-            fetchMatches();
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-            filter: `sender_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('📤 Message sent confirmation:', payload);
-            const newMessage = payload.new as Message;
-            
-            // Update message history for sent messages too
-            setMessageHistory(prev => {
-              const existingMessages = prev.get(newMessage.match_id) || [];
-              const updatedMessages = [...existingMessages, newMessage];
-              return new Map(prev.set(newMessage.match_id, updatedMessages));
-            });
           }
         )
         .subscribe();
@@ -180,7 +200,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('first_name, last_name, avatar_url, location, about_me, ms_subtype, diagnosis_year, date_of_birth, hobbies, symptoms, medications')
+            .select('*')
             .eq('user_id', otherUserId)
             .single();
 
@@ -194,7 +214,28 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
           return {
             ...match,
-            other_user: profileData || {
+            other_user: profileData ? {
+              id: profileData.id,
+              user_id: profileData.user_id,
+              first_name: profileData.first_name,
+              last_name: profileData.last_name,
+              avatar_url: profileData.avatar_url,
+              location: profileData.location,
+              about_me: profileData.about_me,
+              ms_subtype: profileData.ms_subtype,
+              diagnosis_year: profileData.diagnosis_year,
+              date_of_birth: profileData.date_of_birth,
+              hobbies: profileData.hobbies || [],
+              symptoms: profileData.symptoms || [],
+              medications: profileData.medications || [],
+              gender: profileData.gender,
+              last_seen: profileData.last_seen,
+              additional_photos: profileData.additional_photos || [],
+              selected_prompts: Array.isArray(profileData.selected_prompts) 
+                ? profileData.selected_prompts as { question: string; answer: string; }[]
+                : [],
+              extended_profile_completed: profileData.extended_profile_completed || false
+            } : {
               first_name: 'Unknown',
               last_name: 'User',
               avatar_url: null,
@@ -205,7 +246,12 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               date_of_birth: '',
               hobbies: [],
               symptoms: [],
-              medications: []
+              medications: [],
+              gender: null,
+              last_seen: null,
+              additional_photos: [],
+              selected_prompts: [],
+              extended_profile_completed: false
             },
             unread_count: unreadCount || 0
           };
@@ -477,70 +523,14 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               </p>
             </div>
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="mr-2">
-                <Eye className="w-4 h-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Profile</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src={selectedMatch.other_user.avatar_url || undefined} />
-                    <AvatarFallback>
-                      <User className="w-8 h-8" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="text-xl font-bold">
-                      {selectedMatch.other_user.first_name} {selectedMatch.other_user.last_name}
-                    </h3>
-                    {selectedMatch.other_user.location && (
-                      <p className="text-sm text-muted-foreground">{selectedMatch.other_user.location}</p>
-                    )}
-                  </div>
-                </div>
-                
-                {selectedMatch.other_user.ms_subtype && (
-                  <div>
-                    <h4 className="font-semibold mb-1">MS Type</h4>
-                    <p className="text-sm text-muted-foreground">{selectedMatch.other_user.ms_subtype.toUpperCase()}</p>
-                  </div>
-                )}
-                
-                {selectedMatch.other_user.diagnosis_year && (
-                  <div>
-                    <h4 className="font-semibold mb-1">Diagnosed</h4>
-                    <p className="text-sm text-muted-foreground">{selectedMatch.other_user.diagnosis_year}</p>
-                  </div>
-                )}
-                
-                {selectedMatch.other_user.hobbies && selectedMatch.other_user.hobbies.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold mb-1">Interests</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedMatch.other_user.hobbies.slice(0, 6).map((hobby, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {hobby}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {selectedMatch.other_user.about_me && (
-                  <div>
-                    <h4 className="font-semibold mb-1">About</h4>
-                    <p className="text-sm text-muted-foreground">{selectedMatch.other_user.about_me}</p>
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="mr-2"
+            onClick={() => setShowProfileView(true)}
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
@@ -743,6 +733,35 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             </Card>
           ))}
         </div>
+      )}
+      
+      {/* Profile View Dialog - use consistent profile dialog like in discover */}
+      {selectedMatch && (
+        <ProfileViewDialog 
+          profile={{
+            id: selectedMatch.other_user.id || selectedMatch.other_user.user_id || '',
+            user_id: selectedMatch.user1_id === user?.id ? selectedMatch.user2_id : selectedMatch.user1_id,
+            first_name: selectedMatch.other_user.first_name,
+            last_name: selectedMatch.other_user.last_name,
+            date_of_birth: selectedMatch.other_user.date_of_birth || null,
+            location: selectedMatch.other_user.location || '',
+            gender: selectedMatch.other_user.gender || null,
+            ms_subtype: selectedMatch.other_user.ms_subtype || null,
+            diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
+            symptoms: selectedMatch.other_user.symptoms || [],
+            medications: selectedMatch.other_user.medications || [],
+            hobbies: selectedMatch.other_user.hobbies || [],
+            avatar_url: selectedMatch.other_user.avatar_url,
+            about_me: selectedMatch.other_user.about_me || null,
+            last_seen: selectedMatch.other_user.last_seen || null,
+            additional_photos: selectedMatch.other_user.additional_photos || [],
+            selected_prompts: selectedMatch.other_user.selected_prompts || [],
+            extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
+          }}
+          open={showProfileView} 
+          onOpenChange={setShowProfileView} 
+          showActions={false} 
+        />
       )}
     </div>
   );
