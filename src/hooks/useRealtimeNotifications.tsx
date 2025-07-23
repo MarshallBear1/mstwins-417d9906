@@ -28,19 +28,39 @@ export const useRealtimeNotifications = () => {
       return false;
     }
 
+    // Check current permission status
+    console.log('Current notification permission:', Notification.permission);
+
     if (Notification.permission === 'granted') {
       setBrowserNotificationsEnabled(true);
       return true;
     }
 
-    if (Notification.permission !== 'denied') {
-      const permission = await Notification.requestPermission();
-      const enabled = permission === 'granted';
-      setBrowserNotificationsEnabled(enabled);
-      return enabled;
+    if (Notification.permission === 'denied') {
+      console.log('Notifications have been previously denied');
+      return false;
     }
 
-    return false;
+    // Request permission for notifications
+    try {
+      console.log('Requesting notification permission...');
+      const permission = await Notification.requestPermission();
+      console.log('Permission response:', permission);
+      
+      const enabled = permission === 'granted';
+      setBrowserNotificationsEnabled(enabled);
+      
+      if (enabled) {
+        console.log('Notifications enabled successfully');
+      } else {
+        console.log('Notifications were denied or dismissed');
+      }
+      
+      return enabled;
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      return false;
+    }
   };
 
   // Show browser notification
@@ -81,15 +101,13 @@ export const useRealtimeNotifications = () => {
     };
   };
 
-  // Check permission on mount and auto-request if needed
+  // Check permission on mount
   useEffect(() => {
     if ('Notification' in window) {
       if (Notification.permission === 'granted') {
         setBrowserNotificationsEnabled(true);
-      } else if (Notification.permission === 'default') {
-        // Auto-request permission on first load
-        requestNotificationPermission();
       }
+      // Don't auto-request permission, let user explicitly enable it
     }
   }, []);
 
