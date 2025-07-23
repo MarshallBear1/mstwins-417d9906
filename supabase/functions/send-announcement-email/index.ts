@@ -64,10 +64,10 @@ const getEmailTemplate = (firstName: string = "there") => ({
 
           <!-- Call to Action Buttons -->
           <div style="text-align: center; margin: 35px 0;">
-            <a href="https://7940c4cb-942f-48c4-aaf2-3eeabcbd074e.lovableproject.com/dashboard" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
+            <a href="https://mstwins.com/dashboard" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
               🔥 Log Back In
             </a>
-            <a href="https://7940c4cb-942f-48c4-aaf2-3eeabcbd074e.lovableproject.com/" style="display: inline-block; background-color: #48bb78; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
+            <a href="https://mstwins.com/" style="display: inline-block; background-color: #48bb78; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
               💝 Refer Friends
             </a>
           </div>
@@ -77,7 +77,7 @@ const getEmailTemplate = (firstName: string = "there") => ({
             <p style="color: #4a5568; margin: 0 0 15px 0; font-size: 14px;">
               Your feedback shapes our platform. Let us know what you think!
             </p>
-            <a href="https://7940c4cb-942f-48c4-aaf2-3eeabcbd074e.lovableproject.com/dashboard" style="display: inline-block; background-color: #4299e1; color: #ffffff; text-decoration: none; padding: 10px 25px; border-radius: 6px; font-weight: bold; font-size: 14px;">
+            <a href="https://mstwins.com/dashboard" style="display: inline-block; background-color: #4299e1; color: #ffffff; text-decoration: none; padding: 10px 25px; border-radius: 6px; font-weight: bold; font-size: 14px;">
               💬 Send Feedback
             </a>
           </div>
