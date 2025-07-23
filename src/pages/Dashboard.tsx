@@ -36,6 +36,12 @@ interface Profile {
   avatar_url: string | null;
   about_me: string | null;
   last_seen: string | null;
+  additional_photos?: string[];
+  selected_prompts?: {
+    question: string;
+    answer: string;
+  }[];
+  extended_profile_completed?: boolean;
 }
 
 const Dashboard = () => {
@@ -86,7 +92,10 @@ const Dashboard = () => {
         return;
       }
 
-      setProfile(data);
+      setProfile(data ? {
+        ...data,
+        selected_prompts: Array.isArray(data.selected_prompts) ? data.selected_prompts as { question: string; answer: string; }[] : []
+      } : null);
       
       // Update last_seen timestamp in background to not block UI
       if (data) {
@@ -180,7 +189,10 @@ const Dashboard = () => {
         return;
       }
 
-      setLikes(profiles || []);
+      setLikes((profiles || []).map(profile => ({
+        ...profile,
+        selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as { question: string; answer: string; }[] : []
+      })));
     } catch (error) {
       console.error('Error fetching likes:', error);
     } finally {
@@ -301,7 +313,54 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "discover":
-        return <DiscoverProfiles />;
+        return (
+          <div>
+            {/* Extended Profile Prompt */}
+            {profile && !profile.extended_profile_completed && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 m-4">
+                <div className="flex items-start space-x-3">
+                  <img 
+                    src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                    alt="Helpful robot"
+                    className="w-10 h-10 rounded-full flex-shrink-0"
+                  />
+                  <div className="flex-1">
+                    <div className="bg-white rounded-lg p-3 shadow-sm relative">
+                      <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
+                      <p className="text-sm text-foreground font-medium mb-1">
+                        💡 Stand out even more!
+                      </p>
+                      <p className="text-sm text-foreground mb-3">
+                        Add more photos and personal stories to get noticed by potential matches.
+                      </p>
+                      <Button 
+                        size="sm" 
+                        onClick={() => navigate("/extended-profile")}
+                        className="bg-gradient-primary hover:opacity-90 text-white"
+                      >
+                        Add More Details
+                      </Button>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      // Mark as dismissed for this session
+                      sessionStorage.setItem(`extended_prompt_dismissed_${user?.id}`, 'true');
+                      // Force re-render by updating state
+                      setProfile(prev => prev ? { ...prev, extended_profile_completed: true } : null);
+                    }}
+                    className="flex-shrink-0 p-1 h-auto"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            <DiscoverProfiles />
+          </div>
+        );
       case "likes":
         return (
           <div className="p-3 sm:p-6">

@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ProfileSetup from "./pages/ProfileSetup";
+import ExtendedProfileSetup from "./components/ExtendedProfileSetup";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import AdminFeedback from "./pages/AdminFeedback";
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
+            <Route path="/extended-profile" element={<ExtendedProfileSetup />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/admin/feedback" element={<AdminFeedback />} />

@@ -259,10 +259,12 @@ export type Database = {
       profiles: {
         Row: {
           about_me: string | null
+          additional_photos: string[] | null
           avatar_url: string | null
           created_at: string
           date_of_birth: string | null
           diagnosis_year: number | null
+          extended_profile_completed: boolean | null
           first_name: string
           gender: string | null
           hobbies: string[] | null
@@ -272,16 +274,19 @@ export type Database = {
           location: string
           medications: string[] | null
           ms_subtype: string | null
+          selected_prompts: Json | null
           symptoms: string[] | null
           updated_at: string
           user_id: string
         }
         Insert: {
           about_me?: string | null
+          additional_photos?: string[] | null
           avatar_url?: string | null
           created_at?: string
           date_of_birth?: string | null
           diagnosis_year?: number | null
+          extended_profile_completed?: boolean | null
           first_name: string
           gender?: string | null
           hobbies?: string[] | null
@@ -291,16 +296,19 @@ export type Database = {
           location: string
           medications?: string[] | null
           ms_subtype?: string | null
+          selected_prompts?: Json | null
           symptoms?: string[] | null
           updated_at?: string
           user_id: string
         }
         Update: {
           about_me?: string | null
+          additional_photos?: string[] | null
           avatar_url?: string | null
           created_at?: string
           date_of_birth?: string | null
           diagnosis_year?: number | null
+          extended_profile_completed?: boolean | null
           first_name?: string
           gender?: string | null
           hobbies?: string[] | null
@@ -310,6 +318,7 @@ export type Database = {
           location?: string
           medications?: string[] | null
           ms_subtype?: string | null
+          selected_prompts?: Json | null
           symptoms?: string[] | null
           updated_at?: string
           user_id?: string

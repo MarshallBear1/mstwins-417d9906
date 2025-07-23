@@ -237,7 +237,13 @@ const ProfileSetup = () => {
         title: existingProfile ? "Profile Updated! ✨" : "Profile Completed! 🎉",
         description: existingProfile ? "Your profile has been updated successfully." : "Welcome to the MSTwins community!",
       });
-      navigate("/dashboard");
+      
+      // For new profiles, redirect to extended profile setup
+      if (!existingProfile) {
+        navigate("/extended-profile");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       console.error('Profile save error:', error);
       const sanitizedError = sanitizeErrorMessage(error);
@@ -770,6 +776,7 @@ const ProfileSetup = () => {
                     <input
                       type="file"
                       accept="image/*"
+                      capture="environment"
                       onChange={handleFileUpload}
                       disabled={uploading}
                       className="hidden"
@@ -866,6 +873,29 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">About Me</h2>
               <p className="text-muted-foreground">Tell us about yourself (optional)</p>
             </div>
+            
+            {/* Robot Pro Tip */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start space-x-3">
+                <img 
+                  src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                  alt="Helpful robot"
+                  className="w-10 h-10 rounded-full flex-shrink-0"
+                />
+                <div className="flex-1">
+                  <div className="bg-white rounded-lg p-3 shadow-sm relative">
+                    <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
+                    <p className="text-sm text-foreground font-medium mb-1">
+                      💡 Pro Tip:
+                    </p>
+                    <p className="text-sm text-foreground">
+                      Users with detailed bios get 30% more matches! Share what makes you unique.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <div>
               <Label htmlFor="aboutMe">About Me (Optional)</Label>
               <Textarea
