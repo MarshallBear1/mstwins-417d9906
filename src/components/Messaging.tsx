@@ -527,7 +527,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             variant="ghost" 
             size="sm" 
             className="mr-2"
-            onClick={() => setShowProfileView(true)}
+            onClick={() => {
+              console.log('👁️ View profile clicked, selectedMatch:', selectedMatch);
+              console.log('👁️ Other user data:', selectedMatch?.other_user);
+              setShowProfileView(true);
+            }}
           >
             <Eye className="w-4 h-4" />
           </Button>
