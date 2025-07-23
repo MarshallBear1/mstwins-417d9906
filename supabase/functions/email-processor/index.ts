@@ -252,6 +252,51 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // 4. Process like refresh notification emails
+    console.log('🔄 Processing like refresh emails...');
+    
+    const { data: likeRefreshUsers, error: likeRefreshError } = await supabase
+      .rpc('get_users_needing_like_refresh_emails');
+
+    if (likeRefreshError) {
+      console.error('❌ Error fetching like refresh users:', likeRefreshError);
+    } else if (likeRefreshUsers && likeRefreshUsers.length > 0) {
+      console.log(`🔄 Found ${likeRefreshUsers.length} users needing like refresh emails`);
+
+      for (const user of likeRefreshUsers) {
+        try {
+          console.log(`Sending likes_refreshed email to ${user.email}`);
+
+          const emailResult = await supabase.functions.invoke('send-re-engagement-email', {
+            body: {
+              email: user.email,
+              firstName: user.first_name,
+              emailType: 'likes_refreshed'
+            }
+          });
+
+          if (emailResult?.error) {
+            throw new Error(`Like refresh email error: ${JSON.stringify(emailResult.error)}`);
+          }
+
+          // Record that we sent this like refresh email
+          await supabase
+            .from('re_engagement_emails')
+            .insert({
+              user_id: user.user_id,
+              email_type: 'likes_refreshed'
+            });
+
+          processedCount++;
+          console.log(`✅ Successfully sent like refresh email to ${user.email}`);
+
+        } catch (error) {
+          console.error(`❌ Error processing like refresh email for ${user.user_id}:`, error);
+          errorCount++;
+        }
+      }
+    }
+
     console.log(`📊 Email processing complete: ${processedCount} processed, ${errorCount} errors`);
 
     return new Response(JSON.stringify({ 

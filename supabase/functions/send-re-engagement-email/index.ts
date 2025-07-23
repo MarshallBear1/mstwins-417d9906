@@ -11,11 +11,11 @@ const corsHeaders = {
 interface ReEngagementEmailRequest {
   email: string;
   firstName?: string;
-  emailType: '24_hours' | '48_hours' | '1_week';
-  hoursOffline: number;
+  emailType: '24_hours' | '48_hours' | '1_week' | 'likes_refreshed';
+  hoursOffline?: number;
 }
 
-const getEmailContent = (emailType: string, firstName: string, hoursOffline: number) => {
+const getEmailContent = (emailType: string, firstName: string, hoursOffline?: number) => {
   const name = firstName || 'there';
   
   switch (emailType) {
@@ -159,6 +159,57 @@ const getEmailContent = (emailType: string, firstName: string, hoursOffline: num
             <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
               <p style="color: #999; font-size: 12px;">
                 You're receiving this because you're a valued member of MSTwins. 
+                <a href="https://mstwins.com" style="color: #6366f1;">Visit MSTwins.com</a>
+              </p>
+            </div>
+          </div>
+        `
+      };
+      
+    case 'likes_refreshed':
+      return {
+        subject: "Your daily likes have refreshed! 💙",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 15px; border-radius: 10px; display: inline-block;">
+                <span style="color: white; font-size: 24px;">💙</span>
+              </div>
+              <h1 style="color: #333; margin-top: 20px;">Your Likes Have Refreshed!</h1>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+              <h2 style="color: #333; margin-top: 0;">Good news, ${name}! 🎉</h2>
+              <p style="color: #666; line-height: 1.6;">
+                You've got 10 fresh likes to use today! Yesterday you used all your likes connecting with people in the MSTwins community - that's awesome!
+              </p>
+              <p style="color: #666; line-height: 1.6;">
+                Ready to make more meaningful connections today?
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://mstwins.com" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Start Connecting Again
+              </a>
+            </div>
+
+            <div style="background: #e8f5e8; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+              <h3 style="color: #333; margin-top: 0;">💚 Daily Like Reset</h3>
+              <p style="color: #666; line-height: 1.6;">
+                Every day at midnight, your likes refresh back to 10. This helps ensure everyone gets a fair chance to connect and keeps our community balanced and engaged.
+              </p>
+              <ul style="color: #666; line-height: 1.6;">
+                <li>10 fresh likes every day</li>
+                <li>Use them to connect with new people</li>
+                <li>Quality connections over quantity</li>
+                <li>Build meaningful friendships</li>
+              </ul>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+              <p style="color: #999; font-size: 12px;">
+                You're receiving this because you used all your daily likes yesterday. 
                 <a href="https://mstwins.com" style="color: #6366f1;">Visit MSTwins.com</a>
               </p>
             </div>

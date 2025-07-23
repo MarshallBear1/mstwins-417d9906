@@ -546,6 +546,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      get_users_needing_like_refresh_emails: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          email: string
+          first_name: string
+          last_like_date: string
+        }[]
+      }
       get_users_needing_re_engagement: {
         Args: Record<PropertyKey, never>
         Returns: {
