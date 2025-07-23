@@ -91,7 +91,7 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
             <div className="relative h-40 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
               <button
                 onClick={() => openImageViewer(0)}
-                className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg hover:scale-105 transition-transform duration-200"
+                className="relative w-36 h-36 rounded-full overflow-hidden border-4 border-white shadow-lg hover:scale-105 transition-transform duration-200"
               >
                 {profile.avatar_url ? (
                   <img 
@@ -101,10 +101,10 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
                   />
                 ) : (
                   <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <User className="w-10 h-10 text-muted-foreground" />
+                    <User className="w-12 h-12 text-muted-foreground" />
                   </div>
                 )}
-                <div className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-white ${
+                <div className={`absolute bottom-1 right-1 w-8 h-8 rounded-full border-3 border-white shadow-md ${
                   isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-gray-400'
                 }`} />
               </button>
@@ -204,21 +204,21 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
                     </div>
                   )}
 
-                  {profile.selected_prompts && profile.selected_prompts.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-semibold">Personal Stories</h4>
-                      {profile.selected_prompts.map((prompt, index) => (
-                        <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            {prompt.question}
-                          </p>
-                          <p className="text-sm leading-relaxed">
-                            {prompt.answer}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                   {profile.selected_prompts && profile.selected_prompts.length > 0 && (
+                     <div className="space-y-3">
+                       <h4 className="text-sm font-semibold">Personal Stories</h4>
+                       {profile.selected_prompts.slice(0, 4).map((prompt, index) => (
+                         <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2">
+                           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                             {prompt.question}
+                           </p>
+                           <p className="text-sm leading-relaxed">
+                             {prompt.answer}
+                           </p>
+                         </div>
+                       ))}
+                     </div>
+                   )}
                 </>
               ) : (
                 <div className="text-center py-8">

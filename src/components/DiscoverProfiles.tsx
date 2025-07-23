@@ -326,6 +326,9 @@ const DiscoverProfiles = () => {
     // Track profile pass
     analytics.profilePassed(user.id, currentProfile.user_id);
     
+    // Reset flip state to show front of next profile
+    setIsFlipped(false);
+    
     // Move to next profile immediately for better UX
     handleNext();
     
@@ -355,6 +358,9 @@ const DiscoverProfiles = () => {
   };
 
   const handleNext = () => {
+    // Reset flip state for next profile
+    setIsFlipped(false);
+    
     // Immediately move to next profile for snappiness
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -404,8 +410,16 @@ const DiscoverProfiles = () => {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setShowingSkipped(!showingSkipped);
-                    fetchProfiles();
+                    const newSkippedState = !showingSkipped;
+                    setShowingSkipped(newSkippedState);
+                    // If switching to skipped view, auto-fetch skipped profiles
+                    if (newSkippedState) {
+                      setTimeout(() => {
+                        fetchProfiles();
+                      }, 100);
+                    } else {
+                      fetchProfiles();
+                    }
                   }}
                   className="flex items-center gap-2"
                 >
@@ -483,7 +497,7 @@ const DiscoverProfiles = () => {
           >
             {/* Avatar Section with Gradient Background */}
             <div className="relative h-40 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-              <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+              <div className="relative w-36 h-36 rounded-full overflow-hidden border-4 border-white shadow-lg">
                 {currentProfile.avatar_url ? (
                   <img 
                     src={currentProfile.avatar_url} 
@@ -500,11 +514,11 @@ const DiscoverProfiles = () => {
                   />
                 ) : (
                   <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <User className="w-8 h-8 text-muted-foreground" />
+                    <User className="w-12 h-12 text-muted-foreground" />
                   </div>
                 )}
                 {/* Online status indicator */}
-                <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white ${
+                <div className={`absolute bottom-1 right-1 w-8 h-8 rounded-full border-3 border-white shadow-md ${
                   isUserOnline(currentProfile.user_id) ? 'bg-green-500' : 'bg-gray-400'
                 }`} />
               </div>
@@ -740,7 +754,7 @@ const DiscoverProfiles = () => {
               {currentProfile.selected_prompts && currentProfile.selected_prompts.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold">Personal Stories</h4>
-                  {currentProfile.selected_prompts.map((prompt, index) => (
+                  {currentProfile.selected_prompts.slice(0, 4).map((prompt, index) => (
                     <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         {prompt.question}
