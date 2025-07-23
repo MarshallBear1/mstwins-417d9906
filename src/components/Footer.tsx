@@ -1,20 +1,14 @@
 import { Heart, Shield, Users, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
-
 const Footer = () => {
-  return (
-    <footer className="bg-foreground text-background py-16">
+  return <footer className="bg-foreground text-background py-16">
       <div className="container mx-auto px-6 lg:px-8">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Logo & Mission */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center space-x-2">
               <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-gray-200 p-1 shadow-sm">
-                <img 
-                  src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
-                  alt="MSTwins mascot"
-                  className="w-full h-full object-contain"
-                />
+                <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="MSTwins mascot" className="w-full h-full object-contain" />
               </div>
               <span className="text-xl font-bold">
                 MS<span className="text-blue-400">Twins</span>
@@ -31,18 +25,7 @@ const Footer = () => {
           </div>
 
           {/* Community */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Community
-            </h3>
-            <ul className="space-y-2 text-background/80">
-              <li><a href="#about" className="hover:text-background transition-colors">How It Works</a></li>
-              <li><a href="#features" className="hover:text-background transition-colors">Features</a></li>
-              <li><a href="#testimonials" className="hover:text-background transition-colors">Success Stories</a></li>
-              <li><Link to="/auth" className="hover:text-background transition-colors">Join Community</Link></li>
-            </ul>
-          </div>
+          
 
           {/* Support */}
           <div className="space-y-4">
@@ -52,20 +35,14 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2 text-background/80">
               <li>
-                <a 
-                  href="mailto:team@sharedgenes.org" 
-                  className="hover:text-background transition-colors"
-                >
+                <a href="mailto:team@sharedgenes.org" className="hover:text-background transition-colors">
                   Contact Us
                 </a>
               </li>
               <li><Link to="/privacy-policy" className="hover:text-background transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms-of-service" className="hover:text-background transition-colors">Terms of Service</Link></li>
               <li>
-                <a 
-                  href="mailto:team@sharedgenes.org?subject=Help%20Request" 
-                  className="hover:text-background transition-colors"
-                >
+                <a href="mailto:team@sharedgenes.org?subject=Help%20Request" className="hover:text-background transition-colors">
                   Help Center
                 </a>
               </li>
@@ -90,8 +67,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
