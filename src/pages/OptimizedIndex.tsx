@@ -55,7 +55,7 @@ const OptimizedIndex = () => {
               <Button 
                 variant="secondary" 
                 size="lg" 
-                className="text-lg px-8 py-4 bg-white text-blue-600 hover:bg-gray-50 shadow-strong" 
+                className="text-lg px-8 py-4 bg-blue-600 text-white hover:bg-blue-700 shadow-strong"
                 asChild
               >
                 <Link to="/auth">
