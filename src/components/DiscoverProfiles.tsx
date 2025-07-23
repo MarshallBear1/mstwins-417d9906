@@ -324,20 +324,18 @@ const DiscoverProfiles = () => {
   const handlePass = async () => {
     if (!user || !currentProfile || actionLoading) return;
     
-    // Track profile pass
-    analytics.profilePassed(user.id, currentProfile.user_id);
-    
-    // Reset flip state to show front of next profile
-    setIsFlipped(false);
-    
-    // Move to next profile immediately for better UX
-    handleNext();
-    
     console.log('⏭️ Starting pass process for profile:', currentProfile.user_id);
+    setActionLoading(true);
     
-    if (!showingSkipped) {
-      // Record the pass in the database
-      try {
+    try {
+      // Track profile pass
+      analytics.profilePassed(user.id, currentProfile.user_id);
+      
+      // Reset flip state to show front of next profile
+      setIsFlipped(false);
+      
+      if (!showingSkipped) {
+        // Record the pass in the database
         const { error } = await supabase
           .from('passes')
           .insert({
@@ -350,9 +348,17 @@ const DiscoverProfiles = () => {
         } else {
           console.log('✅ Pass recorded successfully');
         }
-      } catch (error) {
-        console.error('❌ Error recording pass:', error);
       }
+      
+      // Move to next profile after a brief delay for better UX
+      setTimeout(() => {
+        handleNext();
+        setActionLoading(false);
+      }, 150);
+      
+    } catch (error) {
+      console.error('❌ Error recording pass:', error);
+      setActionLoading(false);
     }
     
     console.log('⏭️ Pass process completed');
@@ -647,12 +653,21 @@ const DiscoverProfiles = () => {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button 
                     variant="outline" 
-                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12"
+                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     onClick={handlePass}
                     disabled={actionLoading}
                   >
-                    <X className="w-4 h-4 mr-2" />
-                    Pass
+                    {actionLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                        Passing...
+                      </>
+                    ) : (
+                      <>
+                        <X className="w-4 h-4 mr-2" />
+                        Pass
+                      </>
+                    )}
                   </Button>
                   <Button 
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
@@ -791,12 +806,21 @@ const DiscoverProfiles = () => {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button 
                     variant="outline" 
-                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12"
+                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     onClick={handlePass}
                     disabled={actionLoading}
                   >
-                    <X className="w-4 h-4 mr-2" />
-                    Pass
+                    {actionLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                        Passing...
+                      </>
+                    ) : (
+                      <>
+                        <X className="w-4 h-4 mr-2" />
+                        Pass
+                      </>
+                    )}
                   </Button>
                   <Button 
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
