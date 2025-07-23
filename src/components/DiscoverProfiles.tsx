@@ -497,7 +497,10 @@ const DiscoverProfiles = () => {
           >
             {/* Avatar Section with Gradient Background */}
             <div className="relative h-40 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-              <div className="relative w-36 h-36 rounded-full overflow-hidden border-4 border-white shadow-lg">
+              <div 
+                className="relative w-36 h-36 rounded-full overflow-hidden border-4 border-white shadow-lg cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => setShowProfileView(true)}
+              >
                 {currentProfile.avatar_url ? (
                   <img 
                     src={currentProfile.avatar_url} 

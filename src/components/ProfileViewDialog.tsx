@@ -21,6 +21,12 @@ interface Profile {
   avatar_url: string | null;
   about_me: string | null;
   last_seen: string | null;
+  additional_photos?: string[];
+  selected_prompts?: {
+    question: string;
+    answer: string;
+  }[];
+  extended_profile_completed?: boolean;
 }
 
 interface ProfileViewDialogProps {
@@ -232,6 +238,44 @@ const ProfileViewDialog = ({
               <p className="text-muted-foreground leading-relaxed">
                 {profile.about_me}
               </p>
+            </div>
+          )}
+
+          {/* Additional Photos */}
+          {profile.additional_photos && profile.additional_photos.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-2">More Photos</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {profile.additional_photos.map((photo, index) => (
+                  <div
+                    key={index}
+                    className="aspect-square overflow-hidden rounded-lg border"
+                  >
+                    <img
+                      src={photo}
+                      alt={`Photo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Personal Stories */}
+          {profile.selected_prompts && profile.selected_prompts.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="font-semibold">Personal Stories</h3>
+              {profile.selected_prompts.slice(0, 4).map((prompt, index) => (
+                <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {prompt.question}
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    {prompt.answer}
+                  </p>
+                </div>
+              ))}
             </div>
           )}
 
