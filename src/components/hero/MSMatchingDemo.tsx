@@ -34,16 +34,11 @@ const MSMatchingDemo = memo(() => {
     const timer1 = setTimeout(() => setStep(1), 2000);
     const timer2 = setTimeout(() => setStep(2), 4000);
     const timer3 = setTimeout(() => setShowConversation(true), 6000);
-    const timer4 = setTimeout(() => {
-      setStep(0);
-      setShowConversation(false);
-    }, 12000);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
-      clearTimeout(timer4);
     };
   }, []);
 
