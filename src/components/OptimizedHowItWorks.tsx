@@ -2,6 +2,7 @@
 import { UserPlus, Users, MessageCircle, Heart, ArrowRight, Clock, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import FeaturedProfiles from "@/components/FeaturedProfiles";
 
 const OptimizedHowItWorks = () => {
   const steps = [
@@ -103,6 +104,20 @@ const OptimizedHowItWorks = () => {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Featured Profiles */}
+        <div className="mb-20">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+              Meet Your Community
+            </h3>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Discover real people in our MS<span className="text-blue-600">Twins</span> community. 
+              Flip the cards to learn more about their journey and experiences.
+            </p>
+          </div>
+          <FeaturedProfiles />
         </div>
 
         {/* Features */}

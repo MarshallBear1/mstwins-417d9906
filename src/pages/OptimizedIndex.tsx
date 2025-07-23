@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 
 // Lazy load below-the-fold components
 const OptimizedHowItWorksLazy = lazy(() => import("@/components/OptimizedHowItWorks"));
-const MatchingAnimationLazy = lazy(() => import("@/components/MatchingAnimation"));
+
 const TrustSignalsLazy = lazy(() => import("@/components/TrustSignals"));
 const SocialProofLazy = lazy(() => import("@/components/SocialProof"));
 const FooterLazy = lazy(() => import("@/components/Footer"));
@@ -33,9 +33,6 @@ const OptimizedIndex = () => {
             <OptimizedHowItWorksLazy />
           </Suspense>
         </div>
-        <Suspense fallback={<LoadingSpinner />}>
-          <MatchingAnimationLazy />
-        </Suspense>
         <Suspense fallback={<LoadingSpinner />}>
           <TrustSignalsLazy />
         </Suspense>
