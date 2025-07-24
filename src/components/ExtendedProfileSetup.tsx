@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, ArrowRight, Check, X, Upload, Camera, Plus, ImageIcon } from "lucide-react";
@@ -454,21 +455,27 @@ const ExtendedProfileSetup = () => {
                 ))}
 
                 {/* Available Prompts */}
-                {extendedData.selectedPrompts.length < 3 && (
+                {extendedData.selectedPrompts.length < 3 && availablePromptsToShow.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Choose from these prompts:</p>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {availablePromptsToShow.map((prompt, index) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          onClick={() => addPrompt(prompt)}
-                          className="w-full text-left justify-start h-auto p-3 text-sm"
-                        >
-                          {prompt}
-                        </Button>
-                      ))}
-                    </div>
+                    <p className="text-sm font-medium">Choose a prompt to answer:</p>
+                    <Select onValueChange={(value) => addPrompt(value)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a question to answer..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60 bg-background border shadow-lg z-50">
+                        {availablePromptsToShow.map((prompt, index) => (
+                          <SelectItem 
+                            key={index} 
+                            value={prompt}
+                            className="cursor-pointer hover:bg-accent"
+                          >
+                            <span className="text-sm leading-relaxed py-1">
+                              {prompt}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>
