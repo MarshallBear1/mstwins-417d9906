@@ -484,7 +484,7 @@ const DiscoverProfiles = () => {
         </div>
       )}
 
-      <div className="max-w-md mx-auto" style={{ perspective: '1000px' }}>
+      <div className="max-w-xs sm:max-w-md mx-auto" style={{ perspective: '1000px' }}>
         <div 
           className={`relative w-full transition-transform duration-700`}
           style={{ 
