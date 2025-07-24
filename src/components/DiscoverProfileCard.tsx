@@ -68,30 +68,21 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
 
   return (
     <>
-      <div className="w-full max-w-[320px] sm:max-w-sm mx-auto" style={{ perspective: '1000px' }}>
+      <div className="w-full max-w-sm mx-auto" style={{ perspective: '1000px' }}>
         <div 
-          className={`relative w-full transition-transform duration-700 ${
-            isFlipped ? 'rotateY-180' : ''
+          className={`relative w-full transition-transform duration-700 preserve-3d ${
+            isFlipped ? 'rotate-y-180' : ''
           }`}
-          style={{ 
-            transformStyle: 'preserve-3d',
-            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
-          }}
         >
           {/* Front Side */}
-          <Card className={`w-full max-h-[600px] overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 ${
+          <Card className={`absolute inset-0 w-full h-[520px] overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 backface-hidden ${
             isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}
-          style={{ 
-            backfaceVisibility: 'hidden',
-            position: isFlipped ? 'absolute' : 'relative',
-            zIndex: isFlipped ? 1 : 2
-          }}
-          >
-            <div className="relative h-40 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
+          }`}>
+            {/* Header */}
+            <div className="relative h-32 bg-gradient-to-br from-primary/80 via-primary/60 to-primary/40 flex items-center justify-center">
               <button
                 onClick={() => openImageViewer(0)}
-                className="relative w-36 h-36 rounded-full overflow-hidden border-4 border-white shadow-lg hover:scale-105 transition-transform duration-200"
+                className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg hover:scale-105 transition-transform duration-200"
               >
                 {profile.avatar_url ? (
                   <img 
@@ -104,8 +95,8 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
                     <User className="w-12 h-12 text-muted-foreground" />
                   </div>
                 )}
-                <div className={`absolute bottom-1 right-1 w-8 h-8 rounded-full border-3 border-white shadow-md ${
-                  isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-gray-400'
+                <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white shadow-md ${
+                  isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-muted-foreground'
                 }`} />
               </button>
 
@@ -114,14 +105,16 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsFlipped(!isFlipped)}
-                  className="absolute top-3 right-3 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg animate-pulse"
+                  className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg"
                 >
                   <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
                 </Button>
               )}
             </div>
 
-            <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
+            {/* Scrollable Content */}
+            <CardContent className="p-4 h-[calc(100%-8rem)] flex flex-col">
+              {/* Fixed Header Info */}
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xl font-bold">{profile.first_name} {profile.last_name}</h3>
                 <div className="flex items-center gap-2">
@@ -130,48 +123,94 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
                       {calculateAge(profile.date_of_birth)}
                     </span>
                   )}
+                  <div className="flex items-center gap-1">
+                    <div className={`w-2 h-2 rounded-full ${
+                      isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-muted-foreground'
+                    }`} />
+                    <span className="text-xs text-muted-foreground">
+                      {isUserOnline(profile.user_id) ? 'Online' : getLastSeenText(profile.last_seen)}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* MS Type */}
-              {profile.ms_subtype && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">MS Type</h4>
-                  <Badge className="bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200">
-                    {profile.ms_subtype.toUpperCase()}
-                  </Badge>
-                </div>
-              )}
+              {/* Location */}
+              <div className="flex items-center gap-2 text-muted-foreground mb-3">
+                <MapPin className="w-4 h-4" />
+                <span className="text-sm">{profile.location}</span>
+              </div>
 
-              {profile.about_me && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">About</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-                    {profile.about_me}
-                  </p>
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                {/* MS Type */}
+                {profile.ms_subtype && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">MS Type</h4>
+                    <Badge variant="secondary">
+                      {profile.ms_subtype.toUpperCase()}
+                    </Badge>
+                  </div>
+                )}
+
+                {/* Diagnosis Year */}
+                {profile.diagnosis_year && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-sm">Diagnosed in {profile.diagnosis_year}</span>
+                  </div>
+                )}
+
+                {/* Hobbies/Interests */}
+                {profile.hobbies && profile.hobbies.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">Interests</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.hobbies.slice(0, 3).map((hobby, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {hobby}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* About Me */}
+                {profile.about_me && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">About</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {profile.about_me}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* See More Button */}
+              {hasExtendedContent && (
+                <div className="mt-3 pt-3 border-t">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={() => setIsFlipped(!isFlipped)}
+                  >
+                    See More →
+                  </Button>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Back Side */}
-          <Card className={`w-full max-h-[600px] overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 ${
+          <Card className={`absolute inset-0 w-full h-[520px] overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 backface-hidden rotate-y-180 ${
             !isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}
-          style={{ 
-            backfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)',
-            position: !isFlipped ? 'absolute' : 'relative',
-            top: !isFlipped ? 0 : 'auto',
-            zIndex: !isFlipped ? 1 : 2
-          }}
-          >
-            <div className="relative h-40 bg-gradient-to-br from-purple-400 via-purple-300 to-pink-300 flex items-center justify-center">
+          }`}>
+            <div className="relative h-32 bg-gradient-to-br from-accent/80 via-accent/60 to-accent/40 flex items-center justify-center">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsFlipped(!isFlipped)}
-                className="absolute top-3 right-3 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg"
+                className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg"
               >
                 <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
               </Button>
@@ -180,9 +219,9 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
               </div>
             </div>
 
-            <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
+            <CardContent className="p-4 h-[calc(100%-8rem)] overflow-y-auto">
               {hasExtendedContent ? (
-                <>
+                <div className="space-y-4">
                   {profile.additional_photos && profile.additional_photos.length > 0 && (
                     <div>
                       <h4 className="text-sm font-semibold mb-2">More Photos</h4>
@@ -219,7 +258,7 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
                        ))}
                      </div>
                    )}
-                </>
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground text-sm">
