@@ -12,6 +12,7 @@ import { ArrowLeft, Mail, MessageSquare, Clock, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnnouncementEmailSender from "@/components/AnnouncementEmailSender";
+import { PatrickFeedbackEmail } from "@/components/PatrickFeedbackEmail";
 
 interface Feedback {
   id: string;
@@ -416,7 +417,10 @@ export default function AdminFeedback() {
           </TabsContent>
           
           <TabsContent value="emails" className="mt-6">
-            <AnnouncementEmailSender />
+            <div className="space-y-6">
+              <PatrickFeedbackEmail />
+              <AnnouncementEmailSender />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
