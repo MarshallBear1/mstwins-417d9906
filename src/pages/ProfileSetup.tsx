@@ -602,22 +602,21 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Symptoms</h2>
               <p className="text-muted-foreground">What symptoms do you experience?</p>
             </div>
-            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto p-2">
               {symptomsData.map((symptom) => (
-                <Button
+                <button
                   key={symptom.name}
-                  variant={profileData.symptoms.includes(symptom.name) ? "default" : "outline"}
                   onClick={() => toggleArrayItem("symptoms", symptom.name)}
                   className={cn(
-                    "h-auto p-3 flex flex-col items-center justify-center text-center transition-all",
-                    profileData.symptoms.includes(symptom.name) 
-                      ? "ring-2 ring-primary shadow-medium" 
-                      : "hover:shadow-soft border-2 hover:border-primary/30"
+                    "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
+                    profileData.symptoms.includes(symptom.name)
+                      ? "bg-primary text-primary-foreground border-primary shadow-md scale-105"
+                      : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-accent/50 active:scale-95"
                   )}
                 >
-                  <span className="text-2xl mb-1">{symptom.emoji}</span>
-                  <span className="text-xs leading-tight">{symptom.name}</span>
-                </Button>
+                  <span className="text-base">{symptom.emoji}</span>
+                  <span className="whitespace-nowrap">{symptom.name}</span>
+                </button>
               ))}
             </div>
             <div className="mt-4">
@@ -639,22 +638,21 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Medications</h2>
               <p className="text-muted-foreground">What medications are you currently taking?</p>
             </div>
-            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto p-2">
               {medicationsData.map((medication) => (
-                <Button
+                <button
                   key={medication.name}
-                  variant={profileData.medications.includes(medication.name) ? "default" : "outline"}
                   onClick={() => toggleArrayItem("medications", medication.name)}
                   className={cn(
-                    "h-auto p-3 flex flex-col items-center justify-center text-center transition-all",
-                    profileData.medications.includes(medication.name) 
-                      ? "ring-2 ring-primary shadow-medium" 
-                      : "hover:shadow-soft border-2 hover:border-primary/30"
+                    "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
+                    profileData.medications.includes(medication.name)
+                      ? "bg-primary text-primary-foreground border-primary shadow-md scale-105"
+                      : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-accent/50 active:scale-95"
                   )}
                 >
-                  <span className="text-2xl mb-1">{medication.emoji}</span>
-                  <span className="text-xs leading-tight">{medication.name}</span>
-                </Button>
+                  <span className="text-base">{medication.emoji}</span>
+                  <span className="whitespace-nowrap">{medication.name}</span>
+                </button>
               ))}
             </div>
             <div className="mt-4">
@@ -676,7 +674,7 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Interests & Hobbies</h2>
               <p className="text-muted-foreground">What do you enjoy doing?</p>
             </div>
-            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto p-2">
               {[
                 "Reading", "Exercise/Fitness", "Cooking", "Art/Drawing", "Music", "Travel", 
                 "Photography", "Gaming", "Gardening", "Volunteering", "Crafts", "Sports",
@@ -684,20 +682,19 @@ const ProfileSetup = () => {
                 "Walking/Hiking", "Dancing", "Knitting/Sewing", "Technology", "Learning",
                 "Podcasts", "Nature", "Animals/Pets"
               ].map((hobby) => (
-                <Button
+                <button
                   key={hobby}
-                  variant={profileData.hobbies.includes(hobby) ? "accent" : "outline"}
                   onClick={() => toggleArrayItem("hobbies", hobby)}
                   className={cn(
-                    "h-auto p-3 flex flex-col items-center justify-center text-center transition-all",
-                    profileData.hobbies.includes(hobby) 
-                      ? "ring-2 ring-accent shadow-medium" 
-                      : "hover:shadow-soft border-2 hover:border-accent/30"
+                    "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
+                    profileData.hobbies.includes(hobby)
+                      ? "bg-accent text-accent-foreground border-accent shadow-md scale-105"
+                      : "bg-background text-foreground border-border hover:border-accent/50 hover:bg-accent/20 active:scale-95"
                   )}
                 >
-                  <span className="text-2xl mb-1">{getEmojiForHobby(hobby)}</span>
-                  <span className="text-xs leading-tight">{hobby}</span>
-                </Button>
+                  <span className="text-base">{getEmojiForHobby(hobby)}</span>
+                  <span className="whitespace-nowrap">{hobby}</span>
+                </button>
               ))}
             </div>
             <div className="mt-4">
