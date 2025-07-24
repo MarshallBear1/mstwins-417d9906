@@ -496,7 +496,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main content with smooth transitions */}
-      <div className="flex-1 pb-20">
+      <div className="flex-1 pb-24 sm:pb-20">
         <div className="transition-all duration-300 ease-in-out">
           {renderContent()}
         </div>

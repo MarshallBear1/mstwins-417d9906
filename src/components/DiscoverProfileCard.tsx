@@ -68,7 +68,7 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
 
   return (
     <>
-      <div className="w-full max-w-sm mx-auto" style={{ perspective: '1000px' }}>
+      <div className="w-full max-w-[320px] sm:max-w-sm mx-auto" style={{ perspective: '1000px' }}>
         <div 
           className={`relative w-full transition-transform duration-700 ${
             isFlipped ? 'rotateY-180' : ''
@@ -79,7 +79,7 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
           }}
         >
           {/* Front Side */}
-          <Card className={`w-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 ${
+          <Card className={`w-full max-h-[600px] overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 ${
             isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
           style={{ 
@@ -121,7 +121,7 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
               )}
             </div>
 
-            <CardContent className="p-4 space-y-3">
+            <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xl font-bold">{profile.first_name} {profile.last_name}</h3>
                 <div className="flex items-center gap-2">
@@ -155,7 +155,7 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
           </Card>
 
           {/* Back Side */}
-          <Card className={`w-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 ${
+          <Card className={`w-full max-h-[600px] overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 ${
             !isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
           style={{ 
@@ -180,7 +180,7 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
               </div>
             </div>
 
-            <CardContent className="p-4 space-y-3">
+            <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
               {hasExtendedContent ? (
                 <>
                   {profile.additional_photos && profile.additional_photos.length > 0 && (

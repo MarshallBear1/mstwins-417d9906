@@ -447,7 +447,7 @@ const DiscoverProfiles = () => {
                            currentProfile.symptoms?.length;
 
   return (
-    <div className="p-3 sm:p-6 pb-24 sm:pb-6">
+    <div className="p-3 sm:p-6 pb-6">
       {/* Match Announcement Modal */}
       {showMatchAnnouncement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4">
@@ -484,7 +484,7 @@ const DiscoverProfiles = () => {
         </div>
       )}
 
-      <div className="max-w-xs sm:max-w-md mx-auto" style={{ perspective: '1000px' }}>
+      <div className="w-full max-w-[320px] sm:max-w-sm mx-auto" style={{ perspective: '1000px' }}>
         <div 
           className={`relative w-full transition-transform duration-700`}
           style={{ 
@@ -493,7 +493,7 @@ const DiscoverProfiles = () => {
           }}
         >
           {/* Front Side - Original Card */}
-          <Card className={`overflow-hidden shadow-xl animate-scale-in ${
+          <Card className={`w-full max-h-[600px] overflow-hidden shadow-xl animate-scale-in ${
             isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
           style={{ 
@@ -559,7 +559,7 @@ const DiscoverProfiles = () => {
             </div>
 
             {/* Profile Content */}
-            <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+            <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[400px] overflow-y-auto">
               {/* Name and Age */}
               <div className="flex items-center justify-between">
                 <h3 className="text-xl sm:text-2xl font-bold">{currentProfile.first_name} {currentProfile.last_name}</h3>
@@ -689,7 +689,7 @@ const DiscoverProfiles = () => {
           </Card>
 
           {/* Back Side - Extended Profile */}
-          <Card className={`overflow-hidden shadow-xl ${
+          <Card className={`w-full max-h-[600px] overflow-hidden shadow-xl ${
             !isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
           style={{ 
@@ -714,7 +714,7 @@ const DiscoverProfiles = () => {
               </div>
             </div>
 
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[400px] overflow-y-auto">
               {/* Medications */}
               {currentProfile.medications?.length > 0 && (
                 <div>
