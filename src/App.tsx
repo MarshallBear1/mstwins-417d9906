@@ -9,6 +9,9 @@ import { useEffect, lazy, Suspense } from "react";
 import { AuthProvider } from "./hooks/useAuth";
 import { analytics } from "./lib/analytics";
 import OptimizedIndex from "./pages/OptimizedIndex";
+import MobileStatusBar from "./components/MobileStatusBar";
+import MobileTouchOptimizations from "./components/MobileTouchOptimizations";
+import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
 
 // Lazy load non-critical pages
 const Auth = lazy(() => import("./pages/Auth"));
@@ -49,6 +52,9 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        <MobileStatusBar theme="light" color="#2563eb" />
+        <MobileTouchOptimizations disableContextMenu={true} />
+        <AccessibilityEnhancements />
         <Toaster />
         <Sonner />
         <BrowserRouter>

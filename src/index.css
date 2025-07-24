@@ -29,6 +29,12 @@ All colors MUST be HSL.
     /* Secondary - Light Blue Gray */
     --secondary: 210 40% 96%;
     --secondary-foreground: 215 25% 27%;
+    
+    /* Safe area support */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
 
     /* Muted colors */
     --muted: 210 40% 96%;
@@ -199,5 +205,47 @@ All colors MUST be HSL.
   }
   50% {
     transform: translateY(-6px);
+  }
+}
+
+/* Mobile-first utilities */
+.mobile-safe-top {
+  padding-top: max(1rem, var(--safe-area-inset-top));
+}
+
+.mobile-safe-bottom {
+  padding-bottom: max(1rem, var(--safe-area-inset-bottom));
+}
+
+.mobile-safe-x {
+  padding-left: max(1rem, var(--safe-area-inset-left));
+  padding-right: max(1rem, var(--safe-area-inset-right));
+}
+
+.mobile-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Improved focus styles for mobile */
+.mobile-focus:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Prevent zoom on iOS inputs */
+.mobile-input {
+  font-size: 16px;
+}
+
+@media (max-width: 767px) {
+  .mobile-input {
+    font-size: 16px !important;
   }
 }

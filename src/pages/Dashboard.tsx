@@ -19,6 +19,8 @@ import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import SEO from "@/components/SEO";
+import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
+import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
 interface Profile {
   id: string;
   user_id: string;
@@ -62,6 +64,7 @@ const Dashboard = () => {
   const {
     requestNotificationPermission
   } = useRealtimeNotifications();
+  const { isMobile, safeAreaInsets } = useMobileOptimizations();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("discover");
@@ -453,20 +456,27 @@ const Dashboard = () => {
         return null;
     }
   };
-  return <div className="min-h-screen bg-gradient-subtle">
-      <SEO 
-        title="MSTwins Dashboard - Your Multiple Sclerosis Support Community"
-        description="Access your MSTwins dashboard to discover new connections, view matches, and connect with others living with Multiple Sclerosis in our supportive community."
-        canonical="https://mstwins.com/dashboard"
-      />
+  return (
+    <MobileKeyboardHandler>
+      <div className="min-h-screen bg-gradient-subtle">
+        <SEO 
+          title="MSTwins Dashboard - Your Multiple Sclerosis Support Community"
+          description="Access your MSTwins dashboard to discover new connections, view matches, and connect with others living with Multiple Sclerosis in our supportive community."
+          canonical="https://mstwins.com/dashboard"
+        />
       <NotificationPopup />
       
       {/* Robot Announcement Popup */}
       {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />}
       
       {/* Header with notifications and referral */}
-      <div className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3">
+      <div 
+        className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-40"
+        style={{ 
+          paddingTop: isMobile ? `max(0.5rem, ${safeAreaInsets.top}px)` : undefined 
+        }}
+      >
+        <div className="flex items-center justify-between mobile-safe-x py-3">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-white border border-gray-200 p-1 shadow-sm">
               <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="MSTwins mascot" className="w-full h-full object-contain" />
@@ -496,19 +506,31 @@ const Dashboard = () => {
       </div>
 
       {/* Main content with smooth transitions */}
-      <div className="flex-1 pb-24 sm:pb-20">
+      <div 
+        className="flex-1 mobile-scroll"
+        style={{ 
+          paddingBottom: isMobile ? 
+            `max(6rem, ${safeAreaInsets.bottom + 80}px)` : 
+            '5rem'
+        }}
+      >
         <div className="transition-all duration-300 ease-in-out">
           {renderContent()}
         </div>
       </div>
 
       {/* Enhanced bottom navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border">
-        <div className="flex items-center justify-around py-2 px-4">
+      <div 
+        className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border"
+        style={{ 
+          paddingBottom: isMobile ? `max(0.5rem, ${safeAreaInsets.bottom}px)` : '0.5rem'
+        }}
+      >
+        <div className="flex items-center justify-around py-2 mobile-safe-x">
           {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          return <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-all duration-200 hover-scale ${isActive ? "text-primary bg-primary/10 scale-105" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}>
+          return <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-all duration-200 hover-scale mobile-touch-target mobile-focus ${isActive ? "text-primary bg-primary/10 scale-105" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}>
                 <Icon className="w-5 h-5" />
                 <span className="text-xs font-medium">{tab.label}</span>
                 {isActive && <div className="w-1 h-1 bg-primary rounded-full animate-scale-in" />}
@@ -519,6 +541,8 @@ const Dashboard = () => {
 
       {/* Profile View Dialog */}
       <ProfileViewDialog profile={selectedProfileForView} open={showProfileView} onOpenChange={setShowProfileView} showActions={false} />
-    </div>;
+      </div>
+    </MobileKeyboardHandler>
+  );
 };
 export default Dashboard;

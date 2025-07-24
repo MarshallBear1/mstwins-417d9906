@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 mobile-touch-target mobile-focus touch-manipulation",
   {
     variants: {
       variant: {
@@ -23,10 +23,11 @@ const buttonVariants = cva(
         success: "bg-success text-success-foreground hover:bg-success-light shadow-soft hover:shadow-medium",
       },
       size: {
-        default: "h-12 px-6 py-3",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-14 rounded-lg px-8 text-base",
-        icon: "h-12 w-12",
+        default: "h-12 px-6 py-3 min-h-[44px]",
+        sm: "h-10 rounded-md px-3 min-h-[40px]",
+        lg: "h-14 rounded-lg px-8 text-base min-h-[48px]",
+        icon: "h-12 w-12 min-h-[44px] min-w-[44px]",
+        mobile: "h-14 px-6 py-4 text-base min-h-[56px]", // Larger for mobile
       },
     },
     defaultVariants: {
