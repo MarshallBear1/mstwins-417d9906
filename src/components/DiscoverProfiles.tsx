@@ -11,6 +11,7 @@ import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import LikeLimitWarning from "@/components/LikeLimitWarning";
+import { useNativeCapabilities } from "@/hooks/useNativeCapabilities";
 
 
 interface Profile {
@@ -42,6 +43,7 @@ const DiscoverProfiles = () => {
   const { isUserOnline, getLastSeenText } = useRealtimePresence();
   const { remainingLikes, refreshRemainingLikes, isLimitEnforced, hasUnlimitedLikes } = useDailyLikes();
   const { toast } = useToast();
+  const { enhancedLikeAction, enhancedButtonPress, enhancedErrorAction, enhancedSuccessAction } = useNativeCapabilities();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -210,8 +212,12 @@ const DiscoverProfiles = () => {
   const handleLike = async () => {
     if (!user || !currentProfile || actionLoading) return;
     
+    // Add haptic feedback for like action
+    await enhancedLikeAction();
+    
     // Check daily like limit before proceeding
     if (isLimitEnforced() && remainingLikes <= 0) {
+      await enhancedErrorAction();
       toast({
         title: "Daily Like Limit Reached",
         description: "You've reached your daily limit of 10 likes. Come back tomorrow for more!",
@@ -239,6 +245,7 @@ const DiscoverProfiles = () => {
       }
       
       if (!canLike) {
+        await enhancedErrorAction();
         toast({
           title: "Daily Like Limit Reached",
           description: "You've reached your daily limit of 10 likes. Come back tomorrow for more!",
@@ -294,9 +301,12 @@ const DiscoverProfiles = () => {
 
       // Show match announcement if it's a match
       if (willCreateMatch) {
+        await enhancedSuccessAction(); // Enhanced haptic for match
         setShowMatchAnnouncement(true);
         setTimeout(() => setShowMatchAnnouncement(false), 4000);
         console.log('🎉 Match announcement shown!');
+      } else {
+        await enhancedSuccessAction(); // Success haptic for like
       }
       
       // Show popup when user has 3 likes remaining to explain the purpose
@@ -309,6 +319,7 @@ const DiscoverProfiles = () => {
 
     } catch (error) {
       console.error('❌ Error in like process:', error);
+      await enhancedErrorAction();
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -322,6 +333,9 @@ const DiscoverProfiles = () => {
 
   const handlePass = async () => {
     if (!user || !currentProfile || actionLoading) return;
+    
+    // Add haptic feedback for pass action
+    await enhancedButtonPress();
     
     console.log('⏭️ Starting pass process for profile:', currentProfile.user_id);
     setActionLoading(true);
@@ -651,7 +665,10 @@ const DiscoverProfiles = () => {
                   <Button 
                     variant="outline" 
                     className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                    onClick={handlePass}
+                    onClick={async () => {
+                      await enhancedButtonPress();
+                      handlePass();
+                    }}
                     disabled={actionLoading}
                   >
                     {actionLoading ? (
@@ -668,7 +685,10 @@ const DiscoverProfiles = () => {
                   </Button>
                   <Button 
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
-                    onClick={handleLike}
+                    onClick={async () => {
+                      await enhancedLikeAction();
+                      handleLike();
+                    }}
                     disabled={actionLoading}
                   >
                     {actionLoading ? (
@@ -804,7 +824,10 @@ const DiscoverProfiles = () => {
                   <Button 
                     variant="outline" 
                     className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 h-12 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                    onClick={handlePass}
+                    onClick={async () => {
+                      await enhancedButtonPress();
+                      handlePass();
+                    }}
                     disabled={actionLoading}
                   >
                     {actionLoading ? (
@@ -821,7 +844,10 @@ const DiscoverProfiles = () => {
                   </Button>
                   <Button 
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
-                    onClick={handleLike}
+                    onClick={async () => {
+                      await enhancedLikeAction();
+                      handleLike();
+                    }}
                     disabled={actionLoading}
                   >
                     {actionLoading ? (

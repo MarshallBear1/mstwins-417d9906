@@ -13,6 +13,7 @@ import MobileStatusBar from "./components/MobileStatusBar";
 import MobileTouchOptimizations from "./components/MobileTouchOptimizations";
 import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
 import { SecurityEnhancements } from "./components/SecurityEnhancements";
+import { NativeCapabilities } from "./hooks/useNativeCapabilities";
 
 // Lazy load non-critical pages
 const Auth = lazy(() => import("./pages/Auth"));
@@ -54,6 +55,7 @@ const App = () => (
     <AuthProvider>
       <TooltipProvider>
         <SecurityEnhancements />
+        <NativeCapabilities />
         <MobileStatusBar theme="light" color="#2563eb" />
         <MobileTouchOptimizations disableContextMenu={true} />
         <AccessibilityEnhancements />
