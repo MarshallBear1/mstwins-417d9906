@@ -447,7 +447,7 @@ const DiscoverProfiles = () => {
                            currentProfile.symptoms?.length;
 
   return (
-    <div className="p-3 sm:p-6 min-h-screen">
+    <div className="p-3 sm:p-6 pb-24 sm:pb-6">
       {/* Match Announcement Modal */}
       {showMatchAnnouncement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4">
@@ -503,9 +503,9 @@ const DiscoverProfiles = () => {
           }}
           >
             {/* Avatar Section with Gradient Background */}
-            <div className="relative h-40 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
+            <div className="relative h-32 sm:h-40 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
               <div 
-                className="relative w-36 h-36 rounded-full overflow-hidden border-4 border-white shadow-lg cursor-pointer hover:opacity-90 transition-opacity"
+                className="relative w-24 h-24 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-white shadow-lg cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => setShowImageViewer(true)}
               >
                 {currentProfile.avatar_url ? (
@@ -559,12 +559,12 @@ const DiscoverProfiles = () => {
             </div>
 
             {/* Profile Content */}
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               {/* Name and Age */}
               <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold">{currentProfile.first_name} {currentProfile.last_name}</h3>
+                <h3 className="text-xl sm:text-2xl font-bold">{currentProfile.first_name} {currentProfile.last_name}</h3>
                 {currentProfile.date_of_birth && (
-                  <span className="text-xl font-semibold text-muted-foreground">
+                  <span className="text-lg sm:text-xl font-semibold text-muted-foreground">
                     {calculateAge(currentProfile.date_of_birth)}
                   </span>
                 )}
