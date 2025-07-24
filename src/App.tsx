@@ -12,6 +12,7 @@ import OptimizedIndex from "./pages/OptimizedIndex";
 import MobileStatusBar from "./components/MobileStatusBar";
 import MobileTouchOptimizations from "./components/MobileTouchOptimizations";
 import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
+import { SecurityEnhancements } from "./components/SecurityEnhancements";
 
 // Lazy load non-critical pages
 const Auth = lazy(() => import("./pages/Auth"));
@@ -52,6 +53,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        <SecurityEnhancements />
         <MobileStatusBar theme="light" color="#2563eb" />
         <MobileTouchOptimizations disableContextMenu={true} />
         <AccessibilityEnhancements />

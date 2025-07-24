@@ -3,10 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Heart, ArrowLeft, Mail, Lock, ArrowRight } from "lucide-react";
+import { Heart, ArrowLeft, Mail, Lock, ArrowRight, AlertTriangle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import SEO from "@/components/SEO";
+import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
+import { SecurityEnhancements, useSecurityMonitoring } from "@/components/SecurityEnhancements";
+import { checkLoginRateLimit, logFailedLogin, clearFailedLogins } from "@/lib/security";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(true); // Default to sign up
@@ -15,9 +19,16 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passwordValid, setPasswordValid] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [rateLimitMessage, setRateLimitMessage] = useState("");
   
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Use security monitoring
+  useSecurityMonitoring();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -26,16 +37,80 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  const handlePasswordValidation = (isValid: boolean, errors: string[]) => {
+    setPasswordValid(isValid);
+    setPasswordErrors(errors);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setRateLimitMessage("");
 
     try {
-      if (isSignUp) {
-        await signUp(email, password, firstName, lastName);
-      } else {
-        await signIn(email, password);
+      // Check rate limiting for sign in attempts
+      if (!isSignUp) {
+        const rateLimitCheck = await checkLoginRateLimit(email);
+        if (!rateLimitCheck.allowed) {
+          setRateLimitMessage(`Account temporarily locked. ${rateLimitCheck.reason === 'account_locked' ? 'Too many failed attempts.' : ''}`);
+          toast({
+            title: "Account Locked",
+            description: "Too many failed login attempts. Please try again later.",
+            variant: "destructive"
+          });
+          return;
+        }
       }
+
+      // Validate password strength for sign up
+      if (isSignUp && !passwordValid) {
+        toast({
+          title: "Password Requirements",
+          description: "Please ensure your password meets all security requirements.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      try {
+        if (isSignUp) {
+          await signUp(email, password, firstName, lastName);
+          toast({
+            title: "Account Created!",
+            description: "Please check your email to verify your account.",
+          });
+        } else {
+          await signIn(email, password);
+          // Clear failed login attempts on successful login
+          await clearFailedLogins(email);
+          toast({
+            title: "Welcome back!",
+            description: "Successfully signed in to your account.",
+          });
+        }
+      } catch (authError: any) {
+        console.error('Authentication error:', authError);
+        
+        // Log failed login attempt for sign in
+        if (!isSignUp) {
+          await logFailedLogin(email);
+        }
+
+        // Show user-friendly error message
+        const errorMessage = authError?.message || 'Authentication failed. Please try again.';
+        toast({
+          title: isSignUp ? "Sign Up Failed" : "Sign In Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Unexpected Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -43,6 +118,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-6">
+      <SecurityEnhancements />
       <SEO 
         title={isSignUp ? "Join MSTwins - Multiple Sclerosis Support Community | Sign Up Free" : "Sign In to MSTwins - MS Support Community"}
         description={isSignUp ? "Create your free account on MSTwins and connect with others living with Multiple Sclerosis. Find friendship, support, and understanding in our safe community." : "Sign in to your MSTwins account and reconnect with your Multiple Sclerosis support community. Access messages, matches, and more."}
@@ -161,7 +237,21 @@ const Auth = () => {
                         required
                       />
                     </div>
+                    {isSignUp && (
+                      <PasswordStrengthIndicator 
+                        password={password} 
+                        onValidationChange={handlePasswordValidation}
+                      />
+                    )}
                   </div>
+
+                  {/* Rate limit warning */}
+                  {rateLimitMessage && (
+                    <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                      <AlertTriangle className="w-4 h-4 mr-2 flex-shrink-0" />
+                      {rateLimitMessage}
+                    </div>
+                  )}
 
                   <Button 
                     type="submit" 

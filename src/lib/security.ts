@@ -180,6 +180,103 @@ export const sanitizeErrorMessage = (error: any): string => {
   return 'An unexpected error occurred. Please try again.';
 };
 
+// Enhanced password validation with server-side checks
+export const validatePasswordStrength = async (password: string): Promise<{ isValid: boolean; errors: string[] }> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase.rpc('validate_password_strength', { password_input: password });
+    
+    if (error) {
+      console.error('Password validation error:', error);
+      return { isValid: false, errors: ['Unable to validate password strength'] };
+    }
+    
+    // Type assertion for the database response
+    const result = data as { valid: boolean; errors: string[] };
+    return { isValid: result.valid, errors: result.errors || [] };
+  } catch (error) {
+    console.error('Password validation failed:', error);
+    return { isValid: false, errors: ['Unable to validate password strength'] };
+  }
+};
+
+// Check login rate limiting
+export const checkLoginRateLimit = async (email: string): Promise<{ allowed: boolean; reason?: string; attemptsRemaining?: number }> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase.rpc('check_login_rate_limit', { email_input: email });
+    
+    if (error) {
+      console.error('Rate limit check error:', error);
+      return { allowed: true }; // Allow on error to prevent lockout
+    }
+    
+    // Type assertion for the database response
+    const result = data as { allowed: boolean; reason?: string; attempts_remaining?: number };
+    return { 
+      allowed: result.allowed, 
+      reason: result.reason, 
+      attemptsRemaining: result.attempts_remaining 
+    };
+  } catch (error) {
+    console.error('Rate limit check failed:', error);
+    return { allowed: true }; // Allow on error to prevent lockout
+  }
+};
+
+// Log failed login attempt
+export const logFailedLogin = async (email: string): Promise<void> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    await supabase.rpc('log_failed_login_attempt', { 
+      email_input: email,
+      user_agent_input: navigator.userAgent 
+    });
+  } catch (error) {
+    console.error('Failed to log failed login:', error);
+  }
+};
+
+// Clear failed login attempts on successful login
+export const clearFailedLogins = async (email: string): Promise<void> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    await supabase.rpc('clear_failed_login_attempts', { email_input: email });
+  } catch (error) {
+    console.error('Failed to clear failed logins:', error);
+  }
+};
+
+// Security headers helper
+export const getSecurityHeaders = (): Record<string, string> => {
+  return {
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.posthog.com;"
+  };
+};
+
+// API versioning helper
+export const getApiVersion = async (): Promise<string> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase.rpc('get_api_version');
+    
+    if (error) {
+      console.error('API version check error:', error);
+      return '1'; // Default version
+    }
+    
+    return data || '1';
+  } catch (error) {
+    console.error('API version check failed:', error);
+    return '1'; // Default version
+  }
+};
+
 // Validation schema for profile data
 export const validateProfileData = (data: any): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];

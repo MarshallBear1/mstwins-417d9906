@@ -101,6 +101,30 @@ export type Database = {
         }
         Relationships: []
       }
+      failed_login_attempts: {
+        Row: {
+          attempt_time: string
+          email: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+        }
+        Insert: {
+          attempt_time?: string
+          email: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Update: {
+          attempt_time?: string
+          email?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           admin_notes: string | null
@@ -463,6 +487,30 @@ export type Database = {
         }
         Relationships: []
       }
+      security_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_reports: {
         Row: {
           admin_notes: string | null
@@ -556,6 +604,14 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      check_login_rate_limit: {
+        Args: { email_input: string; ip_input?: unknown }
+        Returns: Json
+      }
+      clear_failed_login_attempts: {
+        Args: { email_input: string }
+        Returns: undefined
+      }
       enhanced_rate_limit_check: {
         Args: {
           user_id_param: string
@@ -564,6 +620,10 @@ export type Database = {
           time_window: unknown
         }
         Returns: boolean
+      }
+      get_api_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_remaining_likes_today: {
         Args: Record<PropertyKey, never>
@@ -600,6 +660,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_failed_login_attempt: {
+        Args: {
+          email_input: string
+          ip_input?: unknown
+          user_agent_input?: string
+        }
+        Returns: undefined
+      }
       log_security_event: {
         Args: {
           user_id_param: string
@@ -623,6 +691,10 @@ export type Database = {
       validate_email: {
         Args: { email_input: string }
         Returns: string
+      }
+      validate_password_strength: {
+        Args: { password_input: string }
+        Returns: Json
       }
       validate_text_input: {
         Args: { input_text: string; max_length?: number }
