@@ -79,19 +79,18 @@ export const EmailManagement = () => {
 
   // Day 2 Email Functions
   const sendDay2Preview = async () => {
-    if (!day2PreviewEmail) {
-      toast.error("Please enter an email address for preview");
-      return;
-    }
+    const targetEmail = "marshallgould303030@gmail.com";
+    
+    console.log("RESTRICTION: Only sending Day 2 emails to marshallgould303030@gmail.com");
 
     setIsDay2PreviewSending(true);
     try {
-      console.log("Attempting to send Day 2 preview to:", day2PreviewEmail);
+      console.log("Attempting to send Day 2 email to:", targetEmail);
       
       const { data, error } = await supabase.functions.invoke('send-day2-email', {
         body: {
-          email: day2PreviewEmail,
-          firstName: 'Preview User'
+          email: targetEmail,
+          firstName: 'Marshall'
         }
       });
 
@@ -102,10 +101,10 @@ export const EmailManagement = () => {
         throw error;
       }
       
-      toast.success(`Day 2 preview email sent successfully to ${day2PreviewEmail}!`);
+      toast.success(`Day 2 email sent successfully to ${targetEmail}!`);
     } catch (error: any) {
-      console.error("Error sending Day 2 preview:", error);
-      toast.error("Failed to send Day 2 preview: " + (error.message || "Unknown error"));
+      console.error("Error sending Day 2 email:", error);
+      toast.error("Failed to send Day 2 email: " + (error.message || "Unknown error"));
     } finally {
       setIsDay2PreviewSending(false);
     }
@@ -254,14 +253,11 @@ export const EmailManagement = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Preview Email Address</label>
-                  <Input
-                    type="email"
-                    placeholder="Enter email for Day 2 preview"
-                    value={day2PreviewEmail}
-                    onChange={(e) => setDay2PreviewEmail(e.target.value)}
-                  />
+                <div className="space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <p className="text-amber-800 font-medium">⚠️ Safety Restriction Active</p>
+                    <p className="text-amber-700 text-sm">Day 2 emails are currently restricted to marshallgould303030@gmail.com only</p>
+                  </div>
                 </div>
                 <Button 
                   onClick={sendDay2Preview} 
@@ -269,7 +265,7 @@ export const EmailManagement = () => {
                   className="w-full"
                   variant="outline"
                 >
-                  {isDay2PreviewSending ? "Sending Preview..." : "Send Day 2 Preview"}
+                  {isDay2PreviewSending ? "Sending to Marshall..." : "Send Day 2 Email to Marshall"}
                 </Button>
               </CardContent>
             </Card>
