@@ -112,19 +112,30 @@ export const EmailManagement = () => {
 
   const sendDay2ToAll = async () => {
     const confirmed = window.confirm(
-      "Are you sure you want to send the Day 2 email to ALL eligible users? This action cannot be undone."
+      "Are you sure you want to send the Day 2 email to ALL eligible users (users who joined 2 days ago)? This action cannot be undone."
     );
     
     if (!confirmed) return;
 
     setIsDay2SendingAll(true);
     try {
-      // This would need a backend function to send to all eligible users
-      // For now, we'll show a message that this feature needs implementation
-      toast.info("Day 2 email to all users feature needs backend implementation");
+      console.log("Sending Day 2 emails to all eligible users...");
+      
+      const { data, error } = await supabase.functions.invoke('send-day2-all-users', {
+        body: {}
+      });
+
+      console.log("Day 2 all users response:", { data, error });
+
+      if (error) {
+        console.error("Day 2 all users error details:", error);
+        throw error;
+      }
+      
+      toast.success(`Day 2 emails sent successfully! ${data?.stats?.emails_sent || 0} emails sent.`);
     } catch (error: any) {
       console.error("Error sending Day 2 to all users:", error);
-      toast.error("Failed to send Day 2 to all users: " + error.message);
+      toast.error("Failed to send Day 2 to all users: " + (error.message || "Unknown error"));
     } finally {
       setIsDay2SendingAll(false);
     }
@@ -283,18 +294,18 @@ export const EmailManagement = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>✓ Targets users who joined 2 days ago</p>
+                  <p>✓ Targets users who joined exactly 2 days ago</p>
                   <p>✓ Personalized welcome content</p>
                   <p>✓ Encourages community engagement</p>
-                  <p className="font-medium text-amber-600">Feature requires backend implementation</p>
+                  <p>✓ Prevents duplicate emails with tracking</p>
                 </div>
                 <Button 
                   onClick={sendDay2ToAll} 
                   disabled={isDay2SendingAll}
                   className="w-full"
-                  variant="secondary"
+                  variant="default"
                 >
-                  {isDay2SendingAll ? "Processing..." : "Send Day 2 to Eligible Users"}
+                  {isDay2SendingAll ? "Sending to All Eligible Users..." : "Send Day 2 to All Eligible Users"}
                 </Button>
               </CardContent>
             </Card>
