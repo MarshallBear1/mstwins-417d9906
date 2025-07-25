@@ -11,8 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ArrowLeft, Mail, MessageSquare, Clock, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AnnouncementEmailSender from "@/components/AnnouncementEmailSender";
-import { PatrickFeedbackEmail } from "@/components/PatrickFeedbackEmail";
+import { EmailManagement } from "@/components/EmailManagement";
 
 interface Feedback {
   id: string;
@@ -417,10 +416,7 @@ export default function AdminFeedback() {
           </TabsContent>
           
           <TabsContent value="emails" className="mt-6">
-            <div className="space-y-6">
-              <PatrickFeedbackEmail />
-              <AnnouncementEmailSender />
-            </div>
+            <EmailManagement />
           </TabsContent>
         </Tabs>
       </div>
