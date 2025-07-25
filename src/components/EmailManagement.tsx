@@ -86,18 +86,26 @@ export const EmailManagement = () => {
 
     setIsDay2PreviewSending(true);
     try {
-      const { error } = await supabase.functions.invoke('send-day2-email', {
+      console.log("Attempting to send Day 2 preview to:", day2PreviewEmail);
+      
+      const { data, error } = await supabase.functions.invoke('send-day2-email', {
         body: {
           email: day2PreviewEmail,
           firstName: 'Preview User'
         }
       });
 
-      if (error) throw error;
-      toast.success("Day 2 preview email sent successfully!");
+      console.log("Day 2 email response:", { data, error });
+
+      if (error) {
+        console.error("Day 2 email error details:", error);
+        throw error;
+      }
+      
+      toast.success(`Day 2 preview email sent successfully to ${day2PreviewEmail}!`);
     } catch (error: any) {
       console.error("Error sending Day 2 preview:", error);
-      toast.error("Failed to send Day 2 preview: " + error.message);
+      toast.error("Failed to send Day 2 preview: " + (error.message || "Unknown error"));
     } finally {
       setIsDay2PreviewSending(false);
     }
