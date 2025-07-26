@@ -49,69 +49,42 @@ const handler = async (req: Request): Promise<Response> => {
     const alreadySentUserIds = new Set(alreadySent?.map(email => email.user_id) || []);
     const usersToEmail = users?.filter(user => !alreadySentUserIds.has(user.user_id)) || [];
 
-    console.log(`📧 Will send day 3 email to ${usersToEmail.length} users`);
+    // For testing - send only to specific email
+    const testEmail = "marshallgould303030@gmail.com";
+    
+    console.log(`📧 Sending day 3 email to test user: ${testEmail}`);
 
     let successCount = 0;
     let errorCount = 0;
 
-    // Send emails in batches to avoid overwhelming the email service
-    const batchSize = 10;
-    for (let i = 0; i < usersToEmail.length; i += batchSize) {
-      const batch = usersToEmail.slice(i, i + batchSize);
+    try {
+      console.log(`📧 Sending day 3 email to: ${testEmail}`);
       
-      const batchPromises = batch.map(async (user) => {
-        try {
-          console.log(`📧 Sending day 3 email to user: ${user.user_id}`);
-          
-          // Call the individual email function
-          const emailResponse = await supabase.functions.invoke('send-day3-email', {
-            body: {
-              email: user.users?.email,
-              first_name: user.first_name,
-            }
-          });
-
-          if (emailResponse.error) {
-            console.error(`❌ Error sending day 3 email to ${user.user_id}:`, emailResponse.error);
-            errorCount++;
-            return;
-          }
-
-          // Record the email send with user_id
-          const { error: recordError } = await supabase
-            .from('re_engagement_emails')
-            .insert({
-              user_id: user.user_id,
-              email_type: 'day_3_update',
-              sent_at: new Date().toISOString(),
-              email_address: user.users?.email
-            });
-
-          if (recordError) {
-            console.error(`❌ Error recording day 3 email for ${user.user_id}:`, recordError);
-          }
-
-          successCount++;
-          console.log(`✅ Day 3 email sent successfully to user: ${user.user_id}`);
-          
-        } catch (error) {
-          console.error(`❌ Error processing user ${user.user_id}:`, error);
-          errorCount++;
+      // Call the individual email function
+      const emailResponse = await supabase.functions.invoke('send-day3-email', {
+        body: {
+          email: testEmail,
+          first_name: "Marshall",
         }
       });
 
-      await Promise.all(batchPromises);
-      
-      // Add a small delay between batches
-      if (i + batchSize < usersToEmail.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      if (emailResponse.error) {
+        console.error(`❌ Error sending day 3 email:`, emailResponse.error);
+        errorCount++;
+      } else {
+        successCount++;
+        console.log(`✅ Day 3 email sent successfully to: ${testEmail}`);
       }
+      
+    } catch (error) {
+      console.error(`❌ Error processing email:`, error);
+      errorCount++;
     }
 
     const result = {
       success: true,
       message: `Day 3 emails processing completed`,
-      total_users: usersToEmail.length,
+      total_users: 1,
       successful_sends: successCount,
       errors: errorCount
     };
