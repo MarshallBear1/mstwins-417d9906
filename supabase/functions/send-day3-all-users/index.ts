@@ -18,42 +18,92 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // For testing - send only to specific email
-    const testEmail = "marshallgould303030@gmail.com";
+    // Get all verified users from profiles with their emails
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('user_id, first_name');
+
+    if (profilesError) {
+      console.error('❌ Error fetching profiles:', profilesError);
+      throw profilesError;
+    }
+
+    // Get emails from auth.users for these profiles
+    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
     
-    console.log(`📧 Sending day 3 email to test user: ${testEmail}`);
+    if (usersError) {
+      console.error('❌ Error fetching users:', usersError);
+      throw usersError;
+    }
+
+    // Filter to only verified users and match with profiles
+    const verifiedUsers = users.users
+      .filter(user => user.email_confirmed_at)
+      .map(user => {
+        const profile = profiles?.find(p => p.user_id === user.id);
+        return {
+          email: user.email,
+          first_name: profile?.first_name || '',
+          user_id: user.id
+        };
+      })
+      .filter(user => user.email);
+
+    console.log(`📧 Found ${verifiedUsers.length} verified users`);
+
+    // Filter out users who already received day 3 email
+    const { data: alreadySent, error: sentError } = await supabase
+      .from('re_engagement_emails')
+      .select('email_address')
+      .eq('email_type', 'day_3_update');
+
+    if (sentError) {
+      console.error('❌ Error fetching sent emails:', sentError);
+      throw sentError;
+    }
+
+    const alreadySentEmails = new Set(alreadySent?.map(email => email.email_address) || []);
+    const usersToEmail = verifiedUsers.filter(user => !alreadySentEmails.has(user.email));
+
+    console.log(`📧 Sending day 3 emails to ${usersToEmail.length} users (${alreadySentEmails.size} already sent)`);
 
     let successCount = 0;
     let errorCount = 0;
 
-    try {
-      console.log(`📧 Sending day 3 email to: ${testEmail}`);
-      
-      // Call the individual email function
-      const emailResponse = await supabase.functions.invoke('send-day3-email', {
-        body: {
-          email: testEmail,
-          first_name: "Marshall",
-        }
-      });
+    // Send emails to all users
+    for (const user of usersToEmail) {
+      try {
+        console.log(`📧 Sending day 3 email to: ${user.email}`);
+        
+        // Call the individual email function
+        const emailResponse = await supabase.functions.invoke('send-day3-email', {
+          body: {
+            email: user.email,
+            first_name: user.first_name,
+          }
+        });
 
-      if (emailResponse.error) {
-        console.error(`❌ Error sending day 3 email:`, emailResponse.error);
+        if (emailResponse.error) {
+          console.error(`❌ Error sending day 3 email to ${user.email}:`, emailResponse.error);
+          errorCount++;
+        } else {
+          successCount++;
+          console.log(`✅ Day 3 email sent successfully to: ${user.email}`);
+        }
+        
+        // Small delay between emails to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+      } catch (error) {
+        console.error(`❌ Error processing email for ${user.email}:`, error);
         errorCount++;
-      } else {
-        successCount++;
-        console.log(`✅ Day 3 email sent successfully to: ${testEmail}`);
       }
-      
-    } catch (error) {
-      console.error(`❌ Error processing email:`, error);
-      errorCount++;
     }
 
     const result = {
       success: true,
       message: `Day 3 emails processing completed`,
-      total_users: 1,
+      total_users: usersToEmail.length,
       successful_sends: successCount,
       errors: errorCount
     };

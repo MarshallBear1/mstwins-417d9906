@@ -81,7 +81,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div class="cta-section" style="color: white;">
               <h3 style="margin-top: 0; color: white;">Keep Connecting & Sharing! 💜</h3>
               <p style="color: white; margin-bottom: 20px;">Continue exploring MSTWins and help us build something amazing together.</p>
-              <a href="https://fscendubnktdtmnxiipk.supabase.co" class="cta-button">Open MSTWins</a>
+              <a href="https://mstwins.com" class="cta-button">Open MSTWins</a>
             </div>
             
             <p>Thank you for being part of our journey from day one. Together, we're building something special for the MS community! 🌟</p>
