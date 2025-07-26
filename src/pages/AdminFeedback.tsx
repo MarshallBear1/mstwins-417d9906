@@ -153,6 +153,39 @@ export default function AdminFeedback() {
     }
   };
 
+  const handleSendDay3Email = async () => {
+    try {
+      console.log('🚀 Triggering day 3 email function...');
+      
+      const { data, error } = await supabase.functions.invoke('send-day3-all-users', {
+        body: {}
+      });
+
+      if (error) {
+        console.error('❌ Error calling day 3 email function:', error);
+        toast({
+          title: "Error",
+          description: `Failed to trigger day 3 emails: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('✅ Day 3 email function completed:', data);
+      toast({
+        title: "Day 3 Emails Triggered",
+        description: `Successfully triggered day 3 emails. Check function logs for details.`,
+      });
+    } catch (error: any) {
+      console.error('❌ Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: `Unexpected error: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredFeedback = feedback.filter(item => 
     statusFilter === "all" || item.status === statusFilter
   );
@@ -415,8 +448,30 @@ export default function AdminFeedback() {
             </div>
           </TabsContent>
           
-          <TabsContent value="emails" className="mt-6">
-            <EmailManagement />
+          <TabsContent value="emails" className="space-y-6">
+            <div className="grid gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Day 3 Email Campaign</CardTitle>
+                  <CardDescription>
+                    Send day 3 update emails to all verified users (currently configured for test email only)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={handleSendDay3Email}
+                    className="w-full"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Send Day 3 Emails
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-4">
+              <EmailManagement />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
