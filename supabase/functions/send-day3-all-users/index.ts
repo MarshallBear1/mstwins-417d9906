@@ -18,6 +18,46 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const body = await req.json();
+    const sendToAll = body?.sendToAll || false;
+    
+    console.log(`📧 Send mode: ${sendToAll ? 'ALL USERS' : 'TEST ONLY'}`);
+
+    if (!sendToAll) {
+      // Test mode - send only to test email
+      const testEmail = "marshallgould303030@gmail.com";
+      console.log(`🧪 Test mode: Sending to ${testEmail} only`);
+      
+      const emailResponse = await supabase.functions.invoke('send-day3-email', {
+        body: {
+          email: testEmail,
+          first_name: "Marshall",
+        }
+      });
+
+      if (emailResponse.error) {
+        console.error(`❌ Error sending test email:`, emailResponse.error);
+        throw new Error(emailResponse.error.message);
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Test email sent successfully`,
+          total_users: 1,
+          successful_sends: 1,
+          errors: 0
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // All users mode - send to all verified users
+    console.log('🌍 ALL USERS mode: Sending to all verified users');
+    
     // Get all verified users from profiles with their emails
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')

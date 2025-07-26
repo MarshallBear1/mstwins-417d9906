@@ -153,12 +153,13 @@ export default function AdminFeedback() {
     }
   };
 
-  const handleSendDay3Email = async () => {
+  const handleSendDay3Email = async (sendToAll = false) => {
     try {
-      console.log('🚀 Triggering day 3 email function...');
+      const action = sendToAll ? 'all users' : 'test email only';
+      console.log(`🚀 Triggering day 3 email function for ${action}...`);
       
       const { data, error } = await supabase.functions.invoke('send-day3-all-users', {
-        body: {}
+        body: { sendToAll }
       });
 
       if (error) {
@@ -174,7 +175,43 @@ export default function AdminFeedback() {
       console.log('✅ Day 3 email function completed:', data);
       toast({
         title: "Day 3 Emails Triggered",
-        description: `Successfully triggered day 3 emails. Check function logs for details.`,
+        description: `Successfully triggered day 3 emails for ${action}. Check function logs for details.`,
+      });
+    } catch (error: any) {
+      console.error('❌ Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: `Unexpected error: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendTestEmail = async () => {
+    try {
+      console.log('🧪 Sending test day 3 email...');
+      
+      const { data, error } = await supabase.functions.invoke('send-day3-email', {
+        body: {
+          email: "marshallgould303030@gmail.com",
+          first_name: "Marshall",
+        }
+      });
+
+      if (error) {
+        console.error('❌ Error sending test email:', error);
+        toast({
+          title: "Error",
+          description: `Failed to send test email: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('✅ Test email sent successfully:', data);
+      toast({
+        title: "Test Email Sent",
+        description: "Test day 3 email sent successfully to marshallgould303030@gmail.com",
       });
     } catch (error: any) {
       console.error('❌ Unexpected error:', error);
@@ -449,28 +486,52 @@ export default function AdminFeedback() {
           </TabsContent>
           
           <TabsContent value="emails" className="space-y-6">
-            <div className="grid gap-4">
+            <div className="grid gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Day 3 Email Campaign</CardTitle>
                   <CardDescription>
-                    Send day 3 update emails to all verified users (currently configured for test email only)
+                    Send day 3 update emails to users. Choose between test mode or sending to all verified users.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-3">
+                    <Button 
+                      onClick={handleSendTestEmail}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      Send Test Email (to marshallgould303030@gmail.com)
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => handleSendDay3Email(true)}
+                      className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      🚨 Send to ALL Users (LIVE) 🚨
+                    </Button>
+                  </div>
+                  
+                  <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                    <p><strong>Test Email:</strong> Sends to marshallgould303030@gmail.com only</p>
+                    <p><strong>Send to ALL:</strong> Sends to all verified users who haven't received the day 3 email yet</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Other Email Management</CardTitle>
+                  <CardDescription>
+                    Additional email tools and campaign management
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button 
-                    onClick={handleSendDay3Email}
-                    className="w-full"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Day 3 Emails
-                  </Button>
+                  <EmailManagement />
                 </CardContent>
               </Card>
-            </div>
-
-            <div className="grid gap-4">
-              <EmailManagement />
             </div>
           </TabsContent>
         </Tabs>
