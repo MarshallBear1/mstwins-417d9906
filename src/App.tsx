@@ -14,16 +14,41 @@ import MobileTouchOptimizations from "./components/MobileTouchOptimizations";
 import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
 import { SecurityEnhancements } from "./components/SecurityEnhancements";
 import { NativeCapabilities } from "./hooks/useNativeCapabilities";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
-// Lazy load non-critical pages
-const Auth = lazy(() => import("./pages/Auth"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
-const ExtendedProfileSetup = lazy(() => import("./components/ExtendedProfileSetup"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("./pages/TermsOfService"));
-const AdminFeedback = lazy(() => import("./pages/AdminFeedback"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+// Lazy load non-critical pages with error handling
+const Auth = lazy(() => import("./pages/Auth").catch(err => {
+  console.error('Failed to load Auth page:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
+const Dashboard = lazy(() => import("./pages/Dashboard").catch(err => {
+  console.error('Failed to load Dashboard page:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
+const ProfileSetup = lazy(() => import("./pages/ProfileSetup").catch(err => {
+  console.error('Failed to load ProfileSetup page:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
+const ExtendedProfileSetup = lazy(() => import("./components/ExtendedProfileSetup").catch(err => {
+  console.error('Failed to load ExtendedProfileSetup component:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy").catch(err => {
+  console.error('Failed to load PrivacyPolicy page:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
+const TermsOfService = lazy(() => import("./pages/TermsOfService").catch(err => {
+  console.error('Failed to load TermsOfService page:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
+const AdminFeedback = lazy(() => import("./pages/AdminFeedback").catch(err => {
+  console.error('Failed to load AdminFeedback page:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
+const NotFound = lazy(() => import("./pages/NotFound").catch(err => {
+  console.error('Failed to load NotFound page:', err);
+  return { default: () => <div>Page not found. Please refresh.</div> };
+}));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -54,16 +79,17 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
-        <SecurityEnhancements />
-        <NativeCapabilities />
-        <MobileStatusBar theme="light" color="#2563eb" />
-        <MobileTouchOptimizations disableContextMenu={true} />
-        <AccessibilityEnhancements />
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <RouteTracker />
-          <Routes>
+        <ErrorBoundary>
+          <SecurityEnhancements />
+          <NativeCapabilities />
+          <MobileStatusBar theme="light" color="#2563eb" />
+          <MobileTouchOptimizations disableContextMenu={true} />
+          <AccessibilityEnhancements />
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <RouteTracker />
+            <Routes>
             <Route path="/" element={<OptimizedIndex />} />
             <Route path="/auth" element={
               <Suspense fallback={<LoadingSpinner />}>
@@ -108,6 +134,7 @@ const App = () => (
           </Routes>
           <ReferralPopup />
         </BrowserRouter>
+        </ErrorBoundary>
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>

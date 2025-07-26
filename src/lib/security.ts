@@ -183,7 +183,9 @@ export const sanitizeErrorMessage = (error: any): string => {
 // Enhanced password validation with server-side checks
 export const validatePasswordStrength = async (password: string): Promise<{ isValid: boolean; errors: string[] }> => {
   try {
-    const { supabase } = await import('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
     const { data, error } = await supabase.rpc('validate_password_strength', { password_input: password });
     
     if (error) {
@@ -203,7 +205,9 @@ export const validatePasswordStrength = async (password: string): Promise<{ isVa
 // Check login rate limiting
 export const checkLoginRateLimit = async (email: string): Promise<{ allowed: boolean; reason?: string; attemptsRemaining?: number }> => {
   try {
-    const { supabase } = await import('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
     const { data, error } = await supabase.rpc('check_login_rate_limit', { email_input: email });
     
     if (error) {
@@ -227,7 +231,9 @@ export const checkLoginRateLimit = async (email: string): Promise<{ allowed: boo
 // Log failed login attempt
 export const logFailedLogin = async (email: string): Promise<void> => {
   try {
-    const { supabase } = await import('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
     await supabase.rpc('log_failed_login_attempt', { 
       email_input: email,
       user_agent_input: navigator.userAgent 
@@ -240,7 +246,9 @@ export const logFailedLogin = async (email: string): Promise<void> => {
 // Clear failed login attempts on successful login
 export const clearFailedLogins = async (email: string): Promise<void> => {
   try {
-    const { supabase } = await import('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
     await supabase.rpc('clear_failed_login_attempts', { email_input: email });
   } catch (error) {
     console.error('Failed to clear failed logins:', error);
@@ -262,7 +270,9 @@ export const getSecurityHeaders = (): Record<string, string> => {
 // API versioning helper
 export const getApiVersion = async (): Promise<string> => {
   try {
-    const { supabase } = await import('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
     const { data, error } = await supabase.rpc('get_api_version');
     
     if (error) {

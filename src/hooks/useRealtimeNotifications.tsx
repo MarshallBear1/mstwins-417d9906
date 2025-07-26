@@ -69,36 +69,42 @@ export const useRealtimeNotifications = () => {
       return;
     }
 
-    const options: NotificationOptions = {
-      body: message,
-      icon: '/favicon.png',
-      badge: '/favicon.png',
-      tag: `ms-dating-${type}`,
-      requireInteraction: false,
-      silent: false,
-    };
+    try {
+      const options: NotificationOptions = {
+        body: message,
+        icon: '/favicon.png',
+        badge: '/favicon.png',
+        tag: `ms-dating-${type}`,
+        requireInteraction: false,
+        silent: false,
+      };
 
-    // Add custom icon based on notification type
-    if (type === 'match') {
-      options.icon = '💕';
-    } else if (type === 'like') {
-      options.icon = '❤️';
-    } else if (type === 'message') {
-      options.icon = '💬';
-    }
+      // Add custom icon based on notification type
+      if (type === 'match') {
+        options.icon = '💕';
+      } else if (type === 'like') {
+        options.icon = '❤️';
+      } else if (type === 'message') {
+        options.icon = '💬';
+      }
 
-    const notification = new window.Notification(title, options);
+      // Use the standard Notification constructor for web browsers
+      const notification = new Notification(title, options);
     
-    // Auto-close after 5 seconds
-    setTimeout(() => {
-      notification.close();
-    }, 5000);
+      // Auto-close after 5 seconds
+      setTimeout(() => {
+        notification.close();
+      }, 5000);
 
-    // Optional: Handle click to focus the app
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
+      // Optional: Handle click to focus the app
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    } catch (error) {
+      console.error('Error creating browser notification:', error);
+      // Fallback to just showing the toast if notifications fail
+    }
   };
 
   // Check permission on mount

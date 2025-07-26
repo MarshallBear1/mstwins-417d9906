@@ -55,7 +55,9 @@ const ReferralPopup = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
+      const { supabase } = await import("@/integrations/supabase/client").catch(() => {
+        throw new Error('Failed to import Supabase client');
+      });
       const { data } = await supabase
         .from('profiles')
         .select('first_name, avatar_url')
