@@ -50,13 +50,18 @@ export const useDailyLikes = () => {
       
       if (error) {
         console.error('Error checking like limit:', error);
-        return true; // Allow like on error to not break functionality
+        return false; // Don't allow like on error to enforce limits
+      }
+      
+      // Refresh remaining likes after successful check
+      if (data === true) {
+        refreshRemainingLikes();
       }
       
       return data === true;
     } catch (error) {
       console.error('Error in checkCanLike:', error);
-      return true;
+      return false;
     }
   };
 
@@ -79,12 +84,17 @@ export const useDailyLikes = () => {
     return today >= enforcementDate;
   };
 
+  const shouldShowWarning = () => {
+    return isLimitEnforced() && remainingLikes === 4;
+  };
+
   return {
     remainingLikes,
     loading,
     checkCanLike,
     refreshRemainingLikes,
     isLimitEnforced,
+    shouldShowWarning,
     hasUnlimitedLikes: remainingLikes === 999
   };
 };

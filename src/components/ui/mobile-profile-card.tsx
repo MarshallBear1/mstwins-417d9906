@@ -211,25 +211,23 @@ export const MobileProfileCard = ({
                   <h4 className="text-sm font-semibold mb-2">About</h4>
                   <div className="text-sm text-muted-foreground leading-relaxed">
                     <p className={cn(
-                      "transition-all duration-200",
-                      !showAllAbout && "text-truncate-mobile-3"
+                      "transition-all duration-300",
+                      !showAllAbout && "line-clamp-3"
                     )}>
                       {profile.about_me}
                     </p>
-                    {profile.about_me.length > 150 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowAllAbout(!showAllAbout)}
-                        className="p-0 h-auto text-xs text-primary hover:text-primary/80 mt-1"
-                      >
-                        {showAllAbout ? (
-                          <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></>
-                        ) : (
-                          <>Show More <ChevronDown className="w-3 h-3 ml-1" /></>
-                        )}
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllAbout(!showAllAbout)}
+                      className="p-0 h-auto text-xs text-primary hover:text-primary/80 mt-1 transition-colors"
+                    >
+                      {showAllAbout ? (
+                        <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></>
+                      ) : (
+                        <>Show More <ChevronDown className="w-3 h-3 ml-1" /></>
+                      )}
+                    </Button>
                   </div>
                 </div>
               )}

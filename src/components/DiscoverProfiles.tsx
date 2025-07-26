@@ -41,7 +41,7 @@ interface Profile {
 const DiscoverProfiles = () => {
   const { user } = useAuth();
   const { isUserOnline, getLastSeenText } = useRealtimePresence();
-  const { remainingLikes, refreshRemainingLikes, isLimitEnforced, hasUnlimitedLikes } = useDailyLikes();
+  const { remainingLikes, refreshRemainingLikes, isLimitEnforced, shouldShowWarning, hasUnlimitedLikes } = useDailyLikes();
   const { toast } = useToast();
   const { enhancedLikeAction, enhancedButtonPress, enhancedErrorAction, enhancedSuccessAction } = useNativeCapabilities();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -211,6 +211,11 @@ const DiscoverProfiles = () => {
   const handleLike = async () => {
     if (!user || !currentProfile || actionLoading) return;
     
+    // Show warning before like action when user has 4 likes remaining
+    if (shouldShowWarning()) {
+      setShowLimitWarning(true);
+    }
+    
     // Add haptic feedback for like action
     await enhancedLikeAction();
     
@@ -306,11 +311,6 @@ const DiscoverProfiles = () => {
         console.log('🎉 Match announcement shown!');
       } else {
         await enhancedSuccessAction(); // Success haptic for like
-      }
-      
-      // Show popup when user has 3 likes remaining to explain the purpose
-      if (isLimitEnforced() && remainingLikes === 3) {
-        setShowLimitWarning(true);
       }
 
       // IMPORTANT: Move to next profile AFTER like is successfully processed
