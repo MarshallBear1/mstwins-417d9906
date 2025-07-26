@@ -10,6 +10,7 @@ const corsHeaders = {
 interface Day3EmailRequest {
   email: string;
   first_name: string;
+  user_id?: string;
 }
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -26,8 +27,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, first_name }: Day3EmailRequest = await req.json();
-    console.log(`📧 Sending day 3 email to: ${email}`);
+    const { email, first_name, user_id }: Day3EmailRequest = await req.json();
+    console.log(`📧 Sending day 3 email to: ${email} (user_id: ${user_id || 'unknown'})`);
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -112,10 +113,9 @@ const handler = async (req: Request): Promise<Response> => {
     const { error: recordError } = await supabase
       .from('re_engagement_emails')
       .insert({
-        user_id: null, // We'll update this in the calling function
+        user_id: user_id || null,
         email_type: 'day_3_update',
-        sent_at: new Date().toISOString(),
-        email_address: email
+        sent_at: new Date().toISOString()
       });
 
     if (recordError) {

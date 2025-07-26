@@ -32,6 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
         body: {
           email: testEmail,
           first_name: "Marshall",
+          user_id: null // Test email, no specific user_id
         }
       });
 
@@ -94,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Filter out users who already received day 3 email
     const { data: alreadySent, error: sentError } = await supabase
       .from('re_engagement_emails')
-      .select('email_address')
+      .select('user_id')
       .eq('email_type', 'day_3_update');
 
     if (sentError) {
@@ -102,10 +103,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw sentError;
     }
 
-    const alreadySentEmails = new Set(alreadySent?.map(email => email.email_address) || []);
-    const usersToEmail = verifiedUsers.filter(user => !alreadySentEmails.has(user.email));
+    const alreadySentUserIds = new Set(alreadySent?.map(email => email.user_id) || []);
+    const usersToEmail = verifiedUsers.filter(user => !alreadySentUserIds.has(user.user_id));
 
-    console.log(`📧 Sending day 3 emails to ${usersToEmail.length} users (${alreadySentEmails.size} already sent)`);
+    console.log(`📧 Sending day 3 emails to ${usersToEmail.length} users (${alreadySentUserIds.size} already sent)`);
 
     let successCount = 0;
     let errorCount = 0;
@@ -120,6 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
           body: {
             email: user.email,
             first_name: user.first_name,
+            user_id: user.user_id
           }
         });
 
