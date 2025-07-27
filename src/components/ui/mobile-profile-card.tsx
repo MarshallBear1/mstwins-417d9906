@@ -89,7 +89,7 @@ export const MobileProfileCard = ({
 
 
   return (
-    <div className={cn("flip-card-container profile-card-mobile mx-auto", className)} style={{ minHeight: '400px', width: '100%', maxWidth: '340px', display: 'block', visibility: 'visible', position: 'relative' }}>
+    <div className={cn("flip-card-container profile-card-mobile mx-auto", className)} style={{ minHeight: '350px', width: '100%', maxWidth: '320px', display: 'block', visibility: 'visible', position: 'relative' }}>
       <div className={cn("flip-card-inner", isFlipped && "rotate-y-180")} style={{ width: '100%', height: '100%', position: 'relative' }}>
         {/* Front Side */}
         <Card className="flip-card-face shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white border border-gray-200" style={{ width: '100%', height: '100%', position: 'relative', display: 'block' }}>
@@ -234,19 +234,6 @@ export const MobileProfileCard = ({
               )}
             </div>
 
-            {/* See More Button */}
-            {hasExtendedContent && (
-              <div className="mt-4 pt-3 border-t">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full text-primary hover:text-primary hover:bg-primary/10 text-sm mobile-touch-target"
-                  onClick={() => setIsFlipped(!isFlipped)}
-                >
-                  See More →
-                </Button>
-              </div>
-            )}
 
             {/* Action buttons */}
             {showActions && (

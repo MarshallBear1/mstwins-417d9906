@@ -518,17 +518,7 @@ const DiscoverProfiles = () => {
         </div>
       )}
 
-      <div style={{ 
-        border: '2px solid red', 
-        padding: '10px', 
-        margin: '10px',
-        minHeight: '100px',
-        backgroundColor: 'yellow'
-      }}>
-        <p>DEBUG: Profile card container</p>
-        <p>Profile exists: {!!currentProfile ? 'YES' : 'NO'}</p>
-        <p>Profile name: {currentProfile ? `${currentProfile.first_name} ${currentProfile.last_name}` : 'N/A'}</p>
-        
+      <div className="px-2 pb-2">
         <MobileProfileCard
           profile={currentProfile}
           onImageClick={openImageViewer}
