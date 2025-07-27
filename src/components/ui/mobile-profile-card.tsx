@@ -256,10 +256,10 @@ export const MobileProfileCard = ({
                 {profile.selected_prompts && profile.selected_prompts.length > 0 && <CollapsibleSection title="Personal Stories">
                     <div className="space-y-3">
                       {profile.selected_prompts.slice(0, 3).map((prompt, index) => <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide leading-relaxed">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                             {prompt.question}
                           </p>
-                          <p className="text-sm leading-relaxed">
+                          <p className="text-xs leading-relaxed">
                             {prompt.answer}
                           </p>
                         </div>)}

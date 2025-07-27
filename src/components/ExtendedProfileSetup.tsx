@@ -467,9 +467,9 @@ const ExtendedProfileSetup = () => {
                            <SelectItem 
                              key={index} 
                              value={prompt}
-                             className="cursor-pointer hover:bg-accent min-h-12 p-3"
+                             className="cursor-pointer hover:bg-accent min-h-10 p-2"
                            >
-                             <span className="text-sm leading-relaxed whitespace-normal">
+                             <span className="text-xs leading-snug whitespace-normal">
                                {prompt}
                              </span>
                            </SelectItem>
