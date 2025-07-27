@@ -16,6 +16,7 @@ import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
 import { SecurityEnhancements } from "./components/SecurityEnhancements";
 import { NativeCapabilities } from "./hooks/useNativeCapabilities";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import IOSNotificationManager from "./components/IOSNotificationManager";
 
 // Lazy load non-critical pages with error handling
 const Auth = lazy(() => import("./pages/Auth").catch(err => {
@@ -83,6 +84,7 @@ const App = () => (
         <ErrorBoundary>
           <SecurityEnhancements />
           <NativeCapabilities />
+          <IOSNotificationManager />
           <MobileStatusBar theme="light" color="#2563eb" />
           <MobileOptimizationsProvider disableContextMenu={true} />
           <IOSEnhancements />
