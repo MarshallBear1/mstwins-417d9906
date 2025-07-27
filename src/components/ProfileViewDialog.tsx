@@ -90,7 +90,7 @@ const ProfileViewDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[450px] max-w-[95vw] max-h-[95vh] overflow-hidden p-3" style={{ perspective: '1000px' }}>
+        <DialogContent className="sm:max-w-[450px] max-w-[95vw] max-h-[95vh] overflow-y-auto p-3" style={{ perspective: '1000px' }}>
           <DialogHeader className="sr-only">
             <DialogTitle>
               {profile.first_name} {profile.last_name}'s Profile
@@ -138,16 +138,14 @@ const ProfileViewDialog = ({
                   }`} />
                 </div>
 
-                {/* Close Button - Only show on front side when not flipped */}
-                {!hasExtendedContent && (
-                  <button
-                    onClick={() => onOpenChange(false)}
-                    className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200"
-                    aria-label="Close profile"
-                  >
-                    <X className="w-5 h-5 text-gray-700" />
-                  </button>
-                )}
+                {/* Close Button */}
+                <button
+                  onClick={() => onOpenChange(false)}
+                  className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200"
+                  aria-label="Close profile"
+                >
+                  <X className="w-5 h-5 text-gray-700" />
+                </button>
 
                 {/* Online Status Badge */}
                 <div className="absolute top-4 left-4 bg-white/90 rounded-full px-3 py-1 shadow-lg">
@@ -162,8 +160,12 @@ const ProfileViewDialog = ({
                 {/* Flip Button */}
                 {hasExtendedContent && (
                   <button
-                    onClick={() => setIsFlipped(!isFlipped)}
-                    className="absolute bottom-4 left-4 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsFlipped(!isFlipped);
+                    }}
+                    className="absolute bottom-4 left-4 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110 z-10"
                     aria-label="Flip card"
                   >
                     <ArrowLeftRight className="w-4 h-4 text-gray-700" />
@@ -328,14 +330,18 @@ const ProfileViewDialog = ({
                 transform: 'rotateY(180deg)'
               }}
             >
-              <div className="h-full overflow-y-auto">
+              <div className="h-full overflow-y-auto overscroll-contain">
                 {/* Header */}
                 <div className="relative bg-gradient-to-br from-purple-400/20 via-pink-300/20 to-orange-300/20 p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold text-gray-900">More About {profile.first_name}</h3>
                     <button
-                      onClick={() => setIsFlipped(false)}
-                      className="bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsFlipped(false);
+                      }}
+                      className="bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 z-10"
                       aria-label="Flip back"
                     >
                       <ArrowLeftRight className="w-4 h-4 text-gray-700" />

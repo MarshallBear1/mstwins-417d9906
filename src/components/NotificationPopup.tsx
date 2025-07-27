@@ -10,7 +10,7 @@ const NotificationPopup = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [currentNotification, setCurrentNotification] = useState<any>(null);
   const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
-  const { notifications } = useRealtimeNotifications();
+  const { notifications, markAsRead } = useRealtimeNotifications();
 
   useEffect(() => {
     // Check for new like or match notifications
@@ -46,8 +46,10 @@ const NotificationPopup = () => {
     }
   }, [currentNotification]);
 
-  const handleDismiss = () => {
+  const handleDismiss = async () => {
     if (currentNotification) {
+      // Mark notification as read in database
+      await markAsRead(currentNotification.id);
       setDismissedNotifications(prev => new Set([...prev, currentNotification.id]));
     }
     setIsVisible(false);
