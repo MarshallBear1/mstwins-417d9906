@@ -25,6 +25,9 @@ const Auth = () => {
   const [rateLimitMessage, setRateLimitMessage] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
@@ -32,6 +35,31 @@ const Auth = () => {
 
   // Use security monitoring
   useSecurityMonitoring();
+
+  // Check for password reset parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    
+    if (type === 'recovery' && accessToken && refreshToken) {
+      // User clicked password reset link
+      setIsPasswordReset(true);
+      setIsSignUp(false);
+      
+      // Set the session from the URL parameters
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      
+      toast({
+        title: "Reset Your Password",
+        description: "Please enter your new password below.",
+      });
+    }
+  }, [toast]);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -45,37 +73,126 @@ const Auth = () => {
     setPasswordErrors(errors);
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Passwords Don't Match",
+        description: "Please make sure both password fields match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
-      console.log('Sending password reset email to:', forgotPasswordEmail);
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
       });
-      
+
       if (error) {
-        console.error('Password reset error:', error);
         toast({
-          title: "Error",
+          title: "Password Reset Failed",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        toast({
+          title: "Password Reset Successful! ✅",
+          description: "Your password has been updated. You can now sign in with your new password.",
+        });
+        
+        // Clear the URL parameters and reset state
+        window.history.replaceState({}, document.title, "/auth");
+        setIsPasswordReset(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        setIsSignUp(false);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Password Reset Failed",
+        description: "Failed to update password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!forgotPasswordEmail) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      console.log('Sending password reset email to:', forgotPasswordEmail);
+      
+      // Use the current origin for the redirect URL
+      const redirectUrl = `${window.location.origin}/auth?type=recovery`;
+      console.log('Redirect URL:', redirectUrl);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: redirectUrl,
+      });
+      
+      if (error) {
+        console.error('Password reset error:', error);
+        
+        // Handle specific error types
+        if (error.message.includes('Email not found') || error.message.includes('User not found')) {
+          toast({
+            title: "Email Not Found",
+            description: "No account found with this email address. Please check your email or create a new account.",
+            variant: "destructive",
+          });
+        } else if (error.message.includes('rate limit')) {
+          toast({
+            title: "Too Many Requests",
+            description: "You've requested too many password resets. Please wait before trying again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Reset Error",
+            description: error.message || "Failed to send reset email. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } else {
         console.log('Password reset email sent successfully');
         toast({
-          title: "Reset Link Sent",
-          description: "Check your email for a password reset link. The link will redirect you back here to sign in.",
+          title: "Reset Link Sent! ✅",
+          description: "Check your email for a password reset link. The link will redirect you back here to set a new password.",
         });
         setShowForgotPassword(false);
         setForgotPasswordEmail("");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Password reset exception:', error);
       toast({
         title: "Error",
-        description: "Failed to send reset email. Please try again.",
+        description: "Failed to send reset email. Please check your internet connection and try again.",
         variant: "destructive",
       });
     } finally {
@@ -207,7 +324,7 @@ const Auth = () => {
       <div className="w-full max-w-6xl">
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
           {/* Left side - Robot and Avatar for Sign Up */}
-          {isSignUp && (
+          {isSignUp && !isPasswordReset && (
             <div className="flex-shrink-0 order-2 lg:order-1 lg:mr-8">
               <div className="relative flex justify-center animate-fade-in">
                 <div className="relative">
@@ -248,134 +365,197 @@ const Auth = () => {
             <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95">
               <CardHeader className="text-center pb-6">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {isSignUp ? "Join Multiple Sclerosis Support Community" : "Welcome Back to MS Support"}
+                  {isPasswordReset 
+                    ? "Reset Your Password" 
+                    : isSignUp 
+                      ? "Join Multiple Sclerosis Support Community" 
+                      : "Welcome Back to MS Support"
+                  }
                 </h1>
                 <CardDescription className="text-base mt-2">
-                  {isSignUp 
-                    ? "Create your account to start connecting with others who understand your journey" 
-                    : "Sign in to reconnect with your community"
+                  {isPasswordReset
+                    ? "Enter your new password below"
+                    : isSignUp 
+                      ? "Create your account to start connecting with others who understand your journey" 
+                      : "Sign in to reconnect with your community"
                   }
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-6 px-8 pb-8">
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  {isSignUp && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
+                {isPasswordReset ? (
+                  <form onSubmit={handlePasswordReset} className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword" className="text-sm font-medium">New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input 
-                          id="firstName" 
-                          placeholder="Sarah" 
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          required={isSignUp}
-                          className="h-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
-                        <Input 
-                          id="lastName" 
-                          placeholder="Johnson"
-                          value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
-                          required={isSignUp}
-                          className="h-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          id="newPassword" 
+                          type="password" 
+                          placeholder="Enter new password"
+                          className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
                         />
                       </div>
                     </div>
-                  )}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <Input 
-                        id="email" 
-                        type="email" 
-                        placeholder="sarah@example.com"
-                        className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input 
+                          id="confirmPassword" 
+                          type="password" 
+                          placeholder="Confirm new password"
+                          className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <Input 
-                        id="password" 
-                        type="password" 
-                        placeholder="••••••••"
-                        className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200" 
+                      size="lg" 
+                      disabled={loading || !newPassword || !confirmPassword}
+                    >
+                      {loading ? (
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                          Updating Password...
+                        </div>
+                      ) : (
+                        "Update Password"
+                      )}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-5">
                     {isSignUp && (
-                      <PasswordStrengthIndicator 
-                        password={password} 
-                        onValidationChange={handlePasswordValidation}
-                      />
-                    )}
-                  </div>
-
-                  {/* Rate limit warning */}
-                  {rateLimitMessage && (
-                    <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
-                      <AlertTriangle className="w-4 h-4 mr-2 flex-shrink-0" />
-                      {rateLimitMessage}
-                    </div>
-                  )}
-
-                  <Button 
-                    type="submit" 
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200" 
-                    size="lg" 
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                        Loading...
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
+                          <Input 
+                            id="firstName" 
+                            placeholder="Sarah" 
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            required={isSignUp}
+                            className="h-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
+                          <Input 
+                            id="lastName" 
+                            placeholder="Johnson"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            required={isSignUp}
+                            className="h-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </div>
                       </div>
-                    ) : (
-                      <>
-                        {isSignUp ? "Create Your Account" : "Sign In"}
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </>
                     )}
-                  </Button>
-                </form>
 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-gray-500">or</span>
-                  </div>
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input 
+                          id="email" 
+                          type="email" 
+                          placeholder="sarah@example.com"
+                          className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
 
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => setIsSignUp(!isSignUp)}
-                    className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                  >
-                    {isSignUp 
-                      ? "Already have an account? Sign in instead" 
-                      : "Don't have an account? Create one"
-                    }
-                  </button>
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input 
+                          id="password" 
+                          type="password" 
+                          placeholder="••••••••"
+                          className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+                      {isSignUp && (
+                        <PasswordStrengthIndicator 
+                          password={password} 
+                          onValidationChange={handlePasswordValidation}
+                        />
+                      )}
+                    </div>
 
-                {!isSignUp && !showForgotPassword && (
+                    {/* Rate limit warning */}
+                    {rateLimitMessage && (
+                      <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                        <AlertTriangle className="w-4 h-4 mr-2 flex-shrink-0" />
+                        {rateLimitMessage}
+                      </div>
+                    )}
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200" 
+                      size="lg" 
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                          Loading...
+                        </div>
+                      ) : (
+                        <>
+                          {isSignUp ? "Create Your Account" : "Sign In"}
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                )}
+
+                {!isPasswordReset && (
+                  <>
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-4 bg-white text-gray-500">or</span>
+                      </div>
+                    </div>
+
+                    <div className="text-center">
+                      <button
+                        type="button"
+                        onClick={() => setIsSignUp(!isSignUp)}
+                        className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                      >
+                        {isSignUp 
+                          ? "Already have an account? Sign in instead" 
+                          : "Don't have an account? Create one"
+                        }
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {!isSignUp && !showForgotPassword && !isPasswordReset && (
                   <div className="text-center">
                     <button 
                       type="button"
@@ -387,7 +567,7 @@ const Auth = () => {
                   </div>
                 )}
 
-                {showForgotPassword && (
+                {showForgotPassword && !isPasswordReset && (
                   <Card className="border-blue-200 bg-blue-50/50">
                     <CardContent className="p-4">
                       <form onSubmit={handleForgotPassword} className="space-y-4">
