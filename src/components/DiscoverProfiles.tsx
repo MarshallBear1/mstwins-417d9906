@@ -163,26 +163,56 @@ const DiscoverProfiles = () => {
           totalExcluded: excludedIds.length
         });
 
-        // Single optimized query with proper exclusions
-        let query = supabase.from('profiles').select('*');
+        // Fetch recently active profiles (within 2 days)
+        const twoDaysAgo = new Date();
+        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
         
-        if (excludedIds.length > 1) { // More than just current user
-          query = query.not('user_id', 'in', `(${excludedIds.join(',')})`);
+        let recentQuery = supabase.from('profiles').select('*');
+        let olderQuery = supabase.from('profiles').select('*');
+        
+        if (excludedIds.length > 1) {
+          recentQuery = recentQuery.not('user_id', 'in', `(${excludedIds.join(',')})`);
+          olderQuery = olderQuery.not('user_id', 'in', `(${excludedIds.join(',')})`);
         } else {
-          query = query.neq('user_id', user.id);
+          recentQuery = recentQuery.neq('user_id', user.id);
+          olderQuery = olderQuery.neq('user_id', user.id);
         }
 
-        const { data: profiles, error } = await query
-          .order('last_seen', { ascending: false, nullsFirst: false })
-          .limit(50);
+        // Get recently active profiles (last 2 days)
+        const recentProfiles = await recentQuery
+          .gte('last_seen', twoDaysAgo.toISOString())
+          .order('last_seen', { ascending: false })
+          .limit(25);
 
-        if (error) {
-          console.error('Error fetching profiles:', error);
+        // Get older profiles (2+ days ago or null)
+        const olderProfiles = await olderQuery
+          .or(`last_seen.lt.${twoDaysAgo.toISOString()},last_seen.is.null`)
+          .order('last_seen', { ascending: false, nullsFirst: true })
+          .limit(25);
+
+        if (recentProfiles.error || olderProfiles.error) {
+          console.error('Error fetching profiles:', recentProfiles.error || olderProfiles.error);
           return;
         }
 
-        console.log(`✅ Found ${profiles?.length || 0} available profiles`);
-        const processedProfiles = (profiles || []).map(profile => ({
+        // Mix profiles: alternate between recent and older
+        const mixedProfiles: any[] = [];
+        const recentList = recentProfiles.data || [];
+        const olderList = olderProfiles.data || [];
+        
+        const maxLength = Math.max(recentList.length, olderList.length);
+        for (let i = 0; i < maxLength; i++) {
+          if (i < recentList.length) {
+            mixedProfiles.push(recentList[i]);
+          }
+          if (i < olderList.length) {
+            mixedProfiles.push(olderList[i]);
+          }
+        }
+
+        console.log(`✅ Mixed discovery: ${recentList.length} recent + ${olderList.length} older = ${mixedProfiles.length} total profiles`);
+
+        const processedProfiles = mixedProfiles.map(profile => ({
           ...profile,
           selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as { question: string; answer: string; }[] : []
         }));
