@@ -17,6 +17,68 @@ interface MobileOptimizations {
   };
 }
 
+interface MobileTouchOptions {
+  disableContextMenu?: boolean;
+  disableCallout?: boolean;
+  disableUserSelect?: boolean;
+}
+
+// Touch optimizations hook
+export const useMobileTouchOptimizations = (options: MobileTouchOptions = {}) => {
+  const isMobile = useIsMobile();
+  const {
+    disableContextMenu = false,
+    disableCallout = true,
+    disableUserSelect = false,
+  } = options;
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    // Disable context menu on mobile to prevent accidental image saves
+    const handleContextMenu = (e: Event) => {
+      if (disableContextMenu) {
+        e.preventDefault();
+      }
+    };
+
+    // Apply touch optimizations
+    if (disableCallout) {
+      (document.body.style as any).webkitTouchCallout = 'none';
+    }
+
+    if (disableUserSelect) {
+      (document.body.style as any).webkitUserSelect = 'none';
+      document.body.style.userSelect = 'none';
+    }
+
+    // Enable hardware acceleration for smooth animations
+    (document.body.style as any).webkitTransform = 'translateZ(0)';
+    document.body.style.transform = 'translateZ(0)';
+
+    // Optimized touch-action for better scrolling
+    document.body.style.touchAction = 'pan-y pinch-zoom';
+    
+    // Remove tap highlight
+    (document.body.style as any).webkitTapHighlightColor = 'transparent';
+
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      
+      // Cleanup styles
+      (document.body.style as any).webkitTouchCallout = '';
+      (document.body.style as any).webkitUserSelect = '';
+      document.body.style.userSelect = '';
+      (document.body.style as any).webkitTransform = '';
+      document.body.style.transform = '';
+      document.body.style.touchAction = '';
+      (document.body.style as any).webkitTapHighlightColor = '';
+    };
+  }, [isMobile, disableContextMenu, disableCallout, disableUserSelect]);
+};
+
 export const useMobileOptimizations = (): MobileOptimizations => {
   const isMobile = useIsMobile();
   const [isIOS, setIsIOS] = useState(false);
@@ -85,13 +147,21 @@ export const useMobileOptimizations = (): MobileOptimizations => {
 
     // iOS specific optimizations
     if (isIOS) {
-      // Prevent elastic bounce but allow scrolling
+      // Prevent elastic bounce but allow normal scrolling
       document.body.style.overscrollBehavior = 'none';
       
-      // Allow scrolling in specific containers
-      const scrollableElements = document.querySelectorAll('.mobile-scroll');
+      // Enable smooth scrolling for profile cards
+      const profileCards = document.querySelectorAll('.profile-content-scroll');
+      profileCards.forEach(element => {
+        ((element as HTMLElement).style as any).webkitOverflowScrolling = 'touch';
+        (element as HTMLElement).style.overscrollBehavior = 'contain';
+      });
+      
+      // Allow scrolling in all mobile-scroll containers
+      const scrollableElements = document.querySelectorAll('.mobile-scroll, .profile-content-scroll');
       scrollableElements.forEach(element => {
         element.addEventListener('touchstart', () => {}, { passive: true });
+        element.addEventListener('touchmove', () => {}, { passive: true });
       });
     }
 

@@ -10,7 +10,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { analytics } from "./lib/analytics";
 import OptimizedIndex from "./pages/OptimizedIndex";
 import MobileStatusBar from "./components/MobileStatusBar";
-import MobileTouchOptimizations from "./components/MobileTouchOptimizations";
+import MobileOptimizationsProvider from "./components/MobileOptimizationsProvider";
 import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
 import { SecurityEnhancements } from "./components/SecurityEnhancements";
 import { NativeCapabilities } from "./hooks/useNativeCapabilities";
@@ -83,7 +83,7 @@ const App = () => (
           <SecurityEnhancements />
           <NativeCapabilities />
           <MobileStatusBar theme="light" color="#2563eb" />
-          <MobileTouchOptimizations disableContextMenu={true} />
+          <MobileOptimizationsProvider disableContextMenu={true} />
           <AccessibilityEnhancements />
           <Toaster />
           <Sonner />
