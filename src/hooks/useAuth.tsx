@@ -175,11 +175,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Sign In Error",
-          description: error.message,
-        });
+        // Don't show toast here, let the calling component handle it
         return { error };
       }
 
@@ -195,11 +191,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { error: null };
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Sign In Error",
-        description: error.message,
-      });
+      // Don't show toast here, let the calling component handle it
       return { error };
     }
   };

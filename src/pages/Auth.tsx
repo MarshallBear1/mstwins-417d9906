@@ -11,6 +11,7 @@ import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicato
 import { SecurityEnhancements, useSecurityMonitoring } from "@/components/SecurityEnhancements";
 import { checkLoginRateLimit, logFailedLogin, clearFailedLogins } from "@/lib/security";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(true); // Default to sign up
@@ -22,6 +23,8 @@ const Auth = () => {
   const [passwordValid, setPasswordValid] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [rateLimitMessage, setRateLimitMessage] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
@@ -40,6 +43,40 @@ const Auth = () => {
   const handlePasswordValidation = (isValid: boolean, errors: string[]) => {
     setPasswordValid(isValid);
     setPasswordErrors(errors);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Reset Link Sent",
+          description: "Check your email for a password reset link.",
+        });
+        setShowForgotPassword(false);
+        setForgotPasswordEmail("");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send reset email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,13 +117,11 @@ const Auth = () => {
             description: "Please check your email to verify your account.",
           });
         } else {
-          await signIn(email, password);
-          // Clear failed login attempts on successful login
-          await clearFailedLogins(email);
-          toast({
-            title: "Welcome back!",
-            description: "Successfully signed in to your account.",
-          });
+          const result = await signIn(email, password);
+          if (!result.error) {
+            // Clear failed login attempts on successful login
+            await clearFailedLogins(email);
+          }
         }
       } catch (authError: any) {
         console.error('Authentication error:', authError);
@@ -96,10 +131,24 @@ const Auth = () => {
           await logFailedLogin(email);
         }
 
-        // Show user-friendly error message
-        const errorMessage = authError?.message || 'Authentication failed. Please try again.';
+        // Show user-friendly error message based on error type
+        let errorMessage = 'Authentication failed. Please try again.';
+        if (!isSignUp) {
+          // For sign-in, provide more specific error messages
+          if (authError?.message?.includes('Invalid login credentials') || 
+              authError?.message?.includes('invalid_credentials')) {
+            errorMessage = 'Incorrect email or password. Please check your credentials and try again.';
+          } else if (authError?.message?.includes('Email not confirmed')) {
+            errorMessage = 'Please check your email and click the verification link before signing in.';
+          } else {
+            errorMessage = authError?.message || errorMessage;
+          }
+        } else {
+          errorMessage = authError?.message || errorMessage;
+        }
+        
         toast({
-          title: isSignUp ? "Sign Up Failed" : "Sign In Failed",
+          title: isSignUp ? "Sign Up Failed" : "Sign In Failed", 
           description: errorMessage,
           variant: "destructive"
         });
@@ -295,12 +344,68 @@ const Auth = () => {
                   </button>
                 </div>
 
-                {!isSignUp && (
+                {!isSignUp && !showForgotPassword && (
                   <div className="text-center">
-                    <button className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <button 
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
                       Forgot your password?
                     </button>
                   </div>
+                )}
+
+                {showForgotPassword && (
+                  <Card className="border-blue-200 bg-blue-50/50">
+                    <CardContent className="p-4">
+                      <form onSubmit={handleForgotPassword} className="space-y-4">
+                        <div className="text-center">
+                          <h3 className="font-medium text-gray-900 mb-1">Reset Password</h3>
+                          <p className="text-sm text-gray-600">Enter your email to receive a reset link</p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="resetEmail" className="text-sm font-medium">Email Address</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input 
+                              id="resetEmail" 
+                              type="email" 
+                              placeholder="Enter your email"
+                              className="h-10 pl-10"
+                              value={forgotPasswordEmail}
+                              onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => {
+                              setShowForgotPassword(false);
+                              setForgotPasswordEmail("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            type="submit" 
+                            size="sm"
+                            className="flex-1"
+                            disabled={loading || !forgotPasswordEmail}
+                          >
+                            {loading ? "Sending..." : "Send Reset Link"}
+                          </Button>
+                        </div>
+                      </form>
+                    </CardContent>
+                  </Card>
                 )}
               </CardContent>
             </Card>
