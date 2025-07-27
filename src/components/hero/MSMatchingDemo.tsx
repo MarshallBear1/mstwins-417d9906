@@ -44,19 +44,19 @@ const MSMatchingDemo = memo(() => {
   }, []);
 
   return (
-    <div className="relative max-w-lg mx-auto animate-fade-in">
+    <div className="relative w-full max-w-xs sm:max-w-sm mx-auto animate-fade-in px-4">
       {/* Profile Matching Animation */}
-      <div className="relative h-64 sm:h-80 flex items-center justify-center overflow-hidden">
+      <div className="relative h-48 sm:h-64 flex items-center justify-center overflow-hidden">
         {/* Left Profile (You) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[-80px] sm:translate-x-[-120px] lg:translate-x-[-180px]' : 'translate-x-0'
+          step >= 1 ? 'translate-x-[-50px] sm:translate-x-[-70px]' : 'translate-x-0'
         }`}>
           <ProfileCard profile={profiles[1]} isYou={true} />
         </div>
 
         {/* Right Profile (Sarah) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[80px] sm:translate-x-[120px] lg:translate-x-[180px] opacity-100' : 'translate-x-[150px] sm:translate-x-[200px] opacity-0'
+          step >= 1 ? 'translate-x-[50px] sm:translate-x-[70px] opacity-100' : 'translate-x-[80px] sm:translate-x-[120px] opacity-0'
         }`}>
           <ProfileCard profile={profiles[0]} />
         </div>
@@ -171,10 +171,10 @@ const MSMatchingDemo = memo(() => {
 
 const ProfileCard = ({ profile, isYou = false }: { profile: any; isYou?: boolean }) => {
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden w-28 sm:w-32 lg:w-36 hover:shadow-xl transition-shadow">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden w-24 sm:w-28 hover:shadow-xl transition-shadow">
       {/* Avatar */}
-      <div className="relative h-20 sm:h-24 bg-gradient-to-br from-blue-400 to-teal-300 flex items-center justify-center">
-        <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-white">
+      <div className="relative h-16 sm:h-20 bg-gradient-to-br from-blue-400 to-teal-300 flex items-center justify-center">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white">
           <img 
             src={profile.avatar} 
             alt={profile.name}
@@ -183,41 +183,41 @@ const ProfileCard = ({ profile, isYou = false }: { profile: any; isYou?: boolean
           />
         </div>
         {isYou && (
-          <div className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded">
+          <div className="absolute top-0.5 right-0.5 bg-blue-600 text-white text-xs px-1 py-0.5 rounded">
             You
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-2 sm:p-3 space-y-1 sm:space-y-2">
+      <div className="p-1.5 sm:p-2 space-y-1">
         <div className="text-center">
-          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{profile.name}</h3>
-          <span className="text-xs sm:text-sm text-gray-600">{profile.age}</span>
+          <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">{profile.name}</h3>
+          <span className="text-xs text-gray-600">{profile.age}</span>
         </div>
 
-        <div className="space-y-1">
-          <div className="flex items-center gap-1 text-gray-600">
-            <MapPin className="w-3.5 h-3.5" />
-            <span className="text-xs truncate">{profile.location}</span>
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1 text-gray-600 justify-center">
+            <MapPin className="w-2.5 h-2.5" />
+            <span className="text-xs truncate">{profile.location.split(',')[0]}</span>
           </div>
-          <div className="flex items-center gap-1 text-gray-600">
-            <Calendar className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1 text-gray-600 justify-center">
+            <Calendar className="w-2.5 h-2.5" />
             <span className="text-xs">{profile.diagnosedYear}</span>
           </div>
         </div>
 
         <div className="text-center">
-          <Badge className="bg-blue-100 text-blue-700 text-xs px-2 py-1">
+          <Badge className="bg-blue-100 text-blue-700 text-xs px-1 py-0.5">
             {profile.msType}
           </Badge>
         </div>
 
-        <div className="flex flex-wrap gap-1 justify-center">
+        <div className="flex flex-wrap gap-0.5 justify-center">
           {profile.interests.slice(0, 2).map((interest: string, index: number) => (
             <span 
               key={index}
-              className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+              className="text-xs bg-gray-100 text-gray-600 px-1 py-0.5 rounded"
             >
               {interest}
             </span>
