@@ -2,6 +2,12 @@ import React, { useEffect } from 'react';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useLocalNotifications } from '@/hooks/useLocalNotifications';
 import { useNativePushNotifications } from '@/hooks/useNativePushNotifications';
+import { useCamera } from '@/hooks/useCamera';
+import { useLocation } from '@/hooks/useLocation';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { useShare } from '@/hooks/useShare';
+import { useAppState } from '@/hooks/useAppState';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useNativeDevice } from '@/hooks/useNativeDevice';
 import { useToast } from '@/hooks/use-toast';
 
