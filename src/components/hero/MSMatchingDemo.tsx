@@ -44,19 +44,19 @@ const MSMatchingDemo = memo(() => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto animate-fade-in px-4">
+    <div className="relative w-full max-w-4xl mx-auto animate-fade-in px-4">
       {/* Profile Matching Animation */}
       <div className="relative h-48 sm:h-64 flex items-center justify-center overflow-visible">
         {/* Left Profile (You) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[-100px] sm:translate-x-[-120px]' : 'translate-x-0'
+          step >= 1 ? 'translate-x-[-150px]' : 'translate-x-0'
         }`}>
           <ProfileCard profile={profiles[1]} isYou={true} />
         </div>
 
         {/* Right Profile (Sarah) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[100px] sm:translate-x-[120px] opacity-100' : 'translate-x-[150px] sm:translate-x-[200px] opacity-0'
+          step >= 1 ? 'translate-x-[150px] opacity-100' : 'translate-x-[200px] opacity-0'
         }`}>
           <ProfileCard profile={profiles[0]} />
         </div>
