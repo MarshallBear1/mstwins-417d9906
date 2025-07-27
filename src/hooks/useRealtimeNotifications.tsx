@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface Notification {
   id: string;
@@ -17,6 +18,7 @@ interface Notification {
 export const useRealtimeNotifications = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { message: hapticMessage, match: hapticMatch, like: hapticLike, isSupported: hapticsSupported } = useHaptics();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false);
@@ -177,6 +179,17 @@ export const useRealtimeNotifications = () => {
               description: newNotification.message,
               duration: 4000,
             });
+
+            // Add haptic feedback for notifications
+            if (hapticsSupported) {
+              if (newNotification.type === 'match') {
+                hapticMatch();
+              } else if (newNotification.type === 'like') {
+                hapticLike();
+              } else if (newNotification.type === 'message') {
+                hapticMessage();
+              }
+            }
 
             // Show browser notification
             showBrowserNotification(newNotification.title, newNotification.message, newNotification.type);

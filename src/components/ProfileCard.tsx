@@ -291,7 +291,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
 
   return (
     <div className="p-6">
-      <div className="max-w-md mx-auto" style={{ perspective: '1000px' }}>
+      <div className="max-w-sm mx-auto" style={{ perspective: '1000px' }}>
         <div 
           className={`relative w-full transition-transform duration-700`}
           style={{ 
