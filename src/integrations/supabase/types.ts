@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_active: boolean
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          session_token?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_likes: {
         Row: {
           created_at: string
@@ -612,6 +645,10 @@ export type Database = {
         Args: { email_input: string }
         Returns: undefined
       }
+      create_admin_session: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       enhanced_rate_limit_check: {
         Args: {
           user_id_param: string
@@ -624,6 +661,22 @@ export type Database = {
       get_api_version: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_feedback_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          user_id: string
+          type: string
+          subject: string
+          message: string
+          email: string
+          priority: string
+          status: string
+          admin_notes: string
+          created_at: string
+          updated_at: string
+        }[]
       }
       get_remaining_likes_today: {
         Args: Record<PropertyKey, never>
@@ -680,13 +733,29 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      revoke_admin_session: {
+        Args: { session_token: string }
+        Returns: boolean
+      }
       trigger_email_queue_processing: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      update_feedback_admin: {
+        Args: {
+          feedback_id: string
+          new_status: string
+          new_admin_notes?: string
+        }
+        Returns: boolean
+      }
       update_user_last_seen: {
         Args: { user_id_param: string }
         Returns: undefined
+      }
+      validate_admin_session: {
+        Args: { session_token: string }
+        Returns: Json
       }
       validate_email: {
         Args: { email_input: string }
