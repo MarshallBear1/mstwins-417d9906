@@ -119,14 +119,6 @@ export const useBackgroundSync = () => {
     localStorage.setItem('sync_queue', JSON.stringify(syncQueueRef.current));
 
     isProcessingRef.current = false;
-
-    // Show success message if items were synced
-    if (processedItems.length > 0) {
-      toast({
-        title: "Sync Complete",
-        description: `${processedItems.length} items synced successfully.`,
-      });
-    }
   }, [isOnline, user, toast]);
 
   // Load sync queue from localStorage on mount
