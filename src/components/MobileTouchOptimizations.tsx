@@ -39,8 +39,8 @@ const MobileTouchOptimizations = ({
     (document.body.style as any).webkitTransform = 'translateZ(0)';
     document.body.style.transform = 'translateZ(0)';
 
-    // Add touch-action optimization
-    document.body.style.touchAction = 'manipulation';
+    // Add touch-action optimization - allow pan-y for scrolling
+    document.body.style.touchAction = 'pan-y pinch-zoom';
 
     // Add webkit optimization for iOS
     (document.body.style as any).webkitTapHighlightColor = 'transparent';
