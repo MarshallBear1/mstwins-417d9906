@@ -1,13 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.7940c4cb942f48c4aaf23eeabcbd074e',
+  appId: 'com.mstwin.app',
   appName: 'mstwins',
   webDir: 'dist',
-  server: {
-    url: 'https://7940c4cb-942f-48c4-aaf2-3eeabcbd074e.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 3000,
@@ -44,7 +40,6 @@ const config: CapacitorConfig = {
       // Network monitoring is enabled by default
     }
   },
-  // iOS specific configuration
   ios: {
     scheme: 'mstwins',
     contentInset: 'automatic',
@@ -55,7 +50,6 @@ const config: CapacitorConfig = {
     allowsLinkPreview: false,
     handleApplicationNotifications: true
   },
-  // Android specific configuration
   android: {
     buildOptions: {
       keystorePath: undefined,
