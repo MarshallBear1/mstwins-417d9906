@@ -7,10 +7,20 @@ import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isMobile, safeAreaInsets } = useMobileOptimizations();
-  return <header 
-      className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm"
-      style={{ paddingTop: isMobile ? `max(0.5rem, ${safeAreaInsets.top}px)` : undefined }}
-    >
+  return (
+    <>
+      {/* Skip Navigation Link for Accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-[60] bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium"
+        data-skip-link
+      >
+        Skip to main content
+      </a>
+      <header 
+        className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm"
+        style={{ paddingTop: isMobile ? `max(0.5rem, ${safeAreaInsets.top}px)` : undefined }}
+      >
       <div className="container mx-auto mobile-safe-x lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -84,6 +94,9 @@ const Header = () => {
             </div>
           </div>}
       </div>
-    </header>;
+    </header>
+    </>
+  );
 };
+
 export default Header;

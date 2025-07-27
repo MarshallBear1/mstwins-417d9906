@@ -48,7 +48,12 @@ const config: CapacitorConfig = {
   ios: {
     scheme: 'mstwins',
     contentInset: 'automatic',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
+    automaticallySyncProvisioningProfile: false,
+    limitsNavigationsToAppBoundDomains: true,
+    scrollEnabled: true,
+    allowsLinkPreview: false,
+    handleApplicationNotifications: true
   },
   // Android specific configuration
   android: {

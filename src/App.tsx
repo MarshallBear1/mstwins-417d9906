@@ -11,6 +11,7 @@ import { analytics } from "./lib/analytics";
 import OptimizedIndex from "./pages/OptimizedIndex";
 import MobileStatusBar from "./components/MobileStatusBar";
 import MobileOptimizationsProvider from "./components/MobileOptimizationsProvider";
+import IOSEnhancements from "./components/IOSEnhancements";
 import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
 import { SecurityEnhancements } from "./components/SecurityEnhancements";
 import { NativeCapabilities } from "./hooks/useNativeCapabilities";
@@ -84,6 +85,7 @@ const App = () => (
           <NativeCapabilities />
           <MobileStatusBar theme="light" color="#2563eb" />
           <MobileOptimizationsProvider disableContextMenu={true} />
+          <IOSEnhancements />
           <AccessibilityEnhancements />
           <Toaster />
           <Sonner />

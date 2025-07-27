@@ -25,14 +25,14 @@ const LoadingSpinner = () => (
 const OptimizedIndex = () => {
   return (
     <div className="min-h-screen mobile-safe-bottom">
-      <SEO 
+      <SEO
         title="MSTwins - Multiple Sclerosis Support Community | Connect with Others Living with MS"
         description="Join MSTwins, the supportive community for people living with Multiple Sclerosis. Connect, share experiences, and find friendship with others who understand your MS journey."
         canonical="https://mstwins.com/"
       />
       <CriticalCSS />
       <Header />
-      <main>
+      <main id="main-content" data-main-content className="ios-scroll">
         <OptimizedHero />
         <div id="how-it-works">
           <Suspense fallback={<LoadingSpinner />}>
