@@ -13,7 +13,8 @@ import Messaging from "@/components/Messaging";
 import ProfileCard from "@/components/ProfileCard";
 import ReferralDropdown from "@/components/ReferralDropdown";
 import FeedbackDialog from "@/components/FeedbackDialog";
-import ProfileViewDialog from "@/components/ProfileViewDialog";
+import DiscoverProfileCard from "@/components/DiscoverProfileCard";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
@@ -526,7 +527,15 @@ const Dashboard = () => {
       </div>
 
       {/* Profile View Dialog */}
-      <ProfileViewDialog profile={selectedProfileForView} open={showProfileView} onOpenChange={setShowProfileView} showActions={false} />
+      <Dialog open={showProfileView} onOpenChange={setShowProfileView}>
+        <DialogContent className="p-0 max-w-md w-full h-[80vh] overflow-hidden">
+          {selectedProfileForView && (
+            <div className="h-full overflow-y-auto">
+              <DiscoverProfileCard profile={selectedProfileForView} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       </div>
     </MobileKeyboardHandler>;
 };
