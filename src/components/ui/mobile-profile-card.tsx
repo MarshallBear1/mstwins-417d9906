@@ -89,7 +89,7 @@ export const MobileProfileCard = ({
 
 
   return (
-    <div className={cn("flip-card-container profile-card-mobile mx-auto", className)} style={{ minHeight: '350px', width: '100%', maxWidth: '320px', display: 'block', visibility: 'visible', position: 'relative' }}>
+    <div className={cn("flip-card-container profile-card-mobile mx-auto", className)} style={{ minHeight: '320px', width: '100%', maxWidth: '300px', display: 'block', visibility: 'visible', position: 'relative' }}>
       <div className={cn("flip-card-inner", isFlipped && "rotate-y-180")} style={{ width: '100%', height: '100%', position: 'relative' }}>
         {/* Front Side */}
         <Card className="flip-card-face shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white border border-gray-200" style={{ width: '100%', height: '100%', position: 'relative', display: 'block' }}>
@@ -121,7 +121,7 @@ export const MobileProfileCard = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsFlipped(!isFlipped)}
-                className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg mobile-touch-target"
+                className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg mobile-touch-target animate-pulse"
               >
                 <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
               </Button>
@@ -138,7 +138,7 @@ export const MobileProfileCard = ({
           </div>
 
           {/* Content */}
-          <CardContent className="p-3 profile-content-scroll">
+          <CardContent className="p-2 profile-content-scroll">
             {/* Header Info */}
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-bold truncate flex-1 mr-2">
