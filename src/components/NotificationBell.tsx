@@ -65,7 +65,7 @@ const NotificationBell = () => {
           <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowNotifications(false)} />
           
           {/* Notifications Panel - Fixed mobile positioning */}
-          <Card className="absolute right-0 top-12 w-[calc(100vw-2rem)] sm:w-96 max-h-[60vh] z-50 shadow-lg border bg-background backdrop-blur-md left-1/2 transform -translate-x-1/2 sm:left-auto sm:transform-none sm:translate-x-0 mx-4 sm:mx-0">{/* Fixed mobile positioning and sizing */}
+          <Card className="absolute top-12 w-[calc(100vw-2rem)] sm:w-96 max-h-[60vh] z-50 shadow-lg border bg-background backdrop-blur-md left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0">{/* Fixed mobile centering */}
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="text-sm font-medium">Notifications</CardTitle>
               <div className="flex items-center gap-2">
