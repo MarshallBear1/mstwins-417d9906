@@ -12,8 +12,9 @@ export const PatrickFeedbackEmail = () => {
     setIsSending(true);
     
     try {
-      const { error } = await supabase.functions.invoke('send-patrick-feedback-email', {
+      const { error } = await supabase.functions.invoke('admin-email-operations', {
         body: {
+          operation: 'send-patrick-feedback-email',
           email: 'patrickelsner@hotmail.com',
           firstName: 'Patrick'
         }

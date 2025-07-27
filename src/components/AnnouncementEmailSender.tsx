@@ -24,8 +24,9 @@ const AnnouncementEmailSender = () => {
 
     setIsPreviewSending(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-announcement-email', {
+      const { data, error } = await supabase.functions.invoke('admin-email-operations', {
         body: {
+          operation: 'send-announcement-email',
           preview_only: true,
           preview_email: previewEmail
         }
@@ -58,8 +59,9 @@ const AnnouncementEmailSender = () => {
 
     setIsSendingAll(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-announcement-email', {
+      const { data, error } = await supabase.functions.invoke('admin-email-operations', {
         body: {
+          operation: 'send-announcement-email',
           preview_only: false
         }
       });

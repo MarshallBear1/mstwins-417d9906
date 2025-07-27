@@ -31,8 +31,9 @@ export const EmailManagement = () => {
 
     setIsPreviewSending(true);
     try {
-      const { error } = await supabase.functions.invoke('send-announcement-email', {
+      const { error } = await supabase.functions.invoke('admin-email-operations', {
         body: {
+          operation: 'send-announcement-email',
           email: previewEmail,
           firstName: 'Preview User',
           referralLink: 'https://sharedgenes.lovable.app/?ref=preview',
@@ -59,8 +60,9 @@ export const EmailManagement = () => {
 
     setIsSendingAll(true);
     try {
-      const { error } = await supabase.functions.invoke('send-announcement-email', {
+      const { error } = await supabase.functions.invoke('admin-email-operations', {
         body: {
+          operation: 'send-announcement-email',
           sendToAll: true,
           referralLink: 'https://sharedgenes.lovable.app/?ref=announcement',
           feedbackLink: 'https://sharedgenes.lovable.app/feedback'
@@ -87,8 +89,9 @@ export const EmailManagement = () => {
     try {
       console.log("Attempting to send Day 2 email to:", targetEmail);
       
-      const { data, error } = await supabase.functions.invoke('send-day2-email', {
+      const { data, error } = await supabase.functions.invoke('admin-email-operations', {
         body: {
+          operation: 'send-day2-email',
           email: targetEmail,
           firstName: 'Marshall'
         }
@@ -121,8 +124,10 @@ export const EmailManagement = () => {
     try {
       console.log("Sending Day 2 emails to all eligible users...");
       
-      const { data, error } = await supabase.functions.invoke('send-day2-all-users', {
-        body: {}
+      const { data, error } = await supabase.functions.invoke('admin-email-operations', {
+        body: {
+          operation: 'send-day2-all-users'
+        }
       });
 
       console.log("Day 2 all users response:", { data, error });
@@ -145,8 +150,9 @@ export const EmailManagement = () => {
   const sendEmailToPatrick = async () => {
     setIsPatrickSending(true);
     try {
-      const { error } = await supabase.functions.invoke('send-patrick-feedback-email', {
+      const { error } = await supabase.functions.invoke('admin-email-operations', {
         body: {
+          operation: 'send-patrick-feedback-email',
           email: 'patrickelsner@hotmail.com',
           firstName: 'Patrick'
         }

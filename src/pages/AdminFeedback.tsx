@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
-import { formatDistanceToNow } from "date-fns";
-import { ArrowLeft, Mail, MessageSquare, Clock, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut } from "lucide-react";
 import { EmailManagement } from "@/components/EmailManagement";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { AdminLogin } from "@/components/AdminLogin";
+import { formatDistanceToNow } from "date-fns";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 interface Feedback {
   id: string;
@@ -50,64 +52,34 @@ const typeColors = {
 };
 
 export default function AdminFeedback() {
+  const { isAdminAuthenticated, adminLoading, revokeAdminSession } = useAdminAuth();
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
-  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
-    // Check if user is already authenticated via localStorage
-    const isAuth = localStorage.getItem('admin_authenticated') === 'true';
-    setIsAuthenticated(isAuth);
-    if (isAuth) {
+    if (isAdminAuthenticated) {
       fetchFeedback();
-    } else {
+    } else if (!adminLoading) {
       setLoading(false);
     }
-  }, []);
+  }, [isAdminAuthenticated, adminLoading]);
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const correctPassword = "SharedGenes2025";
-    
-    if (passwordInput === correctPassword) {
-      setIsAuthenticated(true);
-      localStorage.setItem('admin_authenticated', 'true');
-      setPasswordError("");
-      fetchFeedback();
-    } else {
-      setPasswordError("Incorrect password");
-      setPasswordInput("");
-    }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('admin_authenticated');
-    setPasswordInput("");
-    setPasswordError("");
+  const handleLogout = async () => {
+    await revokeAdminSession();
   };
 
   const fetchFeedback = async () => {
     try {
-      const { data, error } = await supabase
-        .from("feedback")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc('get_feedback_admin');
 
       if (error) throw error;
       setFeedback(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching feedback:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load feedback",
-        variant: "destructive",
-      });
+      toast.error("Failed to fetch feedback: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -115,41 +87,25 @@ export default function AdminFeedback() {
 
   const updateFeedbackStatus = async (id: string, status: string, notes?: string) => {
     try {
-      const updateData: any = { status };
-      if (notes !== undefined) {
-        updateData.admin_notes = notes;
-      }
-
-      const { error } = await supabase
-        .from("feedback")
-        .update(updateData)
-        .eq("id", id);
+      const { error } = await supabase.rpc('update_feedback_admin', {
+        feedback_id: id,
+        new_status: status,
+        new_admin_notes: notes
+      });
 
       if (error) throw error;
 
-      setFeedback(prev => 
-        prev.map(item => 
-          item.id === id 
-            ? { ...item, status, admin_notes: notes || item.admin_notes }
-            : item
-        )
-      );
-
-      if (selectedFeedback?.id === id) {
-        setSelectedFeedback(prev => prev ? { ...prev, status, admin_notes: notes || prev.admin_notes } : null);
-      }
-
-      toast({
-        title: "Updated",
-        description: "Feedback status updated successfully",
-      });
-    } catch (error) {
+      setFeedback(prev => prev.map(item => 
+        item.id === id 
+          ? { ...item, status, admin_notes: notes || item.admin_notes, updated_at: new Date().toISOString() }
+          : item
+      ));
+      
+      setSelectedFeedback(prev => prev ? { ...prev, status, admin_notes: notes || prev.admin_notes } : null);
+      toast.success("Feedback updated successfully");
+    } catch (error: any) {
       console.error("Error updating feedback:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update feedback",
-        variant: "destructive",
-      });
+      toast.error("Failed to update feedback: " + error.message);
     }
   };
 
@@ -158,32 +114,24 @@ export default function AdminFeedback() {
       const action = sendToAll ? 'all users' : 'test email only';
       console.log(`🚀 Triggering day 3 email function for ${action}...`);
       
-      const { data, error } = await supabase.functions.invoke('send-day3-all-users', {
-        body: { sendToAll }
+      const { data, error } = await supabase.functions.invoke('admin-email-operations', {
+        body: { 
+          operation: 'send-day3-all-users',
+          sendToAll 
+        }
       });
 
       if (error) {
         console.error('❌ Error calling day 3 email function:', error);
-        toast({
-          title: "Error",
-          description: `Failed to trigger day 3 emails: ${error.message}`,
-          variant: "destructive",
-        });
+        toast.error(`Failed to trigger day 3 emails: ${error.message}`);
         return;
       }
 
       console.log('✅ Day 3 email function completed:', data);
-      toast({
-        title: "Day 3 Emails Triggered",
-        description: `Successfully triggered day 3 emails for ${action}. Check function logs for details.`,
-      });
+      toast.success(`Successfully triggered day 3 emails for ${action}. Check function logs for details.`);
     } catch (error: any) {
       console.error('❌ Unexpected error:', error);
-      toast({
-        title: "Error",
-        description: `Unexpected error: ${error.message}`,
-        variant: "destructive",
-      });
+      toast.error(`Unexpected error: ${error.message}`);
     }
   };
 
@@ -191,8 +139,9 @@ export default function AdminFeedback() {
     try {
       console.log('🧪 Sending test day 3 email...');
       
-      const { data, error } = await supabase.functions.invoke('send-day3-email', {
+      const { data, error } = await supabase.functions.invoke('admin-email-operations', {
         body: {
+          operation: 'send-day3-email',
           email: "marshallgould303030@gmail.com",
           first_name: "Marshall",
         }
@@ -200,26 +149,15 @@ export default function AdminFeedback() {
 
       if (error) {
         console.error('❌ Error sending test email:', error);
-        toast({
-          title: "Error",
-          description: `Failed to send test email: ${error.message}`,
-          variant: "destructive",
-        });
+        toast.error(`Failed to send test email: ${error.message}`);
         return;
       }
 
       console.log('✅ Test email sent successfully:', data);
-      toast({
-        title: "Test Email Sent",
-        description: "Test day 3 email sent successfully to marshallgould303030@gmail.com",
-      });
+      toast.success("Test day 3 email sent successfully to marshallgould303030@gmail.com");
     } catch (error: any) {
       console.error('❌ Unexpected error:', error);
-      toast({
-        title: "Error",
-        description: `Unexpected error: ${error.message}`,
-        variant: "destructive",
-      });
+      toast.error(`Unexpected error: ${error.message}`);
     }
   };
 
@@ -227,59 +165,17 @@ export default function AdminFeedback() {
     statusFilter === "all" || item.status === statusFilter
   );
 
-  // Show password form if not authenticated
-  if (!isAuthenticated) {
+  if (adminLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Admin Access Required</CardTitle>
-            <CardDescription>
-              Please enter the admin password to access the feedback management system.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div>
-                <Input
-                  type="password"
-                  placeholder="Enter admin password"
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  className={passwordError ? "border-destructive" : ""}
-                />
-                {passwordError && (
-                  <p className="text-sm text-destructive mt-1">{passwordError}</p>
-                )}
-              </div>
-              <Button type="submit" className="w-full">
-                Access Admin Panel
-              </Button>
-              <Button type="button" variant="outline" className="w-full" asChild>
-                <Link to="/">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to App
-                </Link>
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/4"></div>
-            <div className="h-32 bg-muted rounded"></div>
-            <div className="h-32 bg-muted rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
+  // Show admin login if not authenticated
+  if (!isAdminAuthenticated) {
+    return <AdminLogin />;
   }
 
   return (
@@ -313,6 +209,7 @@ export default function AdminFeedback() {
                 </SelectContent>
               </Select>
               <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </Button>
             </div>
@@ -465,77 +362,55 @@ export default function AdminFeedback() {
                         </div>
                         {selectedFeedback.email && (
                           <div>
-                            <strong>Email:</strong> {selectedFeedback.email}
+                            <strong>Contact:</strong> {selectedFeedback.email}
                           </div>
                         )}
                       </div>
                     </CardContent>
                   </Card>
                 ) : (
-                  <Card>
-                    <CardContent className="flex items-center justify-center h-48">
-                      <div className="text-center">
-                        <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-muted-foreground">Select feedback to view details</p>
-                      </div>
+                  <Card className="sticky top-6">
+                    <CardContent className="flex items-center justify-center h-32">
+                      <p className="text-muted-foreground">Select feedback to view details</p>
                     </CardContent>
                   </Card>
                 )}
               </div>
             </div>
           </TabsContent>
-          
-          <TabsContent value="emails" className="space-y-6">
-            <div className="grid gap-6">
+
+          <TabsContent value="emails" className="mt-6">
+            <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Day 3 Email Campaign</CardTitle>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Mail className="h-5 w-5" />
+                    <span>Day 3 Email Campaign</span>
+                  </CardTitle>
                   <CardDescription>
-                    Send day 3 update emails to users. Choose between test mode or sending to all verified users.
+                    Send day 3 re-engagement emails to users. Test first, then send to all eligible users.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid gap-3">
-                    <Button 
-                      onClick={handleSendTestEmail}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      Send Test Email (to marshallgould303030@gmail.com)
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button onClick={handleSendTestEmail} variant="outline">
+                      Send Test Email
                     </Button>
-                    
-                    <Button 
-                      onClick={() => handleSendDay3Email(true)}
-                      className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      🚨 Send to ALL Users (LIVE) 🚨
+                    <Button onClick={() => handleSendDay3Email(false)} variant="outline">
+                      Send to Test Group
                     </Button>
-                  </div>
-                  
-                  <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
-                    <p><strong>Test Email:</strong> Sends to marshallgould303030@gmail.com only</p>
-                    <p><strong>Send to ALL:</strong> Sends to all verified users who haven't received the day 3 email yet</p>
+                    <Button onClick={() => handleSendDay3Email(true)} variant="default">
+                      Send to All Users
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Other Email Management</CardTitle>
-                  <CardDescription>
-                    Additional email tools and campaign management
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <EmailManagement />
-                </CardContent>
-              </Card>
+              <EmailManagement />
             </div>
           </TabsContent>
         </Tabs>
       </div>
     </div>
   );
-}
+};
