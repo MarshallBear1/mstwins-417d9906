@@ -37,12 +37,9 @@ export default defineConfig(({ mode }) => ({
     // Enable source maps for production debugging
     sourcemap: false,
     // Minify for better performance
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production'
-      }
+    minify: 'esbuild',
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : []
     }
   },
   // Optimize dependencies
