@@ -46,17 +46,17 @@ const MSMatchingDemo = memo(() => {
   return (
     <div className="relative max-w-lg mx-auto animate-fade-in">
       {/* Profile Matching Animation */}
-      <div className="relative h-80 flex items-center justify-center">
+      <div className="relative h-64 sm:h-80 flex items-center justify-center overflow-hidden">
         {/* Left Profile (You) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[-120px] sm:translate-x-[-180px] lg:translate-x-[-200px]' : 'translate-x-0'
+          step >= 1 ? 'translate-x-[-80px] sm:translate-x-[-120px] lg:translate-x-[-180px]' : 'translate-x-0'
         }`}>
           <ProfileCard profile={profiles[1]} isYou={true} />
         </div>
 
         {/* Right Profile (Sarah) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[120px] sm:translate-x-[180px] lg:translate-x-[200px] opacity-100' : 'translate-x-[200px] opacity-0'
+          step >= 1 ? 'translate-x-[80px] sm:translate-x-[120px] lg:translate-x-[180px] opacity-100' : 'translate-x-[150px] sm:translate-x-[200px] opacity-0'
         }`}>
           <ProfileCard profile={profiles[0]} />
         </div>
@@ -171,10 +171,10 @@ const MSMatchingDemo = memo(() => {
 
 const ProfileCard = ({ profile, isYou = false }: { profile: any; isYou?: boolean }) => {
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden w-32 sm:w-36 lg:w-40 hover:shadow-xl transition-shadow">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden w-28 sm:w-32 lg:w-36 hover:shadow-xl transition-shadow">
       {/* Avatar */}
-      <div className="relative h-24 bg-gradient-to-br from-blue-400 to-teal-300 flex items-center justify-center">
-        <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white">
+      <div className="relative h-20 sm:h-24 bg-gradient-to-br from-blue-400 to-teal-300 flex items-center justify-center">
+        <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-white">
           <img 
             src={profile.avatar} 
             alt={profile.name}
@@ -190,10 +190,10 @@ const ProfileCard = ({ profile, isYou = false }: { profile: any; isYou?: boolean
       </div>
 
       {/* Content */}
-      <div className="p-3 space-y-2">
+      <div className="p-2 sm:p-3 space-y-1 sm:space-y-2">
         <div className="text-center">
-          <h3 className="font-semibold text-gray-900 text-base">{profile.name}</h3>
-          <span className="text-sm text-gray-600">{profile.age}</span>
+          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{profile.name}</h3>
+          <span className="text-xs sm:text-sm text-gray-600">{profile.age}</span>
         </div>
 
         <div className="space-y-1">

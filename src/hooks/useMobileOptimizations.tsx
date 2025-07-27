@@ -61,6 +61,9 @@ export const useMobileTouchOptimizations = (options: MobileTouchOptions = {}) =>
     
     // Remove tap highlight
     (document.body.style as any).webkitTapHighlightColor = 'transparent';
+    
+    // Ensure mobile viewport is stable
+    document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
 
     document.addEventListener('contextmenu', handleContextMenu);
 
@@ -126,6 +129,9 @@ export const useMobileOptimizations = (): MobileOptimizations => {
     const handleResize = () => {
       const currentHeight = window.innerHeight;
       const heightDifference = initialViewportHeight - currentHeight;
+      
+      // Update viewport height variable for stable layouts
+      document.documentElement.style.setProperty('--vh', `${currentHeight * 0.01}px`);
       
       // Threshold for keyboard detection (adjust as needed)
       const keyboardThreshold = 150;

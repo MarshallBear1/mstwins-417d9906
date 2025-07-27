@@ -91,7 +91,7 @@ export const MobileProfileCard = ({
     <div className={cn("flip-card-container profile-card-mobile mx-auto", className)}>
       <div className={cn("flip-card-inner", isFlipped && "rotate-y-180")}>
         {/* Front Side */}
-        <Card className="flip-card-face shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <Card className="flip-card-face shadow-lg hover:shadow-xl transition-shadow duration-300 bg-background border border-border">
           {/* Header */}
           <div className="relative h-28 bg-gradient-to-br from-primary/80 via-primary/60 to-primary/40 flex items-center justify-center">
             <button
@@ -271,7 +271,7 @@ export const MobileProfileCard = ({
         </Card>
 
         {/* Back Side */}
-        <Card className="flip-card-face flip-card-back shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <Card className="flip-card-face flip-card-back shadow-lg hover:shadow-xl transition-shadow duration-300 bg-background border border-border">
           <div className="relative h-28 bg-gradient-to-br from-accent/80 via-accent/60 to-accent/40 flex items-center justify-center">
             <Button
               variant="ghost"

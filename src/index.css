@@ -227,6 +227,12 @@ All colors MUST be HSL.
   min-width: 44px;
 }
 
+/* Mobile viewport height with dynamic viewport units */
+.min-h-screen-mobile {
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
 .mobile-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -256,9 +262,10 @@ All colors MUST be HSL.
   .profile-card-mobile {
     width: 100%;
     max-width: min(340px, calc(100vw - 2rem));
-    height: min(450px, calc(100vh - 250px));
+    height: min(420px, calc(100vh - 180px));
     min-height: 380px;
     margin-top: 1rem;
+    margin-bottom: 1rem;
   }
   
   .profile-card-desktop {
@@ -303,6 +310,9 @@ All colors MUST be HSL.
     perspective: 1000px;
     width: 100%;
     height: 100%;
+    display: block !important;
+    visibility: visible !important;
+    position: relative;
   }
   
   .flip-card-inner {
@@ -323,6 +333,10 @@ All colors MUST be HSL.
   }
   
   .flip-card-back {
+    transform: rotateY(180deg);
+  }
+  
+  .rotate-y-180 {
     transform: rotateY(180deg);
   }
   
