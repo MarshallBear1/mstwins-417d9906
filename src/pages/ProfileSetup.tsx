@@ -648,7 +648,7 @@ const ProfileSetup = () => {
                     key={symptom.name}
                     onClick={() => toggleArrayItem("symptoms", symptom.name)}
                     className={cn(
-                      "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
+                      "inline-flex items-center gap-1 px-2 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border-2 min-h-[36px] md:px-3 md:py-2 md:text-sm md:min-h-[44px]",
                       profileData.symptoms.includes(symptom.name)
                         ? "bg-primary text-primary-foreground border-primary shadow-md scale-105"
                         : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-accent/50 active:scale-95"
@@ -686,7 +686,7 @@ const ProfileSetup = () => {
                     key={medication.name}
                     onClick={() => toggleArrayItem("medications", medication.name)}
                     className={cn(
-                      "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
+                      "inline-flex items-center gap-1 px-2 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border-2 min-h-[36px] md:px-3 md:py-2 md:text-sm md:min-h-[44px]",
                       profileData.medications.includes(medication.name)
                         ? "bg-primary text-primary-foreground border-primary shadow-md scale-105"
                         : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-accent/50 active:scale-95"
@@ -735,7 +735,7 @@ const ProfileSetup = () => {
                   key={hobby}
                   onClick={() => toggleArrayItem("hobbies", hobby)}
                   className={cn(
-                    "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
+                    "inline-flex items-center gap-1 px-2 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border-2 min-h-[36px] md:px-3 md:py-2 md:text-sm md:min-h-[44px]",
                     profileData.hobbies.includes(hobby)
                       ? "bg-accent text-accent-foreground border-accent shadow-md scale-105"
                       : "bg-background text-foreground border-border hover:border-accent/50 hover:bg-accent/20 active:scale-95"
@@ -888,12 +888,12 @@ const ProfileSetup = () => {
                     Not happy with these avatars? Click "New Options" to generate different ones!
                   </p>
                   
-                   <div className="grid grid-cols-4 gap-2">
-                     {[
-                       { style: "adventurer", name: "Adventurer", variant: "1" },
-                       { style: "adventurer", name: "Adventurer", variant: "2" },
-                       { style: "avataaars", name: "Cartoon", variant: "1" },
-                       { style: "avataaars", name: "Cartoon", variant: "2" },
+                   <div className="grid grid-cols-3 gap-1.5 md:grid-cols-4 md:gap-2">
+                      {[
+                        { style: "adventurer", name: "Adventurer", variant: "1" },
+                        { style: "adventurer", name: "Adventurer", variant: "2" },
+                        { style: "avataaars", name: "Cartoon", variant: "1" },
+                        { style: "avataaars", name: "Cartoon", variant: "2" },
                        { style: "big-ears", name: "Big Ears", variant: "1" },
                        { style: "big-ears", name: "Big Ears", variant: "2" },
                        { style: "personas", name: "Modern", variant: "1" },
@@ -906,15 +906,14 @@ const ProfileSetup = () => {
                            key={`${style}-${variant}`}
                            variant={profileData.avatarUrl === avatarUrl ? "default" : "outline"}
                            size="sm"
-                           onClick={() => updateProfileData("avatarUrl", avatarUrl)}
-                           className="h-16 flex flex-col gap-1"
-                         >
-                           <img 
+                            onClick={() => updateProfileData("avatarUrl", avatarUrl)}
+                            className="h-12 flex flex-col gap-0.5 text-xs md:h-16 md:gap-1 md:text-sm">
+                            <img
                              src={avatarUrl} 
-                             alt={`${name} ${variant}`}
-                             className="w-8 h-8 rounded"
-                           />
-                           <span className="text-xs">{name}</span>
+                              alt={`${name} ${variant}`}
+                              className="w-6 h-6 rounded md:w-8 md:h-8"
+                            />
+                            <span className="text-xs truncate">{name}</span>
                          </Button>
                        );
                      })}

@@ -5,12 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useShare } from "@/hooks/useShare";
 
 const ReferralPopup = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { shareApp, copyToClipboard } = useShare();
 
   useEffect(() => {
     // Only show popup for authenticated users
@@ -70,22 +72,18 @@ const ReferralPopup = () => {
     }
   };
 
+  const handleShareApp = async () => {
+    const success = await shareApp();
+    if (success) {
+      setIsVisible(false);
+    }
+  };
+
   const copyReferralLink = async () => {
     const referralLink = `https://mstwins.com?ref=${user?.id}`;	
-    
-    try {
-      await navigator.clipboard.writeText(referralLink);
-      toast({
-        title: "Link copied!",
-        description: "Share it with friends to help grow our community!",
-      });
+    const success = await copyToClipboard(referralLink);
+    if (success) {
       setIsVisible(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to copy",
-        description: "Could not copy link to clipboard",
-      });
     }
   };
 
@@ -128,10 +126,17 @@ const ReferralPopup = () => {
           
           <div className="flex gap-2">
             <Button 
-              onClick={copyReferralLink}
+              onClick={handleShareApp}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               <Share2 className="w-4 h-4 mr-2" />
+              Share App
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={copyReferralLink}
+              className="flex-1"
+            >
               Copy Link
             </Button>
             <Button 

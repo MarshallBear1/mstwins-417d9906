@@ -3,13 +3,24 @@ import { Share2, Sparkles, X, Facebook, MessageCircle, Mail, Link, Copy, Check }
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useShare } from "@/hooks/useShare";
+import { useAuth } from "@/hooks/useAuth";
 
 const ReferralDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  const { shareApp, isSupported, copyToClipboard } = useShare();
+  const { user } = useAuth();
 
-  const referralLink = `https://mstwins.com?ref=user123`; // Would be dynamic based on user ID
+  const referralLink = `https://mstwins.com?ref=${user?.id || 'user'}`; // Dynamic based on user ID
+  
+  const handleNativeShare = async () => {
+    const success = await shareApp();
+    if (success) {
+      setIsOpen(false);
+    }
+  };
   
   const socialLinks = [
     {
@@ -32,21 +43,12 @@ const ReferralDropdown = () => {
     }
   ];
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(referralLink);
+  const copyReferralLink = async () => {
+    const success = await copyToClipboard(referralLink);
+    if (success) {
       setCopied(true);
-      toast({
-        title: "Link copied!",
-        description: "Referral link copied to clipboard",
-      });
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to copy",
-        description: "Could not copy link to clipboard",
-      });
+      setIsOpen(false);
     }
   };
 
@@ -85,7 +87,7 @@ const ReferralDropdown = () => {
           />
           
           {/* Dropdown Card */}
-          <Card className="absolute right-0 top-12 w-80 z-50 shadow-xl border-0 bg-background/95 backdrop-blur-md animate-scale-in">
+          <Card className="absolute right-0 top-12 w-80 z-50 shadow-xl border-0 bg-background/95 backdrop-blur-md animate-scale-in transform -translate-x-1/2 sm:translate-x-0 sm:right-0">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div className="flex items-center gap-2">
                 <div className="relative">
@@ -105,6 +107,19 @@ const ReferralDropdown = () => {
             </CardHeader>
             
             <CardContent className="space-y-4">
+              {/* Native Share Button for Mobile */}
+              {isSupported && (
+                <div className="space-y-2">
+                  <Button
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    onClick={handleNativeShare}
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share MSTwins App
+                  </Button>
+                </div>
+              )}
+              
               {/* Description */}
               <div className="text-sm text-muted-foreground">
                 <p className="mb-2">Help grow our MS support community! 💙</p>
@@ -121,7 +136,7 @@ const ReferralDropdown = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={copyToClipboard}
+                    onClick={copyReferralLink}
                     className="flex-shrink-0"
                   >
                     {copied ? (
