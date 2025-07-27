@@ -496,8 +496,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Enhanced bottom navigation - Fixed with higher z-index */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50" style={{
+      {/* Enhanced bottom navigation - Hidden in profile section */}
+      <div className={`fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50 transition-transform duration-300 ${activeTab === 'profile' ? 'translate-y-full' : 'translate-y-0'}`} style={{
         paddingBottom: isMobile ? `max(0.5rem, ${safeAreaInsets.bottom}px)` : '0.5rem'
       }}>
         <div className="flex items-center justify-around py-2 mobile-safe-x">
