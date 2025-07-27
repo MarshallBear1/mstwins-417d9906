@@ -50,25 +50,29 @@ const Auth = () => {
     setLoading(true);
     
     try {
+      console.log('Sending password reset email to:', forgotPasswordEmail);
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth`,
       });
       
       if (error) {
+        console.error('Password reset error:', error);
         toast({
           title: "Error",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        console.log('Password reset email sent successfully');
         toast({
           title: "Reset Link Sent",
-          description: "Check your email for a password reset link.",
+          description: "Check your email for a password reset link. The link will redirect you back here to sign in.",
         });
         setShowForgotPassword(false);
         setForgotPasswordEmail("");
       }
     } catch (error) {
+      console.error('Password reset exception:', error);
       toast({
         title: "Error",
         description: "Failed to send reset email. Please try again.",
@@ -121,6 +125,32 @@ const Auth = () => {
           if (!result.error) {
             // Clear failed login attempts on successful login
             await clearFailedLogins(email);
+          } else {
+            // Handle sign-in error
+            console.error('Sign-in error:', result.error);
+            
+            // Log failed login attempt for sign in
+            await logFailedLogin(email);
+
+            // Show user-friendly error message based on error type
+            let errorMessage = 'Incorrect email or password. Please check your credentials and try again.';
+            
+            if (result.error?.message?.includes('Email not confirmed')) {
+              errorMessage = 'Please check your email and click the verification link before signing in.';
+            } else if (result.error?.message?.includes('Invalid login credentials') || 
+                       result.error?.message?.includes('invalid_credentials') ||
+                       result.error?.message?.includes('Invalid email or password')) {
+              errorMessage = 'Incorrect email or password. Please check your credentials and try again.';
+            } else if (result.error?.message) {
+              errorMessage = result.error.message;
+            }
+            
+            toast({
+              title: "Sign In Failed", 
+              description: errorMessage,
+              variant: "destructive"
+            });
+            return; // Exit early to avoid success flow
           }
         }
       } catch (authError: any) {
@@ -136,7 +166,8 @@ const Auth = () => {
         if (!isSignUp) {
           // For sign-in, provide more specific error messages
           if (authError?.message?.includes('Invalid login credentials') || 
-              authError?.message?.includes('invalid_credentials')) {
+              authError?.message?.includes('invalid_credentials') ||
+              authError?.message?.includes('Invalid email or password')) {
             errorMessage = 'Incorrect email or password. Please check your credentials and try again.';
           } else if (authError?.message?.includes('Email not confirmed')) {
             errorMessage = 'Please check your email and click the verification link before signing in.';
