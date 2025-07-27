@@ -4,7 +4,7 @@ import MSMatchingDemo from "./hero/MSMatchingDemo";
 
 const OptimizedHero = () => {
   return (
-    <section className="relative min-h-screen flex flex-col justify-center bg-gradient-subtle pt-16 sm:pt-20 lg:pt-32 mobile-safe-top mobile-safe-bottom">
+    <section className="relative min-h-screen flex flex-col justify-center bg-gradient-subtle pt-24 sm:pt-28 lg:pt-40 mobile-safe-top mobile-safe-bottom">
       <div className="container mx-auto mobile-safe-x lg:px-8">
         {/* Hero Content First */}
         <div className="text-center mb-8 lg:mb-12">

@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, ArrowRight, Star, Users, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 const HeroContent = () => {
-  return <div className="text-center space-y-6 animate-fade-in max-w-4xl mx-auto pt-8 lg:pt-12">
+  return <div className="text-center space-y-6 animate-fade-in max-w-4xl mx-auto">
       {/* Trust Badge */}
       
       
