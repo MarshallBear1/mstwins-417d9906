@@ -55,6 +55,35 @@ const DiscoverProfiles = () => {
   
   const [imageViewerIndex, setImageViewerIndex] = useState(0);
 
+  // Preload next profile images for faster loading
+  useEffect(() => {
+    const preloadImages = () => {
+      // Preload the next 3 profiles' images
+      for (let i = currentIndex + 1; i <= Math.min(currentIndex + 3, profiles.length - 1); i++) {
+        const profile = profiles[i];
+        if (profile) {
+          // Preload avatar
+          if (profile.avatar_url) {
+            const img = new Image();
+            img.src = profile.avatar_url;
+          }
+          
+          // Preload additional photos
+          if (profile.additional_photos) {
+            profile.additional_photos.slice(0, 4).forEach(photoUrl => {
+              const img = new Image();
+              img.src = photoUrl;
+            });
+          }
+        }
+      }
+    };
+
+    if (profiles.length > 0 && currentIndex >= 0) {
+      preloadImages();
+    }
+  }, [profiles, currentIndex]);
+
   useEffect(() => {
     if (user) {
       fetchProfiles();
