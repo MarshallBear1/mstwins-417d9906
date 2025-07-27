@@ -90,6 +90,18 @@ const Dashboard = () => {
       fetchProfile();
     }
   }, [user]);
+
+  // Re-fetch profile when user returns to tab (e.g., after completing extended profile)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        fetchProfile();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user]);
   const fetchProfile = async () => {
     if (!user) return;
     setProfileLoading(true);
