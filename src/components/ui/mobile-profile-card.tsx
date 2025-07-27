@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,12 @@ export const MobileProfileCard = ({
 }: MobileProfileCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showAllAbout, setShowAllAbout] = useState(false);
+
+  // Reset the "show more" state when profile changes
+  useEffect(() => {
+    setShowAllAbout(false);
+    setIsFlipped(false);
+  }, [profile.id]);
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
     const today = new Date();
