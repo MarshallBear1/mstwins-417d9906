@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -745,4 +745,4 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   );
 };
 
-export default Messaging;
+export default memo(Messaging);

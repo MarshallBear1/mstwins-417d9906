@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -530,4 +530,4 @@ const Dashboard = () => {
       </div>
     </MobileKeyboardHandler>;
 };
-export default Dashboard;
+export default memo(Dashboard);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1020,4 +1020,4 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
   );
 };
 
-export default ProfileCard;
+export default memo(ProfileCard);

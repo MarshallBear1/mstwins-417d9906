@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, RefreshCw } from "lucide-react";
@@ -96,131 +96,100 @@ const DiscoverProfiles = () => {
     setLoading(true);
     try {
       if (showingSkipped) {
-        // Get profiles that were previously passed on, but exclude current matches and likes
-        console.log('🔍 Fetching skipped profiles...');
+        // Optimized query for skipped profiles - get all excluded IDs first
+        console.log('🔍 Fetching skipped profiles with optimized approach...');
         
-        const { data: passedProfiles } = await supabase
-          .from('passes')
-          .select('passed_id')
-          .eq('passer_id', user.id);
+        // Get passed profiles and exclusions in parallel
+        const [passedResult, likesResult, matchesResult] = await Promise.all([
+          supabase.from('passes').select('passed_id').eq('passer_id', user.id),
+          supabase.from('likes').select('liked_id').eq('liker_id', user.id),
+          supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        ]);
 
-        if (passedProfiles && passedProfiles.length > 0) {
-          const passedIds = passedProfiles.map(p => p.passed_id);
+        const passedIds = passedResult.data?.map(p => p.passed_id) || [];
+        const likedIds = likesResult.data?.map(l => l.liked_id) || [];
+        const matchedIds = matchesResult.data?.map(m => 
+          m.user1_id === user.id ? m.user2_id : m.user1_id
+        ) || [];
+        
+        // Only show skipped profiles that aren't now matched or liked
+        const availableSkippedIds = passedIds.filter(id => 
+          !matchedIds.includes(id) && !likedIds.includes(id)
+        );
+
+        if (availableSkippedIds.length > 0) {
+          const { data: skippedProfiles, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .in('user_id', availableSkippedIds);
           
-          // Get current matches and likes to exclude them from skipped profiles
-          const { data: existingMatches } = await supabase
-            .from('matches')
-            .select('user1_id, user2_id')
-            .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-
-          const { data: existingLikes } = await supabase
-            .from('likes')
-            .select('liked_id')
-            .eq('liker_id', user.id);
-
-          const matchedIds = existingMatches?.map(match => 
-            match.user1_id === user.id ? match.user2_id : match.user1_id
-          ) || [];
-          const likedIds = existingLikes?.map(like => like.liked_id) || [];
-          
-          // Only show skipped profiles that aren't now matched or liked
-          const availableSkippedIds = passedIds.filter(id => 
-            !matchedIds.includes(id) && !likedIds.includes(id)
-          );
-
-          console.log('📝 Skipped profiles data:', {
-            totalPassed: passedIds.length,
-            matchedIds: matchedIds.length,
-            likedIds: likedIds.length,
-            availableSkipped: availableSkippedIds.length
-          });
-          
-          if (availableSkippedIds.length > 0) {
-            const { data: skippedProfiles } = await supabase
-              .from('profiles')
-              .select('*')
-              .in('user_id', availableSkippedIds);
-            
+          if (error) {
+            console.error('Error fetching skipped profiles:', error);
+            setProfiles([]);
+          } else {
             console.log(`✅ Found ${skippedProfiles?.length || 0} available skipped profiles`);
             setProfiles((skippedProfiles || []).map(profile => ({
               ...profile,
               selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as { question: string; answer: string; }[] : []
             })));
-          } else {
-            console.log('📭 No skipped profiles available (all are now matched or liked)');
-            setProfiles([]);
           }
         } else {
-          console.log('📭 No passed profiles found');
+          console.log('📭 No skipped profiles available');
           setProfiles([]);
         }
       } else {
-        // Get profiles excluding current user, people already liked/passed, and matched users
-        console.log('🔍 Fetching profiles excluding matches, likes, and passes...');
+        // Optimized query for new profiles - parallel fetch of exclusions
+        console.log('🔍 Fetching new profiles with optimized parallel queries...');
         
-        const { data: existingLikes } = await supabase
-          .from('likes')
-          .select('liked_id')
-          .eq('liker_id', user.id);
+        // Fetch all exclusion data in parallel (3 queries → 1 parallel batch)
+        const [likesResult, matchesResult, passesResult] = await Promise.all([
+          supabase.from('likes').select('liked_id').eq('liker_id', user.id),
+          supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`),
+          supabase.from('passes').select('passed_id').eq('passer_id', user.id)
+        ]);
 
-        const { data: existingMatches } = await supabase
-          .from('matches')
-          .select('user1_id, user2_id')
-          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-
-        const { data: existingPasses } = await supabase
-          .from('passes')
-          .select('passed_id')
-          .eq('passer_id', user.id);
-
-        const likedIds = existingLikes?.map(like => like.liked_id) || [];
-        const matchedIds = existingMatches?.map(match => 
-          match.user1_id === user.id ? match.user2_id : match.user1_id
+        const likedIds = likesResult.data?.map(l => l.liked_id) || [];
+        const matchedIds = matchesResult.data?.map(m => 
+          m.user1_id === user.id ? m.user2_id : m.user1_id
         ) || [];
-        const passedIds = existingPasses?.map(pass => pass.passed_id) || [];
+        const passedIds = passesResult.data?.map(p => p.passed_id) || [];
         
         const excludedIds = [...likedIds, ...matchedIds, ...passedIds, user.id];
         
-        console.log('📝 Exclusion data:', {
+        console.log('📝 Optimized exclusion data:', {
           likedIds: likedIds.length,
-          matchedIds: matchedIds.length,
+          matchedIds: matchedIds.length, 
           passedIds: passedIds.length,
           totalExcluded: excludedIds.length
         });
-        
-        let query = supabase
-          .from('profiles')
-          .select('*');
 
-        // Properly handle exclusions - don't apply filter if no exclusions
-        if (excludedIds.length > 0) {
+        // Single optimized query with proper exclusions
+        let query = supabase.from('profiles').select('*');
+        
+        if (excludedIds.length > 1) { // More than just current user
           query = query.not('user_id', 'in', `(${excludedIds.join(',')})`);
         } else {
-          // Just exclude current user if no other exclusions
           query = query.neq('user_id', user.id);
         }
 
-        // Order by last_seen to prioritize recently online users, then by random
-        const { data, error } = await query
+        const { data: profiles, error } = await query
           .order('last_seen', { ascending: false, nullsFirst: false })
-          .limit(50); // Increase limit to ensure good variety
+          .limit(50);
 
         if (error) {
           console.error('Error fetching profiles:', error);
           return;
         }
 
-        console.log(`✅ Found ${data?.length || 0} available profiles`);
-        const processedProfiles = (data || []).map(profile => ({
+        console.log(`✅ Found ${profiles?.length || 0} available profiles`);
+        const processedProfiles = (profiles || []).map(profile => ({
           ...profile,
           selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as { question: string; answer: string; }[] : []
         }));
         
-        console.log('📋 Processed profiles:', processedProfiles.length, 'profiles');
-        console.log('📋 First profile:', processedProfiles[0] ? `${processedProfiles[0].first_name} ${processedProfiles[0].last_name}` : 'None');
-        
         setProfiles(processedProfiles);
       }
+      
       console.log('📊 Setting currentIndex to 0');
       setCurrentIndex(0);
     } catch (error) {
@@ -580,4 +549,4 @@ const DiscoverProfiles = () => {
   );
 };
 
-export default DiscoverProfiles;
+export default memo(DiscoverProfiles);
