@@ -87,7 +87,7 @@ const ReferralDropdown = () => {
           />
           
           {/* Dropdown Card */}
-          <Card className="absolute right-0 top-12 w-80 z-50 shadow-xl border-0 bg-background/95 backdrop-blur-md animate-scale-in transform -translate-x-1/2 sm:translate-x-0 sm:right-0">
+          <Card className="absolute left-1/2 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 top-12 w-80 max-w-[calc(100vw-2rem)] z-50 shadow-xl border-0 bg-background/95 backdrop-blur-md animate-scale-in">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div className="flex items-center gap-2">
                 <div className="relative">
