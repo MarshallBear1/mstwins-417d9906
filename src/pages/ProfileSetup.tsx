@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ArrowLeft, ArrowRight, Check, CalendarIcon, Shuffle, X, Upload, Camera } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -332,41 +333,57 @@ const ProfileSetup = () => {
     return emojiMap[hobby] || "🌟";
   };
 
+  // Organized symptoms by category for better user experience
   const symptomsData = [
+    // Most Common Symptoms (top row)
     { name: "Fatigue", emoji: "😴", color: "bg-red-100 text-red-800 hover:bg-red-200" },
     { name: "Walking difficulties", emoji: "🚶‍♂️", color: "bg-orange-100 text-orange-800 hover:bg-orange-200" },
-    { name: "Vision problems", emoji: "👁️", color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200" },
     { name: "Numbness/tingling", emoji: "🤏", color: "bg-green-100 text-green-800 hover:bg-green-200" },
     { name: "Muscle weakness", emoji: "💪", color: "bg-blue-100 text-blue-800 hover:bg-blue-200" },
+    
+    // Physical Symptoms
     { name: "Balance problems", emoji: "⚖️", color: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200" },
-    { name: "Cognitive changes", emoji: "🧠", color: "bg-purple-100 text-purple-800 hover:bg-purple-200" },
-    { name: "Bladder issues", emoji: "🚽", color: "bg-pink-100 text-pink-800 hover:bg-pink-200" },
     { name: "Spasticity", emoji: "🤲", color: "bg-cyan-100 text-cyan-800 hover:bg-cyan-200" },
     { name: "Pain", emoji: "😣", color: "bg-red-100 text-red-800 hover:bg-red-200" },
-    { name: "Depression", emoji: "😔", color: "bg-gray-100 text-gray-800 hover:bg-gray-200" },
-    { name: "Dizziness", emoji: "💫", color: "bg-emerald-100 text-emerald-800 hover:bg-emerald-200" },
-    { name: "Speech problems", emoji: "🗣️", color: "bg-amber-100 text-amber-800 hover:bg-amber-200" },
-    { name: "Swallowing difficulties", emoji: "🥤", color: "bg-lime-100 text-lime-800 hover:bg-lime-200" },
     { name: "Tremor", emoji: "🤝", color: "bg-teal-100 text-teal-800 hover:bg-teal-200" },
-    { name: "Heat sensitivity", emoji: "🌡️", color: "bg-rose-100 text-rose-800 hover:bg-rose-200" }
+    
+    // Sensory & Cognitive
+    { name: "Vision problems", emoji: "👁️", color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200" },
+    { name: "Cognitive changes", emoji: "🧠", color: "bg-purple-100 text-purple-800 hover:bg-purple-200" },
+    { name: "Speech problems", emoji: "🗣️", color: "bg-amber-100 text-amber-800 hover:bg-amber-200" },
+    { name: "Dizziness", emoji: "💫", color: "bg-emerald-100 text-emerald-800 hover:bg-emerald-200" },
+    
+    // Other Common Issues
+    { name: "Bladder issues", emoji: "🚽", color: "bg-pink-100 text-pink-800 hover:bg-pink-200" },
+    { name: "Heat sensitivity", emoji: "🌡️", color: "bg-rose-100 text-rose-800 hover:bg-rose-200" },
+    { name: "Swallowing difficulties", emoji: "🥤", color: "bg-lime-100 text-lime-800 hover:bg-lime-200" },
+    { name: "Depression", emoji: "😔", color: "bg-gray-100 text-gray-800 hover:bg-gray-200" }
   ];
 
+  // Organized medications by type and popularity
   const medicationsData = [
-    { name: "Tecfidera", emoji: "💊", color: "bg-blue-100 text-blue-800 hover:bg-blue-200" },
-    { name: "Copaxone", emoji: "💉", color: "bg-green-100 text-green-800 hover:bg-green-200" },
-    { name: "Betaseron", emoji: "🩹", color: "bg-purple-100 text-purple-800 hover:bg-purple-200" },
-    { name: "Avonex", emoji: "💊", color: "bg-red-100 text-red-800 hover:bg-red-200" },
-    { name: "Rebif", emoji: "💉", color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200" },
+    // High Efficacy DMTs (most commonly prescribed)
+    { name: "Ocrevus", emoji: "💉", color: "bg-emerald-100 text-emerald-800 hover:bg-emerald-200" },
     { name: "Tysabri", emoji: "🩺", color: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200" },
-    { name: "Gilenya", emoji: "💊", color: "bg-pink-100 text-pink-800 hover:bg-pink-200" },
-    { name: "Aubagio", emoji: "🧪", color: "bg-cyan-100 text-cyan-800 hover:bg-cyan-200" },
-    { name: "Lemtrada", emoji: "💉", color: "bg-orange-100 text-orange-800 hover:bg-orange-200" },
-    { name: "Ocrevus", emoji: "🩹", color: "bg-emerald-100 text-emerald-800 hover:bg-emerald-200" },
-    { name: "Mavenclad", emoji: "💊", color: "bg-amber-100 text-amber-800 hover:bg-amber-200" },
     { name: "Kesimpta", emoji: "💉", color: "bg-lime-100 text-lime-800 hover:bg-lime-200" },
-    { name: "Ponvory", emoji: "🧬", color: "bg-teal-100 text-teal-800 hover:bg-teal-200" },
+    { name: "Lemtrada", emoji: "💉", color: "bg-orange-100 text-orange-800 hover:bg-orange-200" },
+    
+    // Oral DMTs (convenience factor)
+    { name: "Tecfidera", emoji: "💊", color: "bg-blue-100 text-blue-800 hover:bg-blue-200" },
+    { name: "Gilenya", emoji: "💊", color: "bg-pink-100 text-pink-800 hover:bg-pink-200" },
+    { name: "Aubagio", emoji: "💊", color: "bg-cyan-100 text-cyan-800 hover:bg-cyan-200" },
+    { name: "Mavenclad", emoji: "💊", color: "bg-amber-100 text-amber-800 hover:bg-amber-200" },
+    { name: "Ponvory", emoji: "💊", color: "bg-teal-100 text-teal-800 hover:bg-teal-200" },
     { name: "Zeposia", emoji: "💊", color: "bg-rose-100 text-rose-800 hover:bg-rose-200" },
-    { name: "Vumerity", emoji: "🩺", color: "bg-violet-100 text-violet-800 hover:bg-violet-200" },
+    { name: "Vumerity", emoji: "💊", color: "bg-violet-100 text-violet-800 hover:bg-violet-200" },
+    
+    // Injectable DMTs (traditional options)
+    { name: "Copaxone", emoji: "💉", color: "bg-green-100 text-green-800 hover:bg-green-200" },
+    { name: "Betaseron", emoji: "💉", color: "bg-purple-100 text-purple-800 hover:bg-purple-200" },
+    { name: "Avonex", emoji: "💉", color: "bg-red-100 text-red-800 hover:bg-red-200" },
+    { name: "Rebif", emoji: "💉", color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200" },
+    
+    // No treatment option
     { name: "None", emoji: "❌", color: "bg-gray-100 text-gray-800 hover:bg-gray-200" }
   ];
 
@@ -602,23 +619,25 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Symptoms</h2>
               <p className="text-muted-foreground">What symptoms do you experience?</p>
             </div>
-            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto p-2">
-              {symptomsData.map((symptom) => (
-                <button
-                  key={symptom.name}
-                  onClick={() => toggleArrayItem("symptoms", symptom.name)}
-                  className={cn(
-                    "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
-                    profileData.symptoms.includes(symptom.name)
-                      ? "bg-primary text-primary-foreground border-primary shadow-md scale-105"
-                      : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-accent/50 active:scale-95"
-                  )}
-                >
-                  <span className="text-base">{symptom.emoji}</span>
-                  <span className="whitespace-nowrap">{symptom.name}</span>
-                </button>
-              ))}
-            </div>
+            <ScrollArea className="h-64 w-full">
+              <div className="flex flex-wrap gap-2 p-2">
+                {symptomsData.map((symptom) => (
+                  <button
+                    key={symptom.name}
+                    onClick={() => toggleArrayItem("symptoms", symptom.name)}
+                    className={cn(
+                      "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
+                      profileData.symptoms.includes(symptom.name)
+                        ? "bg-primary text-primary-foreground border-primary shadow-md scale-105"
+                        : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-accent/50 active:scale-95"
+                    )}
+                  >
+                    <span className="text-base">{symptom.emoji}</span>
+                    <span className="whitespace-nowrap">{symptom.name}</span>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
             <div className="mt-4">
               <Label htmlFor="customSymptoms">Other symptoms (comma-separated)</Label>
               <Input
@@ -638,23 +657,25 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Medications</h2>
               <p className="text-muted-foreground">What medications are you currently taking?</p>
             </div>
-            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto p-2">
-              {medicationsData.map((medication) => (
-                <button
-                  key={medication.name}
-                  onClick={() => toggleArrayItem("medications", medication.name)}
-                  className={cn(
-                    "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
-                    profileData.medications.includes(medication.name)
-                      ? "bg-primary text-primary-foreground border-primary shadow-md scale-105"
-                      : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-accent/50 active:scale-95"
-                  )}
-                >
-                  <span className="text-base">{medication.emoji}</span>
-                  <span className="whitespace-nowrap">{medication.name}</span>
-                </button>
-              ))}
-            </div>
+            <ScrollArea className="h-64 w-full">
+              <div className="flex flex-wrap gap-2 p-2">
+                {medicationsData.map((medication) => (
+                  <button
+                    key={medication.name}
+                    onClick={() => toggleArrayItem("medications", medication.name)}
+                    className={cn(
+                      "inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 min-h-[44px]",
+                      profileData.medications.includes(medication.name)
+                        ? "bg-primary text-primary-foreground border-primary shadow-md scale-105"
+                        : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-accent/50 active:scale-95"
+                    )}
+                  >
+                    <span className="text-base">{medication.emoji}</span>
+                    <span className="whitespace-nowrap">{medication.name}</span>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
             <div className="mt-4">
               <Label htmlFor="customMedications">Other medications (comma-separated)</Label>
               <Input
@@ -674,14 +695,20 @@ const ProfileSetup = () => {
               <h2 className="text-2xl font-bold">Interests & Hobbies</h2>
               <p className="text-muted-foreground">What do you enjoy doing?</p>
             </div>
-            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto p-2">
-              {[
-                "Reading", "Exercise/Fitness", "Cooking", "Art/Drawing", "Music", "Travel", 
-                "Photography", "Gaming", "Gardening", "Volunteering", "Crafts", "Sports",
-                "Writing", "Movies/TV", "Board games", "Meditation", "Yoga", "Swimming",
-                "Walking/Hiking", "Dancing", "Knitting/Sewing", "Technology", "Learning",
-                "Podcasts", "Nature", "Animals/Pets"
-              ].map((hobby) => (
+            <ScrollArea className="h-64 w-full">
+              <div className="flex flex-wrap gap-2 p-2">
+                {[
+                  // Active & Fitness
+                  "Exercise/Fitness", "Yoga", "Swimming", "Walking/Hiking", "Dancing", "Sports",
+                  // Creative & Arts
+                  "Art/Drawing", "Writing", "Photography", "Music", "Crafts", "Knitting/Sewing",
+                  // Mental Wellness & Learning
+                  "Reading", "Meditation", "Learning", "Podcasts", "Technology",
+                  // Social & Community
+                  "Volunteering", "Board games", "Gaming", "Movies/TV",
+                  // Life & Home
+                  "Cooking", "Gardening", "Nature", "Animals/Pets", "Travel"
+                ].map((hobby) => (
                 <button
                   key={hobby}
                   onClick={() => toggleArrayItem("hobbies", hobby)}
@@ -695,8 +722,9 @@ const ProfileSetup = () => {
                   <span className="text-base">{getEmojiForHobby(hobby)}</span>
                   <span className="whitespace-nowrap">{hobby}</span>
                 </button>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ScrollArea>
             <div className="mt-4">
               <Label htmlFor="customHobbies">Other interests (comma-separated)</Label>
               <Input
