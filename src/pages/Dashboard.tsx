@@ -496,8 +496,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Enhanced bottom navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border" style={{
+      {/* Enhanced bottom navigation - Fixed with higher z-index */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50" style={{
         paddingBottom: isMobile ? `max(0.5rem, ${safeAreaInsets.bottom}px)` : '0.5rem'
       }}>
         <div className="flex items-center justify-around py-2 mobile-safe-x">

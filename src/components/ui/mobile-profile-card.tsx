@@ -103,7 +103,15 @@ export const MobileProfileCard = ({
                 <img 
                   src={profile.avatar_url} 
                   alt={profile.first_name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-opacity duration-200"
+                  loading="eager"
+                  onLoad={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
+                  }}
+                  style={{ opacity: 0 }}
                 />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center">
@@ -213,22 +221,24 @@ export const MobileProfileCard = ({
                   <div className="text-sm text-muted-foreground leading-relaxed">
                     <p className={cn(
                       "transition-all duration-300",
-                      !showAllAbout && "line-clamp-3"
+                      !showAllAbout && profile.about_me.length > 150 && "line-clamp-3"
                     )}>
                       {profile.about_me}
                     </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowAllAbout(!showAllAbout)}
-                      className="p-0 h-auto text-xs text-primary hover:text-primary/80 mt-1 transition-colors"
-                    >
-                      {showAllAbout ? (
-                        <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></>
-                      ) : (
-                        <>Show More <ChevronDown className="w-3 h-3 ml-1" /></>
-                      )}
-                    </Button>
+                    {profile.about_me.length > 150 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowAllAbout(!showAllAbout)}
+                        className="p-0 h-auto text-xs text-primary hover:text-primary/80 mt-1 transition-colors"
+                      >
+                        {showAllAbout ? (
+                          <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></>
+                        ) : (
+                          <>Show More <ChevronDown className="w-3 h-3 ml-1" /></>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}
