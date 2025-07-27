@@ -481,7 +481,7 @@ const DiscoverProfiles = () => {
                            currentProfile.symptoms?.length;
 
   return (
-    <div className="mobile-safe-x mobile-safe-bottom pt-8 pb-6 px-3 sm:p-6">
+    <div className="mobile-safe-x mobile-safe-bottom pb-6 px-3 sm:p-6">
       {/* Match Announcement Modal */}
       {showMatchAnnouncement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4">
