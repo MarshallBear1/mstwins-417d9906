@@ -87,17 +87,6 @@ export const MobileProfileCard = ({
     ...(profile.additional_photos || [])
   ];
 
-  // Debug logging and safety check
-  if (!profile) {
-    console.error('❌ MobileProfileCard: No profile provided');
-    return <div style={{border: '2px solid red', padding: '10px'}}>ERROR: No profile data</div>;
-  }
-
-  console.log('📱 MobileProfileCard rendering:', {
-    name: `${profile.first_name} ${profile.last_name}`,
-    hasAvatar: !!profile.avatar_url,
-    location: profile.location
-  });
 
   return (
     <div className={cn("flip-card-container profile-card-mobile mx-auto", className)} style={{ minHeight: '400px', width: '100%', maxWidth: '340px', display: 'block', visibility: 'visible', position: 'relative' }}>
