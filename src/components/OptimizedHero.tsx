@@ -4,8 +4,8 @@ import MSMatchingDemo from "./hero/MSMatchingDemo";
 
 const OptimizedHero = () => {
   return (
-    <section className="relative min-h-screen flex items-center bg-gradient-subtle pt-32">
-      <div className="container mx-auto px-6 lg:px-8">
+    <section className="relative min-h-screen flex items-center bg-gradient-subtle pt-32 mobile-safe-top mobile-safe-bottom">
+      <div className="container mx-auto mobile-safe-x lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <HeroContent />
           <MSMatchingDemo />

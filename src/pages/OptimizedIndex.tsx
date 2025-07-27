@@ -24,7 +24,7 @@ const LoadingSpinner = () => (
 
 const OptimizedIndex = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen mobile-safe-bottom">
       <SEO 
         title="MSTwins - Multiple Sclerosis Support Community | Connect with Others Living with MS"
         description="Join MSTwins, the supportive community for people living with Multiple Sclerosis. Connect, share experiences, and find friendship with others who understand your MS journey."
@@ -49,8 +49,8 @@ const OptimizedIndex = () => {
         </div>
         
         {/* Final CTA Section */}
-        <section className="py-12 bg-background">
-          <div className="container mx-auto px-6 text-center">
+        <section className="py-12 bg-background mobile-safe-bottom">
+          <div className="container mx-auto mobile-safe-x text-center">
             <div className="max-w-3xl mx-auto">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                 Ready to Find Your MS Support Network?
