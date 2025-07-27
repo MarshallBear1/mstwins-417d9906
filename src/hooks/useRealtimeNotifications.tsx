@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -10,119 +10,85 @@ interface Notification {
   type: string;
   title: string;
   message: string;
-  from_user_id: string | null;
   is_read: boolean;
+  from_user_id?: string;
   created_at: string;
 }
 
 export const useRealtimeNotifications = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { message: hapticMessage, match: hapticMatch, like: hapticLike, isSupported: hapticsSupported } = useHaptics();
+  const haptics = useHaptics();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false);
 
   // Request browser notification permission
-  const requestNotificationPermission = async () => {
+  const requestNotificationPermission = useCallback(async () => {
     if (!('Notification' in window)) {
-      console.log('This browser does not support notifications');
+      console.log('This browser does not support desktop notifications');
       return false;
     }
-
-    // Check current permission status
-    console.log('Current notification permission:', Notification.permission);
 
     if (Notification.permission === 'granted') {
       setBrowserNotificationsEnabled(true);
       return true;
     }
 
-    if (Notification.permission === 'denied') {
-      console.log('Notifications have been previously denied');
-      return false;
+    if (Notification.permission !== 'denied') {
+      const permission = await Notification.requestPermission();
+      const granted = permission === 'granted';
+      setBrowserNotificationsEnabled(granted);
+      return granted;
     }
 
-    // Request permission for notifications
-    try {
-      console.log('Requesting notification permission...');
-      const permission = await Notification.requestPermission();
-      console.log('Permission response:', permission);
-      
-      const enabled = permission === 'granted';
-      setBrowserNotificationsEnabled(enabled);
-      
-      if (enabled) {
-        console.log('Notifications enabled successfully');
-      } else {
-        console.log('Notifications were denied or dismissed');
-      }
-      
-      return enabled;
-    } catch (error) {
-      console.error('Error requesting notification permission:', error);
-      return false;
-    }
-  };
+    return false;
+  }, []);
 
   // Show browser notification
-  const showBrowserNotification = (title: string, message: string, type: string) => {
+  const showBrowserNotification = useCallback((title: string, message: string, type: string) => {
     if (!browserNotificationsEnabled || Notification.permission !== 'granted') {
       return;
     }
 
-    try {
-      const options: NotificationOptions = {
-        body: message,
-        icon: '/favicon.png',
-        badge: '/favicon.png',
-        tag: `ms-dating-${type}`,
-        requireInteraction: false,
-        silent: false,
-      };
+    const iconMap = {
+      like: '💖',
+      match: '🎉',
+      message: '💬',
+      default: '🔔'
+    };
 
-      // Add custom icon based on notification type
-      if (type === 'match') {
-        options.icon = '💕';
-      } else if (type === 'like') {
-        options.icon = '❤️';
-      } else if (type === 'message') {
-        options.icon = '💬';
-      }
+    const icon = iconMap[type as keyof typeof iconMap] || iconMap.default;
 
-      // Use the standard Notification constructor for web browsers
-      const notification = new Notification(title, options);
-    
-      // Auto-close after 5 seconds
-      setTimeout(() => {
-        notification.close();
-      }, 5000);
+    const notification = new Notification(title, {
+      body: message,
+      icon: `/favicon.png`,
+      badge: `/favicon.png`,
+      tag: type,
+      requireInteraction: true,
+      data: { type }
+    });
 
-      // Optional: Handle click to focus the app
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
-    } catch (error) {
-      console.error('Error creating browser notification:', error);
-      // Fallback to just showing the toast if notifications fail
-    }
-  };
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
 
-  // Check permission on mount
+    // Auto close after 5 seconds
+    setTimeout(() => notification.close(), 5000);
+  }, [browserNotificationsEnabled]);
+
+  // Check browser notification permission on mount
   useEffect(() => {
     if ('Notification' in window) {
-      if (Notification.permission === 'granted') {
-        setBrowserNotificationsEnabled(true);
-      }
-      // Don't auto-request permission, let user explicitly enable it
+      setBrowserNotificationsEnabled(Notification.permission === 'granted');
     }
   }, []);
 
+  // Fetch initial notifications and set up real-time subscription
   useEffect(() => {
     if (!user) return;
 
-    // Fetch existing notifications
     const fetchNotifications = async () => {
       const { data, error } = await supabase
         .from('notifications')
@@ -131,23 +97,22 @@ export const useRealtimeNotifications = () => {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (data && !error) {
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        return;
+      }
+
+      if (data) {
         setNotifications(data);
-        const unread = data.filter(n => !n.is_read).length;
-        setUnreadCount(unread);
+        setUnreadCount(data.filter(n => !n.is_read).length);
       }
     };
 
     fetchNotifications();
 
-    // Set up real-time subscription for new notifications
-    const channel = supabase
-      .channel(`notifications-${user.id}`, {
-        config: {
-          broadcast: { self: true },
-          presence: { key: user.id }
-        }
-      })
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel('notifications')
       .on(
         'postgres_changes',
         {
@@ -159,82 +124,72 @@ export const useRealtimeNotifications = () => {
         (payload) => {
           const newNotification = payload.new as Notification;
           
-          // Prevent duplicate notifications with better logic
-          setNotifications(prev => {
-            const exists = prev.some(n => 
-              n.id === newNotification.id || 
-              (n.type === newNotification.type && 
-               n.from_user_id === newNotification.from_user_id && 
-               n.user_id === newNotification.user_id &&
-               Math.abs(new Date(n.created_at).getTime() - new Date(newNotification.created_at).getTime()) < 5000) // Within 5 seconds
-            );
-            if (exists) {
-              console.log('Duplicate notification prevented:', newNotification);
-              return prev;
-            }
-            
-            // Show toast notification only for new notifications
-            toast({
-              title: newNotification.title,
-              description: newNotification.message,
-              duration: 4000,
-            });
-
-            // Add haptic feedback for notifications
-            if (hapticsSupported) {
-              if (newNotification.type === 'match') {
-                hapticMatch();
-              } else if (newNotification.type === 'like') {
-                hapticLike();
-              } else if (newNotification.type === 'message') {
-                hapticMessage();
-              }
-            }
-
-            // Show browser notification
-            showBrowserNotification(newNotification.title, newNotification.message, newNotification.type);
-
-            // Play notification sound (optional)
-            try {
-              const audio = new Audio('/notification-sound.mp3');
-              audio.volume = 0.3;
-              audio.play().catch(() => {}); // Ignore if sound fails
-            } catch (error) {
-              // Ignore sound errors
-            }
-            
-            return [newNotification, ...prev];
-          });
+          // Add to notifications list
+          setNotifications(prev => [newNotification, ...prev]);
           
+          // Increment unread count
           setUnreadCount(prev => prev + 1);
+          
+          // Show toast notification
+          toast({
+            title: newNotification.title,
+            description: newNotification.message,
+          });
+
+          // Trigger haptic feedback
+          if (newNotification.type === 'match') {
+            haptics.match();
+          } else if (newNotification.type === 'like') {
+            haptics.like();
+          } else if (newNotification.type === 'message') {
+            haptics.message();
+          } else {
+            haptics.successFeedback();
+          }
+
+          // Show browser notification
+          showBrowserNotification(
+            newNotification.title,
+            newNotification.message,
+            newNotification.type
+          );
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      subscription.unsubscribe();
     };
-  }, [user, toast]);
+  }, [user, toast, haptics, showBrowserNotification]);
 
-  const markAsRead = async (notificationId: string) => {
+  // Mark notification as read
+  const markAsRead = useCallback(async (notificationId: string) => {
     const { error } = await supabase
       .from('notifications')
       .update({ is_read: true })
-      .eq('id', notificationId)
-      .eq('user_id', user?.id);
+      .eq('id', notificationId);
 
-    if (!error) {
-      setNotifications(prev => 
-        prev.map(n => 
-          n.id === notificationId ? { ...n, is_read: true } : n
-        )
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+    if (error) {
+      console.error('Error marking notification as read:', error);
+      return false;
     }
-  };
 
-  const markAllAsRead = async () => {
-    if (!user) return;
+    // Update local state
+    setNotifications(prev => 
+      prev.map(n => 
+        n.id === notificationId ? { ...n, is_read: true } : n
+      )
+    );
+
+    // Decrease unread count
+    setUnreadCount(prev => Math.max(0, prev - 1));
+
+    return true;
+  }, []);
+
+  // Mark all notifications as read
+  const markAllAsRead = useCallback(async () => {
+    if (!user) return false;
 
     const { error } = await supabase
       .from('notifications')
@@ -242,13 +197,19 @@ export const useRealtimeNotifications = () => {
       .eq('user_id', user.id)
       .eq('is_read', false);
 
-    if (!error) {
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, is_read: true }))
-      );
-      setUnreadCount(0);
+    if (error) {
+      console.error('Error marking all notifications as read:', error);
+      return false;
     }
-  };
+
+    // Update local state
+    setNotifications(prev => 
+      prev.map(n => ({ ...n, is_read: true }))
+    );
+    setUnreadCount(0);
+
+    return true;
+  }, [user]);
 
   return {
     notifications,

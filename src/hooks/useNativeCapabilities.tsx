@@ -9,6 +9,10 @@ import { useShare } from '@/hooks/useShare';
 import { useAppState } from '@/hooks/useAppState';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useNativeDevice } from '@/hooks/useNativeDevice';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { useBackgroundSync } from '@/hooks/useBackgroundSync';
+import { useOfflineStorage } from '@/hooks/useOfflineStorage';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useToast } from '@/hooks/use-toast';
 
 // Component to integrate all native capabilities
@@ -16,6 +20,10 @@ export const NativeCapabilities: React.FC = () => {
   const haptics = useHaptics();
   const localNotifications = useLocalNotifications();
   const pushNotifications = useNativePushNotifications();
+  const realtimeNotifications = useRealtimeNotifications();
+  const backgroundSync = useBackgroundSync();
+  const offlineStorage = useOfflineStorage();
+  const performanceMonitor = usePerformanceMonitor();
   const device = useNativeDevice();
   const { toast } = useToast();
 
@@ -25,6 +33,9 @@ export const NativeCapabilities: React.FC = () => {
         haptics: haptics.isSupported,
         localNotifications: localNotifications.isSupported,
         pushNotifications: pushNotifications.isSupported,
+        realtimeNotifications: realtimeNotifications.browserNotificationsEnabled,
+        backgroundSync: backgroundSync.isOnline,
+        offlineStorage: offlineStorage.isInitialized,
         deviceInfo: device.deviceInfo,
         networkStatus: device.networkStatus
       });
@@ -33,6 +44,9 @@ export const NativeCapabilities: React.FC = () => {
       if (haptics.isSupported || localNotifications.isSupported || pushNotifications.isSupported) {
         haptics.successFeedback();
       }
+
+      // Request notification permissions
+      realtimeNotifications.requestNotificationPermission();
     }
   }, [device.isNative]);
 
@@ -66,6 +80,10 @@ export const useNativeCapabilities = () => {
   const haptics = useHaptics();
   const localNotifications = useLocalNotifications();
   const pushNotifications = useNativePushNotifications();
+  const realtimeNotifications = useRealtimeNotifications();
+  const backgroundSync = useBackgroundSync();
+  const offlineStorage = useOfflineStorage();
+  const performanceMonitor = usePerformanceMonitor();
   const device = useNativeDevice();
 
   // Enhanced interaction methods with haptics
@@ -149,6 +167,10 @@ export const useNativeCapabilities = () => {
     haptics,
     localNotifications,
     pushNotifications,
+    realtimeNotifications,
+    backgroundSync,
+    offlineStorage,
+    performanceMonitor,
     
     // Enhanced interaction methods
     enhancedButtonPress,
@@ -173,6 +195,8 @@ export const useNativeCapabilities = () => {
     hasHaptics: haptics.isSupported,
     hasLocalNotifications: localNotifications.isEnabled,
     hasPushNotifications: pushNotifications.isEnabled,
+    hasRealtimeNotifications: realtimeNotifications.browserNotificationsEnabled,
+    hasOfflineStorage: offlineStorage.isInitialized,
     platform: device.deviceInfo?.platform,
     isIOS: device.isIOS,
     isAndroid: device.isAndroid
