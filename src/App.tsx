@@ -5,7 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, lazy, Suspense, memo } from "react";
 import { AuthProvider } from "./hooks/useAuth";
 import { analytics } from "./lib/analytics";
 import OptimizedIndex from "./pages/OptimizedIndex";
@@ -23,7 +23,7 @@ const Auth = lazy(() => import("./pages/Auth").catch(err => {
 }));
 const Dashboard = lazy(() => import("./pages/Dashboard").catch(err => {
   console.error('Failed to load Dashboard page:', err);
-  return { default: () => <div>Failed to load page. Please refresh.</div> };
+  return { default: memo(() => <div>Failed to load page. Please refresh.</div>) };
 }));
 const ProfileSetup = lazy(() => import("./pages/ProfileSetup").catch(err => {
   console.error('Failed to load ProfileSetup page:', err);
