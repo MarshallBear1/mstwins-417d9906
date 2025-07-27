@@ -44,19 +44,19 @@ const MSMatchingDemo = memo(() => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-xs sm:max-w-sm mx-auto animate-fade-in px-4">
+    <div className="relative w-full max-w-md sm:max-w-lg mx-auto animate-fade-in px-4">
       {/* Profile Matching Animation */}
       <div className="relative h-48 sm:h-64 flex items-center justify-center overflow-hidden">
         {/* Left Profile (You) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[-50px] sm:translate-x-[-70px]' : 'translate-x-0'
+          step >= 1 ? 'translate-x-[-80px] sm:translate-x-[-100px]' : 'translate-x-0'
         }`}>
           <ProfileCard profile={profiles[1]} isYou={true} />
         </div>
 
         {/* Right Profile (Sarah) */}
         <div className={`absolute transition-all duration-1000 ${
-          step >= 1 ? 'translate-x-[50px] sm:translate-x-[70px] opacity-100' : 'translate-x-[80px] sm:translate-x-[120px] opacity-0'
+          step >= 1 ? 'translate-x-[80px] sm:translate-x-[100px] opacity-100' : 'translate-x-[120px] sm:translate-x-[160px] opacity-0'
         }`}>
           <ProfileCard profile={profiles[0]} />
         </div>
@@ -77,7 +77,7 @@ const MSMatchingDemo = memo(() => {
                 />
               </div>
               {/* Speech Bubble */}
-              <div className="absolute -top-18 sm:-top-20 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium text-center min-w-max">
+              <div className="absolute -top-16 sm:-top-18 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-center min-w-max z-10">
                 <div>🎉 You've been matched!</div>
                 <div>Start connecting</div>
                 <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-blue-600"></div>
