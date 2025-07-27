@@ -84,14 +84,13 @@ export default function FeedbackDialog() {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          size="sm"
-          className="bg-background/50 backdrop-blur-sm border-accent/20 hover:bg-accent/10"
+          className="bg-background/50 backdrop-blur-sm border-accent/20 hover:bg-accent/10 min-h-[44px]"
         >
           <MessageSquare className="h-4 w-4 mr-2" />
           Feedback
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[500px] mx-4 sm:mx-0 p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Send Feedback</DialogTitle>
           <DialogDescription>
@@ -99,7 +98,7 @@ export default function FeedbackDialog() {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
             <FormField
               control={form.control}
               name="type"
@@ -201,7 +200,7 @@ export default function FeedbackDialog() {
               )}
             />
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
                 Cancel
               </Button>
