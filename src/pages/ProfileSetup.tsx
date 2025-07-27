@@ -10,8 +10,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, ArrowRight, Check, CalendarIcon, Shuffle, X, Upload, Camera } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CalendarIcon, Shuffle, X, Upload, Camera, ImageIcon, Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +32,7 @@ const ProfileSetup = () => {
   const [avatarSeed, setAvatarSeed] = useState(() => Math.random().toString(36).substring(7));
   const [uploading, setUploading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showPhotoChoiceDialog, setShowPhotoChoiceDialog] = useState(false);
   const [profileData, setProfileData] = useState({
     // Step 1: Name Collection
     firstName: "",
@@ -317,7 +319,27 @@ const ProfileSetup = () => {
       });
     } finally {
       setUploading(false);
+      setShowPhotoChoiceDialog(false);
+      // Reset file inputs
+      const fileInput = document.getElementById('avatar-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      const cameraInput = document.getElementById('camera-upload') as HTMLInputElement;
+      if (cameraInput) cameraInput.value = '';
     }
+  };
+
+  const handleAddPhotoClick = () => {
+    setShowPhotoChoiceDialog(true);
+  };
+
+  const handleCameraChoice = () => {
+    const input = document.getElementById('camera-upload') as HTMLInputElement;
+    input?.click();
+  };
+
+  const handleGalleryChoice = () => {
+    const input = document.getElementById('avatar-upload') as HTMLInputElement;
+    input?.click();
   };
 
   const getEmojiForHobby = (hobby: string) => {
@@ -799,32 +821,43 @@ const ProfileSetup = () => {
                 <div className="text-center">
                   <h3 className="font-semibold text-sm mb-2">Upload Your Own Photo</h3>
                   <div className="flex-1">
+                    {/* Hidden file inputs */}
                     <input
                       type="file"
                       accept="image/*"
-                      capture="environment"
                       onChange={handleFileUpload}
                       disabled={uploading}
                       className="hidden"
                       id="avatar-upload"
                     />
-                    <label htmlFor="avatar-upload">
-                      <Button variant="outline" className="w-full max-w-xs" disabled={uploading} asChild>
-                        <span>
-                          {uploading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                              Uploading...
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="w-4 h-4 mr-2" />
-                              Upload Your Photo
-                            </>
-                          )}
-                        </span>
-                      </Button>
-                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      onChange={handleFileUpload}
+                      disabled={uploading}
+                      className="hidden"
+                      id="camera-upload"
+                    />
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full max-w-xs" 
+                      disabled={uploading}
+                      onClick={handleAddPhotoClick}
+                    >
+                      {uploading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Camera className="w-4 h-4 mr-2" />
+                          Add Photo
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
 
@@ -1069,6 +1102,33 @@ const ProfileSetup = () => {
             </Button>
           </div>
         </div>
+        
+        {/* Photo Choice Dialog */}
+        <Dialog open={showPhotoChoiceDialog} onOpenChange={setShowPhotoChoiceDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Photo</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col items-center gap-2"
+                onClick={handleCameraChoice}
+              >
+                <Camera className="w-8 h-8" />
+                <span className="text-sm">Take Photo</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col items-center gap-2"
+                onClick={handleGalleryChoice}
+              >
+                <ImageIcon className="w-8 h-8" />
+                <span className="text-sm">Camera Roll</span>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
