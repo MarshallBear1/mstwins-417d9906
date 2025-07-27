@@ -182,11 +182,17 @@ const DiscoverProfiles = () => {
         }
 
         console.log(`✅ Found ${data?.length || 0} available profiles`);
-        setProfiles((data || []).map(profile => ({
+        const processedProfiles = (data || []).map(profile => ({
           ...profile,
           selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as { question: string; answer: string; }[] : []
-        })));
+        }));
+        
+        console.log('📋 Processed profiles:', processedProfiles.length, 'profiles');
+        console.log('📋 First profile:', processedProfiles[0] ? `${processedProfiles[0].first_name} ${processedProfiles[0].last_name}` : 'None');
+        
+        setProfiles(processedProfiles);
       }
+      console.log('📊 Setting currentIndex to 0');
       setCurrentIndex(0);
     } catch (error) {
       console.error('Error fetching profiles:', error);
@@ -383,6 +389,15 @@ const DiscoverProfiles = () => {
   };
 
   const currentProfile = profiles[currentIndex];
+  
+  // Debug logging
+  console.log('🔍 Debug info:', {
+    profilesLength: profiles.length,
+    currentIndex,
+    hasCurrentProfile: !!currentProfile,
+    loading,
+    showingSkipped
+  });
 
   const openImageViewer = (imageIndex: number) => {
     setImageViewerIndex(imageIndex);
@@ -503,17 +518,29 @@ const DiscoverProfiles = () => {
         </div>
       )}
 
-      <MobileProfileCard
-        profile={currentProfile}
-        onImageClick={openImageViewer}
-        isUserOnline={isUserOnline}
-        getLastSeenText={getLastSeenText}
-        showActions={true}
-        onLike={handleLike}
-        onPass={handlePass}
-        actionLoading={actionLoading}
-        className="animate-scale-in"
-      />
+      <div style={{ 
+        border: '2px solid red', 
+        padding: '10px', 
+        margin: '10px',
+        minHeight: '100px',
+        backgroundColor: 'yellow'
+      }}>
+        <p>DEBUG: Profile card container</p>
+        <p>Profile exists: {!!currentProfile ? 'YES' : 'NO'}</p>
+        <p>Profile name: {currentProfile ? `${currentProfile.first_name} ${currentProfile.last_name}` : 'N/A'}</p>
+        
+        <MobileProfileCard
+          profile={currentProfile}
+          onImageClick={openImageViewer}
+          isUserOnline={isUserOnline}
+          getLastSeenText={getLastSeenText}
+          showActions={true}
+          onLike={handleLike}
+          onPass={handlePass}
+          actionLoading={actionLoading}
+          className="animate-scale-in"
+        />
+      </div>
 
       {/* Profile Image Viewer */}
       <ProfileImageViewer 
