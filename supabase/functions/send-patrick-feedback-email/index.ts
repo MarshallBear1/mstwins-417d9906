@@ -27,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailTask = async () => {
       try {
         const emailResponse = await resend.emails.send({
-          from: "Marshall @ MSTwins <marshall@sharedgenes.org>",
+          from: "MSTwins Team <team@sharedgenes.org>",
           to: [email],
           subject: "Thank you for your feedback - Password Reset Link Sent 💙",
           html: `
@@ -65,8 +65,8 @@ const handler = async (req: Request): Promise<Response> => {
                   If you have any other feedback, suggestions, or if you encounter any issues, please don't hesitate to reach out. Your experience matters to us, and we're here to help.
                 </p>
                 <div style="text-align: center; margin: 20px 0;">
-                  <a href="mailto:marshall@sharedgenes.org" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                    Reply to Marshall
+                  <a href="mailto:team@sharedgenes.org" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                    Contact MSTwins Team
                   </a>
                 </div>
               </div>

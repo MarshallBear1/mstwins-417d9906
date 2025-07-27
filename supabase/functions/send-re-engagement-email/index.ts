@@ -238,7 +238,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { subject, html } = getEmailContent(emailType, firstName || '', hoursOffline);
 
     const emailResponse = await resend.emails.send({
-      from: "MSTwins <marshall@sharedgenes.org>",
+      from: "MSTwins Community <team@sharedgenes.org>",
       to: [email],
       subject,
       html,
