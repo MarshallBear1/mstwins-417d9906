@@ -85,11 +85,8 @@ export const useMobileOptimizations = (): MobileOptimizations => {
 
     // iOS specific optimizations
     if (isIOS) {
-      // Prevent elastic scroll
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
-      document.body.style.overflow = 'hidden';
+      // Prevent elastic bounce but allow scrolling
+      document.body.style.overscrollBehavior = 'none';
       
       // Allow scrolling in specific containers
       const scrollableElements = document.querySelectorAll('.mobile-scroll');
@@ -103,10 +100,7 @@ export const useMobileOptimizations = (): MobileOptimizations => {
       window.removeEventListener('resize', handleResize);
       
       if (isIOS) {
-        document.body.style.position = '';
-        document.body.style.width = '';
-        document.body.style.height = '';
-        document.body.style.overflow = '';
+        document.body.style.overscrollBehavior = '';
       }
     };
   }, [isIOS]);
