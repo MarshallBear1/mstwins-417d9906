@@ -462,18 +462,18 @@ const ExtendedProfileSetup = () => {
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a question to answer..." />
                       </SelectTrigger>
-                      <SelectContent className="max-h-60 bg-background border shadow-lg z-50">
-                        {availablePromptsToShow.map((prompt, index) => (
-                          <SelectItem 
-                            key={index} 
-                            value={prompt}
-                            className="cursor-pointer hover:bg-accent"
-                          >
-                            <span className="text-sm leading-relaxed py-1">
-                              {prompt}
-                            </span>
-                          </SelectItem>
-                        ))}
+                       <SelectContent className="max-h-60 bg-background border shadow-lg z-50">
+                         {availablePromptsToShow.map((prompt, index) => (
+                           <SelectItem 
+                             key={index} 
+                             value={prompt}
+                             className="cursor-pointer hover:bg-accent min-h-12 p-3"
+                           >
+                             <span className="text-sm leading-relaxed whitespace-normal">
+                               {prompt}
+                             </span>
+                           </SelectItem>
+                         ))}
                       </SelectContent>
                     </Select>
                   </div>
