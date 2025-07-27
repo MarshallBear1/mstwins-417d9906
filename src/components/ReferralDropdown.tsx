@@ -130,7 +130,7 @@ const ReferralDropdown = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Your Referral Link</label>
                 <div className="flex gap-2">
-                  <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono text-muted-foreground truncate">
+                  <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono text-muted-foreground truncate text-center">
                     {referralLink}
                   </div>
                   <Button
