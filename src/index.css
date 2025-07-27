@@ -256,8 +256,9 @@ All colors MUST be HSL.
   .profile-card-mobile {
     width: 100%;
     max-width: min(340px, calc(100vw - 2rem));
-    height: min(480px, calc(100vh - 200px));
-    min-height: 400px;
+    height: min(450px, calc(100vh - 250px));
+    min-height: 380px;
+    margin-top: 1rem;
   }
   
   .profile-card-desktop {

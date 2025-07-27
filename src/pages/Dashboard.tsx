@@ -299,9 +299,9 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "discover":
-        return <div>
+        return <div className="pt-6">
             {/* Extended Profile Prompt */}
-            {profile && !profile.extended_profile_completed && <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 m-4">
+            {profile && !profile.extended_profile_completed && <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mx-4 mb-4">
                 <div className="flex items-start space-x-3">
                   <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="Helpful robot" className="w-10 h-10 rounded-full flex-shrink-0" />
                   <div className="flex-1">
