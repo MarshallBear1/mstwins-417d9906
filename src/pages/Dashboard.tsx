@@ -394,7 +394,7 @@ const Dashboard = () => {
                             </Badge>}
                          </div>
                          
-                          <div className="flex-shrink-0 space-y-2">
+                          <div className="flex-shrink-0 flex flex-col gap-2 min-w-0 sm:min-w-[120px]">
                             <Button size="sm" variant="outline" className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm" onClick={() => {
                       setSelectedProfileForView(likedProfile);
                       setShowProfileView(true);
