@@ -3,25 +3,25 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, ArrowRight, Star, Users, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 const HeroContent = () => {
-  return <div className="text-center lg:text-left space-y-8 animate-fade-in">
+  return <div className="text-center space-y-6 animate-fade-in max-w-4xl mx-auto">
       {/* Trust Badge */}
       
       
       {/* Main Headline */}
-      <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
+      <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-foreground">
         <span className="text-foreground">
           Multiple Sclerosis Support Community - Find Your MS<span className="text-blue-600">Twin</span>
         </span>
       </h1>
       
       {/* Value Proposition */}
-      <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0">
+      <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
         Connect with others who truly understand your Multiple Sclerosis journey. 
-        Build meaningful friendships, share experiences, and find support in our safe community.
+        Build meaningful friendships and find support in our safe community.
       </p>
 
       {/* Social Proof Stats */}
-      <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
+      <div className="flex flex-col sm:flex-row gap-6 justify-center">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-primary" />
           <span className="text-sm text-muted-foreground">500+ members</span>
@@ -37,7 +37,7 @@ const HeroContent = () => {
       </div>
 
       {/* CTA Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <Button variant="hero" size="lg" className="text-lg px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-medium hover:shadow-strong transform hover:scale-105 transition-all duration-300" asChild>
           <Link to="/auth">
             Join Free Today
@@ -52,7 +52,7 @@ const HeroContent = () => {
       </div>
 
       {/* Trust Indicators */}
-      <div className="flex items-center gap-4 justify-center lg:justify-start text-sm text-muted-foreground">
+      <div className="flex items-center gap-4 justify-center text-sm text-muted-foreground">
         <div className="flex items-center gap-1">
           <div className="w-2 h-2 bg-success rounded-full"></div>
           <span>100% Free</span>
