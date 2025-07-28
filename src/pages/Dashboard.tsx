@@ -530,8 +530,19 @@ const Dashboard = () => {
       <Dialog open={showProfileView} onOpenChange={setShowProfileView}>
         <DialogContent className="p-0 max-w-md w-full h-[80vh] overflow-hidden">
           {selectedProfileForView && (
-            <div className="h-full overflow-y-auto">
+            <div className="relative h-full overflow-y-auto">
               <DiscoverProfileCard profile={selectedProfileForView} />
+              {/* Close button overlay */}
+              <div className="absolute top-4 right-4 z-10">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowProfileView(false)}
+                  className="h-8 w-8 p-0 rounded-full bg-white/90 hover:bg-white shadow-lg border-gray-300"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>

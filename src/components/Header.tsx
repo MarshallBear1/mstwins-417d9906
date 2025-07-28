@@ -41,6 +41,9 @@ const Header = () => {
             <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Success Stories
             </a>
+            <Link to="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+              Contact
+            </Link>
           </nav>
 
           {/* Desktop CTA Buttons */}
@@ -73,6 +76,9 @@ const Header = () => {
               <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors font-medium" onClick={() => setMobileMenuOpen(false)}>
                 Success Stories
               </a>
+              <Link to="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium" onClick={() => setMobileMenuOpen(false)}>
+                Contact
+              </Link>
               <div className="flex flex-col space-y-2 text-sm text-gray-600">
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4" />

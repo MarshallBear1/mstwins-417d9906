@@ -34,11 +34,7 @@ const Footer = () => {
               Support
             </h3>
             <ul className="space-y-2 text-background/80">
-              <li>
-                <a href="mailto:team@sharedgenes.org" className="hover:text-background transition-colors">
-                  Contact Us
-                </a>
-              </li>
+              <li><Link to="/contact" className="hover:text-background transition-colors">Contact Us</Link></li>
               <li><Link to="/privacy-policy" className="hover:text-background transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms-of-service" className="hover:text-background transition-colors">Terms of Service</Link></li>
               <li>

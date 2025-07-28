@@ -47,6 +47,10 @@ const AdminFeedback = lazy(() => import("./pages/AdminFeedback").catch(err => {
   console.error('Failed to load AdminFeedback page:', err);
   return { default: () => <div>Failed to load page. Please refresh.</div> };
 }));
+const Contact = lazy(() => import("./pages/Contact").catch(err => {
+  console.error('Failed to load Contact page:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
 const NotFound = lazy(() => import("./pages/NotFound").catch(err => {
   console.error('Failed to load NotFound page:', err);
   return { default: () => <div>Page not found. Please refresh.</div> };
@@ -123,6 +127,11 @@ const App = () => (
             <Route path="/terms-of-service" element={
               <Suspense fallback={<LoadingSpinner />}>
                 <TermsOfService />
+              </Suspense>
+            } />
+            <Route path="/contact" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <Contact />
               </Suspense>
             } />
             <Route path="/admin/feedback" element={
