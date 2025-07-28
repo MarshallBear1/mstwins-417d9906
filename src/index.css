@@ -208,6 +208,22 @@ All colors MUST be HSL.
   }
 }
 
+/* Slide in animation for conversation demo */
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.5s ease-out;
+}
+
 /* Mobile-first utilities - iOS App Store Ready */
 .mobile-safe-top {
   padding-top: max(1rem, var(--safe-area-inset-top));
