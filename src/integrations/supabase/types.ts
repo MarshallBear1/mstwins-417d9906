@@ -682,6 +682,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      delete_user_account: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       enhanced_rate_limit_check: {
         Args: {
           user_id_param: string
