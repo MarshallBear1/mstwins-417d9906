@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, LogOut, Eye } from "lucide-react";
+import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, LogOut, Eye, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
@@ -488,14 +488,23 @@ const Dashboard = () => {
           
           
           <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Return to Discover button - only show when not on discover tab */}
+            {activeTab !== 'discover' && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setActiveTab('discover')} 
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                <span className="hidden sm:inline">Return to Discover</span>
+              </Button>
+            )}
             {/* Mobile Daily Likes Counter */}
             {isLimitEnforced() && !hasUnlimitedLikes}
-            <NotificationBell />
             <ReferralDropdown />
             <FeedbackDialog />
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-foreground">
-              <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
-            </Button>
+            <NotificationBell />
           </div>
         </div>
       </div>
