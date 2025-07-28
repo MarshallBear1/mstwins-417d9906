@@ -109,6 +109,39 @@ const PrivacyPolicy = () => {
                   </a>
                 </p>
               </section>
+
+              <section>
+                <h2 className="text-2xl font-semibold text-foreground mb-4">8. Data Retention</h2>
+                <p className="text-muted-foreground">
+                  We retain your personal data only as long as necessary to provide you with the service 
+                  or as required by law. You may request deletion at any time by contacting us.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-semibold text-foreground mb-4">9. International Data Transfers</h2>
+                <p className="text-muted-foreground">
+                  Your information may be transferred to—and maintained on—servers located outside your 
+                  country, including the United States. We ensure all data transfers comply with 
+                  applicable data protection laws.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-semibold text-foreground mb-4">10. Cookies and Tracking</h2>
+                <p className="text-muted-foreground">
+                  We may use cookies or similar technologies to enhance user experience, store preferences, 
+                  and perform analytics. You can disable cookies through your browser settings.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-semibold text-foreground mb-4">11. Changes to This Privacy Policy</h2>
+                <p className="text-muted-foreground">
+                  We may update this Privacy Policy from time to time. We will notify you of significant 
+                  changes by posting the new version on our website or sending a notification.
+                </p>
+              </section>
             </div>
           </div>
         </div>
