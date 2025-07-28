@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useLocalNotifications } from '@/hooks/useLocalNotifications';
-import { useNativeCapabilities } from '@/hooks/useNativeCapabilities';
+import { useNativePushNotifications } from '@/hooks/useNativePushNotifications';
 
 interface Notification {
   id: string;
@@ -23,7 +23,7 @@ export const useRealtimeNotifications = () => {
   const { toast } = useToast();
   const haptics = useHaptics();
   const localNotifications = useLocalNotifications();
-  const nativeCapabilities = useNativeCapabilities();
+  const pushNotifications = useNativePushNotifications();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false);
@@ -250,12 +250,12 @@ export const useRealtimeNotifications = () => {
   // Enhanced permission request that handles both native and browser
   const requestAllPermissions = useCallback(async () => {
     if (isNative) {
-      const permissions = await nativeCapabilities.requestAllPermissions();
-      return permissions.localNotifications || permissions.pushNotifications;
+      const permissions = await pushNotifications.requestPermissions();
+      return permissions || localNotifications.isEnabled;
     } else {
       return await requestNotificationPermission();
     }
-  }, [isNative, nativeCapabilities, requestNotificationPermission]);
+  }, [isNative, pushNotifications, localNotifications.isEnabled, requestNotificationPermission]);
 
   return {
     notifications,
