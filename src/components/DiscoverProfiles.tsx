@@ -449,14 +449,7 @@ const DiscoverProfiles = () => {
 
   const currentProfile = profiles[currentIndex];
   
-  // Debug logging
-  console.log('🔍 Debug info:', {
-    profilesLength: profiles.length,
-    currentIndex,
-    hasCurrentProfile: !!currentProfile,
-    loading,
-    showingSkipped
-  });
+
 
   const openImageViewer = (imageIndex: number) => {
     setImageViewerIndex(imageIndex);

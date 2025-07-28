@@ -4,17 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useCamera } from '@/hooks/useCamera';
-import { useLocation } from '@/hooks/useLocation';
+
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useShare } from '@/hooks/useShare';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useAppState } from '@/hooks/useAppState';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, MapPin, Upload, Share2, Wifi, WifiOff, Smartphone } from 'lucide-react';
+import { Camera, Upload, Share2, Wifi, WifiOff, Smartphone } from 'lucide-react';
 
 export const NativeFeaturesDemo: React.FC = () => {
   const camera = useCamera();
-  const location = useLocation();
   const fileUpload = useFileUpload();
   const share = useShare();
   const networkStatus = useNetworkStatus();
@@ -51,15 +50,7 @@ export const NativeFeaturesDemo: React.FC = () => {
     }
   };
 
-  const handleGetLocation = async () => {
-    const locationData = await location.getCurrentPosition();
-    if (locationData) {
-      toast({
-        title: "Location Found!",
-        description: `Lat: ${locationData.latitude.toFixed(4)}, Lng: ${locationData.longitude.toFixed(4)}`,
-      });
-    }
-  };
+
 
   const handleUploadPhoto = async () => {
     if (!capturedPhoto) {
@@ -111,9 +102,7 @@ export const NativeFeaturesDemo: React.FC = () => {
             <Badge variant={camera.isSupported ? "default" : "secondary"}>
               Camera {camera.isSupported ? 'Available' : 'Not Available'}
             </Badge>
-            <Badge variant={location.isSupported ? "default" : "secondary"}>
-              Location {location.isSupported ? 'Available' : 'Not Available'}
-            </Badge>
+
             <Badge variant={share.isSupported ? "default" : "secondary"}>
               Share {share.isSupported ? 'Available' : 'Not Available'}
             </Badge>
@@ -168,36 +157,6 @@ export const NativeFeaturesDemo: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Location Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <MapPin className="h-4 w-4" />
-                Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleGetLocation}
-                  disabled={!location.isSupported || location.isLoading}
-                  size="sm"
-                >
-                  {location.isLoading ? 'Getting Location...' : 'Get Current Location'}
-                </Button>
-                <Badge variant={location.permissionStatus === 'granted' ? "default" : "secondary"}>
-                  Permission: {location.permissionStatus}
-                </Badge>
-              </div>
-              {location.currentLocation && (
-                <div className="text-sm text-muted-foreground">
-                  <p>Lat: {location.currentLocation.latitude.toFixed(6)}</p>
-                  <p>Lng: {location.currentLocation.longitude.toFixed(6)}</p>
-                  <p>Accuracy: {location.currentLocation.accuracy.toFixed(0)}m</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* Share Section */}
           <Card>

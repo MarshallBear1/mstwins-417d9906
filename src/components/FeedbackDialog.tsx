@@ -84,13 +84,13 @@ export default function FeedbackDialog() {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="bg-background/50 backdrop-blur-sm border-accent/20 hover:bg-accent/10 min-h-[44px]"
+          className="bg-background/80 border-accent/20 hover:bg-accent/10 min-h-[44px]"
         >
           <MessageSquare className="h-4 w-4 mr-2" />
           Feedback
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[500px] p-4 sm:p-6">
+      <DialogContent className="max-w-[min(500px,calc(100vw-1rem))] sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Send Feedback</DialogTitle>
           <DialogDescription>
