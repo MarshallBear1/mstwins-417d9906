@@ -495,7 +495,7 @@ const Dashboard = () => {
                 onClick={() => setActiveTab('discover')} 
                 className="text-muted-foreground hover:text-foreground"
               >
-                <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                <ArrowLeft className="w-4 h-4 sm:mr-1" />
                 <span className="hidden sm:inline">Return to Discover</span>
               </Button>
             )}
