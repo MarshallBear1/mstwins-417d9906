@@ -90,7 +90,7 @@ export default function FeedbackDialog() {
           Feedback
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[500px] mx-4 sm:mx-0 p-4 sm:p-6">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[500px] p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Send Feedback</DialogTitle>
           <DialogDescription>
