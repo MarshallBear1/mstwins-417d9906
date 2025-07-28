@@ -14,23 +14,24 @@ const NotificationBell = () => {
     unreadCount,
     markAsRead,
     markAllAsRead,
-    requestNotificationPermission,
-    browserNotificationsEnabled
+    requestAllPermissions,
+    notificationsEnabled,
+    isNative
   } = useRealtimeNotifications();
   const {
     toast
   } = useToast();
-  const handleEnableBrowserNotifications = async () => {
-    const enabled = await requestNotificationPermission();
+  const handleEnableNotifications = async () => {
+    const enabled = await requestAllPermissions();
     if (enabled) {
       toast({
-        title: "Browser notifications enabled",
-        description: "You'll now receive notifications even when the app is closed."
+        title: `${isNative ? 'Native' : 'Browser'} notifications enabled`,
+        description: "You'll now receive notifications for matches, likes, and messages."
       });
     } else {
       toast({
-        title: "Browser notifications blocked",
-        description: "Please enable notifications in your browser settings.",
+        title: "Notifications blocked",
+        description: `Please enable notifications in your ${isNative ? 'device' : 'browser'} settings.`,
         variant: "destructive"
       });
     }
@@ -69,7 +70,7 @@ const NotificationBell = () => {
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="text-sm font-medium">Notifications</CardTitle>
               <div className="flex items-center gap-2">
-                {!browserNotificationsEnabled && <Button variant="ghost" size="sm" onClick={handleEnableBrowserNotifications} className="text-xs h-6 px-2" title="Enable browser notifications">
+                {!notificationsEnabled && <Button variant="ghost" size="sm" onClick={handleEnableNotifications} className="text-xs h-6 px-2" title={`Enable ${isNative ? 'native' : 'browser'} notifications`}>
                     <Settings className="w-3 h-3 mr-1" />
                     Enable
                   </Button>}

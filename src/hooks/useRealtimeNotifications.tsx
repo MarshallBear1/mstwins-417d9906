@@ -1,8 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useHaptics } from '@/hooks/useHaptics';
+import { useLocalNotifications } from '@/hooks/useLocalNotifications';
+import { useNativeCapabilities } from '@/hooks/useNativeCapabilities';
 
 interface Notification {
   id: string;
@@ -19,9 +22,12 @@ export const useRealtimeNotifications = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const haptics = useHaptics();
+  const localNotifications = useLocalNotifications();
+  const nativeCapabilities = useNativeCapabilities();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false);
+  const [isNative, setIsNative] = useState(false);
 
   // Request browser notification permission
   const requestNotificationPermission = useCallback(async () => {
@@ -78,11 +84,18 @@ export const useRealtimeNotifications = () => {
     setTimeout(() => notification.close(), 5000);
   }, [browserNotificationsEnabled]);
 
-  // Check browser notification permission on mount
+  // Check platform and notification permission on mount
   useEffect(() => {
-    if ('Notification' in window) {
-      setBrowserNotificationsEnabled(Notification.permission === 'granted');
-    }
+    const checkPlatform = async () => {
+      const native = Capacitor.isNativePlatform();
+      setIsNative(native);
+      
+      if (!native && 'Notification' in window) {
+        setBrowserNotificationsEnabled(Notification.permission === 'granted');
+      }
+    };
+    
+    checkPlatform();
   }, []);
 
   // Fetch initial notifications and set up real-time subscription
@@ -121,7 +134,7 @@ export const useRealtimeNotifications = () => {
           table: 'notifications',
           filter: `user_id=eq.${user.id}`
         },
-        (payload) => {
+        async (payload) => {
           const newNotification = payload.new as Notification;
           
           // Add to notifications list
@@ -147,12 +160,35 @@ export const useRealtimeNotifications = () => {
             haptics.successFeedback();
           }
 
-          // Show browser notification
-          showBrowserNotification(
-            newNotification.title,
-            newNotification.message,
-            newNotification.type
-          );
+          // Handle native vs browser notifications
+          if (isNative && localNotifications.isEnabled) {
+            // Send native local notification
+            try {
+              if (newNotification.type === 'match') {
+                await localNotifications.scheduleMatchNotification(
+                  newNotification.title.replace('New match with ', '') || 'Someone'
+                );
+              } else if (newNotification.type === 'like') {
+                await localNotifications.scheduleLikeNotification(
+                  newNotification.title.replace('Someone liked your profile!', 'Someone') || 'Someone'
+                );
+              } else if (newNotification.type === 'message') {
+                await localNotifications.scheduleMessageNotification(
+                  'New Message',
+                  newNotification.message
+                );
+              }
+            } catch (error) {
+              console.error('Error sending native notification:', error);
+            }
+          } else {
+            // Fallback to browser notification
+            showBrowserNotification(
+              newNotification.title,
+              newNotification.message,
+              newNotification.type
+            );
+          }
         }
       )
       .subscribe();
@@ -211,12 +247,25 @@ export const useRealtimeNotifications = () => {
     return true;
   }, [user]);
 
+  // Enhanced permission request that handles both native and browser
+  const requestAllPermissions = useCallback(async () => {
+    if (isNative) {
+      const permissions = await nativeCapabilities.requestAllPermissions();
+      return permissions.localNotifications || permissions.pushNotifications;
+    } else {
+      return await requestNotificationPermission();
+    }
+  }, [isNative, nativeCapabilities, requestNotificationPermission]);
+
   return {
     notifications,
     unreadCount,
     markAsRead,
     markAllAsRead,
     requestNotificationPermission,
-    browserNotificationsEnabled
+    requestAllPermissions,
+    browserNotificationsEnabled,
+    isNative,
+    notificationsEnabled: isNative ? localNotifications.isEnabled : browserNotificationsEnabled
   };
 };

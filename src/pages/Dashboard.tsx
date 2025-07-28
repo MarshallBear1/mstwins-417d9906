@@ -19,6 +19,7 @@ import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useNativeCapabilities } from "@/hooks/useNativeCapabilities";
 import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
@@ -63,7 +64,7 @@ const Dashboard = () => {
     dismissAnnouncement
   } = useRobotAnnouncements();
   const {
-    requestNotificationPermission
+    requestAllPermissions
   } = useRealtimeNotifications();
   const {
     isMobile,
@@ -150,18 +151,16 @@ const Dashboard = () => {
 
     // Prompt after a brief delay when user first accesses dashboard with profile
     const timer = setTimeout(async () => {
-      if ('Notification' in window && Notification.permission === 'default') {
-        try {
-          await requestNotificationPermission();
-          sessionStorage.setItem(`notif_prompted_${user.id}`, 'true');
-        } catch (error) {
-          console.log('Notification permission request failed:', error);
-        }
+      try {
+        await requestAllPermissions();
+        sessionStorage.setItem(`notif_prompted_${user.id}`, 'true');
+      } catch (error) {
+        console.log('Notification permission request failed:', error);
       }
     }, 3000); // 3 second delay for natural UX
 
     return () => clearTimeout(timer);
-  }, [user, profile, requestNotificationPermission]);
+  }, [user, profile, requestAllPermissions]);
   const fetchLikes = async () => {
     if (!user) return;
     setLikesLoading(true);
