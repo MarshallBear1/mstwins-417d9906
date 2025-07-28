@@ -33,7 +33,7 @@ export const NativeCapabilities: React.FC = () => {
         haptics: haptics.isSupported,
         localNotifications: localNotifications.isSupported,
         pushNotifications: pushNotifications.isSupported,
-        realtimeNotifications: realtimeNotifications.browserNotificationsEnabled,
+        realtimeNotifications: realtimeNotifications.notificationsEnabled,
         backgroundSync: backgroundSync.isOnline,
         offlineStorage: offlineStorage.isInitialized,
         deviceInfo: device.deviceInfo,
@@ -45,8 +45,10 @@ export const NativeCapabilities: React.FC = () => {
         haptics.successFeedback();
       }
 
-      // Request notification permissions
-      realtimeNotifications.requestNotificationPermission();
+      // Request native notification permissions
+      if (localNotifications.isSupported || pushNotifications.isSupported) {
+        realtimeNotifications.requestAllPermissions();
+      }
     }
   }, [device.isNative]);
 
@@ -195,7 +197,7 @@ export const useNativeCapabilities = () => {
     hasHaptics: haptics.isSupported,
     hasLocalNotifications: localNotifications.isEnabled,
     hasPushNotifications: pushNotifications.isEnabled,
-    hasRealtimeNotifications: realtimeNotifications.browserNotificationsEnabled,
+    hasRealtimeNotifications: realtimeNotifications.notificationsEnabled,
     hasOfflineStorage: offlineStorage.isInitialized,
     platform: device.deviceInfo?.platform,
     isIOS: device.isIOS,

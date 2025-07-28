@@ -25,13 +25,13 @@ const NotificationBell = () => {
     const enabled = await requestAllPermissions();
     if (enabled) {
       toast({
-        title: `${isNative ? 'Native' : 'Browser'} notifications enabled`,
+        title: "Native notifications enabled",
         description: "You'll now receive notifications for matches, likes, and messages."
       });
     } else {
       toast({
         title: "Notifications blocked",
-        description: `Please enable notifications in your ${isNative ? 'device' : 'browser'} settings.`,
+        description: "Please enable notifications in your device settings.",
         variant: "destructive"
       });
     }
@@ -70,7 +70,7 @@ const NotificationBell = () => {
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="text-sm font-medium">Notifications</CardTitle>
               <div className="flex items-center gap-2">
-                {!notificationsEnabled && <Button variant="ghost" size="sm" onClick={handleEnableNotifications} className="text-xs h-6 px-2" title={`Enable ${isNative ? 'native' : 'browser'} notifications`}>
+                {!notificationsEnabled && isNative && <Button variant="ghost" size="sm" onClick={handleEnableNotifications} className="text-xs h-6 px-2" title="Enable native notifications">
                     <Settings className="w-3 h-3 mr-1" />
                     Enable
                   </Button>}
