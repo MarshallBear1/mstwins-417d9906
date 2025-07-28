@@ -6,21 +6,18 @@ import { useState } from "react";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isMobile, safeAreaInsets } = useMobileOptimizations();
-  return (
-    <>
+  const {
+    isMobile,
+    safeAreaInsets
+  } = useMobileOptimizations();
+  return <>
       {/* Skip Navigation Link for Accessibility */}
-      <a 
-        href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-[60] bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium"
-        data-skip-link
-      >
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-[60] bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium" data-skip-link>
         Skip to main content
       </a>
-      <header 
-        className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm"
-        style={{ paddingTop: isMobile ? `max(0.5rem, ${safeAreaInsets.top}px)` : undefined }}
-      >
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm" style={{
+      paddingTop: isMobile ? `max(0.5rem, ${safeAreaInsets.top}px)` : undefined
+    }}>
       <div className="container mx-auto mobile-safe-x lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -41,9 +38,7 @@ const Header = () => {
             <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Success Stories
             </a>
-            <a href="#contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-              Contact
-            </a>
+            
           </nav>
 
           {/* Desktop CTA Buttons */}
@@ -58,11 +53,7 @@ const Header = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-            className="md:hidden p-3 text-gray-700 hover:text-blue-600 transition-colors mobile-touch-target mobile-focus"
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-          >
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-3 text-gray-700 hover:text-blue-600 transition-colors mobile-touch-target mobile-focus" aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}>
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
@@ -101,8 +92,6 @@ const Header = () => {
           </div>}
       </div>
     </header>
-    </>
-  );
+    </>;
 };
-
 export default Header;
