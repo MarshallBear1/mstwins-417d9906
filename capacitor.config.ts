@@ -48,7 +48,10 @@ const config: CapacitorConfig = {
     limitsNavigationsToAppBoundDomains: true,
     scrollEnabled: true,
     allowsLinkPreview: false,
-    handleApplicationNotifications: true
+    handleApplicationNotifications: true,
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false
+    }
   },
   android: {
     buildOptions: {
