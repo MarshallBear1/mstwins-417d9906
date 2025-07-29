@@ -22,8 +22,8 @@ import {
   Calendar,
   MessageSquare
 } from "lucide-react";
-// Removed useAdminAuth import - using simple password auth now
-import { AdminLogin } from "@/components/AdminLogin";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { SecureAdminLogin } from "@/components/SecureAdminLogin";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 
@@ -71,8 +71,7 @@ const severityColors = {
 };
 
 export default function AdminModeration() {
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [adminLoading, setAdminLoading] = useState(true);
+  const { isAdminAuthenticated, adminLoading, revokeAdminSession } = useAdminAuth();
   const [moderationFlags, setModerationFlags] = useState<ModerationFlag[]>([]);
   const [userReports, setUserReports] = useState<UserReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,21 +81,15 @@ export default function AdminModeration() {
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
-    // Check if user is authenticated with simple password
-    const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
-    setIsAdminAuthenticated(isAuth);
-    setAdminLoading(false);
-    
-    if (isAuth) {
+    if (isAdminAuthenticated) {
       fetchModerationData();
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [isAdminAuthenticated]);
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('admin_authenticated');
-    setIsAdminAuthenticated(false);
+  const handleLogout = async () => {
+    await revokeAdminSession();
     window.location.href = '/admin/moderation';
   };
 
@@ -205,7 +198,7 @@ export default function AdminModeration() {
   }
 
   if (!isAdminAuthenticated) {
-    return <AdminLogin />;
+    return <SecureAdminLogin />;
   }
 
   return (

@@ -28,3 +28,6 @@ verify_jwt = false
 
 [functions.admin-email-operations]
 verify_jwt = true
+
+[functions.secrets]
+verify_jwt = true

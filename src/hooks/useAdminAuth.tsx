@@ -7,9 +7,10 @@ interface AdminAuthContextType {
   isAdminAuthenticated: boolean;
   adminSessionToken: string | null;
   adminLoading: boolean;
-  createAdminSession: () => Promise<boolean>;
+  authenticateAdminUser: () => Promise<boolean>;
   validateAdminSession: () => Promise<boolean>;
   revokeAdminSession: () => Promise<void>;
+  checkAdminRole: () => Promise<boolean>;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
@@ -19,24 +20,55 @@ interface AdminAuthProviderProps {
 }
 
 export const AdminAuthProvider = ({ children }: AdminAuthProviderProps) => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminSessionToken, setAdminSessionToken] = useState<string | null>(null);
   const [adminLoading, setAdminLoading] = useState(true);
 
   useEffect(() => {
     // Check for existing admin session on mount
-    const storedToken = sessionStorage.getItem('admin_session_token');
-    if (storedToken && user) {
-      validateStoredSession(storedToken);
-    } else {
+    const checkExistingSession = async () => {
+      if (!user || !session) {
+        setAdminLoading(false);
+        return;
+      }
+
+      const storedToken = sessionStorage.getItem('admin_session_token');
+      if (storedToken) {
+        await validateStoredSession(storedToken);
+      } else {
+        // Check if user has admin role even without stored session
+        const hasAdminRole = await checkUserAdminRole();
+        if (hasAdminRole) {
+          // User has admin role but no session, create one
+          await authenticateAdminUser();
+        }
+      }
       setAdminLoading(false);
+    };
+
+    checkExistingSession();
+  }, [user, session]);
+
+  const checkUserAdminRole = async (): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { data, error } = await supabase.rpc('authenticate_admin_user');
+      if (error) {
+        console.error('Error checking admin role:', error);
+        return false;
+      }
+      return (data as any)?.authenticated === true;
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+      return false;
     }
-  }, [user]);
+  };
 
   const validateStoredSession = async (token: string) => {
     try {
-      const { data, error } = await supabase.rpc('validate_admin_session', {
+      const { data, error } = await supabase.rpc('validate_and_refresh_admin_session', {
         session_token: token
       });
 
@@ -56,24 +88,48 @@ export const AdminAuthProvider = ({ children }: AdminAuthProviderProps) => {
       sessionStorage.removeItem('admin_session_token');
       setIsAdminAuthenticated(false);
       setAdminSessionToken(null);
-    } finally {
-      setAdminLoading(false);
     }
   };
 
-  const createAdminSession = async (): Promise<boolean> => {
-    if (!user) {
+  const authenticateAdminUser = async (): Promise<boolean> => {
+    if (!user || !session) {
       toast.error('Please log in first');
       return false;
     }
 
     try {
-      const { data, error } = await supabase.rpc('create_admin_session');
+      // First check if user has admin role
+      const { data: authData, error: authError } = await supabase.rpc('authenticate_admin_user');
+      
+      if (authError) {
+        console.error('Error authenticating admin user:', authError);
+        toast.error('Authentication failed');
+        return false;
+      }
 
-      if (error) throw error;
+      if (!(authData as any)?.authenticated) {
+        const reason = (authData as any)?.reason || 'Unknown error';
+        if (reason === 'not_admin') {
+          toast.error('Access denied: Admin role required');
+        } else if (reason === 'not_authenticated') {
+          toast.error('Please log in first');
+        } else {
+          toast.error('Authentication failed');
+        }
+        return false;
+      }
 
-      if ((data as any)?.success) {
-        const token = (data as any).session_token;
+      // Create admin session
+      const { data: sessionData, error: sessionError } = await supabase.rpc('create_admin_session');
+
+      if (sessionError) {
+        console.error('Error creating admin session:', sessionError);
+        toast.error('Failed to create admin session');
+        return false;
+      }
+
+      if ((sessionData as any)?.success) {
+        const token = (sessionData as any).session_token;
         setAdminSessionToken(token);
         setIsAdminAuthenticated(true);
         
@@ -82,37 +138,46 @@ export const AdminAuthProvider = ({ children }: AdminAuthProviderProps) => {
         
         toast.success('Admin access granted');
         return true;
-      } else {
-        const reason = (data as any)?.reason || 'Unknown error';
-        if (reason === 'not_admin') {
-          toast.error('Access denied: Admin role required');
-        } else {
-          toast.error('Failed to create admin session');
-        }
-        return false;
       }
+
+      toast.error('Failed to create admin session');
+      return false;
     } catch (error: any) {
-      console.error('Error creating admin session:', error);
-      toast.error('Failed to authenticate as admin');
+      console.error('Error authenticating admin user:', error);
+      toast.error('Authentication failed');
       return false;
     }
   };
 
   const validateAdminSession = async (): Promise<boolean> => {
-    if (!adminSessionToken) return false;
+    if (!adminSessionToken || !user) return false;
 
     try {
-      const { data, error } = await supabase.rpc('validate_admin_session', {
+      const { data, error } = await supabase.rpc('validate_and_refresh_admin_session', {
         session_token: adminSessionToken
       });
 
       if (error) throw error;
 
-      return (data as any)?.valid || false;
+      const isValid = (data as any)?.valid || false;
+      if (!isValid) {
+        setIsAdminAuthenticated(false);
+        setAdminSessionToken(null);
+        sessionStorage.removeItem('admin_session_token');
+      }
+
+      return isValid;
     } catch (error) {
       console.error('Error validating admin session:', error);
+      setIsAdminAuthenticated(false);
+      setAdminSessionToken(null);
+      sessionStorage.removeItem('admin_session_token');
       return false;
     }
+  };
+
+  const checkAdminRole = async (): Promise<boolean> => {
+    return await checkUserAdminRole();
   };
 
   const revokeAdminSession = async (): Promise<void> => {
@@ -138,9 +203,10 @@ export const AdminAuthProvider = ({ children }: AdminAuthProviderProps) => {
       isAdminAuthenticated,
       adminSessionToken,
       adminLoading,
-      createAdminSession,
+      authenticateAdminUser,
       validateAdminSession,
-      revokeAdminSession
+      revokeAdminSession,
+      checkAdminRole
     }}>
       {children}
     </AdminAuthContext.Provider>

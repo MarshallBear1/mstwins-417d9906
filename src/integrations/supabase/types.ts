@@ -21,6 +21,8 @@ export type Database = {
           id: string
           ip_address: unknown | null
           is_active: boolean
+          last_activity: string | null
+          session_data: Json | null
           session_token: string
           user_agent: string | null
           user_id: string
@@ -31,6 +33,8 @@ export type Database = {
           id?: string
           ip_address?: unknown | null
           is_active?: boolean
+          last_activity?: string | null
+          session_data?: Json | null
           session_token?: string
           user_agent?: string | null
           user_id: string
@@ -41,6 +45,8 @@ export type Database = {
           id?: string
           ip_address?: unknown | null
           is_active?: boolean
+          last_activity?: string | null
+          session_data?: Json | null
           session_token?: string
           user_agent?: string | null
           user_id?: string
@@ -744,6 +750,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       check_and_increment_daily_likes: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -828,6 +838,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      log_admin_action: {
+        Args: { action_type: string; action_details?: Json }
+        Returns: undefined
+      }
       log_failed_login_attempt: {
         Args: {
           email_input: string
@@ -869,6 +887,10 @@ export type Database = {
         Returns: undefined
       }
       validate_admin_session: {
+        Args: { session_token: string }
+        Returns: Json
+      }
+      validate_and_refresh_admin_session: {
         Args: { session_token: string }
         Returns: Json
       }

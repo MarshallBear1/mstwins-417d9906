@@ -9,8 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut, Shield } from "lucide-react";
 import { EmailManagement } from "@/components/EmailManagement";
-// Removed useAdminAuth import - using simple password auth now
-import { AdminLogin } from "@/components/AdminLogin";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { SecureAdminLogin } from "@/components/SecureAdminLogin";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -52,8 +52,7 @@ const typeColors = {
 };
 
 export default function AdminFeedback() {
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [adminLoading, setAdminLoading] = useState(true);
+  const { isAdminAuthenticated, adminLoading, revokeAdminSession } = useAdminAuth();
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
@@ -61,21 +60,15 @@ export default function AdminFeedback() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
-    // Check if user is authenticated with simple password
-    const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
-    setIsAdminAuthenticated(isAuth);
-    setAdminLoading(false);
-    
-    if (isAuth) {
+    if (isAdminAuthenticated) {
       fetchFeedback();
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [isAdminAuthenticated]);
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('admin_authenticated');
-    setIsAdminAuthenticated(false);
+  const handleLogout = async () => {
+    await revokeAdminSession();
     window.location.href = '/admin/feedback';
   };
 
@@ -183,7 +176,7 @@ export default function AdminFeedback() {
 
   // Show admin login if not authenticated
   if (!isAdminAuthenticated) {
-    return <AdminLogin />;
+    return <SecureAdminLogin />;
   }
 
   return (
