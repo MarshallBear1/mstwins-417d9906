@@ -57,11 +57,23 @@ serve(async (req) => {
 
     let result;
     switch (operation) {
+      case 'send-day2-email':
+        result = await supabase.functions.invoke('send-day2-email', { body: params });
+        break;
+      case 'send-day2-all-users':
+        result = await supabase.functions.invoke('send-day2-all-users', { body: params });
+        break;
       case 'send-day3-email':
         result = await supabase.functions.invoke('send-day3-email', { body: params });
         break;
       case 'send-day3-all-users':
         result = await supabase.functions.invoke('send-day3-all-users', { body: params });
+        break;
+      case 'send-day4-email':
+        result = await supabase.functions.invoke('send-day4-email', { body: params });
+        break;
+      case 'send-day4-all-users':
+        result = await supabase.functions.invoke('send-day4-all-users', { body: params });
         break;
       case 'send-announcement-email':
         result = await supabase.functions.invoke('send-announcement-email', { body: params });
