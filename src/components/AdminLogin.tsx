@@ -39,7 +39,9 @@ export const AdminLogin = () => {
         });
       } else {
         // After successful login, create admin session
+        console.log('User logged in successfully, creating admin session...');
         const adminSessionCreated = await createAdminSession();
+        console.log('Admin session result:', adminSessionCreated);
         if (adminSessionCreated) {
           toast({
             title: "Login Successful",
