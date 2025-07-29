@@ -1,6 +1,6 @@
 import { useEffect, useState, memo } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,40 +48,30 @@ interface Profile {
 const Dashboard = () => {
   const {
     user,
-    loading,
+    loading: authLoading,
     signOut
   } = useAuth();
   const navigate = useNavigate();
-  const {
-    remainingLikes,
-    isLimitEnforced,
-    hasUnlimitedLikes
-  } = useDailyLikes();
-  const {
-    currentAnnouncement,
-    showAnnouncement,
-    dismissAnnouncement
-  } = useRobotAnnouncements();
-  const {
-    requestNotificationPermission
-  } = useRealtimeNotifications();
-  const {
-    isMobile,
-    safeAreaInsets
-  } = useMobileOptimizations();
+  const { isMobile, safeAreaInsets } = useMobileOptimizations();
+  const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
+  const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
+  
+  // Subscribe to real-time notifications
+  useRealtimeNotifications();
+
+  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("discover");
-  const [likes, setLikes] = useState<Profile[]>([]);
-  const [likesLoading, setLikesLoading] = useState(false);
-  const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'discover';
+
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate("/auth");
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
   useEffect(() => {
     if (user) {
       // Check if user is returning (has logged in before)
@@ -257,7 +247,7 @@ const Dashboard = () => {
     await signOut();
     navigate("/");
   };
-  if (loading || profileLoading) {
+  if (authLoading || profileLoading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>;
@@ -295,23 +285,6 @@ const Dashboard = () => {
         </Card>
       </div>;
   }
-  const tabs = [{
-    id: "discover",
-    label: "Discover",
-    icon: Heart
-  }, {
-    id: "likes",
-    label: "Likes",
-    icon: Users
-  }, {
-    id: "matches",
-    label: "Matches",
-    icon: MessageCircle
-  }, {
-    id: "profile",
-    label: "Profile",
-    icon: User
-  }];
   const renderContent = () => {
     switch (activeTab) {
       case "discover":
@@ -473,10 +446,16 @@ const Dashboard = () => {
     }
   };
   return <MobileKeyboardHandler>
-      <div className="min-h-screen bg-gradient-subtle">
-        <SEO title="MSTwins Dashboard - Your Multiple Sclerosis Support Community" description="Access your MSTwins dashboard to discover new connections, view matches, and connect with others living with Multiple Sclerosis in our supportive community." canonical="https://mstwins.com/dashboard" />
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <SEO 
+        title="MStwins Dashboard - Your MS Support Community"
+        description="Access your Multiple Sclerosis support network. Discover new connections, manage matches, and engage with your community."
+        canonical="https://mstwins.com/dashboard"
+      />
+
+      {/* Notification Popup */}
       <NotificationPopup />
-      
+
       {/* Robot Announcement Popup */}
       {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />}
       
@@ -508,45 +487,12 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main content with modern spacing */}
+      {/* Main content with padding for persistent bottom nav */}
       <div className="flex-1 mobile-scroll bg-gray-50" style={{
-        paddingBottom: isMobile ? `max(6rem, ${safeAreaInsets.bottom + 80}px)` : '5rem'
+        paddingBottom: isMobile ? `max(8rem, ${safeAreaInsets.bottom + 100}px)` : '6rem'
       }}>
         <div className="transition-all duration-300 ease-in-out">
           {renderContent()}
-        </div>
-      </div>
-
-      {/* Enhanced bottom navigation - Instagram-style with clean design */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 z-50 shadow-[0_-2px_20px_rgba(0,0,0,0.08)]" style={{
-        paddingBottom: isMobile ? `max(0.75rem, ${safeAreaInsets.bottom}px)` : '0.75rem'
-      }}>
-        <div className="flex items-center justify-around py-3 mobile-safe-x max-w-md mx-auto">
-          {tabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return <button 
-              key={tab.id} 
-              onClick={() => setActiveTab(tab.id)} 
-              className={`flex flex-col items-center space-y-1 py-2 px-4 transition-all duration-300 ease-out mobile-touch-target ${
-                isActive 
-                  ? "text-black transform scale-105" 
-                  : "text-gray-400 hover:text-gray-600 active:scale-95"
-              }`}
-            >
-              <div className={`transition-all duration-300 ${isActive ? 'transform scale-110' : ''}`}>
-                <Icon className={`${isActive ? 'w-6 h-6' : 'w-5 h-5'} stroke-[1.5]`} />
-              </div>
-              <span className={`text-xs font-medium transition-all duration-300 ${
-                isActive ? 'text-black font-semibold' : 'text-gray-400'
-              }`}>
-                {tab.label}
-              </span>
-              {isActive && (
-                <div className="w-1 h-1 bg-black rounded-full animate-pulse" />
-              )}
-            </button>;
-          })}
         </div>
       </div>
 
