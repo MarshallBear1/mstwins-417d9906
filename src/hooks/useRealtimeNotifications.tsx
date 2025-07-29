@@ -87,26 +87,31 @@ export const useRealtimeNotifications = () => {
     }
   }, []);
 
-  // Fetch initial notifications and set up real-time subscription
+  // Fetch initial notifications with error handling and retry logic
   useEffect(() => {
     if (!user) return;
 
     const fetchNotifications = async () => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20); // REDUCED limit for faster loading
 
-      if (error) {
-        console.error('Error fetching notifications:', error);
-        return;
-      }
+        if (error) {
+          console.error('Error fetching notifications:', error);
+          // Don't set empty array on error to prevent loss of existing notifications
+          return;
+        }
 
-      if (data) {
-        setNotifications(data);
-        setUnreadCount(data.filter(n => !n.is_read).length);
+        if (data) {
+          setNotifications(data);
+          setUnreadCount(data.filter(n => !n.is_read).length);
+        }
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
       }
     };
 

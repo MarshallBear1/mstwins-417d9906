@@ -18,13 +18,16 @@ const NotificationPopup = () => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   const autoHideTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Debounced notification processing
+  // Debounced notification processing - FIXED: prevent infinite loops
   const processNotificationQueue = useCallback(() => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
     
     debounceTimeoutRef.current = setTimeout(() => {
+      // CRITICAL FIX: Only process if not currently showing a notification
+      if (isVisible) return;
+
       // Get new notifications that haven't been shown yet
       const newNotifications = notifications.filter(
         n => (n.type === 'like' || n.type === 'match') && 
@@ -33,7 +36,7 @@ const NotificationPopup = () => {
              n.id !== lastShownNotificationId
       );
 
-      if (newNotifications.length > 0 && !isVisible) {
+      if (newNotifications.length > 0) {
         // Filter based on user preferences
         const allowedNotifications = newNotifications.filter(n => {
           const notificationType = n.type as 'like' | 'match' | 'message';
@@ -56,14 +59,14 @@ const NotificationPopup = () => {
         setNotificationQueue(sortedNotifications.slice(1));
         setIsVisible(true);
 
-        // Auto-hide after 8 seconds for likes, 12 seconds for matches
-        const autoHideDelay = nextNotification.type === 'match' ? 12000 : 8000;
+        // FIXED: Shorter auto-hide times to prevent overlap
+        const autoHideDelay = nextNotification.type === 'match' ? 6000 : 4000;
         autoHideTimeoutRef.current = setTimeout(() => {
           handleDismiss();
         }, autoHideDelay);
       }
-    }, 500); // 500ms debounce
-  }, [notifications, dismissedNotifications, isVisible, lastShownNotificationId]);
+    }, 1000); // INCREASED debounce to prevent rapid firing
+  }, [notifications, dismissedNotifications, isVisible, lastShownNotificationId, getNotificationSettings]);
 
   useEffect(() => {
     processNotificationQueue();
