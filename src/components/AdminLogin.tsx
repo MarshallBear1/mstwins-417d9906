@@ -4,25 +4,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, LogIn, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useToast } from '@/hooks/use-toast';
 
+const ADMIN_PASSWORD = "admin123"; // Simple password for admin access
+
 export const AdminLogin = () => {
-  const { user, signIn } = useAuth();
-  const { createAdminSession, isAdminAuthenticated } = useAdminAuth();
   const { toast } = useToast();
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!password) {
       toast({
         title: "Missing Information",
-        description: "Please enter both email and password.",
+        description: "Please enter the admin password.",
         variant: "destructive",
       });
       return;
@@ -30,24 +28,19 @@ export const AdminLogin = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await signIn(email, password);
-      if (error) {
+      if (password === ADMIN_PASSWORD) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('admin_authenticated', 'true');
         toast({
-          title: "Login Failed",
-          description: error.message,
-          variant: "destructive",
+          title: "Login Successful",
+          description: "Welcome to the admin portal!",
         });
       } else {
-        // After successful login, create admin session
-        console.log('User logged in successfully, creating admin session...');
-        const adminSessionCreated = await createAdminSession();
-        console.log('Admin session result:', adminSessionCreated);
-        if (adminSessionCreated) {
-          toast({
-            title: "Login Successful",
-            description: "Welcome to the admin portal!",
-          });
-        }
+        toast({
+          title: "Login Failed",
+          description: "Incorrect admin password.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       toast({
@@ -60,15 +53,24 @@ export const AdminLogin = () => {
     }
   };
 
-  // Redirect to admin feedback if already authenticated
+  // Check if already authenticated on mount
   useEffect(() => {
-    if (isAdminAuthenticated) {
+    const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
+    if (isAuth) {
+      setIsAuthenticated(true);
       window.location.href = '/admin/feedback';
     }
-  }, [isAdminAuthenticated]);
+  }, []);
 
-  if (isAdminAuthenticated) {
-    // User is logged in and has admin session, redirect to admin dashboard
+  // Redirect to admin feedback if authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      window.location.href = '/admin/feedback';
+    }
+  }, [isAuthenticated]);
+
+  if (isAuthenticated) {
+    // User is authenticated, redirect to admin dashboard
     window.location.href = '/admin/feedback';
     return null;
   }
@@ -82,29 +84,18 @@ export const AdminLogin = () => {
           </div>
           <CardTitle>Admin Portal</CardTitle>
           <CardDescription>
-            Sign in with your email and password to access admin features.
+            Enter the admin password to access admin features.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Admin Password</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder="Enter admin password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -130,7 +121,7 @@ export const AdminLogin = () => {
               className="w-full"
             >
               <LogIn className="h-4 w-4 mr-2" />
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isLoading ? 'Accessing...' : 'Access Admin Portal'}
             </Button>
           </form>
         </CardContent>
