@@ -170,7 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: 'Shared Genes Community <community@sharedgenes.lovable.app>',
+      from: 'Shared Genes Community <onboarding@resend.dev>',
       to: [email],
       subject: '🧬 Building Deeper Connections - Day 4 with Shared Genes',
       html: emailHtml,
