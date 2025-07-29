@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, LogIn, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export const AdminLogin = () => {
   const { user, signIn } = useAuth();
+  const { createAdminSession, isAdminAuthenticated } = useAdminAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,10 +38,14 @@ export const AdminLogin = () => {
           variant: "destructive",
         });
       } else {
-        toast({
-          title: "Login Successful",
-          description: "Welcome to the admin portal!",
-        });
+        // After successful login, create admin session
+        const adminSessionCreated = await createAdminSession();
+        if (adminSessionCreated) {
+          toast({
+            title: "Login Successful",
+            description: "Welcome to the admin portal!",
+          });
+        }
       }
     } catch (error) {
       toast({
@@ -52,8 +58,15 @@ export const AdminLogin = () => {
     }
   };
 
-  if (user) {
-    // User is logged in, redirect to admin dashboard
+  // Redirect to admin feedback if already authenticated
+  useEffect(() => {
+    if (isAdminAuthenticated) {
+      window.location.href = '/admin/feedback';
+    }
+  }, [isAdminAuthenticated]);
+
+  if (isAdminAuthenticated) {
+    // User is logged in and has admin session, redirect to admin dashboard
     window.location.href = '/admin/feedback';
     return null;
   }
