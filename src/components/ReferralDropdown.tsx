@@ -13,7 +13,7 @@ const ReferralDropdown = () => {
   const { shareApp, isSupported, copyToClipboard } = useShare();
   const { user } = useAuth();
 
-  const referralLink = `https://mstwins.com?ref=${user?.id || 'user'}`; // Dynamic based on user ID
+  const referralLink = `https://mstwins.com?ref=${user?.id || 'user'}`;
   
   const handleNativeShare = async () => {
     const success = await shareApp();
@@ -48,145 +48,140 @@ const ReferralDropdown = () => {
     if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      setIsOpen(false);
+      toast({
+        title: "Link Copied!",
+        description: "Referral link copied to clipboard",
+      });
     }
   };
 
   return (
     <div className="relative">
-      {/* Trigger Button with Spark Animation */}
+      {/* Modern Trigger Button */}
       <Button
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex-shrink-0 relative group"
+        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 min-h-[44px] min-w-[44px] flex-shrink-0 rounded-full transition-all duration-200 relative"
         title="Refer Friends"
       >
-        <Share2 className="w-4 h-4" />
+        <Share2 className="w-5 h-5" />
         <span className="sr-only">Refer</span>
         
-        {/* Spark Animation outside the button */}
-        <div className="absolute -inset-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <Sparkles className="absolute -top-2 -right-2 w-3 h-3 text-yellow-400 animate-pulse" />
-          <Sparkles className="absolute -bottom-2 -left-2 w-2 h-2 text-blue-400 animate-pulse delay-100" />
-          <Sparkles className="absolute top-1/2 -left-3 w-2 h-2 text-purple-400 animate-pulse delay-200" />
-          <Sparkles className="absolute -top-2 left-1/2 w-2 h-2 text-pink-400 animate-pulse delay-300" />
-          <Sparkles className="absolute top-1/2 -right-3 w-2 h-2 text-orange-400 animate-pulse delay-400" />
-          <Sparkles className="absolute -bottom-2 right-1/4 w-2 h-2 text-green-400 animate-pulse delay-500" />
-        </div>
+        {/* Subtle notification dot */}
+        <div className="absolute -top-1 -right-1 w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse" />
       </Button>
 
-      {/* Dropdown */}
+      {/* Modern Dropdown */}
       {isOpen && (
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-40 bg-black/20" 
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" 
             onClick={() => setIsOpen(false)}
           />
           
           {/* Dropdown Card */}
-          <Card className="fixed left-1/2 transform -translate-x-1/2 md:absolute md:left-auto md:right-0 md:translate-x-0 top-16 md:top-12 w-80 max-w-[calc(100vw-2rem)] z-50 shadow-xl border-0 bg-background/95 backdrop-blur-md animate-scale-in">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Share2 className="w-5 h-5 text-primary" />
-                  <Sparkles className="absolute -top-1 -right-1 w-3 h-3 text-yellow-400 animate-pulse" />
-                </div>
-                <CardTitle className="text-lg">Refer Friends</CardTitle>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsOpen(false)}
-                className="h-6 w-6 p-0"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </CardHeader>
-            
-            <CardContent className="space-y-4">
-              {/* Native Share Button for Mobile */}
-              {isSupported && (
-                <div className="space-y-2">
+          <div className="absolute top-12 right-0 w-80 max-w-[calc(100vw-2rem)] z-50 transform transition-all duration-300 animate-in slide-in-from-top-2 fade-in">
+            <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden">
+              {/* Modern Header */}
+              <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-4 text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/5" />
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                      <Share2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-bold">Refer Friends</CardTitle>
+                      <p className="text-white/90 text-sm">Grow our MS community</p>
+                    </div>
+                  </div>
                   <Button
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsOpen(false)}
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <CardContent className="p-4 space-y-4">
+                {/* Native Share Button for Mobile */}
+                {isSupported && (
+                  <Button
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
                     onClick={handleNativeShare}
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share MSTwins App
                   </Button>
-                </div>
-              )}
-              
-              {/* Description */}
-              <div className="text-sm text-muted-foreground">
-                <p className="mb-2">Help grow our MS support community! 💙</p>
-                <p>Share MS<span className="text-blue-600">Twins</span> with friends who could benefit from connecting with others on similar journeys.</p>
-              </div>
-
-              {/* Copy Link Section */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Your Referral Link</label>
-                <div className="flex gap-2">
-                  <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono text-muted-foreground truncate text-center">
-                    {referralLink}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copyReferralLink}
-                    className="flex-shrink-0"
-                  >
-                    {copied ? (
-                      <Check className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Social Sharing */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Share on Social Media</label>
-                <div className="grid gap-2">
-                  {socialLinks.map((social) => (
+                )}
+                
+                {/* Copy Link Section */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">Your Referral Link</label>
+                  <div className="flex gap-2">
+                    <div className="flex-1 p-3 bg-gray-50 rounded-xl text-sm font-mono text-gray-600 truncate border border-gray-200">
+                      {referralLink}
+                    </div>
                     <Button
-                      key={social.name}
                       variant="outline"
-                      className={`w-full justify-start gap-3 hover:text-white transition-colors ${social.color.replace('bg-', 'hover:bg-').replace('hover:bg-', 'hover:bg-')}`}
-                      onClick={() => {
-                        window.open(social.url, '_blank', 'noopener,noreferrer');
-                        setIsOpen(false);
-                      }}
+                      size="sm"
+                      onClick={copyReferralLink}
+                      className="h-12 px-4 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl transition-all duration-200"
                     >
-                      <social.icon className="w-4 h-4" />
-                      Share on {social.name}
+                      {copied ? (
+                        <Check className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
                     </Button>
-                  ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Benefits */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border">
-                <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-yellow-500" />
-                  Why Refer?
-                </h4>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• Help others find supportive MS connections</li>
-                  <li>• Grow our caring community together</li>
-                  <li>• Make a difference in someone's journey</li>
-                </ul>
-              </div>
+                {/* Social Sharing */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">Share on Social Media</label>
+                  <div className="grid gap-2">
+                    {socialLinks.map((social) => (
+                      <Button
+                        key={social.name}
+                        variant="outline"
+                        className="w-full h-12 justify-start gap-3 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-all duration-200"
+                        onClick={() => {
+                          window.open(social.url, '_blank', 'noopener,noreferrer');
+                          setIsOpen(false);
+                        }}
+                      >
+                        <social.icon className="w-4 h-4" />
+                        Share on {social.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
 
-              {/* Community Message */}
-              <div className="text-center text-xs text-muted-foreground pt-2 border-t">
-                🤝 Building connections • 💙 MS support network
-              </div>
-            </CardContent>
-          </Card>
+                {/* Benefits */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-100">
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-gray-900">
+                    💙 Why Refer Friends?
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Help others find supportive MS connections</li>
+                    <li>• Grow our caring community together</li>
+                    <li>• Make a difference in someone's journey</li>
+                  </ul>
+                </div>
+
+                {/* Community Message */}
+                <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                  🤝 Building connections • 💙 MS support network
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </>
       )}
     </div>
