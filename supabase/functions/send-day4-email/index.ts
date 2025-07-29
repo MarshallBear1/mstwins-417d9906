@@ -113,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🧬 MSTwins</div>
+            <div class="logo">MSTwins</div>
             <h1 class="title">Building Meaningful Connections</h1>
             <p class="subtitle">Day 4: Making the most of your MS community experience</p>
           </div>
@@ -177,7 +177,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: 'MSTwins Community <team@sharedgenes.org>',
       to: [email],
-      subject: '🧬 Building Deeper Connections - Day 4 with MSTwins',
+      subject: 'Building Deeper Connections - Day 4 with MSTwins',
       html: emailHtml,
     });
 
