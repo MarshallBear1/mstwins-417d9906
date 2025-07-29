@@ -69,7 +69,7 @@ const ReferralDropdown = () => {
         <span className="sr-only">Refer</span>
         
         {/* Subtle notification dot */}
-        <div className="absolute -top-1 -right-1 w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse" />
+        <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
       </Button>
 
       {/* Modern Dropdown */}
@@ -85,7 +85,7 @@ const ReferralDropdown = () => {
           <div className="absolute top-12 right-0 w-80 max-w-[calc(100vw-2rem)] z-50 transform transition-all duration-300 animate-in slide-in-from-top-2 fade-in">
             <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden">
               {/* Modern Header */}
-              <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-4 text-white relative overflow-hidden">
+              <div className="bg-blue-600 p-4 text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/5" />
                 <div className="relative z-10 flex items-center justify-between">
                   <div className="flex items-center gap-3">

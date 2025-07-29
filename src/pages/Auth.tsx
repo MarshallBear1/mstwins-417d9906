@@ -314,47 +314,44 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <SEO 
-        title={isSignUp ? "Join MSTwins - MS Support Community" : "Sign In to MSTwins"}
-        description={isSignUp ? "Create your free account and connect with others living with Multiple Sclerosis in our supportive community." : "Sign in to access your MSTwins account and connect with your MS support network."}
+        title={`${isSignUp ? 'Join MSTwins' : 'Sign In to MSTwins'}`}
+        description={`${isSignUp ? 'Create your free account and connect with others living with Multiple Sclerosis in our supportive community.' : 'Sign in to access your MSTwins account and connect with your MS support network.'}`}
         canonical="https://mstwins.com/auth"
       />
       <SecurityEnhancements />
       
-      <div className="w-full max-w-md">
-        {/* Back to landing button */}
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate("/")}
-          className="mb-6 text-gray-600 hover:text-gray-900 hover:bg-white/50 rounded-full p-3"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Button>
+      {/* Back to Home Button */}
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate('/')}
+        className="fixed top-4 left-4 z-10 text-gray-600 hover:text-gray-900 hover:bg-white/80 backdrop-blur-sm rounded-full transition-all duration-200"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Home
+      </Button>
 
-        {/* Modern auth card */}
-        <Card className="border-0 shadow-2xl bg-white/90 backdrop-blur-xl rounded-3xl overflow-hidden">
-          {/* Header with gradient */}
-          <CardHeader className="pb-8 pt-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white text-center relative overflow-hidden">
+      <div className="w-full max-w-md mx-auto">
+        <Card className="border-0 shadow-2xl bg-white rounded-3xl overflow-hidden">
+          <CardHeader className="pb-8 pt-10 bg-blue-600 text-white text-center relative overflow-hidden">
             <div className="absolute inset-0 bg-black/5" />
             <div className="relative z-10">
-              {/* Modern logo */}
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+              {/* Modern Logo */}
+              <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center backdrop-blur-sm">
                 <img 
                   src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
-                  alt="MSTwins" 
+                  alt="MStwins" 
                   className="w-10 h-10 object-contain" 
                 />
               </div>
               
-              <CardTitle className="text-2xl font-bold tracking-tight">
+              <CardTitle className="text-2xl font-bold mb-2">
                 {showForgotPassword ? "Reset Password" : 
                  isPasswordReset ? "Set New Password" :
                  isSignUp ? "Join MSTwins" : "Welcome Back"}
               </CardTitle>
-              
-              <CardDescription className="text-white/90 text-base mt-2">
+              <CardDescription className="text-blue-100 text-base">
                 {showForgotPassword ? "Enter your email to reset your password" :
                  isPasswordReset ? "Choose a strong new password" :
                  isSignUp ? "Connect with others who understand your MS journey" : 
@@ -395,7 +392,7 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   disabled={loading}
-                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
                 >
                   {loading ? "Sending..." : "Send Reset Link"}
                 </Button>
@@ -450,10 +447,17 @@ const Auth = () => {
 
                 <Button 
                   type="submit" 
-                  disabled={loading}
-                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                  disabled={loading || !passwordValid}
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  {loading ? "Updating..." : "Update Password"}
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Setting Password...
+                    </div>
+                  ) : (
+                    'Set New Password'
+                  )}
                 </Button>
               </form>
             ) : (
@@ -535,7 +539,7 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   disabled={loading || (isSignUp && !passwordValid)}
-                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">

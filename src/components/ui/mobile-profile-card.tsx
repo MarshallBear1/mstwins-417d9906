@@ -95,7 +95,7 @@ const MobileProfileCard = ({
           display: 'block'
         }}>
           {/* Smaller Header focused on profile picture */}
-          <div className="relative h-48 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 flex items-center justify-center overflow-hidden">
+          <div className="relative h-48 bg-blue-500 flex items-center justify-center overflow-hidden">
             {/* Smaller Profile Image with reduced border */}
             <button onClick={() => onImageClick?.(0)} className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-lg hover:scale-110 transition-all duration-300 mobile-touch-target">
               {profile.avatar_url ? (
@@ -225,7 +225,7 @@ const MobileProfileCard = ({
               {onLike && (
                 <Button
                   onClick={onLike}
-                  className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                  className="flex-1 h-10 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
                 >
                   <Heart className="w-4 h-4 mr-1" />
                   Like
@@ -247,7 +247,7 @@ const MobileProfileCard = ({
             backfaceVisibility: 'hidden'
           }}>
             {/* Back content implementation continues... */}
-            <div className="relative h-48 bg-gradient-to-br from-purple-400 via-pink-500 to-rose-400 flex items-center justify-center overflow-hidden">
+            <div className="relative h-48 bg-purple-500 flex items-center justify-center overflow-hidden">
               <div className="absolute inset-0 bg-black/10"></div>
               
               {/* Back Button */}
@@ -329,7 +329,7 @@ const MobileProfileCard = ({
                   {onLike && (
                     <Button
                       onClick={onLike}
-                      className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                      className="flex-1 h-10 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
                     >
                       <Heart className="w-4 h-4 mr-1" />
                       Like

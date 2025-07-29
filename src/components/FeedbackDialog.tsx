@@ -94,7 +94,7 @@ export default function FeedbackDialog() {
       </DialogTrigger>
       <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[500px] mx-4 sm:mx-0 p-0 rounded-3xl border-0 shadow-2xl bg-white/95 backdrop-blur-xl overflow-hidden">
         {/* Modern Header */}
-        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-6 text-white relative overflow-hidden">
+        <div className="bg-blue-600 p-6 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-black/5" />
           <div className="relative z-10">
             <DialogHeader>
