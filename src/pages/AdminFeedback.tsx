@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut, Shield } from "lucide-react";
+import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut, Shield, Megaphone } from "lucide-react";
 import { EmailManagement } from "@/components/EmailManagement";
+import { AnnouncementManager } from "@/components/AnnouncementManager";
 // Removed useAdminAuth import - using simple password auth now
 import { SecureAdminLogin } from "@/components/SecureAdminLogin";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -234,9 +235,10 @@ export default function AdminFeedback() {
 
       <div className="max-w-7xl mx-auto p-6">
         <Tabs defaultValue="feedback" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
             <TabsTrigger value="feedback">Feedback Management</TabsTrigger>
             <TabsTrigger value="emails">Send Emails</TabsTrigger>
+            <TabsTrigger value="announcements">Announcements</TabsTrigger>
           </TabsList>
           
           <TabsContent value="feedback" className="mt-6">
@@ -370,6 +372,24 @@ export default function AdminFeedback() {
               </Card>
 
               <EmailManagement />
+            </div>
+          </TabsContent>
+          <TabsContent value="announcements" className="mt-6">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Megaphone className="h-5 w-5" />
+                    <span>Migration Announcement System</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Manage and send the SharedGenes to MStwins migration announcement emails
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AnnouncementManager />
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>

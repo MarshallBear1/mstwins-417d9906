@@ -53,6 +53,118 @@ export type Database = {
         }
         Relationships: []
       }
+      announcement_campaigns: {
+        Row: {
+          campaign_name: string
+          completed_at: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          failed_count: number | null
+          id: string
+          list_id: string
+          sent_at: string | null
+          sent_count: number | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          campaign_name: string
+          completed_at?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          list_id: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          subject: string
+        }
+        Update: {
+          campaign_name?: string
+          completed_at?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          list_id?: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_campaigns_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "announcement_email_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcement_email_addresses: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          list_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          list_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          list_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_email_addresses_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "announcement_email_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcement_email_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          list_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          list_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          list_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_likes: {
         Row: {
           created_at: string
@@ -915,6 +1027,15 @@ export type Database = {
       revoke_admin_session: {
         Args: { session_token: string }
         Returns: boolean
+      }
+      send_announcement_email: {
+        Args: {
+          campaign_name: string
+          email_subject: string
+          email_content: string
+          list_name: string
+        }
+        Returns: Json
       }
       trigger_email_queue_processing: {
         Args: Record<PropertyKey, never>

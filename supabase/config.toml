@@ -31,3 +31,6 @@ verify_jwt = true
 
 [functions.secrets]
 verify_jwt = true
+
+[functions.send-migration-announcement]
+verify_jwt = true
