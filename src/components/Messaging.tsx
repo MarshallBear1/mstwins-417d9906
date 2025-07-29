@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, ArrowLeft, User, Trash2, Heart } from "lucide-react";
+import { Send, ArrowLeft, User, Trash2, Heart, MessageCircle } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -150,7 +150,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   useEffect(() => {
     if (matchId && matches.length > 0) {
       const match = matches.find(m => m.id === matchId);
-      if (match) {
+      if (match && selectedMatch?.id !== matchId) {
         console.log('🔄 Setting selected match from URL:', match.id);
         setSelectedMatch(match);
         
@@ -171,7 +171,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       setSelectedMatch(null);
       setMessages([]);
     }
-  }, [matchId, matches.length]); // Removed selectedMatch from dependencies to prevent infinite loop
+  }, [matchId, matches]);
 
   const fetchMatches = async () => {
     if (!user) return;
@@ -784,47 +784,86 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           ) : (
             <ScrollArea className="flex-1">
               <div className="space-y-1 p-4">
-                {matches.map((match) => (
-                  <div
-                    key={match.id}
-                    onClick={() => {
-                      setSelectedMatch(match);
-                      // Fetch messages for this match when selected
-                      fetchMessages(match.id);
-                    }}
-                    className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 cursor-pointer transition-colors"
-                  >
-                    <div className="relative">
-                      <Avatar className="h-12 w-12 border-2 border-white shadow-md">
-                        <AvatarImage 
-                          src={match.other_user.avatar_url || undefined} 
-                          alt={match.other_user.first_name}
-                        />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-                          {match.other_user.first_name[0]}{match.other_user.last_name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
-                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {match.other_user.first_name} {match.other_user.last_name}
-                        </h3>
-                        {match.unread_count > 0 && (
-                          <Badge className="bg-blue-500 text-white rounded-full h-5 min-w-[20px] text-xs">
-                            {match.unread_count}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500 truncate">
-                        {getLastMessage(match.id) || "Start the conversation!"}
-                      </p>
-                    </div>
-                  </div>
+                 {matches.map((match) => (
+                   <div
+                     key={match.id}
+                     onClick={() => {
+                       setSelectedMatch(match);
+                       // Fetch messages for this match when selected
+                       fetchMessages(match.id);
+                     }}
+                     className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all duration-200 border border-gray-200 hover:border-blue-300 hover:bg-blue-50 mb-3 ${
+                       selectedMatch?.id === match.id ? 'bg-blue-50 border-blue-400 shadow-sm' : 'bg-white hover:shadow-md'
+                     }`}
+                   >
+                     <div className="relative">
+                       <Avatar className="h-14 w-14 border-2 border-white shadow-md">
+                         <AvatarImage 
+                           src={match.other_user.avatar_url || undefined} 
+                           alt={match.other_user.first_name}
+                         />
+                         <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                           {match.other_user.first_name[0]}{match.other_user.last_name[0]}
+                         </AvatarFallback>
+                       </Avatar>
+                       {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
+                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+                       )}
+                     </div>
+                     
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-center justify-between mb-1">
+                         <div className="flex items-center gap-2">
+                           <h3 className="font-semibold text-gray-900 truncate">
+                             {match.other_user.first_name} {match.other_user.last_name}
+                           </h3>
+                           <MessageCircle className="w-4 h-4 text-blue-500" />
+                         </div>
+                         {match.unread_count > 0 && (
+                           <Badge className="bg-blue-500 text-white rounded-full h-5 min-w-[20px] text-xs">
+                             {match.unread_count}
+                           </Badge>
+                         )}
+                       </div>
+                       
+                       {/* User details */}
+                       <div className="flex flex-wrap gap-1 mb-2">
+                         {match.other_user.date_of_birth && (
+                           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                             {(() => {
+                               const birth = new Date(match.other_user.date_of_birth);
+                               const today = new Date();
+                               let age = today.getFullYear() - birth.getFullYear();
+                               const monthDiff = today.getMonth() - birth.getMonth();
+                               if (monthDiff < 0 || monthDiff === 0 && today.getDate() < birth.getDate()) {
+                                 age--;
+                               }
+                               return age;
+                             })()}
+                           </span>
+                         )}
+                         {match.other_user.gender && (
+                           <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full">
+                             {match.other_user.gender}
+                           </span>
+                         )}
+                         {match.other_user.ms_subtype && (
+                           <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                             {match.other_user.ms_subtype}
+                           </span>
+                         )}
+                         {match.other_user.location && (
+                           <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                             {match.other_user.location}
+                           </span>
+                         )}
+                       </div>
+                       
+                       <p className="text-sm text-gray-500 truncate font-medium">
+                         {getLastMessage(match.id) || "Start the conversation!"}
+                       </p>
+                     </div>
+                   </div>
                 ))}
               </div>
             </ScrollArea>
