@@ -775,6 +775,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      check_admin_rate_limit: {
+        Args: {
+          admin_user_id: string
+          action_type: string
+          time_window?: unknown
+          max_actions?: number
+        }
+        Returns: Json
+      }
       check_and_increment_daily_likes: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -795,6 +804,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      enhanced_log_admin_action: {
+        Args: {
+          action_type: string
+          action_details?: Json
+          security_level?: string
+        }
+        Returns: undefined
+      }
       enhanced_rate_limit_check: {
         Args: {
           user_id_param: string
@@ -803,6 +820,10 @@ export type Database = {
           time_window: unknown
         }
         Returns: boolean
+      }
+      enhanced_validate_admin_session: {
+        Args: { session_token: string }
+        Returns: Json
       }
       get_api_version: {
         Args: Record<PropertyKey, never>
@@ -914,6 +935,10 @@ export type Database = {
       update_user_last_seen: {
         Args: { user_id_param: string }
         Returns: undefined
+      }
+      validate_admin_input_security: {
+        Args: { input_data: Json; validation_type: string }
+        Returns: Json
       }
       validate_admin_session: {
         Args: { session_token: string }
