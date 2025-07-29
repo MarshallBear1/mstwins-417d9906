@@ -22,7 +22,7 @@ import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useTempAdminAuth } from "@/hooks/useTempAdminAuth";
 import { Settings } from "lucide-react";
 interface Profile {
   id: string;
@@ -58,10 +58,9 @@ const Dashboard = () => {
   const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
   const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
   const { requestNotificationPermission } = useRealtimeNotifications();
-  const { checkAdminRole } = useAdminAuth();
+  const { isAuthenticated: isAdmin } = useTempAdminAuth();
   
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [likes, setLikes] = useState<Profile[]>([]);
@@ -84,11 +83,8 @@ const Dashboard = () => {
       setIsReturningUser(!!lastLogin);
       localStorage.setItem(`lastLogin_${user.id}`, new Date().toISOString());
       fetchProfile();
-      
-      // Check if user has admin role
-      checkAdminRole().then(setIsAdmin).catch(() => setIsAdmin(false));
     }
-  }, [user, checkAdminRole]);
+  }, [user]);
 
   // Re-fetch profile when user returns to tab (e.g., after completing extended profile)
   useEffect(() => {
@@ -494,7 +490,7 @@ const Dashboard = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/dashboard/admin/feedback')}
+                onClick={() => navigate('/temp-admin-login')}
                 className="text-muted-foreground hover:text-foreground"
                 title="Admin Panel"
               >

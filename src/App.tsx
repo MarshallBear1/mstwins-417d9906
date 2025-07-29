@@ -58,6 +58,18 @@ const NotFound = lazy(() => import("./pages/NotFound").catch(err => {
   console.error('Failed to load NotFound page:', err);
   return { default: () => <div>Page not found. Please refresh.</div> };
 }));
+const TempPasswordAdminLogin = lazy(() => import("./components/TempPasswordAdminLogin").then(module => ({
+  default: module.TempPasswordAdminLogin
+})).catch(err => {
+  console.error('Failed to load TempPasswordAdminLogin component:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
+const TempAdminProtectedRoute = lazy(() => import("./components/TempAdminProtectedRoute").then(module => ({
+  default: module.TempAdminProtectedRoute
+})).catch(err => {
+  console.error('Failed to load TempAdminProtectedRoute component:', err);
+  return { default: ({ children }: { children: React.ReactNode }) => <>{children}</> };
+}));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -168,15 +180,24 @@ const App = () => (
                 <TermsOfService />
               </Suspense>
             } />
+            <Route path="/temp-admin-login" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <TempPasswordAdminLogin />
+              </Suspense>
+            } />
             <Route path="/dashboard/admin/feedback" element={
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminFeedback />
+                <TempAdminProtectedRoute>
+                  <AdminFeedback />
+                </TempAdminProtectedRoute>
               </Suspense>
             } />
             <Route path="/dashboard/admin/moderation" element={
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminModeration />
-              </Suspense>
+                <TempAdminProtectedRoute>
+                  <AdminModeration />
+                </TempAdminProtectedRoute>
+                </Suspense>
             } />
             <Route path="*" element={
               <Suspense fallback={<LoadingSpinner />}>

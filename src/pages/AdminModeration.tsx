@@ -22,10 +22,9 @@ import {
   Calendar,
   MessageSquare
 } from "lucide-react";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { SecureAdminLogin } from "@/components/SecureAdminLogin";
+import { useTempAdminAuth } from "@/hooks/useTempAdminAuth";
 import { formatDistanceToNow } from "date-fns";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface ModerationFlag {
   id: string;
@@ -71,7 +70,8 @@ const severityColors = {
 };
 
 export default function AdminModeration() {
-  const { isAdminAuthenticated, adminLoading, revokeAdminSession } = useAdminAuth();
+  const { isAuthenticated: isAdminAuthenticated, logout } = useTempAdminAuth();
+  const navigate = useNavigate();
   const [moderationFlags, setModerationFlags] = useState<ModerationFlag[]>([]);
   const [userReports, setUserReports] = useState<UserReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,16 +81,12 @@ export default function AdminModeration() {
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
-    if (isAdminAuthenticated) {
-      fetchModerationData();
-    } else {
-      setLoading(false);
-    }
-  }, [isAdminAuthenticated]);
+    fetchModerationData();
+  }, []);
 
   const handleLogout = async () => {
-    await revokeAdminSession();
-    window.location.href = '/dashboard/admin/moderation';
+    logout();
+    navigate('/temp-admin-login');
   };
 
   const fetchModerationData = async () => {
@@ -189,16 +185,12 @@ export default function AdminModeration() {
     filterStatus === "all" || report.status === filterStatus
   );
 
-  if (adminLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
-  }
-
-  if (!isAdminAuthenticated) {
-    return <SecureAdminLogin />;
   }
 
   return (

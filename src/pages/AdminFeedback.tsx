@@ -10,11 +10,9 @@ import { toast } from "sonner";
 import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut, Shield, Megaphone } from "lucide-react";
 import { EmailManagement } from "@/components/EmailManagement";
 import { AnnouncementManager } from "@/components/AnnouncementManager";
-// Removed useAdminAuth import - using simple password auth now
-import { SecureAdminLogin } from "@/components/SecureAdminLogin";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useTempAdminAuth } from "@/hooks/useTempAdminAuth";
 import { formatDistanceToNow } from "date-fns";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { sanitizeInput, validateTextInput } from "@/lib/security";
 interface Feedback {
@@ -50,22 +48,20 @@ const typeColors = {
   support: "bg-success/10 text-success"
 };
 export default function AdminFeedback() {
-  const { isAdminAuthenticated, adminLoading, revokeAdminSession } = useAdminAuth();
+  const { isAuthenticated: isAdminAuthenticated, logout } = useTempAdminAuth();
+  const navigate = useNavigate();
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   useEffect(() => {
-    if (isAdminAuthenticated) {
-      fetchFeedback();
-    } else {
-      setLoading(false);
-    }
-  }, [isAdminAuthenticated]);
+    fetchFeedback();
+  }, []);
+  
   const handleLogout = async () => {
-    await revokeAdminSession();
-    window.location.href = '/admin/feedback';
+    logout();
+    navigate('/temp-admin-login');
   };
   const fetchFeedback = async () => {
     try {
@@ -177,15 +173,10 @@ export default function AdminFeedback() {
     }
   };
   const filteredFeedback = feedback.filter(item => statusFilter === "all" || item.status === statusFilter);
-  if (adminLoading || loading) {
+  if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>;
-  }
-
-  // Show admin login if not authenticated
-  if (!isAdminAuthenticated) {
-    return <SecureAdminLogin />;
   }
   return <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-card/50 backdrop-blur-sm">
