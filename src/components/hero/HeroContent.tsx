@@ -24,11 +24,13 @@ const HeroContent = () => {
       </h1>
       
       {/* Modern Subtitle */}
-      <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-        Connect with others who truly understand your 
-        <span className="font-semibold text-gray-800"> Multiple Sclerosis journey</span>. 
-        Build meaningful friendships in our safe community.
-      </p>
+      <div className="max-w-2xl mx-auto">
+        <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
+          Connect with others who truly understand your 
+          <span className="font-semibold text-foreground"> Multiple Sclerosis journey</span>. 
+          Build meaningful friendships in our safe community.
+        </p>
+      </div>
 
       {/* Clean Social Proof */}
       <div className="flex flex-wrap gap-6 justify-center">
