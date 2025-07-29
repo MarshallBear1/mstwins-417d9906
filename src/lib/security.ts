@@ -124,29 +124,165 @@ export const checkRateLimit = (
   };
 };
 
-// Content filtering for potentially harmful patterns
-export const filterContent = (content: string): { filtered: string; flagged: boolean } => {
+// OpenAI Moderation API Integration
+export const checkWithOpenAIModerator = async (content: string): Promise<{ flagged: boolean; categories: string[]; reason?: string }> => {
+  try {
+    // Check if OpenAI API key is available (from environment or Supabase Edge Function)
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
+    
+    // Call Supabase Edge Function that handles OpenAI moderation
+    const { data, error } = await supabase.functions.invoke('moderate-content', {
+      body: { content }
+    });
+    
+    if (error) {
+      console.warn('OpenAI moderation check failed:', error);
+      return { flagged: false, categories: [] };
+    }
+    
+    return data || { flagged: false, categories: [] };
+  } catch (error) {
+    console.warn('OpenAI moderation unavailable:', error);
+    return { flagged: false, categories: [] };
+  }
+};
+
+// Enhanced content filtering with scam detection
+export const filterContent = async (content: string): Promise<{ 
+  filtered: string; 
+  flagged: boolean; 
+  reasons: string[];
+  severity: 'low' | 'medium' | 'high';
+}> => {
   let filtered = content;
   let flagged = false;
+  const reasons: string[] = [];
+  let severity: 'low' | 'medium' | 'high' = 'low';
   
-  // List of patterns that might be concerning (basic implementation)
-  const suspiciousPatterns = [
-    /\b(?:script|javascript|vbscript)\b/gi,
-    /on\w+\s*=/gi, // Event handlers like onclick=
-    /\bdata:(?:text\/html|application\/)/gi,
-    /\bjavascript:/gi,
+  // Scam detection patterns
+  const scamPatterns = [
+    { pattern: /\b(?:cash.?app|venmo|paypal|zelle)\b/gi, reason: 'Payment app mention', severity: 'high' as const },
+    { pattern: /\b(?:send.?money|wire.?transfer|bitcoin|crypto)\b/gi, reason: 'Money request', severity: 'high' as const },
+    { pattern: /\b(?:instagram|snapchat|telegram|whatsapp|kik)\b/gi, reason: 'External platform redirect', severity: 'medium' as const },
+    { pattern: /\b(?:lonely|horny|sexy|hookup)\b/gi, reason: 'Inappropriate content', severity: 'medium' as const },
+    { pattern: /\b(?:inheritance|lottery|prince|million.?dollars)\b/gi, reason: 'Classic scam keywords', severity: 'high' as const },
   ];
   
-  // Check for suspicious patterns
-  for (const pattern of suspiciousPatterns) {
+  // URL/Link detection
+  const urlPatterns = [
+    { pattern: /https?:\/\/[^\s]+/gi, reason: 'External link', severity: 'medium' as const },
+    { pattern: /www\.[^\s]+/gi, reason: 'Website mention', severity: 'medium' as const },
+    { pattern: /[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, reason: 'Domain mention', severity: 'low' as const },
+  ];
+  
+  // Technical/XSS patterns (existing)
+  const securityPatterns = [
+    { pattern: /\b(?:script|javascript|vbscript)\b/gi, reason: 'Script injection attempt', severity: 'high' as const },
+    { pattern: /on\w+\s*=/gi, reason: 'Event handler injection', severity: 'high' as const },
+    { pattern: /\bdata:(?:text\/html|application\/)/gi, reason: 'Data URI injection', severity: 'high' as const },
+    { pattern: /\bjavascript:/gi, reason: 'JavaScript protocol', severity: 'high' as const },
+  ];
+  
+  // Check all patterns
+  const allPatterns = [...scamPatterns, ...urlPatterns, ...securityPatterns];
+  
+  for (const { pattern, reason, severity: patternSeverity } of allPatterns) {
     if (pattern.test(filtered)) {
       flagged = true;
-      filtered = filtered.replace(pattern, '[FILTERED]');
+      reasons.push(reason);
+      
+      // Update severity to highest found
+      if (patternSeverity === 'high' || (patternSeverity === 'medium' && severity === 'low')) {
+        severity = patternSeverity;
+      }
+      
+      // Filter out the content based on severity
+      if (patternSeverity === 'high') {
+        filtered = filtered.replace(pattern, '[BLOCKED]');
+      } else if (patternSeverity === 'medium') {
+        filtered = filtered.replace(pattern, '[FLAGGED]');
+      }
     }
   }
   
-  return { filtered, flagged };
+  // If content passed basic filters, check with OpenAI
+  if (!flagged || severity === 'low') {
+    try {
+      const aiResult = await checkWithOpenAIModerator(content);
+      if (aiResult.flagged) {
+        flagged = true;
+        reasons.push(`AI detected: ${aiResult.categories.join(', ')}`);
+        severity = 'high';
+        filtered = '[CONTENT BLOCKED BY AI MODERATION]';
+      }
+    } catch (error) {
+      // Continue without AI moderation if it fails
+      console.warn('AI moderation check failed:', error);
+    }
+  }
+  
+  return { filtered, flagged, reasons, severity };
 };
+
+// Image content moderation (for profile photos)
+export const moderateImage = async (imageUrl: string): Promise<{ approved: boolean; reason?: string }> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
+    
+    // Call Supabase Edge Function for image moderation
+    const { data, error } = await supabase.functions.invoke('moderate-image', {
+      body: { imageUrl }
+    });
+    
+    if (error) {
+      console.warn('Image moderation failed:', error);
+      return { approved: true }; // Allow by default if moderation fails
+    }
+    
+    return data || { approved: true };
+  } catch (error) {
+    console.warn('Image moderation unavailable:', error);
+    return { approved: true };
+  }
+};
+
+// Report suspicious content for admin review
+// TODO: Enable after creating content_reports table
+/*
+export const reportSuspiciousContent = async (
+  contentId: string,
+  contentType: 'message' | 'profile' | 'photo',
+  userId: string,
+  reason: string,
+  details?: string
+): Promise<boolean> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
+    
+    const { error } = await supabase
+      .from('content_reports')
+      .insert({
+        content_id: contentId,
+        content_type: contentType,
+        reported_user_id: userId,
+        reason,
+        details: details || null,
+        status: 'pending'
+      });
+    
+    return !error;
+  } catch (error) {
+    console.error('Failed to report suspicious content:', error);
+    return false;
+  }
+};
+*/
 
 // Secure error message handling (avoid leaking sensitive info)
 export const sanitizeErrorMessage = (error: any): string => {
@@ -263,7 +399,7 @@ export const getSecurityHeaders = (): Record<string, string> => {
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.posthog.com;"
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.posthog.com https://api.openai.com;"
   };
 };
 
