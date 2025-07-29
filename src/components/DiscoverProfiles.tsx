@@ -541,16 +541,19 @@ const DiscoverProfiles = () => {
         </div>
       )}
 
-      <div className="px-2 pb-2">
-        <MobileProfileCard
-          profile={currentProfile}
-          onImageClick={openImageViewer}
-          isUserOnline={isUserOnline}
-          getLastSeenText={getLastSeenText}
-          onLike={handleLike}
-          onPass={handlePass}
-          className="animate-scale-in"
-        />
+      {/* Centered Profile Card Container */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-sm px-2 pb-2">
+          <MobileProfileCard
+            profile={currentProfile}
+            onImageClick={openImageViewer}
+            isUserOnline={isUserOnline}
+            getLastSeenText={getLastSeenText}
+            onLike={handleLike}
+            onPass={handlePass}
+            className="animate-scale-in"
+          />
+        </div>
       </div>
 
       {/* Profile Image Viewer */}
