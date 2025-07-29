@@ -48,6 +48,10 @@ const AdminFeedback = lazy(() => import("./pages/AdminFeedback").catch(err => {
   console.error('Failed to load AdminFeedback page:', err);
   return { default: () => <div>Failed to load page. Please refresh.</div> };
 }));
+const AdminModeration = lazy(() => import("./pages/AdminModeration").catch(err => {
+  console.error('Failed to load AdminModeration page:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
 const NotFound = lazy(() => import("./pages/NotFound").catch(err => {
   console.error('Failed to load NotFound page:', err);
   return { default: () => <div>Page not found. Please refresh.</div> };
@@ -129,6 +133,11 @@ const App = () => (
             <Route path="/admin/feedback" element={
               <Suspense fallback={<LoadingSpinner />}>
                 <AdminFeedback />
+              </Suspense>
+            } />
+            <Route path="/admin/moderation" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <AdminModeration />
               </Suspense>
             } />
             <Route path="*" element={

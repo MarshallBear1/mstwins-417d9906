@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut } from "lucide-react";
+import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut, Shield } from "lucide-react";
 import { EmailManagement } from "@/components/EmailManagement";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { AdminLogin } from "@/components/AdminLogin";
@@ -184,12 +184,20 @@ export default function AdminFeedback() {
         <div className="max-w-7xl mx-auto p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to App
-                </Link>
-              </Button>
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to App
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/admin/moderation">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Moderation
+                  </Link>
+                </Button>
+              </div>
               <div>
                 <h1 className="text-2xl font-bold">Feedback Management</h1>
                 <p className="text-muted-foreground">Review and manage user feedback</p>
