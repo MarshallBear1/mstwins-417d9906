@@ -218,7 +218,30 @@ const handler = async (req: Request): Promise<Response> => {
 
       } catch (error) {
         console.error(`❌ Failed to send batch:`, error);
-        failedCount += batchEmails.length;
+        console.error(`❌ Batch details: ${batchEmails.length} emails to:`, batchEmails);
+        
+        // If this is a 400 error from Resend, it might be due to invalid email addresses
+        // Let's try sending individually to identify the problematic emails
+        if (error?.message?.includes('400')) {
+          console.log('🔄 Attempting individual sends for this batch...');
+          for (const email of batchEmails) {
+            try {
+              await resend.emails.send({
+                from: "MStwins Team <noreply@mstwins.com>",
+                to: [email],
+                subject: emailSubject,
+                html: emailContent,
+              });
+              sentCount += 1;
+              console.log(`✅ Individual email sent to: ${email}`);
+            } catch (individualError) {
+              console.error(`❌ Failed to send individual email to ${email}:`, individualError);
+              failedCount += 1;
+            }
+          }
+        } else {
+          failedCount += batchEmails.length;
+        }
       }
 
       // Wait a bit between batches to be respectful to the email service
