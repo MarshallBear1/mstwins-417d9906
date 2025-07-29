@@ -249,6 +249,8 @@ export type Database = {
           id: string
           is_read: boolean
           match_id: string
+          moderation_flag_id: string | null
+          moderation_status: string | null
           receiver_id: string
           sender_id: string
         }
@@ -258,6 +260,8 @@ export type Database = {
           id?: string
           is_read?: boolean
           match_id: string
+          moderation_flag_id?: string | null
+          moderation_status?: string | null
           receiver_id: string
           sender_id: string
         }
@@ -267,6 +271,8 @@ export type Database = {
           id?: string
           is_read?: boolean
           match_id?: string
+          moderation_flag_id?: string | null
+          moderation_status?: string | null
           receiver_id?: string
           sender_id?: string
         }
@@ -278,7 +284,65 @@ export type Database = {
             referencedRelation: "matches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_moderation_flag_id_fkey"
+            columns: ["moderation_flag_id"]
+            isOneToOne: false
+            referencedRelation: "moderation_flags"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      moderation_flags: {
+        Row: {
+          confidence_score: number | null
+          content_id: string | null
+          content_text: string
+          content_type: string
+          created_at: string
+          flagged_categories: string[] | null
+          id: string
+          is_flagged: boolean
+          moderation_result: Json
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          content_id?: string | null
+          content_text: string
+          content_type: string
+          created_at?: string
+          flagged_categories?: string[] | null
+          id?: string
+          is_flagged?: boolean
+          moderation_result: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          content_id?: string | null
+          content_text?: string
+          content_type?: string
+          created_at?: string
+          flagged_categories?: string[] | null
+          id?: string
+          is_flagged?: boolean
+          moderation_result?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       notification_logs: {
         Row: {
@@ -384,6 +448,8 @@ export type Database = {
           last_seen: string | null
           location: string
           medications: string[] | null
+          moderation_flag_id: string | null
+          moderation_status: string | null
           ms_subtype: string | null
           selected_prompts: Json | null
           symptoms: string[] | null
@@ -406,6 +472,8 @@ export type Database = {
           last_seen?: string | null
           location: string
           medications?: string[] | null
+          moderation_flag_id?: string | null
+          moderation_status?: string | null
           ms_subtype?: string | null
           selected_prompts?: Json | null
           symptoms?: string[] | null
@@ -428,13 +496,23 @@ export type Database = {
           last_seen?: string | null
           location?: string
           medications?: string[] | null
+          moderation_flag_id?: string | null
+          moderation_status?: string | null
           ms_subtype?: string | null
           selected_prompts?: Json | null
           symptoms?: string[] | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_moderation_flag_id_fkey"
+            columns: ["moderation_flag_id"]
+            isOneToOne: false
+            referencedRelation: "moderation_flags"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_tokens: {
         Row: {

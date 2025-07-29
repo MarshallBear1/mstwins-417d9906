@@ -382,13 +382,32 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         content: filtered
       });
 
+      // First, moderate the content before sending
+      const { data: moderationResult } = await supabase.functions.invoke('content-moderator', {
+        body: {
+          content: filtered,
+          contentType: 'message',
+          userId: user.id
+        }
+      });
+
+      console.log('Moderation result:', moderationResult);
+
+      // If content is blocked, don't send the message
+      if (moderationResult?.blocked) {
+        alert('Your message was blocked by our content moderation system. Please revise your message and try again.');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('messages')
         .insert({
           match_id: selectedMatch.id,
           sender_id: user.id,
           receiver_id: receiverId,
-          content: filtered
+          content: filtered,
+          moderation_status: moderationResult?.flagged ? 'flagged' : 'approved',
+          moderation_flag_id: moderationResult?.moderationFlagId
         })
         .select()
         .single();
