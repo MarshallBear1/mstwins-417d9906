@@ -422,19 +422,19 @@ const Dashboard = () => {
                         console.error('❌ Error in like back process:', error);
                       }
                     }}>
-                             <Heart className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                             Like Back
-                           </Button>
-                         </div>
+                              ❤️ Like Back
+                            </Button>
+                          </div>
                       </div>
                     </CardContent>
                   </Card>)}
-              </div> : <Card className="mt-6">
-                <CardContent className="p-6 text-center">
-                  <p className="text-muted-foreground">No likes yet. Start discovering!</p>
-                </CardContent>
-              </Card>}
+              </div> : <div className="text-center py-8">
+                  <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No likes yet. Keep swiping!</p>
+                </div>}
           </div>;
+      case "messages":
+        return <Messaging />;
       case "matches":
         return <Messaging />;
       case "profile":
