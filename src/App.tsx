@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, lazy, Suspense, memo } from "react";
 import { AuthProvider } from "./hooks/useAuth";
 import { analytics } from "./lib/analytics";
+import { supabase } from "@/integrations/supabase/client";
 import OptimizedIndex from "./pages/OptimizedIndex";
 import MobileStatusBar from "./components/MobileStatusBar";
 import MobileOptimizationsProvider from "./components/MobileOptimizationsProvider";
@@ -63,6 +64,30 @@ const LoadingSpinner = () => (
   </div>
 );
 
+const PostHogInitializer = () => {
+  useEffect(() => {
+    const initializePostHog = async () => {
+      try {
+        const { data: secrets } = await supabase.functions.invoke('secrets', {
+          body: { name: 'POSTHOG_API_KEY' }
+        });
+        
+        if (secrets?.value) {
+          analytics.init(secrets.value);
+        } else {
+          console.warn('PostHog API key not found in secrets');
+        }
+      } catch (error) {
+        console.error('Failed to initialize PostHog:', error);
+      }
+    };
+
+    initializePostHog();
+  }, []);
+
+  return null;
+};
+
 const RouteTracker = () => {
   const location = useLocation();
   
@@ -97,6 +122,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <PostHogInitializer />
             <RouteTracker />
             <Routes>
             <Route path="/" element={<OptimizedIndex />} />
