@@ -275,6 +275,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         .from('messages')
         .select('*')
         .eq('match_id', matchId)
+        .in('moderation_status', ['approved', 'pending', null])
         .order('created_at', { ascending: true });
 
       if (error) {

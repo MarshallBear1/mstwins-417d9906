@@ -71,6 +71,7 @@ export const useRealtimeMessaging = (matchId?: string) => {
         .from('messages')
         .select('*')
         .eq('match_id', matchId)
+        .in('moderation_status', ['approved', 'pending', null])
         .order('created_at', { ascending: true });
 
       if (!error && data) {
@@ -134,7 +135,8 @@ export const useRealtimeMessaging = (matchId?: string) => {
           match_id: matchId,
           sender_id: user.id,
           receiver_id: receiverId,
-          content: content.trim()
+          content: content.trim(),
+          moderation_status: 'approved'
         })
         .select()
         .single();
