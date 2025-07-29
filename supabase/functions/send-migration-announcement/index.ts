@@ -143,7 +143,10 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    console.log('🔍 Debug: Starting bulk email process...');
+    
     // Get the list ID first
+    console.log('🔍 Debug: Querying for list:', list_name);
     const { data: listData, error: listError } = await supabaseClient
       .from('announcement_email_lists')
       .select('id')
@@ -152,12 +155,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (listError || !listData) {
       console.error('❌ Failed to find email list:', listError);
-      throw new Error(`Email list '${list_name}' not found`);
+      throw new Error(`Email list '${list_name}' not found: ${listError?.message || 'No data returned'}`);
     }
 
     console.log('✅ Found email list:', listData);
 
     // Create the campaign directly in database
+    console.log('🔍 Debug: Creating campaign in database...');
     const { data: campaignData, error: campaignError } = await supabaseClient
       .from('announcement_campaigns')
       .insert({
@@ -178,6 +182,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('✅ Campaign created:', campaignData);
 
     // Get all active email addresses from the list
+    console.log('🔍 Debug: Querying email addresses for list:', list_name);
     const { data: emailList, error: emailError } = await supabaseClient
       .from('announcement_email_addresses')
       .select(`
@@ -192,7 +197,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Failed to fetch email list: ${emailError.message}`);
     }
 
-    console.log(`📧 Found ${emailList?.length || 0} active email addresses to send to`);
+    console.log(`✅ Found ${emailList?.length || 0} active email addresses to send to`);
+    if (emailList && emailList.length > 0) {
+      console.log('🔍 Debug: First few emails:', emailList.slice(0, 3).map(item => item.email));
+    }
 
     let sentCount = 0;
     let failedCount = 0;
