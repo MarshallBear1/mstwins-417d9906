@@ -156,11 +156,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         
         // Check if we have cached messages for this match
         const cachedMessages = messageHistory.get(matchId);
-        if (cachedMessages) {
-          console.log('📄 Loading cached messages for match:', matchId);
+        if (cachedMessages && cachedMessages.length > 0) {
+          console.log('📄 Loading cached messages for match:', matchId, 'count:', cachedMessages.length);
           setMessages(cachedMessages);
         } else {
-          console.log('🔄 Fetching fresh messages for match:', matchId);
+          console.log('🔄 Fetching fresh messages for match:', matchId, 'cached count:', cachedMessages?.length || 0);
           fetchMessages(matchId);
         }
       }
@@ -283,7 +283,15 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         .eq('match_id', matchId)
         .order('created_at', { ascending: true });
 
-      console.log('📨 Raw messages query result:', { data, error, count: data?.length });
+      console.log('📨 Raw messages query result:', { 
+        data, 
+        error, 
+        count: data?.length,
+        matchId,
+        userId: user.id,
+        messageIds: data?.map(m => m.id),
+        moderationStatuses: data?.map(m => m.moderation_status)
+      });
 
       if (error) {
         console.error('❌ Error fetching messages:', error);
