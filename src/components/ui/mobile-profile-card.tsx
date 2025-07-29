@@ -92,7 +92,7 @@ export const MobileProfileCard = ({
         display: 'block'
       }}>
           {/* Header */}
-          <div className="relative h-28 bg-gradient-to-br from-primary/80 via-primary/60 to-primary/40 flex items-center justify-center">
+          <div className="relative h-20 sm:h-28 bg-gradient-to-br from-primary/80 via-primary/60 to-primary/40 flex items-center justify-center">
             <button onClick={() => onImageClick?.(0)} className="relative w-20 h-20 rounded-full overflow-hidden border-3 border-white shadow-lg hover:scale-105 transition-transform duration-200 mobile-touch-target">
               {profile.avatar_url ? <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover transition-opacity duration-200" loading="eager" onLoad={e => {
               e.currentTarget.style.opacity = '1';
@@ -202,7 +202,7 @@ export const MobileProfileCard = ({
         top: 0,
         left: 0
       }}>
-          <div className="relative h-28 bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+          <div className="relative h-20 sm:h-28 bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
             <Button variant="ghost" size="sm" onClick={() => setIsFlipped(!isFlipped)} className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg mobile-touch-target">
               <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
             </Button>

@@ -106,7 +106,7 @@ const ReferralDropdown = () => {
               </Button>
             </CardHeader>
             
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
               {/* Native Share Button for Mobile */}
               {isSupported && (
                 <div className="space-y-2">
