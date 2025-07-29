@@ -57,9 +57,9 @@ const ProfileDemo = () => {
     <div className="relative animate-scale-in lg:scale-110">
       {/* Modern Profile Card */}
       <div className="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-sm mx-auto border border-gray-100 transform hover:scale-105 transition-all duration-500">
-        {/* Header with modern gradient */}
-        <div className="relative h-56 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 flex items-center justify-center overflow-hidden">
-          {/* Floating background elements */}
+        {/* Header with clean styling */}
+        <div className="relative h-56 bg-blue-600 flex items-center justify-center overflow-hidden">
+          {/* Clean background elements */}
           <div className="absolute inset-0 bg-black/5" />
           <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
           <div className="absolute bottom-6 left-6 w-12 h-12 bg-white/10 rounded-full blur-lg" />

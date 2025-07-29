@@ -5,20 +5,20 @@ import { Link } from "react-router-dom";
 const HeroContent = () => {
   return (
     <div className="text-center lg:text-left space-y-8 animate-fade-in">
-      {/* Modern Trust Badge */}
+      {/* Clean Trust Badge */}
       <div className="flex items-center justify-center lg:justify-start gap-2 mb-6">
-        <div className="px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-200 rounded-full">
+        <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-full">
           <span className="text-sm font-semibold text-blue-700">🏆 #1 MS Support Community</span>
         </div>
       </div>
       
-      {/* Modern Headline */}
+      {/* Clean Headline */}
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-        <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+        <span className="text-gray-900">
           Find Your MS
         </span>
         <br />
-        <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <span className="text-blue-600">
           Support Twin
         </span>
       </h1>
@@ -30,10 +30,10 @@ const HeroContent = () => {
         Build meaningful friendships in our safe community.
       </p>
 
-      {/* Modern Social Proof */}
+      {/* Clean Social Proof */}
       <div className="flex flex-wrap gap-6 justify-center lg:justify-start">
         <div className="flex items-center gap-3 bg-white/50 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -43,7 +43,7 @@ const HeroContent = () => {
         </div>
         
         <div className="flex items-center gap-3 bg-white/50 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg">
-          <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-pink-600 rounded-xl flex items-center justify-center">
             <Heart className="w-5 h-5 text-white" fill="currentColor" />
           </div>
           <div>
@@ -53,7 +53,7 @@ const HeroContent = () => {
         </div>
         
         <div className="flex items-center gap-3 bg-white/50 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg">
-          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
             <Star className="w-5 h-5 text-white" fill="currentColor" />
           </div>
           <div>
@@ -63,11 +63,11 @@ const HeroContent = () => {
         </div>
       </div>
 
-      {/* Modern CTA Buttons */}
+      {/* Clean CTA Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
         <Button 
           size="lg" 
-          className="h-14 px-8 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300" 
+          className="h-14 px-8 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300" 
           asChild
         >
           <Link to="/auth">
@@ -90,7 +90,7 @@ const HeroContent = () => {
         </Button>
       </div>
 
-      {/* Modern Trust Indicators */}
+      {/* Clean Trust Indicators */}
       <div className="flex flex-wrap gap-6 justify-center lg:justify-start pt-6">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -98,11 +98,11 @@ const HeroContent = () => {
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-          <span className="text-sm font-medium text-gray-600">Privacy Protected</span>
+          <span className="text-sm font-medium text-gray-600">Safe & Private</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-          <span className="text-sm font-medium text-gray-600">Support Focused</span>
+          <span className="text-sm font-medium text-gray-600">Join in 60 Seconds</span>
         </div>
       </div>
     </div>

@@ -68,23 +68,19 @@ const OptimizedHowItWorks = () => {
 
         {/* Steps */}
         <div className="relative mb-20">
-          {/* Connection line */}
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-200 via-purple-200 to-blue-200 transform -translate-y-1/2 z-0"></div>
+          {/* Clean Step Connection Line */}
+          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-blue-200 transform -translate-y-1/2 z-0"></div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
             {steps.map((step, index) => (
-              <div 
-                key={index}
-                className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 animate-fade-in border-2 border-transparent hover:border-blue-200"
-                style={{ animationDelay: `${index * 200}ms` }}
-              >
-                {/* Step number */}
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                  {step.step}
+              <div key={index} className="relative group">
+                {/* Clean Step Number */}
+                <div className="absolute -top-4 -right-4 w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                  {index + 1}
                 </div>
-
-                {/* Icon */}
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                
+                {/* Clean Icon Container */}
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <step.icon className="w-8 h-8 text-blue-600" />
                 </div>
 
