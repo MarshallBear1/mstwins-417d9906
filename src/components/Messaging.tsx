@@ -176,6 +176,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   const fetchMatches = async () => {
     if (!user) return;
 
+    console.log('🔄 Fetching matches for user:', user.id);
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -189,8 +190,10 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
+      console.log('📋 Matches query result:', { data, error, count: data?.length });
+
       if (error) {
-        console.error('Error fetching matches:', error);
+        console.error('❌ Error fetching matches:', error);
         return;
       }
 
@@ -205,14 +208,13 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             .eq('user_id', otherUserId)
             .single();
 
-          // Get unread message count
+          // Get unread message count (removed moderation filter temporarily)
           const { count: unreadCount } = await supabase
             .from('messages')
             .select('*', { count: 'exact', head: true })
             .eq('match_id', match.id)
             .eq('receiver_id', user.id)
-            .eq('is_read', false)
-            .in('moderation_status', ['approved', 'pending', null]);
+            .eq('is_read', false);
 
           return {
             ...match,
@@ -260,9 +262,10 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         })
       );
 
+      console.log('✅ Successfully fetched matches with profiles:', matchesWithProfiles.length);
       setMatches(matchesWithProfiles);
     } catch (error) {
-      console.error('Error fetching matches:', error);
+      console.error('❌ Error fetching matches:', error);
     } finally {
       setLoading(false);
     }
@@ -271,37 +274,45 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   const fetchMessages = async (matchId: string) => {
     if (!user) return;
 
+    console.log('🔄 Fetching messages for match:', matchId, 'user:', user.id);
+
     try {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('match_id', matchId)
-        .in('moderation_status', ['approved', 'pending', null])
         .order('created_at', { ascending: true });
 
+      console.log('📨 Raw messages query result:', { data, error, count: data?.length });
+
       if (error) {
-        console.error('Error fetching messages:', error);
+        console.error('❌ Error fetching messages:', error);
         return;
       }
 
+      console.log('✅ Successfully fetched messages:', data?.length || 0);
       setMessages(data || []);
       
       // Cache the messages for this match
       setMessageHistory(prev => new Map(prev.set(matchId, data || [])));
       
       // Mark messages as read
-      await supabase
+      const { error: readError } = await supabase
         .from('messages')
         .update({ is_read: true })
         .eq('match_id', matchId)
         .eq('receiver_id', user.id);
+
+      if (readError) {
+        console.error('❌ Error marking messages as read:', readError);
+      }
 
       // Update unread count for this match
       setMatches(prev => prev.map(match => 
         match.id === matchId ? { ...match, unread_count: 0 } : match
       ));
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error('❌ Error fetching messages:', error);
     }
   };
 
