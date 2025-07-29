@@ -6,13 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Send, Mail, Users, Eye, Heart, Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 export const EmailManagement = () => {
   const [selectedEmailType, setSelectedEmailType] = useState("day3");
   const [previewEmail, setPreviewEmail] = useState("");
   const [isPreviewSending, setIsPreviewSending] = useState(false);
   const [isSendingAll, setIsSendingAll] = useState(false);
-
   const emailTypes = {
     day2: {
       label: "Day 2 Email",
@@ -22,7 +20,7 @@ export const EmailManagement = () => {
       bulkOperation: "send-day2-all-users"
     },
     day3: {
-      label: "Day 3 Email", 
+      label: "Day 3 Email",
       description: "Community building email",
       icon: Users,
       previewOperation: "send-day3-email",
@@ -30,7 +28,7 @@ export const EmailManagement = () => {
     },
     day4: {
       label: "Day 4 Email",
-      description: "Deeper connections email", 
+      description: "Deeper connections email",
       icon: Heart,
       previewOperation: "send-day4-email",
       bulkOperation: "send-day4-all-users"
@@ -43,15 +41,12 @@ export const EmailManagement = () => {
       bulkOperation: "send-announcement-email"
     }
   };
-
   const currentEmailType = emailTypes[selectedEmailType];
-
   const sendPreview = async () => {
     if (!previewEmail) {
       toast.error("Please enter an email address for preview");
       return;
     }
-
     setIsPreviewSending(true);
     try {
       const params: any = {
@@ -59,16 +54,15 @@ export const EmailManagement = () => {
         email: previewEmail,
         firstName: 'Preview User'
       };
-
       if (selectedEmailType === 'announcement') {
         params.referralLink = 'https://sharedgenes.lovable.app/?ref=preview';
         params.feedbackLink = 'https://sharedgenes.lovable.app/feedback';
       }
-
-      const { error } = await supabase.functions.invoke('admin-email-operations', {
+      const {
+        error
+      } = await supabase.functions.invoke('admin-email-operations', {
         body: params
       });
-
       if (error) throw error;
       toast.success(`${currentEmailType.label} preview sent successfully!`);
     } catch (error: any) {
@@ -78,30 +72,26 @@ export const EmailManagement = () => {
       setIsPreviewSending(false);
     }
   };
-
   const sendToAll = async () => {
     const confirmMessage = `Are you sure you want to send the ${currentEmailType.label} to all eligible users? This action cannot be undone.`;
-    
     if (!window.confirm(confirmMessage)) return;
-
     setIsSendingAll(true);
     try {
       const params: any = {
         operation: currentEmailType.bulkOperation,
         sendToAll: true
       };
-
       if (selectedEmailType === 'announcement') {
         params.referralLink = 'https://sharedgenes.lovable.app/?ref=announcement';
         params.feedbackLink = 'https://sharedgenes.lovable.app/feedback';
       }
-
-      const { data, error } = await supabase.functions.invoke('admin-email-operations', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('admin-email-operations', {
         body: params
       });
-
       if (error) throw error;
-      
       const emailCount = data?.stats?.emails_sent || data?.stats?.total_users || 0;
       toast.success(`${currentEmailType.label} sent successfully! ${emailCount} emails sent.`);
     } catch (error: any) {
@@ -111,12 +101,10 @@ export const EmailManagement = () => {
       setIsSendingAll(false);
     }
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">📧 Email Management</h2>
-        <p className="text-muted-foreground">Send campaign emails to users</p>
+        
+        
       </div>
 
       <Card>
@@ -134,16 +122,14 @@ export const EmailManagement = () => {
               </SelectTrigger>
               <SelectContent className="bg-background border border-border z-50">
                 {Object.entries(emailTypes).map(([key, type]) => {
-                  const IconComponent = type.icon;
-                  return (
-                    <SelectItem key={key} value={key}>
+                const IconComponent = type.icon;
+                return <SelectItem key={key} value={key}>
                       <div className="flex items-center gap-2">
                         <IconComponent className="h-4 w-4" />
                         {type.label}
                       </div>
-                    </SelectItem>
-                  );
-                })}
+                    </SelectItem>;
+              })}
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground mt-1">
@@ -159,18 +145,8 @@ export const EmailManagement = () => {
                 <Eye className="h-4 w-4" />
                 Send Preview
               </h3>
-              <Input
-                type="email"
-                placeholder="Enter email for preview"
-                value={previewEmail}
-                onChange={(e) => setPreviewEmail(e.target.value)}
-              />
-              <Button 
-                onClick={sendPreview} 
-                disabled={isPreviewSending}
-                className="w-full"
-                variant="outline"
-              >
+              <Input type="email" placeholder="Enter email for preview" value={previewEmail} onChange={e => setPreviewEmail(e.target.value)} />
+              <Button onClick={sendPreview} disabled={isPreviewSending} className="w-full" variant="outline">
                 {isPreviewSending ? "Sending..." : "Send Preview"}
               </Button>
             </div>
@@ -182,21 +158,14 @@ export const EmailManagement = () => {
                 Send to All
               </h3>
               <p className="text-sm text-muted-foreground">
-                {selectedEmailType === 'announcement' 
-                  ? "Send to all registered users" 
-                  : `Send to users who joined ${selectedEmailType.replace('day', '')} days ago`}
+                {selectedEmailType === 'announcement' ? "Send to all registered users" : `Send to users who joined ${selectedEmailType.replace('day', '')} days ago`}
               </p>
-              <Button 
-                onClick={sendToAll} 
-                disabled={isSendingAll}
-                className="w-full"
-              >
+              <Button onClick={sendToAll} disabled={isSendingAll} className="w-full">
                 {isSendingAll ? "Sending..." : "Send to All"}
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
