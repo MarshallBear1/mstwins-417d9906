@@ -211,7 +211,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             .select('*', { count: 'exact', head: true })
             .eq('match_id', match.id)
             .eq('receiver_id', user.id)
-            .eq('is_read', false);
+            .eq('is_read', false)
+            .in('moderation_status', ['approved', 'pending', null]);
 
           return {
             ...match,
