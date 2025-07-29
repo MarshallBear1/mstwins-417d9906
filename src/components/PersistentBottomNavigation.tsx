@@ -13,8 +13,8 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'discover', label: 'Discover', icon: Heart, path: '/dashboard' },
-  { id: 'matches', label: 'Matches', icon: Users, path: '/dashboard?tab=matches' },
-  { id: 'messages', label: 'Messages', icon: MessageCircle, path: '/dashboard?tab=messages' },
+  { id: 'likes', label: 'Likes', icon: Users, path: '/dashboard?tab=likes' },
+  { id: 'matches', label: 'Matches', icon: MessageCircle, path: '/dashboard?tab=matches' },
   { id: 'profile', label: 'Profile', icon: User, path: '/dashboard?tab=profile' },
 ];
 

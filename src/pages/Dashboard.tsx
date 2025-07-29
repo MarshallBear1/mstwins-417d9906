@@ -55,7 +55,7 @@ const Dashboard = () => {
   const { isMobile, safeAreaInsets } = useMobileOptimizations();
   const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
   const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
-  const { requestNotificationPermission } = useRealtimeNotifications();
+  const { requestAllPermissions } = useRealtimeNotifications();
   
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -143,7 +143,7 @@ const Dashboard = () => {
     const timer = setTimeout(async () => {
       if ('Notification' in window && Notification.permission === 'default') {
         try {
-          await requestNotificationPermission();
+          await requestAllPermissions();
           sessionStorage.setItem(`notif_prompted_${user.id}`, 'true');
         } catch (error) {
           console.log('Notification permission request failed:', error);
@@ -152,7 +152,7 @@ const Dashboard = () => {
     }, 3000); // 3 second delay for natural UX
 
     return () => clearTimeout(timer);
-  }, [user, profile, requestNotificationPermission]);
+  }, [user, profile, requestAllPermissions]);
   const fetchLikes = async () => {
     if (!user) return;
     setLikesLoading(true);
@@ -433,8 +433,6 @@ const Dashboard = () => {
                   <p className="text-muted-foreground">No likes yet. Keep swiping!</p>
                 </div>}
           </div>;
-      case "messages":
-        return <Messaging />;
       case "matches":
         return <Messaging />;
       case "profile":
