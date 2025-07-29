@@ -113,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🧬 Shared Genes</div>
+            <div class="logo">🧬 MSTwins</div>
             <h1 class="title">Building Meaningful Connections</h1>
             <p class="subtitle">Day 4: Making the most of your MS community experience</p>
           </div>
@@ -134,7 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <p style="text-align: center;">
-              <a href="https://sharedgenes.lovable.app/dashboard" class="cta-button">
+              <a href="https://mstwins.com/dashboard" class="cta-button">
                 Check Out The Improvements →
               </a>
             </p>
@@ -159,13 +159,13 @@ const handler = async (req: Request): Promise<Response> => {
             <p>If you have any questions or need support, we're always here to help.</p>
             
             <p>Keep connecting,<br>
-            <strong>The Shared Genes Team</strong></p>
+            <strong>The MSTwins Team</strong></p>
           </div>
           
           <div class="footer">
             <p>
-              <a href="https://sharedgenes.lovable.app/feedback" style="color: #6366f1; text-decoration: none;">Share Feedback</a> • 
-              <a href="https://sharedgenes.lovable.app" style="color: #6366f1; text-decoration: none;">Visit App</a>
+              <a href="https://mstwins.com/feedback" style="color: #6366f1; text-decoration: none;">Share Feedback</a> • 
+              <a href="https://mstwins.com" style="color: #6366f1; text-decoration: none;">Visit App</a>
             </p>
             <p>You're receiving this because you joined our MS community. We're committed to supporting your journey.</p>
           </div>
@@ -175,9 +175,9 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: 'Shared Genes Community <team@sharedgenes.org>',
+      from: 'MSTwins Community <team@sharedgenes.org>',
       to: [email],
-      subject: '🧬 Building Deeper Connections - Day 4 with Shared Genes',
+      subject: '🧬 Building Deeper Connections - Day 4 with MSTwins',
       html: emailHtml,
     });
 
