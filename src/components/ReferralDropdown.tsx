@@ -82,7 +82,7 @@ const ReferralDropdown = () => {
           />
           
           {/* Dropdown Card */}
-          <div className="fixed top-20 left-4 right-4 sm:absolute sm:top-12 sm:right-0 sm:left-auto sm:w-80 max-w-[calc(100vw-2rem)] z-50 transform transition-all duration-300 animate-in slide-in-from-top-2 fade-in">
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-80 sm:absolute sm:top-12 sm:right-0 sm:left-auto sm:translate-x-0 sm:w-80 z-50 transform transition-all duration-300 animate-in slide-in-from-top-2 fade-in">
             <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden">
               {/* Modern Header */}
               <div className="bg-blue-600 p-4 text-white relative overflow-hidden">

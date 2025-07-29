@@ -105,7 +105,7 @@ const NotificationBell = () => {
 
       {/* Modern notification panel */}
       {showNotifications && (
-        <div className="fixed top-20 left-4 right-4 sm:absolute sm:top-16 sm:right-4 sm:left-auto sm:w-80 z-50">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-80 sm:absolute sm:top-16 sm:right-4 sm:left-auto sm:translate-x-0 sm:w-80 z-50">
           <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden max-h-[70vh] sm:max-h-none">
             <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-purple-50">
               <div className="flex items-center justify-between">
