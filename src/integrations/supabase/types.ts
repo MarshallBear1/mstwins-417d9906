@@ -637,6 +637,27 @@ export type Database = {
         }
         Relationships: []
       }
+      security_config: {
+        Row: {
+          description: string | null
+          last_updated: string | null
+          setting_key: string
+          setting_value: Json
+        }
+        Insert: {
+          description?: string | null
+          last_updated?: string | null
+          setting_key: string
+          setting_value: Json
+        }
+        Update: {
+          description?: string | null
+          last_updated?: string | null
+          setting_key?: string
+          setting_value?: Json
+        }
+        Relationships: []
+      }
       security_settings: {
         Row: {
           created_at: string
@@ -807,6 +828,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      get_security_setting: {
+        Args: { setting_key: string }
+        Returns: Json
+      }
       get_user_count: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -881,6 +906,10 @@ export type Database = {
           new_admin_notes?: string
         }
         Returns: boolean
+      }
+      update_security_config: {
+        Args: { setting_key: string; setting_value: Json; description?: string }
+        Returns: undefined
       }
       update_user_last_seen: {
         Args: { user_id_param: string }
