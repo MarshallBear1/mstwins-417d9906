@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut, Shield } from "lucide-react";
 import { EmailManagement } from "@/components/EmailManagement";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
+// Removed useAdminAuth import - using simple password auth now
 import { AdminLogin } from "@/components/AdminLogin";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
@@ -52,7 +52,8 @@ const typeColors = {
 };
 
 export default function AdminFeedback() {
-  const { isAdminAuthenticated, adminLoading, revokeAdminSession } = useAdminAuth();
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(true);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
@@ -60,15 +61,22 @@ export default function AdminFeedback() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
-    if (isAdminAuthenticated) {
+    // Check if user is authenticated with simple password
+    const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
+    setIsAdminAuthenticated(isAuth);
+    setAdminLoading(false);
+    
+    if (isAuth) {
       fetchFeedback();
-    } else if (!adminLoading) {
+    } else {
       setLoading(false);
     }
-  }, [isAdminAuthenticated, adminLoading]);
+  }, []);
 
-  const handleLogout = async () => {
-    await revokeAdminSession();
+  const handleLogout = () => {
+    sessionStorage.removeItem('admin_authenticated');
+    setIsAdminAuthenticated(false);
+    window.location.href = '/admin/feedback';
   };
 
   const fetchFeedback = async () => {
