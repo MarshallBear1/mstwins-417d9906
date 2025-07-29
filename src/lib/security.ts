@@ -255,6 +255,75 @@ export const clearFailedLogins = async (email: string): Promise<void> => {
   }
 };
 
+// Enhanced admin session validation
+export const validateAdminSession = async (): Promise<{ isValid: boolean; error?: string }> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
+    
+    const { data, error } = await supabase.rpc('validate_and_refresh_admin_session', {
+      session_token: sessionStorage.getItem('admin_session_token')
+    });
+    
+    if (error) {
+      console.error('Admin session validation error:', error);
+      return { isValid: false, error: error.message };
+    }
+    
+    return { isValid: (data as any)?.valid || false };
+  } catch (error) {
+    console.error('Admin session validation failed:', error);
+    return { isValid: false, error: 'Session validation failed' };
+  }
+};
+
+// CSRF Token helper (for additional protection)
+export const generateCSRFToken = (): string => {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+};
+
+// Store CSRF token
+export const setCSRFToken = (): string => {
+  const token = generateCSRFToken();
+  sessionStorage.setItem('csrf_token', token);
+  return token;
+};
+
+// Validate CSRF token
+export const validateCSRFToken = (token: string): boolean => {
+  const storedToken = sessionStorage.getItem('csrf_token');
+  return storedToken === token && token.length === 64;
+};
+
+// Secure admin action wrapper
+export const secureAdminAction = async <T>(
+  action: () => Promise<T>,
+  csrfToken?: string
+): Promise<{ success: boolean; data?: T; error?: string }> => {
+  try {
+    // Validate admin session
+    const sessionValidation = await validateAdminSession();
+    if (!sessionValidation.isValid) {
+      return { success: false, error: 'Invalid admin session' };
+    }
+
+    // Validate CSRF token if provided
+    if (csrfToken && !validateCSRFToken(csrfToken)) {
+      return { success: false, error: 'Invalid CSRF token' };
+    }
+
+    // Execute action
+    const data = await action();
+    return { success: true, data };
+  } catch (error: any) {
+    console.error('Secure admin action failed:', error);
+    return { success: false, error: sanitizeErrorMessage(error) };
+  }
+};
+
 // Security headers helper
 export const getSecurityHeaders = (): Record<string, string> => {
   return {
@@ -263,7 +332,8 @@ export const getSecurityHeaders = (): Record<string, string> => {
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.posthog.com;"
+    'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.posthog.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
   };
 };
 
@@ -284,6 +354,96 @@ export const getApiVersion = async (): Promise<string> => {
   } catch (error) {
     console.error('API version check failed:', error);
     return '1'; // Default version
+  }
+};
+
+// Enhanced input validation for admin operations
+export const validateAdminInput = (data: any, type: 'feedback' | 'moderation' | 'email'): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  switch (type) {
+    case 'feedback':
+      if (data.status && !['open', 'in_progress', 'resolved', 'closed'].includes(data.status)) {
+        errors.push('Invalid feedback status');
+      }
+      if (data.notes) {
+        const notesValidation = validateTextInput(data.notes, 'Admin notes', 2000, false);
+        if (!notesValidation.isValid) {
+          errors.push(notesValidation.error!);
+        }
+      }
+      break;
+      
+    case 'moderation':
+      if (data.status && !['pending', 'approved', 'rejected', 'under_review'].includes(data.status)) {
+        errors.push('Invalid moderation status');
+      }
+      if (data.decision_reason) {
+        const reasonValidation = validateTextInput(data.decision_reason, 'Decision reason', 500, false);
+        if (!reasonValidation.isValid) {
+          errors.push(reasonValidation.error!);
+        }
+      }
+      break;
+      
+    case 'email':
+      if (data.email_type && !['day2', 'day3', 'day4', 'likes_reset', 're_engagement'].includes(data.email_type)) {
+        errors.push('Invalid email type');
+      }
+      if (data.recipient_email) {
+        const emailValidation = validateEmail(data.recipient_email);
+        if (!emailValidation.isValid) {
+          errors.push(emailValidation.error!);
+        }
+      }
+      break;
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// Rate limiting for admin actions
+export const checkAdminRateLimit = (adminId: string, action: string): { allowed: boolean; remaining: number } => {
+  const key = `adminRateLimit_${action}_${adminId}`;
+  const now = Date.now();
+  const timeWindow = 60000; // 1 minute
+  const maxActions = action === 'bulk_email' ? 5 : 50; // Different limits for different actions
+  
+  const stored = localStorage.getItem(key);
+  let data = stored ? JSON.parse(stored) : { count: 0, resetTime: now + timeWindow };
+  
+  if (now >= data.resetTime) {
+    data = { count: 0, resetTime: now + timeWindow };
+  }
+  
+  const allowed = data.count < maxActions;
+  if (allowed) {
+    data.count++;
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+  
+  return {
+    allowed,
+    remaining: Math.max(0, maxActions - data.count)
+  };
+};
+
+// Audit log helper for admin actions
+export const logAdminAction = async (action: string, details: any = {}): Promise<void> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client').catch(() => {
+      throw new Error('Failed to import Supabase client');
+    });
+    
+    await supabase.rpc('log_admin_action', {
+      action_type: action,
+      action_details: details
+    });
+  } catch (error) {
+    console.error('Failed to log admin action:', error);
   }
 };
 

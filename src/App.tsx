@@ -14,7 +14,8 @@ import MobileStatusBar from "./components/MobileStatusBar";
 import MobileOptimizationsProvider from "./components/MobileOptimizationsProvider";
 import IOSEnhancements from "./components/IOSEnhancements";
 import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
-import { SecurityEnhancements } from "./components/SecurityEnhancements";
+import { SecurityContextProvider } from "./components/SecurityContextProvider";
+import { AdminAuthProvider } from "./hooks/useAdminAuth";
 import { NativeCapabilities } from "./hooks/useNativeCapabilities";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import IOSNotificationManager from "./components/IOSNotificationManager";
@@ -120,17 +121,18 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <ErrorBoundary>
-          <SecurityEnhancements />
-          <NativeCapabilities />
-          <IOSNotificationManager />
-          <MobileStatusBar theme="light" color="#2563eb" />
-          <MobileOptimizationsProvider disableContextMenu={true} />
-          <IOSEnhancements />
-          <AccessibilityEnhancements />
-          <Toaster />
-          <Sonner />
+      <AdminAuthProvider>
+        <SecurityContextProvider>
+          <TooltipProvider>
+            <ErrorBoundary>
+              <NativeCapabilities />
+              <IOSNotificationManager />
+              <MobileStatusBar theme="light" color="#2563eb" />
+              <MobileOptimizationsProvider disableContextMenu={true} />
+              <IOSEnhancements />
+              <AccessibilityEnhancements />
+              <Toaster />
+              <Sonner />
           <BrowserRouter>
             <PostHogInitializer />
             <RouteTracker />
@@ -182,11 +184,13 @@ const App = () => (
               </Suspense>
             } />
           </Routes>
-          <PersistentBottomNavigation />
-          <ReferralPopup />
-        </BrowserRouter>
-        </ErrorBoundary>
-      </TooltipProvider>
+              <PersistentBottomNavigation />
+              <ReferralPopup />
+            </BrowserRouter>
+            </ErrorBoundary>
+          </TooltipProvider>
+        </SecurityContextProvider>
+      </AdminAuthProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

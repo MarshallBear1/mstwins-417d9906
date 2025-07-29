@@ -10,10 +10,12 @@ import { toast } from "sonner";
 import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut, Shield } from "lucide-react";
 import { EmailManagement } from "@/components/EmailManagement";
 // Removed useAdminAuth import - using simple password auth now
-import { AdminLogin } from "@/components/AdminLogin";
+import { SecureAdminLogin } from "@/components/SecureAdminLogin";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { sanitizeInput, validateTextInput } from "@/lib/security";
 interface Feedback {
   id: string;
   user_id: string | null;
@@ -47,27 +49,21 @@ const typeColors = {
   support: "bg-success/10 text-success"
 };
 export default function AdminFeedback() {
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [adminLoading, setAdminLoading] = useState(true);
+  const { isAdminAuthenticated, adminLoading, revokeAdminSession } = useAdminAuth();
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   useEffect(() => {
-    // Check if user is authenticated with simple password
-    const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
-    setIsAdminAuthenticated(isAuth);
-    setAdminLoading(false);
-    if (isAuth) {
+    if (isAdminAuthenticated) {
       fetchFeedback();
     } else {
       setLoading(false);
     }
-  }, []);
-  const handleLogout = () => {
-    sessionStorage.removeItem('admin_authenticated');
-    setIsAdminAuthenticated(false);
+  }, [isAdminAuthenticated]);
+  const handleLogout = async () => {
+    await revokeAdminSession();
     window.location.href = '/admin/feedback';
   };
   const fetchFeedback = async () => {
@@ -87,12 +83,29 @@ export default function AdminFeedback() {
   };
   const updateFeedbackStatus = async (id: string, status: string, notes?: string) => {
     try {
+      // Validate and sanitize inputs
+      const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
+      if (!validStatuses.includes(status)) {
+        toast.error('Invalid status value');
+        return;
+      }
+
+      let sanitizedNotes = notes;
+      if (notes) {
+        const validation = validateTextInput(notes, 'Admin notes', 2000, false);
+        if (!validation.isValid) {
+          toast.error(validation.error || 'Invalid admin notes');
+          return;
+        }
+        sanitizedNotes = validation.sanitized;
+      }
+
       const {
         error
       } = await supabase.rpc('update_feedback_admin', {
         feedback_id: id,
         new_status: status,
-        new_admin_notes: notes
+        new_admin_notes: sanitizedNotes
       });
       if (error) throw error;
       setFeedback(prev => prev.map(item => item.id === id ? {
@@ -171,7 +184,7 @@ export default function AdminFeedback() {
 
   // Show admin login if not authenticated
   if (!isAdminAuthenticated) {
-    return <AdminLogin />;
+    return <SecureAdminLogin />;
   }
   return <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-card/50 backdrop-blur-sm">
