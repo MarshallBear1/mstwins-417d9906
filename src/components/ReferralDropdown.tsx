@@ -87,7 +87,7 @@ const ReferralDropdown = () => {
           />
           
           {/* Dropdown Card */}
-          <Card className="fixed top-16 left-1/2 -translate-x-1/2 sm:absolute sm:top-12 sm:left-auto sm:right-0 sm:translate-x-0 w-80 max-w-[calc(100vw-2rem)] z-50 shadow-xl border-0 bg-background/95 backdrop-blur-md animate-scale-in">
+          <Card className="absolute left-1/2 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 top-12 w-80 max-w-[calc(100vw-2rem)] z-50 shadow-xl border-0 bg-background/95 backdrop-blur-md animate-scale-in">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div className="flex items-center gap-2">
                 <div className="relative">
@@ -106,7 +106,7 @@ const ReferralDropdown = () => {
               </Button>
             </CardHeader>
             
-            <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+            <CardContent className="space-y-4">
               {/* Native Share Button for Mobile */}
               {isSupported && (
                 <div className="space-y-2">
@@ -130,7 +130,7 @@ const ReferralDropdown = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Your Referral Link</label>
                 <div className="flex gap-2">
-                  <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono text-muted-foreground truncate text-center">
+                  <div className="flex-1 p-2 bg-muted rounded-md text-sm font-mono text-muted-foreground truncate">
                     {referralLink}
                   </div>
                   <Button
