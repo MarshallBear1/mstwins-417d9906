@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import ProfileImageViewer from "./ProfileImageViewer";
-import { MobileProfileCard } from "@/components/ui/mobile-profile-card";
+import MobileProfileCard from "@/components/ui/mobile-profile-card";
 
 interface Profile {
   id: string;

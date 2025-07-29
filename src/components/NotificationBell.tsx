@@ -182,21 +182,6 @@ const NotificationBell = () => {
                   </div>
                 )}
               </ScrollArea>
-              
-              {/* Enable browser notifications for web only */}
-              {!isNativePlatform() && !browserNotificationsEnabled && (
-                <div className="p-4 border-t bg-gray-50">
-                  <Button 
-                    onClick={handleEnableBrowserNotifications}
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium rounded-lg"
-                  >
-                    <Settings className="w-3 h-3 mr-2" />
-                    Enable Browser Notifications
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>

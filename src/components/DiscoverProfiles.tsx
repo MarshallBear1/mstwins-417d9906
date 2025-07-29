@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import LikeLimitWarning from "@/components/LikeLimitWarning";
 import { useNativeCapabilities } from "@/hooks/useNativeCapabilities";
-import { MobileProfileCard } from "@/components/ui/mobile-profile-card";
+import MobileProfileCard from "@/components/ui/mobile-profile-card";
 
 
 interface Profile {
@@ -547,10 +547,8 @@ const DiscoverProfiles = () => {
           onImageClick={openImageViewer}
           isUserOnline={isUserOnline}
           getLastSeenText={getLastSeenText}
-          showActions={true}
           onLike={handleLike}
           onPass={handlePass}
-          actionLoading={actionLoading}
           className="animate-scale-in"
         />
       </div>
