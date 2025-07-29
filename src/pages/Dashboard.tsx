@@ -55,13 +55,14 @@ const Dashboard = () => {
   const { isMobile, safeAreaInsets } = useMobileOptimizations();
   const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
   const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
+  const { requestNotificationPermission } = useRealtimeNotifications();
   
-  // Subscribe to real-time notifications
-  useRealtimeNotifications();
-
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [likes, setLikes] = useState<Profile[]>([]);
+  const [likesLoading, setLikesLoading] = useState(false);
+  const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
   const [searchParams] = useSearchParams();
