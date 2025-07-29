@@ -169,7 +169,7 @@ const handler = async (req: Request): Promise<Response> => {
         subject: emailSubject,
         content: emailContent,
         list_id: listData.id,
-        created_by: '00000000-0000-0000-0000-000000000000' // Edge function placeholder
+        created_by: null // Edge function - no specific user
       })
       .select()
       .single();
