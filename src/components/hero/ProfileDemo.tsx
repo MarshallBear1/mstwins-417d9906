@@ -54,18 +54,26 @@ const ProfileDemo = () => {
   const profile = demoProfiles[currentProfile];
 
   return (
-    <div className="relative animate-scale-in">
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-w-md mx-auto">
-        {/* Avatar Section with Gradient Background */}
-        <div className="relative h-48 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+    <div className="relative animate-scale-in lg:scale-110">
+      {/* Modern Profile Card */}
+      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-sm mx-auto border border-gray-100 transform hover:scale-105 transition-all duration-500">
+        {/* Header with modern gradient */}
+        <div className="relative h-56 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 flex items-center justify-center overflow-hidden">
+          {/* Floating background elements */}
+          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+          <div className="absolute bottom-6 left-6 w-12 h-12 bg-white/10 rounded-full blur-lg" />
+          
+          {/* Profile Image */}
+          <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-2xl z-10">
             <img 
               src={profile.avatar} 
               alt={profile.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-opacity duration-500"
             />
           </div>
-          {/* Decorative hearts */}
+          
+          {/* Decorative elements */}
           <div className="absolute top-6 right-6 text-white/30">
             <Heart className="w-6 h-6" fill="currentColor" />
           </div>
@@ -74,88 +82,93 @@ const ProfileDemo = () => {
           </div>
         </div>
 
-        {/* Profile Content */}
-        <div className="p-6 space-y-4">
+        {/* Modern Profile Content */}
+        <div className="p-6 space-y-5">
           {/* Name and Age */}
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-bold text-gray-900">{profile.name}</h3>
-            <span className="text-xl font-semibold text-gray-600">{profile.age}</span>
+            <span className="text-lg font-semibold text-gray-600">{profile.age} years</span>
           </div>
 
           {/* Location and Diagnosis */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-gray-600">
-              <MapPin className="w-4 h-4" />
-              <span className="text-sm">{profile.location}</span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-gray-600">
+              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-blue-600" />
+              </div>
+              <span className="font-medium">{profile.location}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Calendar className="w-4 h-4" />
-              <span className="text-sm">Diagnosed in {profile.diagnosedYear}</span>
+            <div className="flex items-center gap-3 text-gray-600">
+              <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-purple-600" />
+              </div>
+              <span className="font-medium">Diagnosed in {profile.diagnosedYear}</span>
             </div>
           </div>
 
-          {/* MS Type */}
+          {/* MS Type Badge */}
           <div>
             <h4 className="text-sm font-semibold text-gray-900 mb-2">MS Type</h4>
-            <span className="text-gray-700">{profile.msType}</span>
+            <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-semibold px-3 py-1 rounded-full">
+              {profile.msType}
+            </Badge>
           </div>
 
           {/* Interests */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">Interests</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">Interests</h4>
             <div className="flex flex-wrap gap-2">
-              {profile.interests.map((interest, index) => (
+              {profile.interests.slice(0, 3).map((interest, index) => (
                 <Badge 
-                  key={index}
-                  className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-full text-xs font-medium"
+                  key={index} 
+                  variant="outline" 
+                  className="bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors font-medium px-3 py-1 rounded-full"
                 >
                   {interest}
                 </Badge>
               ))}
-            </div>
-          </div>
-
-          {/* About */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">About</h4>
-            <div className="space-y-2">
-              <p className={`text-sm text-gray-600 leading-relaxed transition-all duration-300 ${
-                showFullAbout ? '' : 'line-clamp-2'
-              }`}>
-                {profile.about}
-              </p>
-              {profile.about.length > 80 && (
-                <button
-                  onClick={() => setShowFullAbout(!showFullAbout)}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              {profile.interests.length > 3 && (
+                <Badge 
+                  variant="outline" 
+                  className="bg-gray-50 border-gray-200 text-gray-500 font-medium px-3 py-1 rounded-full"
                 >
-                  {showFullAbout ? (
-                    <>
-                      See Less
-                      <ChevronUp className="w-3 h-3" />
-                    </>
-                  ) : (
-                    <>
-                      See More
-                      <ChevronDown className="w-3 h-3" />
-                    </>
-                  )}
-                </button>
+                  +{profile.interests.length - 3}
+                </Badge>
               )}
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          {/* About Section */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900 mb-2">About</h4>
+            <p className={`text-sm text-gray-600 leading-relaxed transition-all duration-300 ${
+              showFullAbout ? '' : 'line-clamp-3'
+            }`}>
+              {profile.about}
+            </p>
+            <button
+              onClick={() => setShowFullAbout(!showFullAbout)}
+              className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-2 flex items-center gap-1 transition-colors"
+            >
+              {showFullAbout ? (
+                <>Show Less <ChevronUp className="w-3 h-3" /></>
+              ) : (
+                <>Show More <ChevronDown className="w-3 h-3" /></>
+              )}
+            </button>
+          </div>
+
+          {/* Modern Action Buttons */}
+          <div className="flex gap-3 pt-2">
             <Button 
               variant="outline" 
-              className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="flex-1 h-12 border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 font-semibold rounded-xl transition-all duration-200"
             >
               <X className="w-4 h-4 mr-2" />
               Pass
             </Button>
             <Button 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex-1 h-12 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <Heart className="w-4 h-4 mr-2" fill="currentColor" />
               Connect
@@ -164,19 +177,26 @@ const ProfileDemo = () => {
         </div>
       </div>
 
-      {/* Profile Indicator Dots */}
+      {/* Profile Indicators */}
       <div className="flex justify-center gap-2 mt-6">
         {demoProfiles.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentProfile(index)}
-            className={`w-2 h-2 rounded-full transition-all ${
+            className={`w-3 h-3 rounded-full transition-all duration-300 ${
               index === currentProfile 
-                ? 'bg-blue-600 w-6' 
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg' 
                 : 'bg-gray-300 hover:bg-gray-400'
             }`}
           />
         ))}
+      </div>
+
+      {/* Demo Label */}
+      <div className="text-center mt-4">
+        <span className="text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full font-medium">
+          Live Preview • Join to See Real Profiles
+        </span>
       </div>
     </div>
   );

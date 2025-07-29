@@ -480,39 +480,27 @@ const Dashboard = () => {
       {/* Robot Announcement Popup */}
       {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />}
       
-      {/* Header with notifications and referral */}
-      <div className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-40" style={{
-        paddingTop: isMobile ? `max(0.5rem, ${safeAreaInsets.top}px)` : undefined
+      {/* Modern header with clean design */}
+      <div className="bg-white/90 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40 shadow-[0_1px_10px_rgba(0,0,0,0.05)]" style={{
+        paddingTop: isMobile ? `max(0.75rem, ${safeAreaInsets.top}px)` : undefined
       }}>
-        <div className="flex items-center justify-between mobile-safe-x py-3">
-          {/* Left side - Logo */}
+        <div className="flex items-center justify-between mobile-safe-x py-4">
+          {/* Left side - Modern Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-white border border-gray-200 shadow-sm">
-              <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="MSTwins mascot" className="w-full h-full object-contain" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
+              <img 
+                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                alt="MSTwins" 
+                className="w-full h-full object-contain p-1" 
+              />
             </div>
-            <span className="text-lg font-bold">
-              <span className="text-black">MS</span><span className="text-blue-600">Twins</span>
+            <span className="text-xl font-bold tracking-tight">
+              <span className="text-gray-900">MS</span><span className="text-blue-600">Twins</span>
             </span>
           </div>
           
-          {/* Right side - Action buttons */}
-          <div className="flex items-center space-x-1 sm:space-x-2">
-            {/* Mobile Daily Likes Counter */}
-            {isLimitEnforced() && !hasUnlimitedLikes && (
-              <div className="text-xs text-muted-foreground px-2">
-                Likes: {remainingLikes}
-              </div>
-            )}
-            {/* Back to Discover button */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setActiveTab("discover")} 
-              className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex-shrink-0" 
-              title="Back to Discover"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
+          {/* Right side - Clean action buttons */}
+          <div className="flex items-center space-x-2">
             <ReferralDropdown />
             <FeedbackDialog />
             <NotificationBell />
@@ -520,8 +508,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main content with smooth transitions */}
-      <div className="flex-1 mobile-scroll" style={{
+      {/* Main content with modern spacing */}
+      <div className="flex-1 mobile-scroll bg-gray-50" style={{
         paddingBottom: isMobile ? `max(6rem, ${safeAreaInsets.bottom + 80}px)` : '5rem'
       }}>
         <div className="transition-all duration-300 ease-in-out">
@@ -529,19 +517,35 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Enhanced bottom navigation - Always visible for easy navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50 transition-transform duration-300" style={{
-        paddingBottom: isMobile ? `max(0.5rem, ${safeAreaInsets.bottom}px)` : '0.5rem'
+      {/* Enhanced bottom navigation - Instagram-style with clean design */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 z-50 shadow-[0_-2px_20px_rgba(0,0,0,0.08)]" style={{
+        paddingBottom: isMobile ? `max(0.75rem, ${safeAreaInsets.bottom}px)` : '0.75rem'
       }}>
-        <div className="flex items-center justify-around py-2 mobile-safe-x">
+        <div className="flex items-center justify-around py-3 mobile-safe-x max-w-md mx-auto">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
-            return <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-all duration-200 hover-scale mobile-touch-target mobile-focus ${isActive ? "text-primary bg-primary/10 scale-105" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}>
-                <Icon className="w-5 h-5" />
-                <span className="text-xs font-medium">{tab.label}</span>
-                {isActive && <div className="w-1 h-1 bg-primary rounded-full animate-scale-in" />}
-              </button>;
+            return <button 
+              key={tab.id} 
+              onClick={() => setActiveTab(tab.id)} 
+              className={`flex flex-col items-center space-y-1 py-2 px-4 transition-all duration-300 ease-out mobile-touch-target ${
+                isActive 
+                  ? "text-black transform scale-105" 
+                  : "text-gray-400 hover:text-gray-600 active:scale-95"
+              }`}
+            >
+              <div className={`transition-all duration-300 ${isActive ? 'transform scale-110' : ''}`}>
+                <Icon className={`${isActive ? 'w-6 h-6' : 'w-5 h-5'} stroke-[1.5]`} />
+              </div>
+              <span className={`text-xs font-medium transition-all duration-300 ${
+                isActive ? 'text-black font-semibold' : 'text-gray-400'
+              }`}>
+                {tab.label}
+              </span>
+              {isActive && (
+                <div className="w-1 h-1 bg-black rounded-full animate-pulse" />
+              )}
+            </button>;
           })}
         </div>
       </div>

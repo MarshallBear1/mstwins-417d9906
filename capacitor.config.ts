@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.mstwin.app',
-  appName: 'mstwins',
+  appName: 'MStwins',
   webDir: 'dist',
   plugins: {
     SplashScreen: {
@@ -44,7 +44,6 @@ const config: CapacitorConfig = {
     scheme: 'mstwins',
     contentInset: 'automatic',
     backgroundColor: '#ffffff',
-    automaticallySyncProvisioningProfile: false,
     limitsNavigationsToAppBoundDomains: true,
     scrollEnabled: true,
     allowsLinkPreview: false,
@@ -55,7 +54,6 @@ const config: CapacitorConfig = {
       keystorePath: undefined,
       keystoreAlias: undefined,
       keystorePassword: undefined,
-      keystoreKeyPassword: undefined,
       releaseType: 'AAB',
       signingType: 'apksigner'
     },

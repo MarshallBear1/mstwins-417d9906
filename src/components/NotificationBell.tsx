@@ -8,6 +8,7 @@ import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
+import { cn } from "@/lib/utils";
 
 const NotificationBell = () => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -82,91 +83,125 @@ const NotificationBell = () => {
       markAsRead(notification.id);
     }
   };
-  return <div className="relative">
+  return (
+    <>
+      {/* Modern notification bell button */}
       <Button 
         variant="ghost" 
         size="sm" 
-        onClick={() => setShowNotifications(!showNotifications)} 
-        className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex-shrink-0 relative"
+        onClick={() => setShowNotifications(!showNotifications)}
+        className="relative text-gray-600 hover:text-gray-900 hover:bg-gray-100 min-h-[44px] min-w-[44px] flex-shrink-0 rounded-full transition-all duration-200" 
         title="Notifications"
       >
-        <Bell className="w-4 h-4" />
-        {unreadCount > 0 && <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+        <Bell className="w-5 h-5" />
+        {unreadCount > 0 && (
+          <Badge 
+            className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg animate-pulse" 
+          >
             {unreadCount > 99 ? '99+' : unreadCount}
-          </Badge>}
+          </Badge>
+        )}
       </Button>
 
-      {showNotifications && <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowNotifications(false)} />
-          
-          {/* Notifications Panel - Fixed mobile positioning */}
-          <Card className="fixed top-16 w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] z-50 shadow-lg border bg-background backdrop-blur-md left-1/2 -translate-x-1/2 sm:absolute sm:top-12 sm:left-auto sm:right-0 sm:translate-x-0 sm:w-96 flex flex-col overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between pb-3 flex-shrink-0">
-              <CardTitle className="text-sm font-medium">Notifications</CardTitle>
-              <div className="flex items-center gap-2">
-                {!browserNotificationsEnabled && !isNativePlatform() && <Button variant="ghost" size="sm" onClick={handleEnableBrowserNotifications} className="text-xs h-6 px-2" title="Enable browser notifications">
-                    <Settings className="w-3 h-3 mr-1" />
-                    Enable
-                  </Button>}
-                {unreadCount > 0 && <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs h-6 px-2">
-                    Mark all read
-                  </Button>}
-                <Button variant="ghost" size="sm" onClick={() => setShowNotifications(false)} className="h-6 w-6 p-0">
-                  <X className="w-4 h-4" />
-                </Button>
+      {/* Modern notification panel */}
+      {showNotifications && (
+        <div className="absolute top-16 right-4 w-80 z-50">
+          <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden">
+            <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-purple-50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-bold text-gray-900">Notifications</CardTitle>
+                <div className="flex items-center gap-2">
+                  {notifications.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={markAllAsRead}
+                      className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 px-2 rounded-lg font-medium"
+                    >
+                      Mark all read
+                    </Button>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowNotifications(false)}
+                    className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             
-            <CardContent className="p-0 flex-1 overflow-hidden">
+            <CardContent className="p-0">
               <ScrollArea className="h-full max-h-[calc(70vh-80px)]">
-                <div className="min-h-0">
-                  {notifications.length === 0 ? (
-                    <div className="p-6 text-center text-muted-foreground">
-                      <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No notifications yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      {notifications.map(notification => (
-                        <div 
-                          key={notification.id} 
-                          onClick={() => handleNotificationClick(notification)} 
-                          className={`p-3 hover:bg-muted/50 cursor-pointer transition-colors border-b border-border/50 ${!notification.is_read ? 'bg-primary/5' : ''}`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="mt-0.5">
-                              {getNotificationIcon(notification.type)}
-                            </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="font-medium text-sm truncate">
-                                  {notification.title}
-                                </p>
-                                {!notification.is_read && <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />}
-                              </div>
-                              
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {notification.message}
-                              </p>
-                              
-                              <p className="text-xs text-muted-foreground mt-2">
-                                {formatDistanceToNow(new Date(notification.created_at), {
-                                  addSuffix: true
-                                })}
-                              </p>
-                            </div>
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-sm text-gray-500 font-medium">No notifications yet</p>
+                    <p className="text-xs text-gray-400 mt-1">We'll notify you when something happens!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-0">
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                                                 className={cn(
+                           "p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer",
+                           !notification.is_read && "bg-blue-50/50"
+                         )}
+                         onClick={() => markAsRead(notification.id)}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+                            notification.type === 'like' && "bg-pink-100 text-pink-600",
+                            notification.type === 'match' && "bg-green-100 text-green-600",
+                            notification.type === 'message' && "bg-blue-100 text-blue-600"
+                          )}>
+                            {notification.type === 'like' && <Heart className="w-4 h-4" />}
+                            {notification.type === 'match' && <Users className="w-4 h-4" />}
+                            {notification.type === 'message' && <MessageCircle className="w-4 h-4" />}
                           </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                              {notification.title}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                            </p>
+                          </div>
+                                                     
+                           {!notification.is_read && (
+                             <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                           )}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </ScrollArea>
+              
+              {/* Enable browser notifications for web only */}
+              {!isNativePlatform() && !browserNotificationsEnabled && (
+                <div className="p-4 border-t bg-gray-50">
+                  <Button 
+                    onClick={handleEnableBrowserNotifications}
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium rounded-lg"
+                  >
+                    <Settings className="w-3 h-3 mr-2" />
+                    Enable Browser Notifications
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </>}
-    </div>;
+        </div>
+      )}
+    </>
+  );
 };
 export default NotificationBell;

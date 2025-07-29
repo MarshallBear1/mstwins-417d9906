@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MStwins</string>
+    <string name="title_activity_main">MStwins - MS Support Community</string>
+    <string name="package_name">com.mstwin.app</string>
+    <string name="custom_url_scheme">com.mstwin.app</string>
+</resources>

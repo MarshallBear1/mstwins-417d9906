@@ -72,9 +72,9 @@ export const MobileProfileCard = ({
   const hasExtendedContent = profile.additional_photos?.length || profile.selected_prompts?.length || profile.medications?.length || profile.symptoms?.length;
   const allImages = [...(profile.avatar_url ? [profile.avatar_url] : []), ...(profile.additional_photos || [])];
   return <div className={cn("flip-card-container profile-card-mobile mx-auto", className)} style={{
-    minHeight: '320px',
+    minHeight: '520px',
     width: '100%',
-    maxWidth: '300px',
+    maxWidth: '340px',
     display: 'block',
     visibility: 'visible',
     position: 'relative'
@@ -85,112 +85,157 @@ export const MobileProfileCard = ({
       position: 'relative'
     }}>
         {/* Front Side */}
-        <Card className="flip-card-face shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white border border-gray-200" style={{
+        <Card className="flip-card-face shadow-2xl hover:shadow-3xl transition-all duration-500 bg-white border-0 rounded-2xl overflow-hidden" style={{
         width: '100%',
         height: '100%',
         position: 'relative',
         display: 'block'
       }}>
-          {/* Header */}
-          <div className="relative h-28 bg-gradient-to-br from-primary/80 via-primary/60 to-primary/40 flex items-center justify-center">
-            <button onClick={() => onImageClick?.(0)} className="relative w-20 h-20 rounded-full overflow-hidden border-3 border-white shadow-lg hover:scale-105 transition-transform duration-200 mobile-touch-target">
+          {/* Modern Header with gradient */}
+          <div className="relative h-64 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 flex items-center justify-center overflow-hidden">
+            {/* Profile Image */}
+            <button onClick={() => onImageClick?.(0)} className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-2xl hover:scale-110 transition-all duration-300 mobile-touch-target">
               {profile.avatar_url ? <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover transition-opacity duration-200" loading="eager" onLoad={e => {
               e.currentTarget.style.opacity = '1';
             }} onError={e => {
               e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
             }} style={{
-              opacity: 0
-            }} /> : <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <User className="w-8 h-8 text-muted-foreground" />
-                </div>}
-              <div className={cn("absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white shadow-md", isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-muted-foreground')} />
+              opacity: '0'
+            }} /> : <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                <User className="w-10 h-10 text-white" />
+              </div>}
             </button>
-
-            {hasExtendedContent && <Button variant="ghost" size="sm" onClick={() => setIsFlipped(!isFlipped)} className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg mobile-touch-target animate-pulse">
-                <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
-              </Button>}
-
-            {profile.additional_photos && profile.additional_photos.length > 0}
+            
+            {/* Online Status */}
+            {isUserOnline(profile.user_id) && (
+              <div className="absolute top-3 right-3 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-lg animate-pulse" />
+            )}
+            
+            {/* Flip Button */}
+            {hasExtendedContent && (
+              <button 
+                onClick={() => setIsFlipped(!isFlipped)}
+                className="absolute top-3 left-3 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                title="More details"
+              >
+                <ArrowLeftRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          {/* Content */}
-          <CardContent className="p-2 profile-content-scroll">
-            {/* Header Info */}
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-bold flex-1 mr-2 leading-tight">
-                {profile.first_name} {profile.last_name}
-              </h3>
-              <div className="flex items-center gap-2 shrink-0">
-                {profile.date_of_birth && <span className="text-base font-semibold text-muted-foreground">
-                    {calculateAge(profile.date_of_birth)}
-                  </span>}
-                <div className="flex items-center gap-1">
-                  <div className={cn("w-2 h-2 rounded-full", isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-muted-foreground')} />
-                  <span className="text-xs text-muted-foreground">
-                    {isUserOnline(profile.user_id) ? 'Online' : getLastSeenText(profile.last_seen)}
+          {/* Modern Content Section */}
+          <CardContent className="p-5 profile-content-scroll">
+            {/* Header Info with modern typography */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-gray-900 leading-tight mb-1">
+                  {profile.first_name} {profile.last_name}
+                </h3>
+                {profile.date_of_birth && (
+                  <span className="text-lg text-gray-600 font-medium">
+                    {calculateAge(profile.date_of_birth)} years old
                   </span>
-                </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className={cn("w-2.5 h-2.5 rounded-full", isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-gray-400')} />
+                <span className="text-xs text-gray-500 font-medium">
+                  {isUserOnline(profile.user_id) ? 'Online' : getLastSeenText(profile.last_seen)}
+                </span>
               </div>
             </div>
 
-            {/* Location */}
-            <div className="flex items-center gap-2 text-muted-foreground mb-3">
+            {/* Location with modern icon */}
+            <div className="flex items-center gap-2 text-gray-600 mb-4">
               <MapPin className="w-4 h-4 shrink-0" />
-              <span className="text-sm truncate">{profile.location}</span>
+              <span className="text-sm font-medium">{profile.location}</span>
             </div>
 
-            <div className="mobile-section-spacing">
-              {/* MS Type */}
-              {profile.ms_subtype && <div>
-                  <h4 className="text-sm font-semibold mb-1">MS Type</h4>
-                  <Badge variant="secondary" className="text-xs">
+            <div className="space-y-4">
+              {/* MS Type with modern badge */}
+              {profile.ms_subtype && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">MS Type</h4>
+                  <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200 font-medium">
                     {profile.ms_subtype.toUpperCase()}
                   </Badge>
-                </div>}
+                </div>
+              )}
 
               {/* Diagnosis Year */}
-              {profile.diagnosis_year && <div className="flex items-center gap-2 text-muted-foreground">
+              {profile.diagnosis_year && (
+                <div className="flex items-center gap-2 text-gray-600">
                   <Calendar className="w-4 h-4 shrink-0" />
-                  <span className="text-sm">Diagnosed in {profile.diagnosis_year}</span>
-                </div>}
+                  <span className="text-sm font-medium">Diagnosed in {profile.diagnosis_year}</span>
+                </div>
+              )}
 
-              {/* Hobbies/Interests */}
-              {profile.hobbies && profile.hobbies.length > 0 && <div>
-                  <h4 className="text-sm font-semibold mb-2">Interests</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {profile.hobbies.slice(0, 4).map((hobby, index) => <Badge key={index} variant="outline" className="text-xs">
+              {/* Hobbies/Interests with modern badges */}
+              {profile.hobbies && profile.hobbies.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Interests</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.hobbies.slice(0, 4).map((hobby, index) => (
+                      <Badge key={index} variant="outline" className="text-xs bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors">
                         {hobby}
-                      </Badge>)}
-                    {profile.hobbies.length > 4 && <Badge variant="outline" className="text-xs text-muted-foreground">
+                      </Badge>
+                    ))}
+                    {profile.hobbies.length > 4 && (
+                      <Badge variant="outline" className="text-xs text-gray-500 bg-gray-50 border-gray-200">
                         +{profile.hobbies.length - 4} more
-                      </Badge>}
+                      </Badge>
+                    )}
                   </div>
-                </div>}
+                </div>
+              )}
 
-              {/* About Me */}
-              {profile.about_me && <div>
-                  <h4 className="text-sm font-semibold mb-2">About</h4>
-                  <div className="text-sm text-muted-foreground leading-relaxed">
+              {/* About Me with better typography */}
+              {profile.about_me && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">About</h4>
+                  <div className="text-sm text-gray-600 leading-relaxed">
                     <p className={cn("transition-all duration-300", !showAllAbout && profile.about_me.length > 150 && "line-clamp-3")}>
                       {profile.about_me}
                     </p>
-                    {profile.about_me.length > 150 && <Button variant="ghost" size="sm" onClick={() => setShowAllAbout(!showAllAbout)} className="p-0 h-auto text-xs text-primary hover:text-primary/80 mt-1 transition-colors">
-                        {showAllAbout ? <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></> : <>Show More <ChevronDown className="w-3 h-3 ml-1" /></>}
-                      </Button>}
+                    {profile.about_me.length > 150 && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setShowAllAbout(!showAllAbout)} 
+                        className="p-0 h-auto text-xs text-blue-600 hover:text-blue-700 mt-2 transition-colors font-medium"
+                      >
+                        {showAllAbout ? (
+                          <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></>
+                        ) : (
+                          <>Show More <ChevronDown className="w-3 h-3 ml-1" /></>
+                        )}
+                      </Button>
+                    )}
                   </div>
-                </div>}
+                </div>
+              )}
             </div>
 
-
-            {/* Action buttons */}
-            {showActions && <div className="flex gap-2 pt-3 mt-3 border-t">
-                <Button variant="outline" onClick={onPass} disabled={actionLoading} className="flex-1 mobile-touch-target">
+            {/* Modern Action buttons */}
+            {showActions && (
+              <div className="flex gap-3 pt-4 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={onPass} 
+                  disabled={actionLoading} 
+                  className="flex-1 h-12 border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 font-semibold rounded-xl transition-all duration-200 mobile-touch-target"
+                >
                   Pass
                 </Button>
-                <Button onClick={onLike} disabled={actionLoading} className="flex-1 mobile-touch-target bg-gradient-primary">
-                  {actionLoading ? 'Liking...' : 'Like'}
+                <Button 
+                  onClick={onLike} 
+                  disabled={actionLoading} 
+                  className="flex-1 h-12 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 mobile-touch-target"
+                >
+                  Like
                 </Button>
-              </div>}
+              </div>
+            )}
           </CardContent>
         </Card>
 
