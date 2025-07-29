@@ -194,13 +194,13 @@ export default function AdminFeedback() {
             <div className="flex items-center space-x-4">
               <div className="flex space-x-2">
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/">
+                  <Link to="/dashboard">
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to App
+                    Back to Dashboard
                   </Link>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/admin/moderation">
+                  <Link to="/dashboard/admin/moderation">
                     <Shield className="h-4 w-4 mr-2" />
                     Moderation
                   </Link>

@@ -90,7 +90,7 @@ export default function AdminModeration() {
 
   const handleLogout = async () => {
     await revokeAdminSession();
-    window.location.href = '/admin/moderation';
+    window.location.href = '/dashboard/admin/moderation';
   };
 
   const fetchModerationData = async () => {
@@ -208,7 +208,7 @@ export default function AdminModeration() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button variant="outline" size="sm" asChild>
-                <Link to="/admin/feedback">
+                <Link to="/dashboard/admin/feedback">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Feedback
                 </Link>

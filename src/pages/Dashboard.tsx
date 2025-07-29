@@ -22,6 +22,8 @@ import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { Settings } from "lucide-react";
 interface Profile {
   id: string;
   user_id: string;
@@ -56,8 +58,10 @@ const Dashboard = () => {
   const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
   const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
   const { requestNotificationPermission } = useRealtimeNotifications();
+  const { checkAdminRole } = useAdminAuth();
   
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [likes, setLikes] = useState<Profile[]>([]);
@@ -80,8 +84,11 @@ const Dashboard = () => {
       setIsReturningUser(!!lastLogin);
       localStorage.setItem(`lastLogin_${user.id}`, new Date().toISOString());
       fetchProfile();
+      
+      // Check if user has admin role
+      checkAdminRole().then(setIsAdmin).catch(() => setIsAdmin(false));
     }
-  }, [user]);
+  }, [user, checkAdminRole]);
 
   // Re-fetch profile when user returns to tab (e.g., after completing extended profile)
   useEffect(() => {
@@ -483,6 +490,17 @@ const Dashboard = () => {
           <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             <ReferralDropdown />
             <FeedbackDialog />
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/dashboard/admin/feedback')}
+                className="text-muted-foreground hover:text-foreground"
+                title="Admin Panel"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            )}
             <NotificationBell />
           </div>
         </div>

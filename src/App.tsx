@@ -168,12 +168,12 @@ const App = () => (
                 <TermsOfService />
               </Suspense>
             } />
-            <Route path="/admin/feedback" element={
+            <Route path="/dashboard/admin/feedback" element={
               <Suspense fallback={<LoadingSpinner />}>
                 <AdminFeedback />
               </Suspense>
             } />
-            <Route path="/admin/moderation" element={
+            <Route path="/dashboard/admin/moderation" element={
               <Suspense fallback={<LoadingSpinner />}>
                 <AdminModeration />
               </Suspense>
