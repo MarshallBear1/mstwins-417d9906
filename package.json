@@ -24,6 +24,7 @@
     "@capacitor/ios": "^7.4.2",
     "@capacitor/local-notifications": "^7.0.1",
     "@capacitor/network": "^7.0.1",
+    "@capacitor/preferences": "^7.0.1",
     "@capacitor/push-notifications": "^7.0.1",
     "@capacitor/share": "^7.0.1",
     "@hookform/resolvers": "^3.9.0",

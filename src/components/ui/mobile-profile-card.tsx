@@ -1,277 +1,348 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, MapPin, Calendar, ArrowLeftRight, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, User, Heart, X, ArrowLeftRight, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CollapsibleSection } from "./collapsible-section";
+import { useRealtimePresence } from "@/hooks/useRealtimePresence";
+
 interface Profile {
   id: string;
   user_id: string;
   first_name: string;
   last_name: string;
-  date_of_birth: string | null;
+  date_of_birth: string;
   location: string;
-  gender: string | null;
-  ms_subtype: string | null;
-  diagnosis_year: number | null;
-  symptoms: string[];
-  medications: string[];
-  hobbies: string[];
-  avatar_url: string | null;
-  about_me: string | null;
+  avatar_url?: string;
+  ms_subtype?: string;
+  diagnosis_year?: number;
+  hobbies?: string[];
+  about_me?: string;
+  photos?: { url: string; caption?: string }[];
+  selected_prompts?: { question: string; answer: string }[];
   last_seen: string | null;
-  additional_photos?: string[];
-  selected_prompts?: {
-    question: string;
-    answer: string;
-  }[];
-  extended_profile_completed?: boolean;
 }
+
 interface MobileProfileCardProps {
   profile: Profile;
   onImageClick?: (index: number) => void;
-  isUserOnline?: (userId: string) => boolean;
-  getLastSeenText?: (lastSeen: string | null) => string;
-  showActions?: boolean;
   onLike?: () => void;
   onPass?: () => void;
-  actionLoading?: boolean;
   className?: string;
+  style?: React.CSSProperties;
+  isUserOnline?: (userId: string) => boolean;
+  getLastSeenText?: (lastSeen: string | null) => string;
 }
-export const MobileProfileCard = ({
+
+const MobileProfileCard = ({
   profile,
   onImageClick,
-  isUserOnline = () => false,
-  getLastSeenText = () => "Recently",
-  showActions = false,
   onLike,
   onPass,
-  actionLoading = false,
-  className
+  className,
+  style,
+  isUserOnline: propIsUserOnline,
+  getLastSeenText: propGetLastSeenText,
+  ...props
 }: MobileProfileCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showAllAbout, setShowAllAbout] = useState(false);
+  
+  // Use the hook for realtime presence if not provided as props
+  const { isUserOnline: hookIsUserOnline, getLastSeenText: hookGetLastSeenText } = useRealtimePresence();
+  const isUserOnline = propIsUserOnline || hookIsUserOnline;
+  const getLastSeenText = propGetLastSeenText || hookGetLastSeenText;
 
-  // Reset the "show more" state when profile changes
-  useEffect(() => {
-    setShowAllAbout(false);
-    setIsFlipped(false);
-  }, [profile.id]);
-  const calculateAge = (birthDate: string | null) => {
-    if (!birthDate) return null;
+  const calculateAge = (dateOfBirth: string) => {
+    const birth = new Date(dateOfBirth);
     const today = new Date();
-    const birth = new Date(birthDate);
-    const age = today.getFullYear() - birth.getFullYear();
+    let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || monthDiff === 0 && today.getDate() < birth.getDate()) {
-      return age - 1;
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
     }
     return age;
   };
-  const hasExtendedContent = profile.additional_photos?.length || profile.selected_prompts?.length || profile.medications?.length || profile.symptoms?.length;
-  const allImages = [...(profile.avatar_url ? [profile.avatar_url] : []), ...(profile.additional_photos || [])];
-  return <div className={cn("flip-card-container profile-card-mobile mx-auto", className)} style={{
-    minHeight: '320px',
-    width: '100%',
-    maxWidth: '300px',
-    display: 'block',
-    visibility: 'visible',
-    position: 'relative'
-  }}>
+
+  const hasExtendedContent = Boolean(
+    (profile.photos && profile.photos.length > 1) ||
+    (profile.selected_prompts && profile.selected_prompts.length > 0) ||
+    (profile.about_me && profile.about_me.length > 100)
+  );
+
+  return (
+    <div 
+      className={cn("flip-card", className)} 
+      style={{ 
+        ...style, 
+        minHeight: '420px', 
+        maxWidth: '300px', 
+        perspective: '1000px',
+        position: 'relative'
+      }}
+      {...props}
+    >
       <div className={cn("flip-card-inner", isFlipped && "rotate-y-180")} style={{
-      width: '100%',
-      height: '100%',
-      position: 'relative'
-    }}>
-        {/* Front Side */}
-        <Card className="flip-card-face shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white border border-gray-200" style={{
         width: '100%',
         height: '100%',
-        position: 'relative',
-        display: 'block'
+        position: 'relative'
       }}>
-          {/* Header */}
-          <div className="relative h-20 sm:h-28 bg-gradient-to-br from-primary/80 via-primary/60 to-primary/40 flex items-center justify-center">
-            <button onClick={() => onImageClick?.(0)} className="relative w-20 h-20 rounded-full overflow-hidden border-3 border-white shadow-lg hover:scale-105 transition-transform duration-200 mobile-touch-target">
-              {profile.avatar_url ? <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover transition-opacity duration-200" loading="eager" onLoad={e => {
-              e.currentTarget.style.opacity = '1';
-            }} onError={e => {
-              e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
-            }} style={{
-              opacity: 0
-            }} /> : <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <User className="w-8 h-8 text-muted-foreground" />
-                </div>}
-              <div className={cn("absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white shadow-md", isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-muted-foreground')} />
+        {/* Front Side */}
+        <Card className="flip-card-face shadow-2xl hover:shadow-3xl transition-all duration-500 bg-white border-0 rounded-2xl overflow-hidden" style={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+          display: 'block'
+        }}>
+          {/* Smaller Header focused on profile picture */}
+          <div className="relative h-48 bg-blue-500 flex items-center justify-center overflow-hidden">
+            {/* Smaller Profile Image with reduced border */}
+            <button onClick={() => onImageClick?.(0)} className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-lg hover:scale-110 transition-all duration-300 mobile-touch-target">
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover transition-opacity duration-200" loading="eager" onLoad={e => {
+                  e.currentTarget.style.opacity = '1';
+                }} onError={e => {
+                  e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
+                }} style={{
+                  opacity: '0'
+                }} />
+              ) : (
+                <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                  <User className="w-8 h-8 text-white" />
+                </div>
+              )}
             </button>
-
-            {hasExtendedContent && <Button variant="ghost" size="sm" onClick={() => setIsFlipped(!isFlipped)} className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg mobile-touch-target animate-pulse">
-                <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
-              </Button>}
-
-            {profile.additional_photos && profile.additional_photos.length > 0}
+            
+            {/* Online Status Badge with Last Seen */}
+            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
+              <div className="flex items-center gap-1">
+                <div className={`w-2 h-2 rounded-full ${isUserOnline(profile.user_id) ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                <span className="text-xs font-medium text-gray-700">
+                  {isUserOnline(profile.user_id) ? 'Online' : getLastSeenText(profile.last_seen)}
+                </span>
+              </div>
+            </div>
+            
+            {/* Flip Button and See More Button */}
+            {hasExtendedContent && (
+              <div className="absolute top-3 left-3 flex gap-2">
+                <button 
+                  onClick={() => setIsFlipped(!isFlipped)}
+                  className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                  title="Flip card"
+                >
+                  <ArrowLeftRight className="w-3 h-3" />
+                </button>
+                <button 
+                  onClick={() => setIsFlipped(!isFlipped)}
+                  className="bg-white/20 backdrop-blur-md rounded-full px-2 py-1 flex items-center gap-1 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                  title="See more details"
+                >
+                  <Eye className="w-3 h-3" />
+                  <span className="text-xs font-medium">See More</span>
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Content */}
-          <CardContent className="p-2 profile-content-scroll">
-            {/* Header Info */}
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-bold flex-1 mr-2 leading-tight">
-                {profile.first_name} {profile.last_name}
-              </h3>
-              <div className="flex items-center gap-2 shrink-0">
-                {profile.date_of_birth && <span className="text-base font-semibold text-muted-foreground">
-                    {calculateAge(profile.date_of_birth)}
-                  </span>}
-                <div className="flex items-center gap-1">
-                  <div className={cn("w-2 h-2 rounded-full", isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-muted-foreground')} />
-                  <span className="text-xs text-muted-foreground">
-                    {isUserOnline(profile.user_id) ? 'Online' : getLastSeenText(profile.last_seen)}
+          {/* Modern Content Section */}
+          <CardContent className="p-4 space-y-3">
+            {/* Compact Name and Age */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">{profile.first_name}</h3>
+              <span className="text-sm font-medium text-gray-600">{calculateAge(profile.date_of_birth)}</span>
+            </div>
+
+            {/* Compact Location */}
+            {profile.location && (
+              <div className="flex items-center gap-2 text-gray-600">
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm truncate">{profile.location}</span>
+              </div>
+            )}
+
+            {/* MS Info - more compact */}
+            {profile.ms_subtype && (
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs px-2 py-1">
+                  {profile.ms_subtype}
+                </Badge>
+                {profile.diagnosis_year && (
+                  <span className="text-xs text-gray-500">
+                    Diagnosed {profile.diagnosis_year}
                   </span>
-                </div>
+                )}
+              </div>
+            )}
+
+            {/* Compact Hobbies */}
+            {profile.hobbies && profile.hobbies.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {profile.hobbies.slice(0, 3).map((hobby, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
+                    {hobby}
+                  </Badge>
+                ))}
+                {profile.hobbies.length > 3 && (
+                  <Badge variant="outline" className="text-xs px-2 py-1">
+                    +{profile.hobbies.length - 3}
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Compact About */}
+            {profile.about_me && (
+              <div>
+                <p className={`text-sm text-gray-600 leading-relaxed ${!showAllAbout ? 'line-clamp-2' : ''}`}>
+                  {profile.about_me}
+                </p>
+                {profile.about_me.length > 80 && (
+                  <button
+                    onClick={() => setShowAllAbout(!showAllAbout)}
+                    className="text-xs text-blue-600 hover:text-blue-700 mt-1 font-medium"
+                  >
+                    {showAllAbout ? 'Show Less' : 'Show More'}
+                  </button>
+                )}
+              </div>
+            )}
+          </CardContent>
+
+          {/* Compact Action Buttons */}
+          {(onPass || onLike) && (
+            <div className="p-4 pt-3 flex gap-2">
+              {onPass && (
+                <Button
+                  onClick={onPass}
+                  variant="outline"
+                  className="flex-1 h-10 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-all duration-200"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Pass
+                </Button>
+              )}
+              {onLike && (
+                <Button
+                  onClick={onLike}
+                  className="flex-1 h-10 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                >
+                  <Heart className="w-4 h-4 mr-1" />
+                  Like
+                </Button>
+              )}
+            </div>
+          )}
+        </Card>
+
+        {/* Back Side with extended content... */}
+        {hasExtendedContent && (
+          <Card className="flip-card-face flip-card-back shadow-2xl hover:shadow-3xl transition-all duration-500 bg-white border-0 rounded-2xl overflow-hidden" style={{
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            transform: 'rotateY(180deg)',
+            backfaceVisibility: 'hidden'
+          }}>
+            {/* Back content implementation continues... */}
+            <div className="relative h-48 bg-purple-500 flex items-center justify-center overflow-hidden">
+              <div className="absolute inset-0 bg-black/10"></div>
+              
+              {/* Back Button */}
+              <button 
+                onClick={() => setIsFlipped(false)}
+                className="absolute top-3 left-3 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                title="Back to main"
+              >
+                <ArrowLeftRight className="w-3 h-3" />
+              </button>
+              
+              <div className="text-center text-white z-10">
+                <h3 className="text-lg font-bold">{profile.first_name}'s Details</h3>
+                <p className="text-sm opacity-90">Extended Profile</p>
               </div>
             </div>
 
-            {/* Location */}
-            <div className="flex items-center gap-2 text-muted-foreground mb-3">
-              <MapPin className="w-4 h-4 shrink-0" />
-              <span className="text-sm truncate">{profile.location}</span>
-            </div>
-
-            <div className="mobile-section-spacing">
-              {/* MS Type */}
-              {profile.ms_subtype && <div>
-                  <h4 className="text-sm font-semibold mb-1">MS Type</h4>
-                  <Badge variant="secondary" className="text-xs">
-                    {profile.ms_subtype.toUpperCase()}
-                  </Badge>
-                </div>}
-
-              {/* Diagnosis Year */}
-              {profile.diagnosis_year && <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar className="w-4 h-4 shrink-0" />
-                  <span className="text-sm">Diagnosed in {profile.diagnosis_year}</span>
-                </div>}
-
-              {/* Hobbies/Interests */}
-              {profile.hobbies && profile.hobbies.length > 0 && <div>
-                  <h4 className="text-sm font-semibold mb-2">Interests</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {profile.hobbies.slice(0, 4).map((hobby, index) => <Badge key={index} variant="outline" className="text-xs">
-                        {hobby}
-                      </Badge>)}
-                    {profile.hobbies.length > 4 && <Badge variant="outline" className="text-xs text-muted-foreground">
-                        +{profile.hobbies.length - 4} more
-                      </Badge>}
+            <CardContent className="p-4 space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 12rem)' }}>
+              {/* Additional Photos */}
+              {profile.photos && profile.photos.length > 1 && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">More Photos</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {profile.photos.slice(1, 5).map((photo, index) => (
+                      <button
+                        key={index}
+                        onClick={() => onImageClick?.(index + 1)}
+                        className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-200"
+                      >
+                        <img
+                          src={photo.url}
+                          alt={`${profile.first_name}'s photo ${index + 2}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
                   </div>
-                </div>}
+                </div>
+              )}
 
-              {/* About Me */}
-              {profile.about_me && <div>
-                  <h4 className="text-sm font-semibold mb-2">About</h4>
-                  <div className="text-sm text-muted-foreground leading-relaxed">
-                    <p className={cn("transition-all duration-300", !showAllAbout && profile.about_me.length > 150 && "line-clamp-3")}>
-                      {profile.about_me}
-                    </p>
-                    {profile.about_me.length > 150 && <Button variant="ghost" size="sm" onClick={() => setShowAllAbout(!showAllAbout)} className="p-0 h-auto text-xs text-primary hover:text-primary/80 mt-1 transition-colors">
-                        {showAllAbout ? <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></> : <>Show More <ChevronDown className="w-3 h-3 ml-1" /></>}
-                      </Button>}
+              {/* Prompts */}
+              {profile.selected_prompts && profile.selected_prompts.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">About Me</h4>
+                  <div className="space-y-3">
+                    {profile.selected_prompts.slice(0, 2).map((prompt, index) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-xs font-medium text-gray-700 mb-1">{prompt.question}</p>
+                        <p className="text-sm text-gray-900">{prompt.answer}</p>
+                      </div>
+                    ))}
                   </div>
-                </div>}
-            </div>
+                </div>
+              )}
 
+              {/* Extended About */}
+              {profile.about_me && profile.about_me.length > 100 && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">More About Me</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">{profile.about_me}</p>
+                </div>
+              )}
+            </CardContent>
 
-            {/* Action buttons */}
-            {showActions && <div className="flex gap-2 pt-3 mt-3 border-t">
-                <Button variant="outline" onClick={onPass} disabled={actionLoading} className="flex-1 mobile-touch-target">
-                  Pass
-                </Button>
-                <Button onClick={onLike} disabled={actionLoading} className="flex-1 mobile-touch-target bg-gradient-primary">
-                  {actionLoading ? 'Liking...' : 'Like'}
-                </Button>
-              </div>}
-          </CardContent>
-        </Card>
-
-        {/* Back Side */}
-        <Card className="flip-card-face flip-card-back shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white border border-gray-200" style={{
-        width: '100%',
-        height: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0
-      }}>
-          <div className="relative h-20 sm:h-28 bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
-            <Button variant="ghost" size="sm" onClick={() => setIsFlipped(!isFlipped)} className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg mobile-touch-target">
-              <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
-            </Button>
-            <div className="text-center text-white">
-              <h3 className="text-base font-bold">{profile.first_name}'s Story</h3>
-            </div>
-          </div>
-
-          <CardContent className="p-3 profile-content-scroll">
-            {hasExtendedContent ? <div className="mobile-section-spacing">
-                {/* Additional Photos */}
-                {profile.additional_photos && profile.additional_photos.length > 0 && <CollapsibleSection title={`Photos (${profile.additional_photos.length})`} defaultExpanded>
-                    <div className="grid grid-cols-2 gap-2">
-                      {profile.additional_photos.slice(0, 4).map((photo, index) => <button key={index} onClick={() => onImageClick?.(1 + index)} className="aspect-square overflow-hidden rounded-lg border hover:scale-105 transition-transform duration-200 mobile-touch-target">
-                          <img src={photo} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-                        </button>)}
-                    </div>
-                    {profile.additional_photos.length > 4 && <p className="text-xs text-muted-foreground text-center mt-2">
-                        +{profile.additional_photos.length - 4} more photos
-                      </p>}
-                  </CollapsibleSection>}
-
-                {/* Health Information */}
-                {(profile.symptoms?.length || profile.medications?.length) && <CollapsibleSection title="Health Info">
-                    {profile.symptoms && profile.symptoms.length > 0 && <div className="mb-3">
-                        <h5 className="text-xs font-medium text-muted-foreground mb-1">Symptoms</h5>
-                        <div className="mobile-badge-grid">
-                          {profile.symptoms.slice(0, 6).map((symptom, index) => <Badge key={index} variant="outline" className="text-xs">
-                              {symptom}
-                            </Badge>)}
-                        </div>
-                        {profile.symptoms.length > 6 && <p className="text-xs text-muted-foreground mt-1">
-                            +{profile.symptoms.length - 6} more
-                          </p>}
-                      </div>}
-
-                    {profile.medications && profile.medications.length > 0 && <div>
-                        <h5 className="text-xs font-medium text-muted-foreground mb-1">Medications</h5>
-                        <div className="mobile-badge-grid">
-                          {profile.medications.slice(0, 4).map((medication, index) => <Badge key={index} variant="outline" className="text-xs">
-                              {medication}
-                            </Badge>)}
-                        </div>
-                        {profile.medications.length > 4 && <p className="text-xs text-muted-foreground mt-1">
-                            +{profile.medications.length - 4} more
-                          </p>}
-                      </div>}
-                  </CollapsibleSection>}
-
-                {/* Personal Stories */}
-                {profile.selected_prompts && profile.selected_prompts.length > 0 && <CollapsibleSection title="Personal Stories">
-                    <div className="space-y-3">
-                      {profile.selected_prompts.slice(0, 3).map((prompt, index) => <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                            {prompt.question}
-                          </p>
-                          <p className="text-xs leading-relaxed">
-                            {prompt.answer}
-                          </p>
-                        </div>)}
-                    </div>
-                  </CollapsibleSection>}
-              </div> : <div className="text-center py-8">
-                <p className="text-muted-foreground text-sm">
-                  {profile.first_name} hasn't shared extended details yet.
-                </p>
-              </div>}
-          </CardContent>
-        </Card>
+            {/* Action Buttons on Back */}
+            {(onPass || onLike) && (
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
+                <div className="flex gap-2">
+                  {onPass && (
+                    <Button
+                      onClick={onPass}
+                      variant="outline"
+                      className="flex-1 h-10 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-all duration-200"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Pass
+                    </Button>
+                  )}
+                  {onLike && (
+                    <Button
+                      onClick={onLike}
+                      className="flex-1 h-10 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                      <Heart className="w-4 h-4 mr-1" />
+                      Like
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 };
+
+export default MobileProfileCard;

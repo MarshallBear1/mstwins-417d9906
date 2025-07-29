@@ -1,11 +1,11 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, ArrowLeft, User, Trash2 } from "lucide-react";
+import { Send, ArrowLeft, User, Trash2, Heart } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,6 +74,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
   const { isUserOnline, setTyping, getTypingUsers } = useRealtimePresence();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -334,6 +335,15 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     }
   };
 
+  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleTyping(e.target.value);
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendMessage();
+  };
+
   const sendMessage = async () => {
     if (!user || !selectedMatch || !newMessage.trim()) return;
 
@@ -472,273 +482,325 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const handleUnmatch = async (matchId: string) => {
+    if (!user) return;
 
-  if (selectedMatch && messages !== null) {
-    return (
-      <div className="flex flex-col h-[600px]">
-        {/* Chat Header */}
-        <CardHeader className="flex flex-row items-center space-y-0 pb-4">
-          <Button variant="ghost" size="sm" onClick={() => {setSelectedMatch(null); setMessages([]);}} className="mr-2">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <Avatar className="w-10 h-10 mr-3">
-            <AvatarImage src={selectedMatch.other_user.avatar_url || undefined} />
-            <AvatarFallback>
-              <User className="w-5 h-5" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <CardTitle className="text-lg">
-              {selectedMatch.other_user.first_name} {selectedMatch.other_user.last_name}
-            </CardTitle>
+    try {
+      // Delete the match
+      const { error: matchError } = await supabase
+        .from('matches')
+        .delete()
+        .eq('id', matchId);
+
+      if (matchError) {
+        console.error('Error removing match:', matchError);
+        return;
+      }
+
+      // Delete associated messages
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('match_id', matchId);
+
+      if (messagesError) {
+        console.error('Error removing messages:', messagesError);
+      }
+
+      // Update local state
+      setMatches(prev => prev.filter(match => match.id !== matchId));
+      
+      // Track match removal
+      if (user) {
+        analytics.matchRemoved(user.id, matchId);
+      }
+      
+      // If this was the selected match, go back to match list
+      if (selectedMatch?.id === matchId) {
+        setSelectedMatch(null);
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('Error removing match:', error);
+    }
+  };
+
+  const getLastMessage = (matchId: string) => {
+    const matchMessages = messageHistory.get(matchId) || [];
+    if (matchMessages.length === 0) return null;
+    return matchMessages[matchMessages.length - 1].content;
+  };
+
+  return (
+    <div className="h-full bg-gray-50">
+      {selectedMatch ? (
+        /* Modern Chat View - Instagram DM Style */
+        <div className="h-full flex flex-col bg-white">
+          {/* Chat Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white/95 backdrop-blur-xl sticky top-0 z-10">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedMatch(null)}
+                className="h-10 w-10 p-0 rounded-full hover:bg-gray-100"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Avatar className="h-10 w-10 border-2 border-white shadow-md">
+                    <AvatarImage 
+                      src={selectedMatch.other_user.avatar_url || undefined} 
+                      alt={selectedMatch.other_user.first_name}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                      {selectedMatch.other_user.first_name[0]}{selectedMatch.other_user.last_name[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isUserOnline(selectedMatch.other_user.user_id || selectedMatch.other_user.id || '') && (
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                  )}
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-gray-900">
+                    {selectedMatch.other_user.first_name} {selectedMatch.other_user.last_name}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    {isUserOnline(selectedMatch.other_user.user_id || selectedMatch.other_user.id || '') ? 
+                      'Online' : 'Recently active'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${isUserOnline(selectedMatch.user1_id === user?.id ? selectedMatch.user2_id : selectedMatch.user1_id) ? 'bg-green-500' : 'bg-gray-400'}`} />
-              <p className="text-sm text-muted-foreground">
-                {isUserOnline(selectedMatch.user1_id === user?.id ? selectedMatch.user2_id : selectedMatch.user1_id) ? 'Online' : 'Offline'}
-              </p>
+              <Dialog open={showProfileView} onOpenChange={setShowProfileView}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 w-10 p-0 rounded-full hover:bg-gray-100"
+                  >
+                    <User className="w-5 h-5" />
+                  </Button>
+                </DialogTrigger>
+                <ProfileViewDialog 
+                  profile={{
+                    id: selectedMatch.other_user.id || selectedMatch.other_user.user_id || '',
+                    user_id: selectedMatch.other_user.user_id || selectedMatch.other_user.id || '',
+                    first_name: selectedMatch.other_user.first_name,
+                    last_name: selectedMatch.other_user.last_name,
+                    date_of_birth: selectedMatch.other_user.date_of_birth || null,
+                    location: selectedMatch.other_user.location || '',
+                    gender: selectedMatch.other_user.gender || null,
+                    ms_subtype: selectedMatch.other_user.ms_subtype || null,
+                    diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
+                    symptoms: selectedMatch.other_user.symptoms || [],
+                    medications: selectedMatch.other_user.medications || [],
+                    hobbies: selectedMatch.other_user.hobbies || [],
+                    avatar_url: selectedMatch.other_user.avatar_url,
+                    about_me: selectedMatch.other_user.about_me || null,
+                    last_seen: selectedMatch.other_user.last_seen || null,
+                    additional_photos: selectedMatch.other_user.additional_photos || [],
+                    selected_prompts: selectedMatch.other_user.selected_prompts || [],
+                    extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
+                  }}
+                  open={showProfileView}
+                  onOpenChange={setShowProfileView}
+                />
+              </Dialog>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 w-10 p-0 rounded-full hover:bg-red-50 text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-2xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Unmatch {selectedMatch.other_user.first_name}?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. All your messages will be deleted and you'll both be removed from each other's matches.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => handleUnmatch(selectedMatch.id)}
+                      className="bg-red-600 hover:bg-red-700 rounded-xl"
+                    >
+                      Unmatch
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
-          <ProfileViewDialog 
-            profile={selectedMatch ? {
-              id: selectedMatch.other_user.id,
-              user_id: selectedMatch.other_user.user_id,
-              first_name: selectedMatch.other_user.first_name,
-              last_name: selectedMatch.other_user.last_name,
-              date_of_birth: selectedMatch.other_user.date_of_birth || null,
-              location: selectedMatch.other_user.location || '',
-              gender: selectedMatch.other_user.gender || null,
-              ms_subtype: selectedMatch.other_user.ms_subtype || null,
-              diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
-              symptoms: selectedMatch.other_user.symptoms || [],
-              medications: selectedMatch.other_user.medications || [],
-              hobbies: selectedMatch.other_user.hobbies || [],
-              avatar_url: selectedMatch.other_user.avatar_url,
-              about_me: selectedMatch.other_user.about_me || null,
-              last_seen: selectedMatch.other_user.last_seen || null,
-              additional_photos: selectedMatch.other_user.additional_photos || [],
-              selected_prompts: selectedMatch.other_user.selected_prompts || [],
-              extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
-            } : null}
-            open={showProfileView}
-            onOpenChange={setShowProfileView}
-            showActions={false}
-          />
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="mr-2 text-xs"
-            onClick={() => setShowProfileView(true)}
-          >
-            View Profile
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Remove Match</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to remove this match? This will permanently delete your conversation with {selectedMatch.other_user.first_name}.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => removeMatch(selectedMatch.id)} className="bg-destructive hover:bg-destructive/90">
-                  Remove Match
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardHeader>
 
-        {/* Messages */}
-        <CardContent className="flex-1 p-0">
-          <ScrollArea className="h-[400px] px-6">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`max-w-[80%] space-y-1`}>
+          {/* Messages Area */}
+          <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+            <div className="space-y-3">
+              {messages.map((message, index) => {
+                const isOwnMessage = message.sender_id === user?.id;
+                const showAvatar = index === 0 || messages[index - 1]?.sender_id !== message.sender_id;
+                
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {!isOwnMessage && showAvatar && (
+                      <Avatar className="h-8 w-8 mt-1">
+                        <AvatarImage 
+                          src={selectedMatch.other_user.avatar_url || undefined} 
+                          alt={selectedMatch.other_user.first_name}
+                        />
+                        <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
+                          {selectedMatch.other_user.first_name[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    {!isOwnMessage && !showAvatar && <div className="w-8" />}
+                    
                     <div
-                      className={`rounded-lg px-4 py-2 ${
-                        message.sender_id === user?.id
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-muted text-foreground'
+                      className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+                        isOwnMessage
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md'
+                          : 'bg-gray-100 text-gray-900 rounded-bl-md'
                       }`}
                     >
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                      <p className={`text-xs mt-1 ${
+                        isOwnMessage ? 'text-white/70' : 'text-gray-500'
+                      }`}>
+                        {formatTime(message.created_at)}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground px-2">
-                      {formatTime(message.created_at)}
-                    </p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               
               {/* Typing indicator */}
-              {selectedMatch && getTypingUsers(selectedMatch.id).filter(id => id !== user?.id).length > 0 && (
-                <div className="flex justify-start">
-                  <div className="max-w-[80%] space-y-1">
-                    <div className="rounded-lg px-4 py-2 bg-muted text-foreground">
-                      <div className="flex items-center space-x-1">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                        </div>
-                        <span className="text-xs text-muted-foreground ml-2">typing...</span>
-                      </div>
+              {isTyping && getTypingUsers(selectedMatch.id).length > 0 && (
+                <div className="flex gap-2 justify-start">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage 
+                      src={selectedMatch.other_user.avatar_url || undefined} 
+                      alt={selectedMatch.other_user.first_name}
+                    />
+                    <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
+                      {selectedMatch.other_user.first_name[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="bg-gray-100 px-4 py-2 rounded-2xl rounded-bl-md">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   </div>
                 </div>
               )}
             </div>
           </ScrollArea>
-        </CardContent>
 
-        {/* Message Input */}
-        <div className="p-6 border-t">
-          <div className="flex gap-2">
-            <Input
-              value={newMessage}
-              onChange={(e) => handleTyping(e.target.value)}
-              placeholder="Type a message..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
-              className="flex-1"
-            />
-            <Button 
-              type="button"
-              onClick={sendMessage} 
-              disabled={!newMessage.trim() || sending}
-            >
-              <Send className="w-4 h-4" />
-            </Button>
+          {/* Modern Message Input */}
+          <div className="p-4 border-t border-gray-100 bg-white">
+            <form onSubmit={handleSendMessage} className="flex gap-3 items-end">
+              <div className="flex-1">
+                <Input
+                  value={newMessage}
+                  onChange={handleMessageChange}
+                  placeholder={`Message ${selectedMatch.other_user.first_name}...`}
+                  className="min-h-[44px] max-h-32 resize-none border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-0 transition-colors px-4 py-3"
+                  disabled={sending}
+                />
+              </div>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={!newMessage.trim() || sending}
+                className="h-11 w-11 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 p-0 disabled:opacity-50"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            </form>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Your Matches</h2>
-      {matches.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">
-              No matches yet. Start discovering to find your community!
-            </p>
-          </CardContent>
-        </Card>
       ) : (
-        <div className="space-y-4">
-          {matches.map((match) => (
-            <Card key={match.id} className="cursor-pointer hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                 <div 
-                   className="flex items-center space-x-4"
-                   onClick={() => {
-                     console.log('🖱️ Match card clicked for match:', match.id);
-                     setSelectedMatch(match);
-                     if (!messageHistory.has(match.id)) {
-                       fetchMessages(match.id);
-                     } else {
-                       setMessages(messageHistory.get(match.id) || []);
-                     }
-                   }}
-                 >
-                  <div className="relative">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={match.other_user.avatar_url || undefined} />
-                      <AvatarFallback>
-                        <User className="w-6 h-6" />
-                      </AvatarFallback>
-                    </Avatar>
-                    {/* Online indicator */}
-                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                      isUserOnline(match.user1_id === user?.id ? match.user2_id : match.user1_id) ? 'bg-green-500' : 'bg-gray-400'
-                    }`} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">
-                        {match.other_user.first_name} {match.other_user.last_name}
-                      </h3>
-                      {match.unread_count > 0 && (
-                        <Badge variant="destructive" className="text-xs px-2">
-                          {match.unread_count}
-                        </Badge>
+        /* Modern Match List - Instagram Style */
+        <div className="h-full bg-white">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Messages</h2>
+            <p className="text-gray-600">Your conversations with matches</p>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : matches.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 px-6 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
+                <Heart className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No matches yet</h3>
+              <p className="text-gray-500 text-sm max-w-sm">
+                Start discovering and liking profiles to create matches and begin conversations!
+              </p>
+            </div>
+          ) : (
+            <ScrollArea className="flex-1">
+              <div className="space-y-1 p-4">
+                {matches.map((match) => (
+                  <div
+                    key={match.id}
+                    onClick={() => setSelectedMatch(match)}
+                    className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <div className="relative">
+                      <Avatar className="h-12 w-12 border-2 border-white shadow-md">
+                        <AvatarImage 
+                          src={match.other_user.avatar_url || undefined} 
+                          alt={match.other_user.first_name}
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                          {match.other_user.first_name[0]}{match.other_user.last_name[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Matched {formatTime(match.created_at)}
-                    </p>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-gray-900 truncate">
+                          {match.other_user.first_name} {match.other_user.last_name}
+                        </h3>
+                        {match.unread_count > 0 && (
+                          <Badge className="bg-blue-500 text-white rounded-full h-5 min-w-[20px] text-xs">
+                            {match.unread_count}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 truncate">
+                        {getLastMessage(match.id) || "Start the conversation!"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('🖱️ Chat button clicked for match:', match.id);
-                        setSelectedMatch(match);
-                        if (!messageHistory.has(match.id)) {
-                          fetchMessages(match.id);
-                        } else {
-                          setMessages(messageHistory.get(match.id) || []);
-                        }
-                      }}
-                    >
-                      Chat
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-destructive hover:text-destructive"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Remove Match</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to remove this match? This will permanently delete your conversation with {match.other_user.first_name}.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => removeMatch(match.id)} className="bg-destructive hover:bg-destructive/90">
-                            Remove Match
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                ))}
+              </div>
+            </ScrollArea>
+          )}
         </div>
       )}
     </div>

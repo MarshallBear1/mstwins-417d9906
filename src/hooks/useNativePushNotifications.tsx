@@ -13,31 +13,39 @@ export const useNativePushNotifications = () => {
 
   useEffect(() => {
     // Check if native push notifications are supported
-    setIsSupported(Capacitor.isNativePlatform());
+    const nativeSupported = Capacitor.isNativePlatform();
+    setIsSupported(nativeSupported);
     
-    if (!Capacitor.isNativePlatform()) {
+    if (!nativeSupported) {
       console.log('Push notifications only available on native platforms');
       return;
     }
 
-    initializePushNotifications();
+    // Only initialize if user exists and we're on native platform
+    if (user && nativeSupported) {
+      initializePushNotifications();
+    }
   }, [user]);
 
   const initializePushNotifications = async () => {
-    if (!user) return;
+    if (!user || !Capacitor.isNativePlatform()) return;
 
     try {
+      console.log('🔔 Initializing native push notifications...');
+      
       // Request permissions
       const permResult = await PushNotifications.requestPermissions();
       setPermissionStatus(permResult.receive);
       
       if (permResult.receive === 'granted') {
+        console.log('✅ Push notification permissions granted');
+        
         // Register for notifications
         await PushNotifications.register();
         
         // Listen for registration
         PushNotifications.addListener('registration', async (token: Token) => {
-          console.log('Push registration success, token: ' + token.value);
+          console.log('✅ Push registration success, token: ' + token.value);
           
           // Store the token in the database
           await storePushToken(token.value);
@@ -45,12 +53,12 @@ export const useNativePushNotifications = () => {
 
         // Listen for registration errors
         PushNotifications.addListener('registrationError', (error: any) => {
-          console.error('Error on registration: ' + JSON.stringify(error));
+          console.error('❌ Error on registration: ' + JSON.stringify(error));
         });
 
-        // Handle received notifications
+        // Handle received notifications (app in foreground)
         PushNotifications.addListener('pushNotificationReceived', (notification) => {
-          console.log('Push notification received: ', notification);
+          console.log('🔔 Push notification received: ', notification);
           
           // Show toast for foreground notifications
           toast({
@@ -59,15 +67,19 @@ export const useNativePushNotifications = () => {
           });
         });
 
-        // Handle notification actions
+        // Handle notification actions (user tapped notification)
         PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
-          console.log('Push notification action performed: ', notification.actionId, notification.inputValue);
+          console.log('👆 Push notification action performed: ', notification.actionId, notification.inputValue);
           
-          // Handle notification tap actions here
-          // You could navigate to specific screens based on notification data
+          // Handle notification tap actions here - navigate to appropriate screen
+          const notificationData = notification.notification.data;
+          if (notificationData?.type) {
+            // Navigate based on notification type
+            window.location.href = '/dashboard';
+          }
         });
       } else {
-        console.log('Push notification permission denied');
+        console.log('❌ Push notification permission denied');
         toast({
           title: "Notifications Disabled",
           description: "Enable notifications in your device settings to receive updates about likes and matches.",
@@ -75,7 +87,7 @@ export const useNativePushNotifications = () => {
         });
       }
     } catch (error) {
-      console.error('Error initializing push notifications:', error);
+      console.error('❌ Error initializing push notifications:', error);
     }
   };
 

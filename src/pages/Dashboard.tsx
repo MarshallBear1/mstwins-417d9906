@@ -1,10 +1,10 @@
 import { useEffect, useState, memo } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, LogOut, Eye, ArrowLeft } from "lucide-react";
+import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, Eye, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
@@ -19,7 +19,6 @@ import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
-import { useNativeCapabilities } from "@/hooks/useNativeCapabilities";
 import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
@@ -49,40 +48,31 @@ interface Profile {
 const Dashboard = () => {
   const {
     user,
-    loading,
+    loading: authLoading,
     signOut
   } = useAuth();
   const navigate = useNavigate();
-  const {
-    remainingLikes,
-    isLimitEnforced,
-    hasUnlimitedLikes
-  } = useDailyLikes();
-  const {
-    currentAnnouncement,
-    showAnnouncement,
-    dismissAnnouncement
-  } = useRobotAnnouncements();
-  const {
-    requestAllPermissions
-  } = useRealtimeNotifications();
-  const {
-    isMobile,
-    safeAreaInsets
-  } = useMobileOptimizations();
+  const { isMobile, safeAreaInsets } = useMobileOptimizations();
+  const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
+  const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
+  const { requestNotificationPermission } = useRealtimeNotifications();
+  
+  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("discover");
   const [likes, setLikes] = useState<Profile[]>([]);
   const [likesLoading, setLikesLoading] = useState(false);
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'discover';
+
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate("/auth");
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
   useEffect(() => {
     if (user) {
       // Check if user is returning (has logged in before)
@@ -151,16 +141,18 @@ const Dashboard = () => {
 
     // Prompt after a brief delay when user first accesses dashboard with profile
     const timer = setTimeout(async () => {
-      try {
-        await requestAllPermissions();
-        sessionStorage.setItem(`notif_prompted_${user.id}`, 'true');
-      } catch (error) {
-        console.log('Notification permission request failed:', error);
+      if ('Notification' in window && Notification.permission === 'default') {
+        try {
+          await requestNotificationPermission();
+          sessionStorage.setItem(`notif_prompted_${user.id}`, 'true');
+        } catch (error) {
+          console.log('Notification permission request failed:', error);
+        }
       }
     }, 3000); // 3 second delay for natural UX
 
     return () => clearTimeout(timer);
-  }, [user, profile, requestAllPermissions]);
+  }, [user, profile, requestNotificationPermission]);
   const fetchLikes = async () => {
     if (!user) return;
     setLikesLoading(true);
@@ -256,7 +248,7 @@ const Dashboard = () => {
     await signOut();
     navigate("/");
   };
-  if (loading || profileLoading) {
+  if (authLoading || profileLoading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>;
@@ -294,23 +286,6 @@ const Dashboard = () => {
         </Card>
       </div>;
   }
-  const tabs = [{
-    id: "discover",
-    label: "Discover",
-    icon: Heart
-  }, {
-    id: "likes",
-    label: "Likes",
-    icon: Users
-  }, {
-    id: "matches",
-    label: "Matches",
-    icon: MessageCircle
-  }, {
-    id: "profile",
-    label: "Profile",
-    icon: User
-  }];
   const renderContent = () => {
     switch (activeTab) {
       case "discover":
@@ -447,19 +422,19 @@ const Dashboard = () => {
                         console.error('❌ Error in like back process:', error);
                       }
                     }}>
-                             <Heart className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                             Like Back
-                           </Button>
-                         </div>
+                              ❤️ Like Back
+                            </Button>
+                          </div>
                       </div>
                     </CardContent>
                   </Card>)}
-              </div> : <Card className="mt-6">
-                <CardContent className="p-6 text-center">
-                  <p className="text-muted-foreground">No likes yet. Start discovering!</p>
-                </CardContent>
-              </Card>}
+              </div> : <div className="text-center py-8">
+                  <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No likes yet. Keep swiping!</p>
+                </div>}
           </div>;
+      case "messages":
+        return <Messaging />;
       case "matches":
         return <Messaging />;
       case "profile":
@@ -472,35 +447,40 @@ const Dashboard = () => {
     }
   };
   return <MobileKeyboardHandler>
-      <div className="min-h-screen bg-gradient-subtle">
-        <SEO title="MSTwins Dashboard - Your Multiple Sclerosis Support Community" description="Access your MSTwins dashboard to discover new connections, view matches, and connect with others living with Multiple Sclerosis in our supportive community." canonical="https://mstwins.com/dashboard" />
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <SEO 
+        title="MStwins Dashboard - Your MS Support Community"
+        description="Access your Multiple Sclerosis support network. Discover new connections, manage matches, and engage with your community."
+        canonical="https://mstwins.com/dashboard"
+      />
+
+      {/* Notification Popup */}
       <NotificationPopup />
-      
+
       {/* Robot Announcement Popup */}
       {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />}
       
-      {/* Header with notifications and referral */}
-      <div className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-40" style={{
-        paddingTop: isMobile ? `max(0.5rem, ${safeAreaInsets.top}px)` : undefined
+      {/* Modern header with clean design */}
+      <div className="bg-white/90 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40 shadow-[0_1px_10px_rgba(0,0,0,0.05)]" style={{
+        paddingTop: isMobile ? `max(0.75rem, ${safeAreaInsets.top}px)` : undefined
       }}>
         <div className="flex items-center justify-between mobile-safe-x py-3">
+          {/* Left side - Modern Logo (borderless and bigger) */}
+          <div className="flex items-center space-x-3">
+            <div className="w-11 h-11">
+              <img 
+                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                alt="MSTwins" 
+                className="w-full h-full object-contain" 
+              />
+            </div>
+            <span className="text-xl font-bold tracking-tight">
+              <span className="text-gray-900">MS</span><span className="text-blue-600">Twins</span>
+            </span>
+          </div>
           
-          
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Return to Discover button - only show when not on discover tab */}
-            {activeTab !== 'discover' && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setActiveTab('discover')} 
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="w-4 h-4 sm:mr-1" />
-                <span className="hidden sm:inline">Return to Discover</span>
-              </Button>
-            )}
-            {/* Mobile Daily Likes Counter */}
-            {isLimitEnforced() && !hasUnlimitedLikes}
+          {/* Right side - Clean action buttons with better mobile spacing */}
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             <ReferralDropdown />
             <FeedbackDialog />
             <NotificationBell />
@@ -508,29 +488,12 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main content with smooth transitions */}
-      <div className="flex-1 mobile-scroll" style={{
-        paddingBottom: isMobile ? `max(6rem, ${safeAreaInsets.bottom + 80}px)` : '5rem'
+      {/* Main content with padding for persistent bottom nav */}
+      <div className="flex-1 mobile-scroll bg-gray-50" style={{
+        paddingBottom: isMobile ? `max(8rem, ${safeAreaInsets.bottom + 100}px)` : '6rem'
       }}>
         <div className="transition-all duration-300 ease-in-out">
           {renderContent()}
-        </div>
-      </div>
-
-      {/* Enhanced bottom navigation - Always visible */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50" style={{
-        paddingBottom: isMobile ? `max(0.5rem, ${safeAreaInsets.bottom}px)` : '0.5rem'
-      }}>
-        <div className="flex items-center justify-around py-2 mobile-safe-x">
-          {tabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-all duration-200 hover-scale mobile-touch-target mobile-focus ${isActive ? "text-primary bg-primary/10 scale-105" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}>
-                <Icon className="w-5 h-5" />
-                <span className="text-xs font-medium">{tab.label}</span>
-                {isActive && <div className="w-1 h-1 bg-primary rounded-full animate-scale-in" />}
-              </button>;
-          })}
         </div>
       </div>
 
@@ -538,19 +501,8 @@ const Dashboard = () => {
       <Dialog open={showProfileView} onOpenChange={setShowProfileView}>
         <DialogContent className="p-0 max-w-md w-full h-[80vh] overflow-hidden">
           {selectedProfileForView && (
-            <div className="relative h-full overflow-y-auto">
+            <div className="h-full overflow-y-auto">
               <DiscoverProfileCard profile={selectedProfileForView} />
-              {/* Close button overlay */}
-              <div className="absolute top-4 right-4 z-10">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowProfileView(false)}
-                  className="h-8 w-8 p-0 rounded-full bg-white/90 hover:bg-white shadow-lg border-gray-300"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
             </div>
           )}
         </DialogContent>

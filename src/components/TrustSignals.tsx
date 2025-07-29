@@ -25,7 +25,8 @@ const TrustSignals = () => {
     title: "100% Free",
     description: "No hidden fees, premium tiers, or paid features"
   }];
-  return <section className="py-12 bg-gradient-to-b from-gray-50 to-white">
+  return (
+    <section className="py-12 bg-white">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -50,6 +51,7 @@ const TrustSignals = () => {
         {/* Community Features */}
         
       </div>
-    </section>;
+    </section>
+  );
 };
 export default TrustSignals;

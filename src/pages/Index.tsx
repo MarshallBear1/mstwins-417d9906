@@ -32,7 +32,7 @@ const Index = () => {
         </div>
         
         {/* Final CTA Section */}
-        <section className="py-20 bg-gradient-hero">
+        <section className="py-20 bg-blue-600">
           <div className="container mx-auto px-6 text-center">
             <div className="max-w-3xl mx-auto">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
@@ -48,13 +48,10 @@ const Index = () => {
                 asChild
               >
                 <Link to="/auth">
-                  Join Free Today
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  Start Your Journey Today
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <p className="text-sm text-white/75 mt-4">
-                100% free • No credit card required • Join in under 2 minutes
-              </p>
             </div>
           </div>
         </section>

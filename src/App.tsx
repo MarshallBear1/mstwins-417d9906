@@ -17,6 +17,7 @@ import { SecurityEnhancements } from "./components/SecurityEnhancements";
 import { NativeCapabilities } from "./hooks/useNativeCapabilities";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import IOSNotificationManager from "./components/IOSNotificationManager";
+import PersistentBottomNavigation from "./components/PersistentBottomNavigation";
 
 // Lazy load non-critical pages with error handling
 const Auth = lazy(() => import("./pages/Auth").catch(err => {
@@ -145,6 +146,7 @@ const App = () => (
               </Suspense>
             } />
           </Routes>
+          <PersistentBottomNavigation />
           <ReferralPopup />
         </BrowserRouter>
         </ErrorBoundary>

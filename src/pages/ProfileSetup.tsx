@@ -20,11 +20,13 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { validateProfileData, sanitizeInput, sanitizeErrorMessage } from "@/lib/security";
 import SEO from "@/components/SEO";
+import { useCamera } from "@/hooks/useCamera";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const camera = useCamera();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [existingProfile, setExistingProfile] = useState<any>(null);
@@ -332,9 +334,55 @@ const ProfileSetup = () => {
     setShowPhotoChoiceDialog(true);
   };
 
-  const handleCameraChoice = () => {
-    const input = document.getElementById('camera-upload') as HTMLInputElement;
-    input?.click();
+  const handleCameraChoice = async () => {
+    if (!camera.isSupported) {
+      toast({
+        title: "Camera Not Available",
+        description: "Camera is only available on mobile devices.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setUploading(true);
+      setShowPhotoChoiceDialog(false);
+      
+      // Take photo using native camera
+      const photo = await camera.takePhoto({
+        quality: 80,
+        saveToGallery: false,
+        width: 800,
+        height: 800,
+      });
+
+      if (photo && photo.webPath) {
+        // Convert photo to file for upload
+        const response = await fetch(photo.webPath);
+        const blob = await response.blob();
+        const file = new File([blob], `camera-photo-${Date.now()}.jpg`, { 
+          type: 'image/jpeg' 
+        });
+
+        // Create a mock file event to reuse existing upload logic
+        const mockEvent = {
+          target: {
+            files: [file]
+          }
+        } as any;
+
+        await handleFileUpload(mockEvent);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      toast({
+        title: "Camera Error",
+        description: "Could not take photo. Please try again.",
+        variant: "destructive",
+      });
+      setUploading(false);
+      setShowPhotoChoiceDialog(false);
+    }
   };
 
   const handleGalleryChoice = () => {
@@ -347,7 +395,7 @@ const ProfileSetup = () => {
       "Reading": "📚", "Exercise/Fitness": "💪", "Cooking": "🍳", "Art/Drawing": "🎨", 
       "Music": "🎵", "Travel": "✈️", "Photography": "📸", "Gaming": "🎮", 
       "Gardening": "🌱", "Volunteering": "❤️", "Crafts": "✂️", "Sports": "⚽",
-      "Writing": "✍️", "Movies/TV": "🎬", "Board games": "🎲", "Meditation": "🧘",
+      "Writing": "✍️", "Movies/TV": "��", "Board games": "🎲", "Meditation": "🧘",
       "Yoga": "🧘‍♀️", "Swimming": "🏊", "Walking/Hiking": "🚶", "Dancing": "💃",
       "Knitting/Sewing": "🧶", "Technology": "💻", "Learning": "🎓", "Podcasts": "🎧",
       "Nature": "🌿", "Animals/Pets": "🐕"

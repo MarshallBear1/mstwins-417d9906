@@ -1,6 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Quote, Star, Users, MessageCircle, Heart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const SocialProof = () => {
   const testimonials = [
@@ -66,10 +67,14 @@ const SocialProof = () => {
   ];
 
   return (
-    <section className="py-16 bg-gradient-subtle">
-      <div className="container mx-auto px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center space-y-4 mb-16">
+    <section className="py-16 bg-gray-50">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-12">
+          <Badge variant="secondary" className="px-4 py-2 mb-4 text-sm font-semibold">
+            <span className="text-blue-600">
+              Real Stories from Our Community
+            </span>
+          </Badge>
           <h2 className="text-3xl md:text-4xl font-bold">
             Trusted by the{" "}
             <span className="bg-gradient-hero bg-clip-text text-transparent">

@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import LikeLimitWarning from "@/components/LikeLimitWarning";
 import { useNativeCapabilities } from "@/hooks/useNativeCapabilities";
-import { MobileProfileCard } from "@/components/ui/mobile-profile-card";
+import MobileProfileCard from "@/components/ui/mobile-profile-card";
 
 
 interface Profile {
@@ -245,22 +245,12 @@ const DiscoverProfiles = () => {
   const handleLike = async () => {
     if (!user || !currentProfile || actionLoading) return;
     
-    // PERFORMANCE OPTIMIZATION: Make UI updates IMMEDIATE for snappy mobile experience
-    setActionLoading(true);
-    
-    // Move to next profile IMMEDIATELY for instant UI response
-    handleNext();
-    setActionLoading(false);
-    
-    // Non-blocking haptic feedback (no await)
-    enhancedLikeAction();
-    
     // Show warning before like action when user has 4 likes remaining
     if (shouldShowWarning()) {
       setShowLimitWarning(true);
     }
     
-    // Check daily like limit optimistically
+    // Check daily like limit before proceeding (local check first)
     if (isLimitEnforced() && remainingLikes <= 0) {
       enhancedErrorAction(); // Non-blocking
       toast({
@@ -271,152 +261,126 @@ const DiscoverProfiles = () => {
       return;
     }
     
-    // ALL DATABASE OPERATIONS NOW RUN IN BACKGROUND (non-blocking)
-    const backgroundLikeProcess = async () => {
-      try {
-        console.log('🚀 Starting background like process for profile:', currentProfile.user_id);
-        
-        // Track profile like
-        analytics.profileLiked(user.id, currentProfile.user_id);
-        
-        // Check and increment daily likes using the database function
-        const { data: canLike, error: limitError } = await supabase.rpc('check_and_increment_daily_likes', {
-          target_user_id: currentProfile.user_id
-        });
-        
-        if (limitError) {
-          console.error('❌ Error checking like limit:', limitError);
-          enhancedErrorAction(); // Non-blocking
-          toast({
-            title: "Error",
-            description: "Something went wrong. Please try again.",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        if (!canLike) {
-          enhancedErrorAction(); // Non-blocking
-          toast({
-            title: "Daily Like Limit Reached",
-            description: "You've reached your daily limit of 10 likes. Come back tomorrow for more!",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        // Check if this will create a match
-        const { data: existingLike } = await supabase
-          .from('likes')
-          .select('*')
-          .eq('liker_id', currentProfile.user_id)
-          .eq('liked_id', user.id)
-          .maybeSingle();
-
-        const willCreateMatch = !!existingLike;
-        console.log('📊 Will create match:', willCreateMatch);
-
-        // Insert the like
-        const { data: newLike, error } = await supabase
-          .from('likes')
-          .insert({
-            liker_id: user.id,
-            liked_id: currentProfile.user_id
-          })
-          .select()
-          .single();
-
-        if (error) {
-          console.error('❌ Error creating like:', error);
-          enhancedErrorAction(); // Non-blocking
-          toast({
-            title: "Error",
-            description: "Something went wrong. Please try again.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        console.log('✅ Like created successfully:', newLike);
-        
-        // Update remaining likes count locally instead of database fetch
-        if (isLimitEnforced() && !hasUnlimitedLikes) {
-          // Optimistically update the likes count locally
-          const currentLikes = remainingLikes;
-          if (currentLikes > 0) {
-            // This will be handled by the useDailyLikes hook automatically
-            refreshRemainingLikes();
-          }
-        }
-
-        // Send email notifications in background (non-blocking for speed)
-        supabase.functions.invoke('email-notification-worker', {
-          body: {
-            type: willCreateMatch ? 'match' : 'like',
-            likerUserId: user.id,
-            likedUserId: currentProfile.user_id
-          }
-        }).then(() => {
-          console.log('✅ Email notification sent successfully');
-        }).catch((emailError) => {
-          console.error('❌ Error sending email notification:', emailError);
-        });
-
-        // Show match announcement if it's a match
-        if (willCreateMatch) {
-          enhancedSuccessAction(); // Non-blocking enhanced haptic for match
-          setShowMatchAnnouncement(true);
-          setTimeout(() => setShowMatchAnnouncement(false), 4000);
-          console.log('🎉 Match announcement shown!');
-        } else {
-          enhancedSuccessAction(); // Non-blocking success haptic for like
-        }
-
-      } catch (error) {
-        console.error('❌ Error in background like process:', error);
-        enhancedErrorAction(); // Non-blocking
-        toast({
-          title: "Error",
-          description: "Something went wrong. Please try again.",
-          variant: "destructive",
-        });
-      }
-      
-      console.log('🔄 Background like process completed');
-    };
+    setActionLoading(true);
     
-    // Run database operations in background without blocking UI
-    backgroundLikeProcess();
+    // OPTIMISTIC UI UPDATE - Move to next profile immediately for speed
+    const profileToLike = currentProfile; // Store reference before moving
+    handleNext(); // Move UI immediately
+    
+    // Non-blocking haptic feedback and analytics
+    enhancedLikeAction(); // Remove await for speed
+    analytics.profileLiked(user.id, profileToLike.user_id);
+    
+    console.log('🚀 Starting like process for profile:', profileToLike.user_id);
+    
+         // Background processing - don't block UI
+     Promise.resolve().then(async () => {
+       try {
+         // Parallel operations for speed
+         const [canLikeResult, existingLikeResult] = await Promise.all([
+           // Check like limit
+           supabase.rpc('check_and_increment_daily_likes', {
+             target_user_id: profileToLike.user_id
+           }),
+           // Check for existing like (for match detection)
+           supabase
+             .from('likes')
+             .select('*')
+             .eq('liker_id', profileToLike.user_id)
+             .eq('liked_id', user.id)
+             .maybeSingle()
+         ]);
+         
+         const { data: canLike, error: limitError } = canLikeResult;
+         const { data: existingLike } = existingLikeResult;
+         
+         if (limitError || !canLike) {
+           console.error('❌ Like limit reached:', limitError);
+           toast({
+             title: "Daily Like Limit Reached",
+             description: "You've reached your daily limit of 10 likes. Come back tomorrow for more!",
+             variant: "destructive",
+           });
+           return;
+         }
+
+         const willCreateMatch = !!existingLike;
+         console.log('📊 Will create match:', willCreateMatch);
+
+         // Insert the like (non-blocking for UI)
+         const { error: insertError } = await supabase
+           .from('likes')
+           .insert({
+             liker_id: user.id,
+             liked_id: profileToLike.user_id
+           });
+
+         if (insertError) {
+           console.error('❌ Error creating like:', insertError);
+           return;
+         }
+
+         console.log('✅ Like processed successfully');
+         
+         // Update remaining likes count in background
+         refreshRemainingLikes();
+
+         // Background email notifications (completely non-blocking)
+         supabase.functions.invoke('email-notification-worker', {
+           body: {
+             type: willCreateMatch ? 'match' : 'like',
+             likerUserId: user.id,
+             likedUserId: profileToLike.user_id
+           }
+         }).catch((emailError) => {
+           console.error('❌ Email notification error (non-critical):', emailError);
+         });
+
+         // Show match notification if it's a match
+         if (willCreateMatch) {
+           enhancedSuccessAction(); // Non-blocking haptic
+           toast({
+             title: "🎉 It's a Match!",
+             description: `You and ${profileToLike.first_name} liked each other!`,
+           });
+         }
+        
+      } catch (error) {
+        console.error('❌ Background like processing error:', error);
+        // Error is handled in background - UI already moved forward
+      } finally {
+        setActionLoading(false);
+      }
+    });
+    
+    // UI is already responsive - set loading to false quickly
+    setTimeout(() => setActionLoading(false), 100);
   };
 
   const handlePass = async () => {
     if (!user || !currentProfile || actionLoading) return;
     
-    // PERFORMANCE OPTIMIZATION: Make UI updates IMMEDIATE for snappy mobile experience
+    console.log('⏭️ Starting pass process for profile:', currentProfile.user_id);
     setActionLoading(true);
     
-    // Move to next profile IMMEDIATELY for instant UI response
-    handleNext();
-    setActionLoading(false);
+    // OPTIMISTIC UI UPDATE - Move to next profile immediately for speed
+    const profileToPass = currentProfile; // Store reference before moving
+    handleNext(); // Move UI immediately
     
-    // Non-blocking haptic feedback (no await)
-    enhancedButtonPress();
+    // Non-blocking haptic feedback and analytics
+    enhancedButtonPress(); // Remove await for speed
+    analytics.profilePassed(user.id, profileToPass.user_id);
     
-    console.log('⏭️ Starting background pass process for profile:', currentProfile.user_id);
-    
-    // ALL DATABASE OPERATIONS NOW RUN IN BACKGROUND (non-blocking)
-    const backgroundPassProcess = async () => {
-      try {
-        // Track profile pass
-        analytics.profilePassed(user.id, currentProfile.user_id);
-        
-        if (!showingSkipped) {
-          // Record the pass in the database
+    // Background processing - don't block UI
+    if (!showingSkipped) {
+      Promise.resolve().then(async () => {
+        try {
+          // Record the pass in the database (background)
           const { error } = await supabase
             .from('passes')
             .insert({
               passer_id: user.id,
-              passed_id: currentProfile.user_id
+              passed_id: profileToPass.user_id
             });
 
           if (error) {
@@ -424,17 +388,17 @@ const DiscoverProfiles = () => {
           } else {
             console.log('✅ Pass recorded successfully');
           }
+        } catch (error) {
+          console.error('❌ Background pass processing error:', error);
+          // Error is handled in background - UI already moved forward
         }
-        
-      } catch (error) {
-        console.error('❌ Error in background pass process:', error);
-      }
-      
-      console.log('⏭️ Background pass process completed');
-    };
+      });
+    }
     
-    // Run database operations in background without blocking UI
-    backgroundPassProcess();
+    // UI is already responsive - set loading to false quickly
+    setTimeout(() => setActionLoading(false), 50);
+    
+    console.log('⏭️ Pass process completed');
   };
 
   const handleNext = () => {
@@ -449,7 +413,14 @@ const DiscoverProfiles = () => {
 
   const currentProfile = profiles[currentIndex];
   
-
+  // Debug logging
+  console.log('🔍 Debug info:', {
+    profilesLength: profiles.length,
+    currentIndex,
+    hasCurrentProfile: !!currentProfile,
+    loading,
+    showingSkipped
+  });
 
   const openImageViewer = (imageIndex: number) => {
     setImageViewerIndex(imageIndex);
@@ -576,10 +547,8 @@ const DiscoverProfiles = () => {
           onImageClick={openImageViewer}
           isUserOnline={isUserOnline}
           getLastSeenText={getLastSeenText}
-          showActions={true}
           onLike={handleLike}
           onPass={handlePass}
-          actionLoading={actionLoading}
           className="animate-scale-in"
         />
       </div>

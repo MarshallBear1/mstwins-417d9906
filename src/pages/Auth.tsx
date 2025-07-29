@@ -314,308 +314,284 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-6">
-      <SecurityEnhancements />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <SEO 
-        title={isSignUp ? "Join MSTwins - Multiple Sclerosis Support Community | Sign Up Free" : "Sign In to MSTwins - MS Support Community"}
-        description={isSignUp ? "Create your free account on MSTwins and connect with others living with Multiple Sclerosis. Find friendship, support, and understanding in our safe community." : "Sign in to your MSTwins account and reconnect with your Multiple Sclerosis support community. Access messages, matches, and more."}
+        title={`${isSignUp ? 'Join MSTwins' : 'Sign In to MSTwins'}`}
+        description={`${isSignUp ? 'Create your free account and connect with others living with Multiple Sclerosis in our supportive community.' : 'Sign in to access your MSTwins account and connect with your MS support network.'}`}
         canonical="https://mstwins.com/auth"
       />
-      <div className="w-full max-w-6xl">
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
-          {/* Left side - Robot and Avatar for Sign Up */}
-          {isSignUp && !isPasswordReset && (
-            <div className="flex-shrink-0 order-2 lg:order-1 lg:mr-8">
-              <div className="relative flex justify-center animate-fade-in">
+      <SecurityEnhancements />
+      
+      {/* Back to Home Button */}
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate('/')}
+        className="fixed top-4 left-4 z-10 text-gray-600 hover:text-gray-900 hover:bg-white/80 backdrop-blur-sm rounded-full transition-all duration-200"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Home
+      </Button>
+
+      <div className="w-full max-w-md mx-auto">
+        <Card className="border-0 shadow-2xl bg-white rounded-3xl overflow-hidden">
+          <CardHeader className="pb-8 pt-10 bg-blue-600 text-white text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-black/5" />
+            <div className="relative z-10">
+              {/* Modern Logo */}
+              <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center backdrop-blur-sm">
+                <img 
+                  src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                  alt="MStwins" 
+                  className="w-10 h-10 object-contain" 
+                />
               </div>
+              
+              <CardTitle className="text-2xl font-bold mb-2">
+                {showForgotPassword ? "Reset Password" : 
+                 isPasswordReset ? "Set New Password" :
+                 isSignUp ? "Join MSTwins" : "Welcome Back"}
+              </CardTitle>
+              <CardDescription className="text-blue-100 text-base">
+                {showForgotPassword ? "Enter your email to reset your password" :
+                 isPasswordReset ? "Choose a strong new password" :
+                 isSignUp ? "Connect with others who understand your MS journey" : 
+                 "Sign in to your support community"}
+              </CardDescription>
             </div>
-          )}
+          </CardHeader>
 
-          {/* Right side - Auth Form */}
-          <div className="w-full max-w-lg order-1 lg:order-2">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors mb-8">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to home
-              </Link>
-            </div>
+          <CardContent className="p-8">
+            {rateLimitMessage && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                <p className="text-sm font-medium">{rateLimitMessage}</p>
+              </div>
+            )}
 
-            {/* Auth Card */}
-            <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95">
-              <CardHeader className="text-center pb-6">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {isPasswordReset 
-                    ? "Reset Your Password" 
-                    : isSignUp 
-                      ? "Join Multiple Sclerosis Support Community" 
-                      : "Welcome Back to MS Support"
-                  }
-                </h1>
-                <CardDescription className="text-base mt-2">
-                  {isPasswordReset
-                    ? "Enter your new password below"
-                    : isSignUp 
-                      ? "Create your account to start connecting with others who understand your journey" 
-                      : "Sign in to reconnect with your community"
-                  }
-                </CardDescription>
-              </CardHeader>
+            {showForgotPassword ? (
+              // Forgot Password Form
+              <form onSubmit={handleForgotPassword} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="forgotEmail" className="text-sm font-semibold text-gray-700">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Input
+                      id="forgotEmail"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                      required
+                    />
+                  </div>
+                </div>
 
-              <CardContent className="space-y-6 px-8 pb-8">
-                {isPasswordReset ? (
-                  <form onSubmit={handlePasswordReset} className="space-y-5">
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
+                >
+                  Back to Sign In
+                </Button>
+              </form>
+            ) : isPasswordReset ? (
+              // Password Reset Form
+              <form onSubmit={handlePasswordReset} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword" className="text-sm font-semibold text-gray-700">
+                    New Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">
+                    Confirm Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  disabled={loading || !passwordValid}
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Setting Password...
+                    </div>
+                  ) : (
+                    'Set New Password'
+                  )}
+                </Button>
+              </form>
+            ) : (
+              // Main Auth Form
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {isSignUp && (
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="newPassword" className="text-sm font-medium">New Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <Input 
-                          id="newPassword" 
-                          type="password" 
-                          placeholder="Enter new password"
-                          className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          required
-                        />
-                      </div>
+                      <Label htmlFor="firstName" className="text-sm font-semibold text-gray-700">
+                        First Name
+                      </Label>
+                      <Input
+                        id="firstName"
+                        placeholder="First name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                        required
+                      />
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm New Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <Input 
-                          id="confirmPassword" 
-                          type="password" 
-                          placeholder="Confirm new password"
-                          className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          required
-                        />
-                      </div>
+                      <Label htmlFor="lastName" className="text-sm font-semibold text-gray-700">
+                        Last Name
+                      </Label>
+                      <Input
+                        id="lastName"
+                        placeholder="Last name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                        required
+                      />
                     </div>
-
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200" 
-                      size="lg" 
-                      disabled={loading || !newPassword || !confirmPassword}
-                    >
-                      {loading ? (
-                        <div className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                          Updating Password...
-                        </div>
-                      ) : (
-                        "Update Password"
-                      )}
-                    </Button>
-                  </form>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    {isSignUp && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
-                          <Input 
-                            id="firstName" 
-                            placeholder="Sarah" 
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            required={isSignUp}
-                            className="h-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
-                          <Input 
-                            id="lastName" 
-                            placeholder="Johnson"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            required={isSignUp}
-                            className="h-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <Input 
-                          id="email" 
-                          type="email" 
-                          placeholder="sarah@example.com"
-                          className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <Input 
-                          id="password" 
-                          type="password" 
-                          placeholder="••••••••"
-                          className="h-12 pl-12 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          required
-                        />
-                      </div>
-                      {isSignUp && (
-                        <PasswordStrengthIndicator 
-                          password={password} 
-                          onValidationChange={handlePasswordValidation}
-                        />
-                      )}
-                    </div>
-
-                    {/* Rate limit warning */}
-                    {rateLimitMessage && (
-                      <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
-                        <AlertTriangle className="w-4 h-4 mr-2 flex-shrink-0" />
-                        {rateLimitMessage}
-                      </div>
-                    )}
-
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200" 
-                      size="lg" 
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        <div className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                          Loading...
-                        </div>
-                      ) : (
-                        <>
-                          {isSignUp ? "Create Your Account" : "Sign In"}
-                          <ArrowRight className="w-5 h-5 ml-2" />
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                )}
-
-                {!isPasswordReset && (
-                  <>
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-white text-gray-500">or</span>
-                      </div>
-                    </div>
-
-                    <div className="text-center">
-                      <button
-                        type="button"
-                        onClick={() => setIsSignUp(!isSignUp)}
-                        className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                      >
-                        {isSignUp 
-                          ? "Already have an account? Sign in instead" 
-                          : "Don't have an account? Create one"
-                        }
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {!isSignUp && !showForgotPassword && !isPasswordReset && (
-                  <div className="text-center">
-                    <button 
-                      type="button"
-                      onClick={() => setShowForgotPassword(true)}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Forgot your password?
-                    </button>
                   </div>
                 )}
 
-                {showForgotPassword && !isPasswordReset && (
-                  <Card className="border-blue-200 bg-blue-50/50">
-                    <CardContent className="p-4">
-                      <form onSubmit={handleForgotPassword} className="space-y-4">
-                        <div className="text-center">
-                          <h3 className="font-medium text-gray-900 mb-1">Reset Password</h3>
-                          <p className="text-sm text-gray-600">Enter your email to receive a reset link</p>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="resetEmail" className="text-sm font-medium">Email Address</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input 
-                              id="resetEmail" 
-                              type="email" 
-                              placeholder="Enter your email"
-                              className="h-10 pl-10"
-                              value={forgotPasswordEmail}
-                              onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                              required
-                            />
-                          </div>
-                        </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                      required
+                    />
+                  </div>
+                </div>
 
-                        <div className="flex gap-2">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => {
-                              setShowForgotPassword(false);
-                              setForgotPasswordEmail("");
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          <Button 
-                            type="submit" 
-                            size="sm"
-                            className="flex-1"
-                            disabled={loading || !forgotPasswordEmail}
-                          >
-                            {loading ? "Sending..." : "Send Reset Link"}
-                          </Button>
-                        </div>
-                      </form>
-                    </CardContent>
-                  </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                      required
+                    />
+                  </div>
+                                      {isSignUp && (
+                      <PasswordStrengthIndicator 
+                        password={password} 
+                        onValidationChange={handlePasswordValidation}
+                      />
+                    )}
+                </div>
+
+                <Button 
+                  type="submit" 
+                  disabled={loading || (isSignUp && !passwordValid)}
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      {isSignUp ? "Creating Account..." : "Signing In..."}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {isSignUp ? "Create Account" : "Sign In"}
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  )}
+                </Button>
+
+                {!isSignUp && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
+                  >
+                    Forgot your password?
+                  </Button>
                 )}
-              </CardContent>
-            </Card>
+              </form>
+            )}
 
-            {/* Community Note */}
-            <div className="text-center mt-8 p-4 bg-white/50 rounded-xl backdrop-blur-sm">
-              <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
-                <span className="flex items-center gap-1">
-                  🤝 <span className="font-medium">Community focused</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  🚫 <span className="font-medium">Not for dating</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  💙 <span className="font-medium">MS support network</span>
-                </span>
+            {!showForgotPassword && !isPasswordReset && (
+              <div className="mt-8 pt-6 border-t border-gray-100">
+                <p className="text-center text-gray-600">
+                  {isSignUp ? "Already have an account?" : "New to MSTwins?"}
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsSignUp(!isSignUp)}
+                    className="ml-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-semibold rounded-lg"
+                  >
+                    {isSignUp ? "Sign In" : "Create Account"}
+                  </Button>
+                </p>
               </div>
-            </div>
-          </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Trust indicators */}
+        <div className="mt-6 text-center space-y-2">
+          <p className="text-sm text-gray-500">
+            🔒 Your data is secure and private
+          </p>
+          <p className="text-xs text-gray-400">
+            Join 500+ members in our supportive MS community
+          </p>
         </div>
       </div>
     </div>

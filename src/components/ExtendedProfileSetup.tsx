@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeInput } from "@/lib/security";
+import { useCamera } from "@/hooks/useCamera";
 
 interface ExtendedProfileData {
   additionalPhotos: string[];
@@ -64,6 +65,7 @@ const ExtendedProfileSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const camera = useCamera();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showRobotPrompt, setShowRobotPrompt] = useState(true);
@@ -180,9 +182,55 @@ const ExtendedProfileSetup = () => {
     setShowPhotoChoiceDialog(true);
   };
 
-  const handleCameraChoice = () => {
-    const input = document.getElementById('camera-photo-upload') as HTMLInputElement;
-    input?.click();
+  const handleCameraChoice = async () => {
+    if (!camera.isSupported) {
+      toast({
+        title: "Camera Not Available",
+        description: "Camera is only available on mobile devices.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setUploading(true);
+      setShowPhotoChoiceDialog(false);
+      
+      // Take photo using native camera
+      const photo = await camera.takePhoto({
+        quality: 80,
+        saveToGallery: false,
+        width: 800,
+        height: 800,
+      });
+
+      if (photo && photo.webPath) {
+        // Convert photo to file for upload
+        const response = await fetch(photo.webPath);
+        const blob = await response.blob();
+        const file = new File([blob], `camera-photo-${Date.now()}.jpg`, { 
+          type: 'image/jpeg' 
+        });
+
+        // Create a mock file event to reuse existing upload logic
+        const mockEvent = {
+          target: {
+            files: [file]
+          }
+        } as any;
+
+        await handlePhotoUpload(mockEvent);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      toast({
+        title: "Camera Error",
+        description: "Could not take photo. Please try again.",
+        variant: "destructive",
+      });
+      setUploading(false);
+      setShowPhotoChoiceDialog(false);
+    }
   };
 
   const handleGalleryChoice = () => {
