@@ -1,0 +1,86 @@
+require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
+
+platform :ios, '15.0'
+use_frameworks!
+
+# workaround to avoid Xcode caching of Pods that requires
+# Product -> Clean Build Folder after new Cordova plugins installed
+# Requires CocoaPods 1.6 or newer
+install! 'cocoapods', :disable_input_output_paths => true
+
+def capacitor_pods
+  pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
+  pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
+  pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
+  pod 'CapacitorAppLauncher', :path => '../../node_modules/@capacitor/app-launcher'
+  pod 'CapacitorCamera', :path => '../../node_modules/@capacitor/camera'
+  pod 'CapacitorDevice', :path => '../../node_modules/@capacitor/device'
+  pod 'CapacitorFilesystem', :path => '../../node_modules/@capacitor/filesystem'
+  pod 'CapacitorGeolocation', :path => '../../node_modules/@capacitor/geolocation'
+  pod 'CapacitorHaptics', :path => '../../node_modules/@capacitor/haptics'
+  pod 'CapacitorLocalNotifications', :path => '../../node_modules/@capacitor/local-notifications'
+  pod 'CapacitorNetwork', :path => '../../node_modules/@capacitor/network'
+  pod 'CapacitorPreferences', :path => '../../node_modules/@capacitor/preferences'
+  pod 'CapacitorPushNotifications', :path => '../../node_modules/@capacitor/push-notifications'
+  pod 'CapacitorShare', :path => '../../node_modules/@capacitor/share'
+end
+
+target 'App' do
+  capacitor_pods
+  # Add your Pods here
+end
+
+post_install do |installer|
+  assertDeploymentTarget(installer)
+  
+  # FORCE iOS 15.0 deployment target on ALL targets and pods
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # Force iOS 15.0 deployment target
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
+      
+      # Suppress deprecation warnings for third-party pods
+      config.build_settings['GCC_WARN_DEPRECATED_FUNCTIONS'] = 'NO'
+      config.build_settings['CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS'] = 'NO'
+    end
+    
+    # Fix CocoaPods script phase warnings by adding proper output paths
+    target.build_phases.each do |build_phase|
+      if build_phase.class == Xcodeproj::Project::Object::PBXShellScriptBuildPhase
+        case build_phase.name
+        when '[CP] Embed Pods Frameworks'
+          # Add output paths to prevent "will run during every build" warning
+          build_phase.output_paths = [
+            '$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/'
+          ]
+        when '[CP] Copy Pods Resources'
+          # Add output paths for resources
+          build_phase.output_paths = [
+            '$(DERIVED_FILE_DIR)/Pods-App-checkManifestLockResult.txt'
+          ]
+        when '[CP] Check Pods Manifest.lock'
+          # Add output paths for manifest check
+          build_phase.output_paths = [
+            '$(DERIVED_FILE_DIR)/Pods-App-checkManifestLockResult.txt'
+          ]
+        when '[CP] Copy XCFrameworks'
+          # Fix for ION libraries and general XCFrameworks
+          if target.name.include?("ION") || target.name.include?("Capacitor")
+            build_phase.output_paths = [
+              "$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/#{target.name}.framework"
+            ]
+          end
+        end
+      end
+    end
+  end
+  
+  # Also update the main project deployment target
+  installer.pods_project.build_configurations.each do |config|
+    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    # Suppress warnings for the entire Pods project
+    config.build_settings['GCC_WARN_DEPRECATED_FUNCTIONS'] = 'NO'
+    config.build_settings['CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS'] = 'NO'
+  end
+end

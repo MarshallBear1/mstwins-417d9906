@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ‑‑‑ Basic app metadata ‑‑‑ -->
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>mstwins</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+
+	<!-- ‑‑‑ Export‑compliance flag (required) ‑‑‑ -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
+	<!-- ‑‑‑ Required for all iOS apps ‑‑‑ -->
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+
+	<!-- ‑‑‑ Privacy usage descriptions (REQUIRED by App Store) ‑‑‑ -->
+	
+	<!-- MANDATORY: Photo Library Access -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MStwins needs access to your photo library so you can select and upload profile pictures to connect with other community members.</string>
+	
+	<!-- Camera Access -->
+	<key>NSCameraUsageDescription</key>
+	<string>MStwins needs camera access so you can take profile photos to share with the community.</string>
+	
+	<!-- Location Services -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>MStwins uses your location to help you find and connect with other community members nearby for local support and friendship.</string>
+	
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>MStwins uses your location to help you find and connect with other community members nearby for local support and friendship.</string>
+	
+	<!-- Push Notifications -->
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>MStwins sends notifications to keep you updated about new messages, matches, and community activity.</string>
+
+	<!-- ‑‑‑ Launch & UI settings ‑‑‑ -->
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+
+	<!-- ‑‑‑ Device capabilities & orientations ‑‑‑ -->
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+</dict>
+</plist>

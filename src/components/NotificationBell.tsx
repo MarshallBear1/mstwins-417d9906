@@ -7,6 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Capacitor } from "@capacitor/core";
+
 const NotificationBell = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const {
@@ -17,10 +19,38 @@ const NotificationBell = () => {
     requestNotificationPermission,
     browserNotificationsEnabled
   } = useRealtimeNotifications();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+
+  // Detect iOS/iPhone - browser notifications don't work properly on iOS
+  const isIOS = () => {
+    return Capacitor.getPlatform() === 'ios' || 
+           /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  };
+
+  const isNativePlatform = () => {
+    return Capacitor.isNativePlatform();
+  };
+
   const handleEnableBrowserNotifications = async () => {
+    if (isNativePlatform()) {
+      toast({
+        title: "Native Notifications Active",
+        description: "Notifications work automatically through the app on mobile devices. No browser setup needed!",
+        variant: "default"
+      });
+      return;
+    }
+
+    if (isIOS()) {
+      toast({
+        title: "Use Native App",
+        description: "For best notification experience on iPhone, use the native app from the App Store.",
+        variant: "default"
+      });
+      return;
+    }
+
     const enabled = await requestNotificationPermission();
     if (enabled) {
       toast({
@@ -53,8 +83,14 @@ const NotificationBell = () => {
     }
   };
   return <div className="relative">
-      <Button variant="ghost" size="sm" onClick={() => setShowNotifications(!showNotifications)} className="relative">
-        <Bell className="w-5 h-5" />
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => setShowNotifications(!showNotifications)} 
+        className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex-shrink-0 relative"
+        title="Notifications"
+      >
+        <Bell className="w-4 h-4" />
         {unreadCount > 0 && <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
             {unreadCount > 99 ? '99+' : unreadCount}
           </Badge>}
@@ -65,11 +101,11 @@ const NotificationBell = () => {
           <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowNotifications(false)} />
           
           {/* Notifications Panel - Fixed mobile positioning */}
-          <Card className="fixed top-16 w-[calc(100vw-2rem)] sm:w-96 max-h-[60vh] z-50 shadow-lg border bg-background backdrop-blur-md left-1/2 -translate-x-1/2 sm:absolute sm:top-12 sm:left-auto sm:right-0 sm:translate-x-0 sm:w-96">{/* Fixed viewport centering on mobile */}
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <Card className="fixed top-16 w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] z-50 shadow-lg border bg-background backdrop-blur-md left-1/2 -translate-x-1/2 sm:absolute sm:top-12 sm:left-auto sm:right-0 sm:translate-x-0 sm:w-96 flex flex-col overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between pb-3 flex-shrink-0">
               <CardTitle className="text-sm font-medium">Notifications</CardTitle>
               <div className="flex items-center gap-2">
-                {!browserNotificationsEnabled && <Button variant="ghost" size="sm" onClick={handleEnableBrowserNotifications} className="text-xs h-6 px-2" title="Enable browser notifications">
+                {!browserNotificationsEnabled && !isNativePlatform() && <Button variant="ghost" size="sm" onClick={handleEnableBrowserNotifications} className="text-xs h-6 px-2" title="Enable browser notifications">
                     <Settings className="w-3 h-3 mr-1" />
                     Enable
                   </Button>}
@@ -82,39 +118,51 @@ const NotificationBell = () => {
               </div>
             </CardHeader>
             
-            <CardContent className="p-0">
-              <ScrollArea className="max-h-80">
-                {notifications.length === 0 ? <div className="p-6 text-center text-muted-foreground">
-                    <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No notifications yet</p>
-                  </div> : <div className="space-y-1">
-                    {notifications.map(notification => <div key={notification.id} onClick={() => handleNotificationClick(notification)} className={`p-3 hover:bg-muted/50 cursor-pointer transition-colors border-b border-border/50 ${!notification.is_read ? 'bg-primary/5' : ''}`}>
-                        <div className="flex items-start gap-3">
-                          <div className="mt-0.5">
-                            {getNotificationIcon(notification.type)}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-sm truncate">
-                                {notification.title}
-                              </p>
-                              {!notification.is_read && <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />}
+            <CardContent className="p-0 flex-1 overflow-hidden">
+              <ScrollArea className="h-full max-h-[calc(70vh-80px)]">
+                <div className="min-h-0">
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-muted-foreground">
+                      <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No notifications yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {notifications.map(notification => (
+                        <div 
+                          key={notification.id} 
+                          onClick={() => handleNotificationClick(notification)} 
+                          className={`p-3 hover:bg-muted/50 cursor-pointer transition-colors border-b border-border/50 ${!notification.is_read ? 'bg-primary/5' : ''}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5">
+                              {getNotificationIcon(notification.type)}
                             </div>
                             
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {notification.message}
-                            </p>
-                            
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {formatDistanceToNow(new Date(notification.created_at), {
-                        addSuffix: true
-                      })}
-                            </p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-sm truncate">
+                                  {notification.title}
+                                </p>
+                                {!notification.is_read && <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />}
+                              </div>
+                              
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {notification.message}
+                              </p>
+                              
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {formatDistanceToNow(new Date(notification.created_at), {
+                                  addSuffix: true
+                                })}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>)}
-                  </div>}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </ScrollArea>
             </CardContent>
           </Card>

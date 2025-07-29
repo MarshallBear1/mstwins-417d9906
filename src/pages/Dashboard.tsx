@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, LogOut, Eye } from "lucide-react";
+import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, Eye, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
@@ -485,17 +485,37 @@ const Dashboard = () => {
         paddingTop: isMobile ? `max(0.5rem, ${safeAreaInsets.top}px)` : undefined
       }}>
         <div className="flex items-center justify-between mobile-safe-x py-3">
+          {/* Left side - Logo */}
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-white border border-gray-200 shadow-sm">
+              <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="MSTwins mascot" className="w-full h-full object-contain" />
+            </div>
+            <span className="text-lg font-bold">
+              <span className="text-black">MS</span><span className="text-blue-600">Twins</span>
+            </span>
+          </div>
           
-          
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Right side - Action buttons */}
+          <div className="flex items-center space-x-1 sm:space-x-2">
             {/* Mobile Daily Likes Counter */}
-            {isLimitEnforced() && !hasUnlimitedLikes}
-            <NotificationBell />
+            {isLimitEnforced() && !hasUnlimitedLikes && (
+              <div className="text-xs text-muted-foreground px-2">
+                Likes: {remainingLikes}
+              </div>
+            )}
+            {/* Back to Discover button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setActiveTab("discover")} 
+              className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex-shrink-0" 
+              title="Back to Discover"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
             <ReferralDropdown />
             <FeedbackDialog />
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-foreground">
-              <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
-            </Button>
+            <NotificationBell />
           </div>
         </div>
       </div>
@@ -509,8 +529,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Enhanced bottom navigation - Hidden in profile section */}
-      <div className={`fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50 transition-transform duration-300 ${activeTab === 'profile' ? 'translate-y-full' : 'translate-y-0'}`} style={{
+      {/* Enhanced bottom navigation - Always visible for easy navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50 transition-transform duration-300" style={{
         paddingBottom: isMobile ? `max(0.5rem, ${safeAreaInsets.bottom}px)` : '0.5rem'
       }}>
         <div className="flex items-center justify-around py-2 mobile-safe-x">

@@ -83,11 +83,13 @@ export default function FeedbackDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="outline"
-          className="bg-background/50 backdrop-blur-sm border-accent/20 hover:bg-accent/10 min-h-[44px]"
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex-shrink-0"
+          title="Send Feedback"
         >
-          <MessageSquare className="h-4 w-4 mr-2" />
-          Feedback
+          <MessageSquare className="h-4 w-4" />
+          <span className="sr-only">Feedback</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[500px] mx-4 sm:mx-0 p-4 sm:p-6">

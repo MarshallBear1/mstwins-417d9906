@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { analytics } from '@/lib/analytics';
+import { Capacitor } from '@capacitor/core';
 
 // Email notification helper functions
 const sendWelcomeEmail = async (email: string, firstName?: string) => {
@@ -56,25 +57,54 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('🔐 Auth state change:', {
+          event,
+          userId: session?.user?.id,
+          hasSession: !!session,
+          platform: Capacitor.isNativePlatform() ? Capacitor.getPlatform() : 'web'
+        });
+        
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
         
         // Track authentication events
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ User signed in successfully:', {
+            userId: session.user.id,
+            email: session.user.email,
+            platform: Capacitor.isNativePlatform() ? Capacitor.getPlatform() : 'web'
+          });
+          
           analytics.identify(session.user.id, {
             email: session.user.email,
             created_at: session.user.created_at
           });
           analytics.userSignedIn(session.user.id);
         } else if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out');
           analytics.reset();
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          console.log('🔄 Auth token refreshed for user:', session.user?.id);
         }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check for existing session with enhanced debugging
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('❌ Error getting session:', error);
+      } else if (session) {
+        console.log('✅ Existing session found:', {
+          userId: session.user.id,
+          email: session.user.email,
+          expiresAt: session.expires_at,
+          platform: Capacitor.isNativePlatform() ? Capacitor.getPlatform() : 'web'
+        });
+      } else {
+        console.log('ℹ️ No existing session found');
+      }
+      
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);

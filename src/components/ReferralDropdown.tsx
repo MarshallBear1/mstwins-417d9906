@@ -59,12 +59,11 @@ const ReferralDropdown = () => {
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative group overflow-hidden hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300"
+        className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex-shrink-0 relative group"
+        title="Refer Friends"
       >
-        <div className="relative z-10 flex items-center gap-2">
-          <Share2 className="w-4 h-4" />
-          <span className="text-sm font-medium">Refer</span>
-        </div>
+        <Share2 className="w-4 h-4" />
+        <span className="sr-only">Refer</span>
         
         {/* Spark Animation outside the button */}
         <div className="absolute -inset-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
