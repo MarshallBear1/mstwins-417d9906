@@ -17,8 +17,8 @@ const NotificationBell = () => {
     unreadCount,
     markAsRead,
     markAllAsRead,
-    requestNotificationPermission,
-    browserNotificationsEnabled
+    requestAllPermissions,
+    notificationsEnabled
   } = useRealtimeNotifications();
   const { toast } = useToast();
 
@@ -52,7 +52,7 @@ const NotificationBell = () => {
       return;
     }
 
-    const enabled = await requestNotificationPermission();
+    const enabled = await requestAllPermissions();
     if (enabled) {
       toast({
         title: "Browser notifications enabled",
@@ -105,8 +105,8 @@ const NotificationBell = () => {
 
       {/* Modern notification panel */}
       {showNotifications && (
-        <div className="absolute top-16 right-4 w-80 z-50">
-          <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden">
+        <div className="fixed top-20 left-4 right-4 sm:absolute sm:top-16 sm:right-4 sm:left-auto sm:w-80 z-50">
+          <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden max-h-[70vh] sm:max-h-none">
             <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-purple-50">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-bold text-gray-900">Notifications</CardTitle>

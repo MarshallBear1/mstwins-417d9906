@@ -95,7 +95,7 @@ const MobileProfileCard = ({
           display: 'block'
         }}>
           {/* Smaller Header focused on profile picture */}
-          <div className="relative h-48 bg-blue-500 flex items-center justify-center overflow-hidden">
+          <div className="relative h-32 bg-blue-500 flex items-center justify-center overflow-hidden">
             {/* Smaller Profile Image with reduced border */}
             <button onClick={() => onImageClick?.(0)} className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-lg hover:scale-110 transition-all duration-300 mobile-touch-target">
               {profile.avatar_url ? (
@@ -247,7 +247,7 @@ const MobileProfileCard = ({
             backfaceVisibility: 'hidden'
           }}>
             {/* Back content implementation continues... */}
-            <div className="relative h-48 bg-purple-500 flex items-center justify-center overflow-hidden">
+            <div className="relative h-32 bg-purple-500 flex items-center justify-center overflow-hidden">
               <div className="absolute inset-0 bg-black/10"></div>
               
               {/* Back Button */}
@@ -265,7 +265,7 @@ const MobileProfileCard = ({
               </div>
             </div>
 
-            <CardContent className="p-4 space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 12rem)' }}>
+            <CardContent className="p-4 space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 8rem)' }}>
               {/* Additional Photos */}
               {profile.photos && profile.photos.length > 1 && (
                 <div>
