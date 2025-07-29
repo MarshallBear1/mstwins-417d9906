@@ -762,7 +762,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         </div>
       ) : (
         /* Modern Match List - Instagram Style */
-        <div className="h-full bg-white">
+        <div className="h-full bg-white flex flex-col">
           {/* Header */}
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Messages</h2>
@@ -770,11 +770,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center h-64">
+            <div className="flex items-center justify-center flex-1">
               <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : matches.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 px-6 text-center">
+            <div className="flex flex-col items-center justify-center flex-1 px-6 text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
                 <Heart className="w-8 h-8 text-white" />
               </div>
@@ -794,12 +794,12 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                        // Use navigate to properly update URL and trigger re-render
                        navigate(`/dashboard?tab=messages&match=${match.id}`, { replace: true });
                      }}
-                     className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all duration-200 border border-gray-200 hover:border-blue-300 hover:bg-blue-50 mb-3 ${
-                       selectedMatch?.id === match.id ? 'bg-blue-50 border-blue-400 shadow-sm' : 'bg-white hover:shadow-md'
-                     }`}
-                   >
-                     <div className="relative">
-                       <Avatar className="h-14 w-14 border-2 border-white shadow-md">
+                      className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 border border-gray-200 hover:border-blue-300 hover:bg-blue-50 mb-2 ${
+                        selectedMatch?.id === match.id ? 'bg-blue-50 border-blue-400 shadow-sm' : 'bg-white hover:shadow-md'
+                      }`}
+                    >
+                      <div className="relative">
+                        <Avatar className="h-12 w-12 border-2 border-white shadow-md">
                          <AvatarImage 
                            src={match.other_user.avatar_url || undefined} 
                            alt={match.other_user.first_name}
@@ -808,19 +808,19 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                            {match.other_user.first_name[0]}{match.other_user.last_name[0]}
                          </AvatarFallback>
                        </Avatar>
-                       {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
-                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-                       )}
+                        {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                        )}
                      </div>
                      
                      <div className="flex-1 min-w-0">
-                       <div className="flex items-center justify-between mb-1">
-                         <div className="flex items-center gap-2">
-                           <h3 className="font-semibold text-gray-900 truncate">
-                             {match.other_user.first_name} {match.other_user.last_name}
-                           </h3>
-                           <MessageCircle className="w-4 h-4 text-blue-500" />
-                         </div>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-gray-900 truncate text-sm">
+                              {match.other_user.first_name} {match.other_user.last_name}
+                            </h3>
+                            <MessageCircle className="w-3 h-3 text-blue-500" />
+                          </div>
                          {match.unread_count > 0 && (
                            <Badge className="bg-blue-500 text-white rounded-full h-5 min-w-[20px] text-xs">
                              {match.unread_count}
@@ -828,8 +828,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                          )}
                        </div>
                        
-                       {/* User details */}
-                       <div className="flex flex-wrap gap-1 mb-2">
+                        {/* User details */}
+                        <div className="flex flex-wrap gap-1 mb-1">
                          {match.other_user.date_of_birth && (
                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
                              {(() => {
@@ -867,10 +867,31 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                      </div>
                    </div>
                 ))}
-              </div>
-            </ScrollArea>
-          )}
-        </div>
+               </div>
+             </ScrollArea>
+           )}
+           
+           {/* Message Input - Always Show */}
+           <div className="p-4 border-t border-gray-100 bg-white">
+             <div className="flex gap-3 items-end">
+               <div className="flex-1">
+                 <Input
+                   value=""
+                   placeholder="Select a match to start messaging..."
+                   className="min-h-[44px] resize-none border-2 border-gray-200 rounded-2xl px-4 py-3"
+                   disabled={true}
+                 />
+               </div>
+               <Button
+                 size="sm"
+                 disabled={true}
+                 className="h-11 w-11 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 p-0 opacity-50"
+               >
+                 <Send className="w-5 h-5" />
+               </Button>
+             </div>
+           </div>
+         </div>
       )}
     </div>
   );
