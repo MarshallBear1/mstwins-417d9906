@@ -392,7 +392,7 @@ const Dashboard = () => {
                               <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                               View
                             </Button>
-                            <Button size="sm" className="w-full bg-gradient-primary hover:opacity-90 text-white text-xs sm:text-sm" onClick={async () => {
+                            <Button size="sm" className="w-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white text-xs sm:text-sm group" onClick={async () => {
                       try {
                         console.log('🚀 Starting like back process for:', likedProfile.user_id);
 
@@ -425,7 +425,8 @@ const Dashboard = () => {
                         console.error('❌ Error in like back process:', error);
                       }
                     }}>
-                              ❤️ Like Back
+                              <Heart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
+                              Like Back
                             </Button>
                           </div>
                       </div>
@@ -436,9 +437,9 @@ const Dashboard = () => {
                   <p className="text-muted-foreground">No likes yet. Keep swiping!</p>
                 </div>}
           </div>;
-      case "messages":
-        return <Messaging />;
       case "matches":
+        return <Messaging />;
+      case "messages":
         return <Messaging />;
       case "profile":
         return <ProfileCard profile={profile} onProfileUpdate={updatedProfile => setProfile({

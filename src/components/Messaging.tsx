@@ -787,7 +787,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                 {matches.map((match) => (
                   <div
                     key={match.id}
-                    onClick={() => setSelectedMatch(match)}
+                    onClick={() => {
+                      setSelectedMatch(match);
+                      // Fetch messages for this match when selected
+                      fetchMessages(match.id);
+                    }}
                     className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 cursor-pointer transition-colors"
                   >
                     <div className="relative">

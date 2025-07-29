@@ -221,9 +221,9 @@ const MobileProfileCard = ({
               {onLike && (
                 <Button
                   onClick={onLike}
-                  className="flex-1 h-10 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                  className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group"
                 >
-                  <Heart className="w-4 h-4 mr-1" />
+                  <Heart className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
                   Like
                 </Button>
               )}
@@ -325,9 +325,9 @@ const MobileProfileCard = ({
                   {onLike && (
                     <Button
                       onClick={onLike}
-                      className="flex-1 h-10 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                      className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group"
                     >
-                      <Heart className="w-4 h-4 mr-1" />
+                      <Heart className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
                       Like
                     </Button>
                   )}
