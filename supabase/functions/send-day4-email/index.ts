@@ -121,12 +121,23 @@ const handler = async (req: Request): Promise<Response> => {
           <div class="content">
             <p>Hi ${first_name},</p>
             
-            <p>You've been with us for 4 days now, and we're thrilled to see you're part of our growing MS community! 🌟</p>
+            <p>We've been with you for the last few days now, and we're thrilled to see you're part of our growing MS community! 🌟</p>
             
             <div class="highlight">
-              <h3 style="margin-top: 0;">🎯 Ready to Connect Deeper?</h3>
-              <p>Many members find their closest connections after their first week. Here's how to maximize your experience:</p>
+              <h3 style="margin-top: 0;">🔧 Important Updates & Improvements</h3>
+              <p>We've been hard at work making your experience even better:</p>
+              <ul style="margin: 10px 0; padding-left: 20px;">
+                <li><strong>Bug fixes implemented</strong> - We've resolved several issues for smoother performance</li>
+                <li><strong>Enhanced stability</strong> - Everything should run much better now!</li>
+                <li><strong>Mobile app coming soon</strong> - We'll be releasing in the app stores in the next few days!</li>
+              </ul>
             </div>
+            
+            <p style="text-align: center;">
+              <a href="https://sharedgenes.lovable.app/dashboard" class="cta-button">
+                Check Out The Improvements →
+              </a>
+            </p>
             
             <div class="tips">
               <h4>💡 Pro Tips for Better Connections:</h4>
@@ -138,18 +149,12 @@ const handler = async (req: Request): Promise<Response> => {
               </ul>
             </div>
             
-            <p style="text-align: center;">
-              <a href="https://sharedgenes.lovable.app/dashboard" class="cta-button">
-                Continue Your Journey →
-              </a>
-            </p>
-            
             <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
-              <h4 style="margin-top: 0;">🤝 Community Spotlight</h4>
-              <p>This week, we've seen incredible support between members sharing treatment experiences and daily life tips. Your voice matters in this community!</p>
+              <h4 style="margin-top: 0;">🚀 Exciting Things Coming!</h4>
+              <p>We're adding some amazing new features in the next couple of days, so stay tuned! And please keep referring your friends - every new member makes our community stronger.</p>
             </div>
             
-            <p>Remember, every connection you make here is built on shared understanding and genuine support. Take your time, be yourself, and know that this community is here for you.</p>
+            <p>Remember, every connection you make here is built on shared understanding and genuine support. With our recent improvements, your experience should be smoother than ever!</p>
             
             <p>If you have any questions or need support, we're always here to help.</p>
             
