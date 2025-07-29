@@ -64,16 +64,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Production mode - find users who joined exactly 4 days ago
-    const fourDaysAgo = new Date();
-    fourDaysAgo.setDate(fourDaysAgo.getDate() - 4);
-    const startOfDay = new Date(fourDaysAgo.getFullYear(), fourDaysAgo.getMonth(), fourDaysAgo.getDate());
-    const endOfDay = new Date(startOfDay);
-    endOfDay.setDate(endOfDay.getDate() + 1);
+    // Production mode - send to ALL users regardless of join date
+    console.log(`🔍 Looking for ALL users who haven't received day 4 email yet`);
 
-    console.log(`🔍 Looking for users who joined between ${startOfDay.toISOString()} and ${endOfDay.toISOString()}`);
-
-    // Get users who joined 4 days ago and haven't received day 4 email yet
+    // Get ALL users who haven't received day 4 email yet
     const { data: usersToEmail, error: usersError } = await supabase
       .from('profiles')
       .select(`
@@ -81,8 +75,6 @@ const handler = async (req: Request): Promise<Response> => {
         first_name,
         created_at
       `)
-      .gte('created_at', startOfDay.toISOString())
-      .lt('created_at', endOfDay.toISOString())
       .not('user_id', 'in', `(
         SELECT user_id 
         FROM re_engagement_emails 

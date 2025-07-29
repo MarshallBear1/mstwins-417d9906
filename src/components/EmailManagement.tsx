@@ -28,7 +28,7 @@ export const EmailManagement = () => {
     },
     day4: {
       label: "Day 4 Email",
-      description: "Deeper connections email",
+      description: "Send to ALL users (regardless of join date)",
       icon: Heart,
       previewOperation: "send-day4-email",
       bulkOperation: "send-day4-all-users"
@@ -158,7 +158,7 @@ export const EmailManagement = () => {
                 Send to All
               </h3>
               <p className="text-sm text-muted-foreground">
-                {selectedEmailType === 'announcement' ? "Send to all registered users" : `Send to users who joined ${selectedEmailType.replace('day', '')} days ago`}
+                {selectedEmailType === 'announcement' || selectedEmailType === 'day4' ? "Send to all registered users" : `Send to users who joined ${selectedEmailType.replace('day', '')} days ago`}
               </p>
               <Button onClick={sendToAll} disabled={isSendingAll} className="w-full">
                 {isSendingAll ? "Sending..." : "Send to All"}
