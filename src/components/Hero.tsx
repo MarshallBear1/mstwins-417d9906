@@ -12,9 +12,23 @@ const Hero = () => {
       </div>
       
       <div className="container mx-auto px-6 lg:px-8 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        {/* Mobile and tablet: stacked layout */}
+        <div className="lg:hidden grid gap-12 items-center">
           <HeroContent />
           <ProfileDemo />
+        </div>
+        
+        {/* Desktop: centered layout */}
+        <div className="hidden lg:flex lg:flex-col lg:items-center lg:space-y-16">
+          {/* Centered main content */}
+          <div className="w-full max-w-5xl">
+            <HeroContent />
+          </div>
+          
+          {/* Centered profile demo below */}
+          <div className="w-full max-w-md">
+            <ProfileDemo />
+          </div>
         </div>
       </div>
     </section>
@@ -22,3 +36,4 @@ const Hero = () => {
 };
 
 export default Hero;
+
