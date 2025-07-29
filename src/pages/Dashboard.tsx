@@ -65,9 +65,12 @@ const Dashboard = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [likes, setLikes] = useState<Profile[]>([]);
   const [likesLoading, setLikesLoading] = useState(false);
+  const [matches, setMatches] = useState<any[]>([]);
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
+  const [showMatchPopup, setShowMatchPopup] = useState(false);
+  const [matchedUser, setMatchedUser] = useState<Profile | null>(null);
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'discover';
 
@@ -213,10 +216,70 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch likes when the likes or matches tab is opened
+  // Function to fetch matches
+  const fetchMatches = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          user1_profile:profiles!matches_user1_id_fkey(*),
+          user2_profile:profiles!matches_user2_id_fkey(*)
+        `)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setMatches(data);
+      }
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+    }
+  };
+
+  // Function to check if user has matched with someone
+  const isMatched = (userId: string) => {
+    return matches.some(match => 
+      (match.user1_id === user?.id && match.user2_id === userId) ||
+      (match.user2_id === user?.id && match.user1_id === userId)
+    );
+  };
+
+  // Function to check for match and return if a new match was created
+  const checkForMatch = async (otherUserId: string) => {
+    try {
+      // Check if there's already a match
+      const { data: existingMatch } = await supabase
+        .from('matches')
+        .select('id')
+        .or(`and(user1_id.eq.${user?.id},user2_id.eq.${otherUserId}),and(user1_id.eq.${otherUserId},user2_id.eq.${user?.id})`)
+        .maybeSingle();
+
+      if (existingMatch) {
+        return true; // Match already exists
+      }
+
+      // Check if both users have liked each other
+      const { data: mutualLike } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('liker_id', otherUserId)
+        .eq('liked_id', user?.id)
+        .maybeSingle();
+
+      return !!mutualLike; // Return true if there's a mutual like (indicating a new match)
+    } catch (error) {
+      console.error('Error checking for match:', error);
+      return false;
+    }
+  };
+
+  // Fetch likes and matches when the likes or matches tab is opened
   useEffect(() => {
     if ((activeTab === 'likes' || activeTab === 'matches') && user) {
       fetchLikes();
+      fetchMatches();
     }
   }, [activeTab, user]);
 
@@ -402,6 +465,14 @@ const Dashboard = () => {
                         } = await supabase.from('likes').select('id').eq('liker_id', user?.id).eq('liked_id', likedProfile.user_id).maybeSingle();
                         if (existingLike) {
                           console.log('✅ Already liked back');
+                          
+                          // Check if this creates a match immediately
+                          const isNewMatch = await checkForMatch(likedProfile.user_id);
+                          if (isNewMatch) {
+                            setMatchedUser(likedProfile);
+                            setShowMatchPopup(true);
+                          }
+                          
                           fetchLikes(); // Refresh to show updated state
                           return;
                         }
@@ -419,8 +490,16 @@ const Dashboard = () => {
                         }
                         console.log('✅ Liked back successfully!');
 
+                        // Check for immediate match and show popup
+                        const isMatch = await checkForMatch(likedProfile.user_id);
+                        if (isMatch) {
+                          setMatchedUser(likedProfile);
+                          setShowMatchPopup(true);
+                        }
+
                         // Refresh the likes to show updated state
                         fetchLikes();
+                        fetchMatches();
                       } catch (error) {
                         console.error('❌ Error in like back process:', error);
                       }
@@ -428,6 +507,16 @@ const Dashboard = () => {
                               <Heart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
                               Like Back
                             </Button>
+                            
+                            {/* Show chat button if matched */}
+                            {isMatched(likedProfile.user_id) && (
+                              <Button size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm" onClick={() => {
+                                navigate('/dashboard?tab=messages');
+                              }}>
+                                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                Chat Now
+                              </Button>
+                            )}
                           </div>
                       </div>
                     </CardContent>
@@ -503,42 +592,69 @@ const Dashboard = () => {
                               <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                               View
                             </Button>
-                            <Button size="sm" className="w-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white text-xs sm:text-sm group" onClick={async () => {
-                      try {
-                        console.log('🚀 Starting like back process for:', likedProfile.user_id);
+                            
+                            {/* Show "Chat Now" button if matched, "Like Back" if not */}
+                            {isMatched(likedProfile.user_id) ? (
+                              <Button size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm" onClick={() => {
+                                navigate('/dashboard?tab=messages');
+                              }}>
+                                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                Chat Now
+                              </Button>
+                            ) : (
+                              <Button size="sm" className="w-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white text-xs sm:text-sm group" onClick={async () => {
+                                try {
+                                  console.log('🚀 Starting like back process for:', likedProfile.user_id);
 
-                        // Check if user already liked this person back
-                        const {
-                          data: existingLike
-                        } = await supabase.from('likes').select('id').eq('liker_id', user?.id).eq('liked_id', likedProfile.user_id).maybeSingle();
-                        if (existingLike) {
-                          console.log('✅ Already liked back');
-                          fetchLikes(); // Refresh to show updated state
-                          return;
-                        }
+                                  // Check if user already liked this person back
+                                  const {
+                                    data: existingLike
+                                  } = await supabase.from('likes').select('id').eq('liker_id', user?.id).eq('liked_id', likedProfile.user_id).maybeSingle();
+                                  if (existingLike) {
+                                    console.log('✅ Already liked back');
+                                    
+                                    // Check if this creates a match immediately
+                                    const isNewMatch = await checkForMatch(likedProfile.user_id);
+                                    if (isNewMatch) {
+                                      setMatchedUser(likedProfile);
+                                      setShowMatchPopup(true);
+                                    }
+                                    
+                                    fetchLikes(); // Refresh to show updated state
+                                    return;
+                                  }
 
-                        // Create a like back
-                        const {
-                          error
-                        } = await supabase.from('likes').insert({
-                          liker_id: user?.id,
-                          liked_id: likedProfile.user_id
-                        });
-                        if (error) {
-                          console.error('❌ Error liking back:', error);
-                          return;
-                        }
-                        console.log('✅ Liked back successfully!');
+                                  // Create a like back
+                                  const {
+                                    error
+                                  } = await supabase.from('likes').insert({
+                                    liker_id: user?.id,
+                                    liked_id: likedProfile.user_id
+                                  });
+                                  if (error) {
+                                    console.error('❌ Error liking back:', error);
+                                    return;
+                                  }
+                                  console.log('✅ Liked back successfully!');
 
-                        // Refresh the likes to show updated state
-                        fetchLikes();
-                      } catch (error) {
-                        console.error('❌ Error in like back process:', error);
-                      }
-                    }}>
-                              <Heart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
-                              Like Back
-                            </Button>
+                                  // Check for immediate match and show popup
+                                  const isMatch = await checkForMatch(likedProfile.user_id);
+                                  if (isMatch) {
+                                    setMatchedUser(likedProfile);
+                                    setShowMatchPopup(true);
+                                  }
+
+                                  // Refresh the likes to show updated state
+                                  fetchLikes();
+                                  fetchMatches();
+                                } catch (error) {
+                                  console.error('❌ Error in like back process:', error);
+                                }
+                              }}>
+                                <Heart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
+                                Like Back
+                              </Button>
+                            )}
                           </div>
                       </div>
                     </CardContent>
@@ -629,6 +745,42 @@ const Dashboard = () => {
               <DiscoverProfileCard profile={selectedProfileForView} />
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Match Popup Dialog */}
+      <Dialog open={showMatchPopup} onOpenChange={setShowMatchPopup}>
+        <DialogContent className="p-0 max-w-sm w-full bg-gradient-to-br from-pink-50 to-purple-50 border-2 border-pink-200">
+          <div className="p-6 text-center">
+            <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+              <Heart className="w-10 h-10 text-white" fill="currentColor" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">It's a Match! 🎉</h2>
+            {matchedUser && (
+              <p className="text-gray-700 mb-4">
+                You and <span className="font-semibold text-pink-600">{matchedUser.first_name}</span> liked each other!
+              </p>
+            )}
+            <div className="flex flex-col gap-3">
+              <Button 
+                onClick={() => {
+                  setShowMatchPopup(false);
+                  navigate('/dashboard?tab=messages');
+                }} 
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Start Chatting
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowMatchPopup(false)}
+                className="w-full border-pink-300 text-pink-700 hover:bg-pink-50"
+              >
+                Keep Discovering
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
       </div>
