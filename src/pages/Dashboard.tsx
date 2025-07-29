@@ -665,7 +665,8 @@ const Dashboard = () => {
                 </div>}
           </div>;
       case "messages":
-        return <Messaging />;
+        const matchId = searchParams.get('match');
+        return <Messaging matchId={matchId || undefined} />;
       case "profile":
         return <ProfileCard profile={profile} onProfileUpdate={updatedProfile => setProfile({
           ...updatedProfile,

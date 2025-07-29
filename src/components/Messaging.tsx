@@ -788,8 +788,12 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                    <div
                      key={match.id}
                      onClick={() => {
+                       console.log('🔄 Match clicked:', match.id);
+                       // Update URL state without full navigation
+                       const newUrl = `/dashboard?tab=messages&match=${match.id}`;
+                       window.history.replaceState({}, '', newUrl);
+                       // Update state directly to prevent re-render loops
                        setSelectedMatch(match);
-                       // Fetch messages for this match when selected
                        fetchMessages(match.id);
                      }}
                      className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all duration-200 border border-gray-200 hover:border-blue-300 hover:bg-blue-50 mb-3 ${
