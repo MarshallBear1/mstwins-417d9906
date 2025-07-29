@@ -207,6 +207,9 @@ export const filterContent = async (content: string): Promise<{
     }
   }
   
+  // TODO: Re-enable OpenAI moderation after proper deployment and configuration
+  // For now, skip AI moderation to ensure messaging works
+  /*
   // If content passed basic filters, check with OpenAI
   if (!flagged || severity === 'low') {
     try {
@@ -222,6 +225,7 @@ export const filterContent = async (content: string): Promise<{
       console.warn('AI moderation check failed:', error);
     }
   }
+  */
   
   return { filtered, flagged, reasons, severity };
 };
