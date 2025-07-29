@@ -1,4 +1,5 @@
 import { useState, useEffect, memo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +64,7 @@ interface MessagingProps {
 
 const Messaging = ({ matchId, onBack }: MessagingProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -789,12 +791,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                      key={match.id}
                      onClick={() => {
                        console.log('🔄 Match clicked:', match.id);
-                       // Update URL state without full navigation
-                       const newUrl = `/dashboard?tab=messages&match=${match.id}`;
-                       window.history.replaceState({}, '', newUrl);
-                       // Update state directly to prevent re-render loops
-                       setSelectedMatch(match);
-                       fetchMessages(match.id);
+                       // Use navigate to properly update URL and trigger re-render
+                       navigate(`/dashboard?tab=messages&match=${match.id}`, { replace: true });
                      }}
                      className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all duration-200 border border-gray-200 hover:border-blue-300 hover:bg-blue-50 mb-3 ${
                        selectedMatch?.id === match.id ? 'bg-blue-50 border-blue-400 shadow-sm' : 'bg-white hover:shadow-md'
