@@ -335,6 +335,15 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     }
   };
 
+  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleTyping(e.target.value);
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendMessage();
+  };
+
   const sendMessage = async () => {
     if (!user || !selectedMatch || !newMessage.trim()) return;
 
@@ -579,9 +588,28 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                   </Button>
                 </DialogTrigger>
                 <ProfileViewDialog 
-                  profile={selectedMatch.other_user}
-                  isOpen={showProfileView}
-                  onClose={() => setShowProfileView(false)}
+                  profile={{
+                    id: selectedMatch.other_user.id || selectedMatch.other_user.user_id || '',
+                    user_id: selectedMatch.other_user.user_id || selectedMatch.other_user.id || '',
+                    first_name: selectedMatch.other_user.first_name,
+                    last_name: selectedMatch.other_user.last_name,
+                    date_of_birth: selectedMatch.other_user.date_of_birth || null,
+                    location: selectedMatch.other_user.location || '',
+                    gender: selectedMatch.other_user.gender || null,
+                    ms_subtype: selectedMatch.other_user.ms_subtype || null,
+                    diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
+                    symptoms: selectedMatch.other_user.symptoms || [],
+                    medications: selectedMatch.other_user.medications || [],
+                    hobbies: selectedMatch.other_user.hobbies || [],
+                    avatar_url: selectedMatch.other_user.avatar_url,
+                    about_me: selectedMatch.other_user.about_me || null,
+                    last_seen: selectedMatch.other_user.last_seen || null,
+                    additional_photos: selectedMatch.other_user.additional_photos || [],
+                    selected_prompts: selectedMatch.other_user.selected_prompts || [],
+                    extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
+                  }}
+                  open={showProfileView}
+                  onOpenChange={setShowProfileView}
                 />
               </Dialog>
 
@@ -685,12 +713,12 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
           {/* Modern Message Input */}
           <div className="p-4 border-t border-gray-100 bg-white">
-            <form onSubmit={sendMessage} className="flex gap-3 items-end">
+            <form onSubmit={handleSendMessage} className="flex gap-3 items-end">
               <div className="flex-1">
                 <Input
-                                     value={newMessage}
-                   onChange={handleMessageChange}
-                   placeholder={`Message ${selectedMatch.other_user.first_name}...`}
+                  value={newMessage}
+                  onChange={handleMessageChange}
+                  placeholder={`Message ${selectedMatch.other_user.first_name}...`}
                   className="min-h-[44px] max-h-32 resize-none border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-0 transition-colors px-4 py-3"
                   disabled={sending}
                 />
