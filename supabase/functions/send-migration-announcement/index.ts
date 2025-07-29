@@ -139,14 +139,32 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Create the campaign in database
+    // Get the list ID first
+    const { data: listData, error: listError } = await supabaseClient
+      .from('announcement_email_lists')
+      .select('id')
+      .eq('list_name', list_name)
+      .single();
+
+    if (listError || !listData) {
+      console.error('❌ Failed to find email list:', listError);
+      throw new Error(`Email list '${list_name}' not found`);
+    }
+
+    console.log('✅ Found email list:', listData);
+
+    // Create the campaign directly in database
     const { data: campaignData, error: campaignError } = await supabaseClient
-      .rpc('send_announcement_email', {
+      .from('announcement_campaigns')
+      .insert({
         campaign_name,
-        email_subject: emailSubject,
-        email_content: emailContent,
-        list_name
-      });
+        subject: emailSubject,
+        content: emailContent,
+        list_id: listData.id,
+        created_by: '00000000-0000-0000-0000-000000000000' // Edge function placeholder
+      })
+      .select()
+      .single();
 
     if (campaignError) {
       console.error('❌ Failed to create campaign:', campaignError);
@@ -215,7 +233,7 @@ const handler = async (req: Request): Promise<Response> => {
         sent_at: new Date().toISOString(),
         completed_at: new Date().toISOString()
       })
-      .eq('id', campaignData.campaign_id);
+      .eq('id', campaignData.id);
 
     if (updateError) {
       console.error('❌ Failed to update campaign status:', updateError);
@@ -226,7 +244,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(JSON.stringify({
       success: true,
       message: 'Migration announcement emails sent successfully',
-      campaign_id: campaignData.campaign_id,
+      campaign_id: campaignData.id,
       sent_count: sentCount,
       failed_count: failedCount,
       total_emails: emailList?.length || 0
