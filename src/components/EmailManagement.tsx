@@ -2,348 +2,225 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Send, Mail, Users, Eye, MessageSquare, Heart, Calendar } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Send, Mail } from "lucide-react";
+
+type EmailType = "announcement" | "day2" | "patrick";
+type SendMode = "preview" | "all";
 
 export const EmailManagement = () => {
-  // Announcement Email State
+  const [emailType, setEmailType] = useState<EmailType>("announcement");
+  const [sendMode, setSendMode] = useState<SendMode>("preview");
   const [previewEmail, setPreviewEmail] = useState("");
-  const [isPreviewSending, setIsPreviewSending] = useState(false);
-  const [isSendingAll, setIsSendingAll] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Day 2 Email State  
-  const [day2PreviewEmail, setDay2PreviewEmail] = useState("");
-  const [isDay2PreviewSending, setIsDay2PreviewSending] = useState(false);
-  const [isDay2SendingAll, setIsDay2SendingAll] = useState(false);
+  const emailTypes = {
+    announcement: {
+      label: "📢 Announcement Email",
+      description: "General announcements to users with referral and feedback links"
+    },
+    day2: {
+      label: "📅 Day 2 Welcome Email", 
+      description: "Welcome email sent to users 2 days after registration"
+    },
+    patrick: {
+      label: "💌 Patrick Special Email",
+      description: "Personalized email to Patrick (patrickelsner@hotmail.com)"
+    }
+  };
 
-  // Patrick Email State
-  const [isPatrickSending, setIsPatrickSending] = useState(false);
-
-  // Announcement Email Functions
-  const sendAnnouncementPreview = async () => {
-    if (!previewEmail) {
+  const handleSend = async () => {
+    // Validation
+    if (sendMode === "preview" && !previewEmail) {
       toast.error("Please enter an email address for preview");
       return;
     }
 
-    setIsPreviewSending(true);
-    try {
-      const { error } = await supabase.functions.invoke('admin-email-operations', {
-        body: {
-          operation: 'send-announcement-email',
-          email: previewEmail,
-          firstName: 'Preview User',
-          referralLink: 'https://sharedgenes.lovable.app/?ref=preview',
-          feedbackLink: 'https://sharedgenes.lovable.app/feedback'
-        }
-      });
-
-      if (error) throw error;
-      toast.success("Preview email sent successfully!");
-    } catch (error: any) {
-      console.error("Error sending preview:", error);
-      toast.error("Failed to send preview: " + error.message);
-    } finally {
-      setIsPreviewSending(false);
+    if (sendMode === "all") {
+      const emailTypeName = emailTypes[emailType].label;
+      const confirmed = window.confirm(
+        `Are you sure you want to send "${emailTypeName}" to ALL users? This action cannot be undone.`
+      );
+      if (!confirmed) return;
     }
-  };
 
-  const sendAnnouncementToAll = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to send the announcement email to ALL registered users? This action cannot be undone."
-    );
+    setIsLoading(true);
     
-    if (!confirmed) return;
-
-    setIsSendingAll(true);
     try {
-      const { error } = await supabase.functions.invoke('admin-email-operations', {
-        body: {
-          operation: 'send-announcement-email',
-          sendToAll: true,
-          referralLink: 'https://sharedgenes.lovable.app/?ref=announcement',
-          feedbackLink: 'https://sharedgenes.lovable.app/feedback'
-        }
-      });
-
-      if (error) throw error;
-      toast.success("Announcement email queued for all users!");
-    } catch (error: any) {
-      console.error("Error sending to all users:", error);
-      toast.error("Failed to send to all users: " + error.message);
-    } finally {
-      setIsSendingAll(false);
-    }
-  };
-
-  // Day 2 Email Functions
-  const sendDay2Preview = async () => {
-    const targetEmail = "marshallgould303030@gmail.com";
-    
-    console.log("RESTRICTION: Only sending Day 2 emails to marshallgould303030@gmail.com");
-
-    setIsDay2PreviewSending(true);
-    try {
-      console.log("Attempting to send Day 2 email to:", targetEmail);
+      let requestBody: any = {};
       
+      switch (emailType) {
+        case "announcement":
+          requestBody = {
+            operation: 'send-announcement-email',
+            ...(sendMode === "preview" ? {
+              email: previewEmail,
+              firstName: 'Preview User',
+              referralLink: 'https://mstwins.com/?ref=preview',
+              feedbackLink: 'https://mstwins.com/feedback'
+            } : {
+              sendToAll: true,
+              referralLink: 'https://mstwins.com/?ref=announcement',
+              feedbackLink: 'https://mstwins.com/feedback'
+            })
+          };
+          break;
+          
+        case "day2":
+          if (sendMode === "preview") {
+            requestBody = {
+              operation: 'send-day2-email',
+              email: 'marshallgould303030@gmail.com',
+              firstName: 'Marshall'
+            };
+          } else {
+            requestBody = {
+              operation: 'send-day2-all-users'
+            };
+          }
+          break;
+          
+        case "patrick":
+          requestBody = {
+            operation: 'send-patrick-feedback-email',
+            email: 'patrickelsner@hotmail.com',
+            firstName: 'Patrick'
+          };
+          break;
+      }
+
       const { data, error } = await supabase.functions.invoke('admin-email-operations', {
-        body: {
-          operation: 'send-day2-email',
-          email: targetEmail,
-          firstName: 'Marshall'
-        }
+        body: requestBody
       });
 
-      console.log("Day 2 email response:", { data, error });
+      if (error) throw error;
 
-      if (error) {
-        console.error("Day 2 email error details:", error);
-        throw error;
+      const action = sendMode === "preview" ? "Preview email sent" : "Emails sent to all users";
+      const stats = data?.stats?.emails_sent ? ` (${data.stats.emails_sent} emails sent)` : "";
+      toast.success(`${action} successfully!${stats}`);
+      
+      // Clear preview email after successful send
+      if (sendMode === "preview") {
+        setPreviewEmail("");
       }
       
-      toast.success(`Day 2 email sent successfully to ${targetEmail}!`);
     } catch (error: any) {
-      console.error("Error sending Day 2 email:", error);
-      toast.error("Failed to send Day 2 email: " + (error.message || "Unknown error"));
+      console.error("Error sending email:", error);
+      toast.error("Failed to send email: " + (error.message || "Unknown error"));
     } finally {
-      setIsDay2PreviewSending(false);
+      setIsLoading(false);
     }
   };
 
-  const sendDay2ToAll = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to send the Day 2 email to ALL eligible users (users who joined 2 days ago)? This action cannot be undone."
-    );
-    
-    if (!confirmed) return;
-
-    setIsDay2SendingAll(true);
-    try {
-      console.log("Sending Day 2 emails to all eligible users...");
-      
-      const { data, error } = await supabase.functions.invoke('admin-email-operations', {
-        body: {
-          operation: 'send-day2-all-users'
-        }
-      });
-
-      console.log("Day 2 all users response:", { data, error });
-
-      if (error) {
-        console.error("Day 2 all users error details:", error);
-        throw error;
-      }
-      
-      toast.success(`Day 2 emails sent successfully! ${data?.stats?.emails_sent || 0} emails sent.`);
-    } catch (error: any) {
-      console.error("Error sending Day 2 to all users:", error);
-      toast.error("Failed to send Day 2 to all users: " + (error.message || "Unknown error"));
-    } finally {
-      setIsDay2SendingAll(false);
-    }
-  };
-
-  // Patrick Email Function
-  const sendEmailToPatrick = async () => {
-    setIsPatrickSending(true);
-    try {
-      const { error } = await supabase.functions.invoke('admin-email-operations', {
-        body: {
-          operation: 'send-patrick-feedback-email',
-          email: 'patrickelsner@hotmail.com',
-          firstName: 'Patrick'
-        }
-      });
-
-      if (error) throw error;
-      toast.success("Email sent to Patrick successfully!");
-    } catch (error: any) {
-      console.error("Error sending email to Patrick:", error);
-      toast.error("Failed to send email: " + error.message);
-    } finally {
-      setIsPatrickSending(false);
-    }
-  };
+  const isPatrickEmail = emailType === "patrick";
+  const showPreviewEmail = sendMode === "preview" && !isPatrickEmail;
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">Email Management Center</h2>
-        <p className="text-muted-foreground">Send announcements, Day 2 emails, and manage user communications</p>
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-2">Email Management</h2>
+        <p className="text-muted-foreground">Simple email sending for user communications</p>
       </div>
 
-      <Tabs defaultValue="announcements" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="announcements" className="flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            Announcements
-          </TabsTrigger>
-          <TabsTrigger value="day2" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Day 2 Emails
-          </TabsTrigger>
-          <TabsTrigger value="special" className="flex items-center gap-2">
-            <Heart className="h-4 w-4" />
-            Special Emails
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="announcements" className="mt-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Preview Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="h-5 w-5" />
-                  Preview Announcement
-                </CardTitle>
-                <CardDescription>
-                  Send a test announcement email to verify content and formatting
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Preview Email Address</label>
-                  <Input
-                    type="email"
-                    placeholder="Enter email for preview"
-                    value={previewEmail}
-                    onChange={(e) => setPreviewEmail(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  onClick={sendAnnouncementPreview} 
-                  disabled={isPreviewSending}
-                  className="w-full"
-                  variant="outline"
-                >
-                  {isPreviewSending ? "Sending Preview..." : "Send Preview"}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Send to All Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Send to All Users
-                </CardTitle>
-                <CardDescription>
-                  Send announcement email to all registered users with referral and feedback links
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>✓ Includes referral link for user sharing</p>
-                  <p>✓ Includes feedback link for user input</p>
-                  <p>✓ Personalized with user names</p>
-                  <p className="font-medium text-foreground">This will send to ALL registered users!</p>
-                </div>
-                <Button 
-                  onClick={sendAnnouncementToAll} 
-                  disabled={isSendingAll}
-                  className="w-full"
-                  variant="default"
-                >
-                  {isSendingAll ? "Sending to All Users..." : "Send to All Users"}
-                </Button>
-              </CardContent>
-            </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Send Email
+          </CardTitle>
+          <CardDescription>
+            Select email type and choose to preview or send to all users
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Email Type Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Email Type</Label>
+            <Select value={emailType} onValueChange={(value: EmailType) => setEmailType(value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select email type" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(emailTypes).map(([key, config]) => (
+                  <SelectItem key={key} value={key}>
+                    {config.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              {emailTypes[emailType].description}
+            </p>
           </div>
-        </TabsContent>
 
-        <TabsContent value="day2" className="mt-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Day 2 Preview Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="h-5 w-5" />
-                  Preview Day 2 Email
-                </CardTitle>
-                <CardDescription>
-                  Test the Day 2 welcome/engagement email before sending to users
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <p className="text-amber-800 font-medium">⚠️ Safety Restriction Active</p>
-                    <p className="text-amber-700 text-sm">Day 2 emails are currently restricted to marshallgould303030@gmail.com only</p>
-                  </div>
+          {/* Send Mode Selection */}
+          {!isPatrickEmail && (
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Send Mode</Label>
+              <RadioGroup value={sendMode} onValueChange={(value: SendMode) => setSendMode(value)}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="preview" id="preview" />
+                  <Label htmlFor="preview">Preview - Send to one email for testing</Label>
                 </div>
-                <Button 
-                  onClick={sendDay2Preview} 
-                  disabled={isDay2PreviewSending}
-                  className="w-full"
-                  variant="outline"
-                >
-                  {isDay2PreviewSending ? "Sending to Marshall..." : "Send Day 2 Email to Marshall"}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Day 2 Send to All Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Send Day 2 to Eligible Users
-                </CardTitle>
-                <CardDescription>
-                  Send Day 2 engagement email to users who registered 2 days ago
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>✓ Targets users who joined exactly 2 days ago</p>
-                  <p>✓ Personalized welcome content</p>
-                  <p>✓ Encourages community engagement</p>
-                  <p>✓ Prevents duplicate emails with tracking</p>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="all" />
+                  <Label htmlFor="all">Send to All - Send to all eligible users</Label>
                 </div>
-                <Button 
-                  onClick={sendDay2ToAll} 
-                  disabled={isDay2SendingAll}
-                  className="w-full"
-                  variant="default"
-                >
-                  {isDay2SendingAll ? "Sending to All Eligible Users..." : "Send Day 2 to All Eligible Users"}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+              </RadioGroup>
+            </div>
+          )}
 
-        <TabsContent value="special" className="mt-6">
-          <div className="grid gap-6">
-            {/* Patrick Email Section */}
-            <Card className="max-w-md mx-auto">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Send className="h-5 w-5" />
-                  Send Email to Patrick
-                </CardTitle>
-                <CardDescription>
-                  Send personalized feedback response and password reset confirmation to patrickelsner@hotmail.com
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={sendEmailToPatrick} 
-                  disabled={isPatrickSending}
-                  className="w-full"
-                >
-                  {isPatrickSending ? "Sending..." : "Send Email to Patrick"}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+          {/* Preview Email Input */}
+          {showPreviewEmail && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Preview Email Address</Label>
+              <Input
+                type="email"
+                placeholder="Enter email for preview"
+                value={previewEmail}
+                onChange={(e) => setPreviewEmail(e.target.value)}
+              />
+            </div>
+          )}
+
+          {/* Special Notice for Day 2 Preview */}
+          {emailType === "day2" && sendMode === "preview" && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <p className="text-amber-800 font-medium text-sm">⚠️ Day 2 Preview Restriction</p>
+              <p className="text-amber-700 text-sm">Preview will be sent to marshallgould303030@gmail.com only</p>
+            </div>
+          )}
+
+          {/* Send Button */}
+          <Button 
+            onClick={handleSend}
+            disabled={isLoading}
+            className="w-full h-12"
+            size="lg"
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Sending...
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Send className="h-4 w-4" />
+                {isPatrickEmail 
+                  ? "Send to Patrick" 
+                  : sendMode === "preview" 
+                    ? "Send Preview" 
+                    : "Send to All Users"
+                }
+              </div>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };
