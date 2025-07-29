@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, User, Heart, X, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
+import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
 
 interface Profile {
   id: string;
@@ -102,13 +103,13 @@ const MobileProfileCard = ({
             {/* Smaller Profile Image with reduced border */}
             <button onClick={() => onImageClick?.(0)} className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-lg hover:scale-110 transition-all duration-300 mobile-touch-target">
               {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover transition-opacity duration-200" loading="eager" onLoad={e => {
-                  e.currentTarget.style.opacity = '1';
-                }} onError={e => {
-                  e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
-                }} style={{
-                  opacity: '0'
-                }} />
+                <OptimizedAvatar
+                  src={profile.avatar_url}
+                  alt={profile.first_name}
+                  fallbackSeed={profile.first_name}
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                />
               ) : (
                 <div className="w-full h-full bg-white/20 flex items-center justify-center">
                   <User className="w-8 h-8 text-white" />
@@ -341,4 +342,4 @@ const MobileProfileCard = ({
   );
 };
 
-export default MobileProfileCard;
+export default memo(MobileProfileCard);

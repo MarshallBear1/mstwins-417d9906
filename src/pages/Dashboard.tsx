@@ -24,6 +24,7 @@ import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
 import { useTempAdminAuth } from "@/hooks/useTempAdminAuth";
 import { Settings } from "lucide-react";
+import { PerformanceMonitor } from "@/components/PerformanceOptimizer";
 interface Profile {
   id: string;
   user_id: string;
@@ -672,6 +673,7 @@ const Dashboard = () => {
     }
   };
   return <MobileKeyboardHandler>
+      <PerformanceMonitor />
       <div className="min-h-screen bg-gray-50 flex flex-col">
       <SEO title="MStwins Dashboard - Your MS Support Community" description="Access your Multiple Sclerosis support network. Discover new connections, manage matches, and engage with your community." canonical="https://mstwins.com/dashboard" />
 

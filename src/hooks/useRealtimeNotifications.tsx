@@ -24,6 +24,8 @@ export const useRealtimeNotifications = () => {
   const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false);
   const processedNotificationIds = useRef<Set<string>>(new Set());
   const notificationTimeoutRef = useRef<NodeJS.Timeout>();
+  const isInitializedRef = useRef(false);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Request browser notification permission
   const requestNotificationPermission = useCallback(async () => {
@@ -87,35 +89,43 @@ export const useRealtimeNotifications = () => {
     }
   }, []);
 
-  // Fetch initial notifications with error handling and retry logic
+  // Fetch initial notifications with error handling and retry logic - OPTIMIZED
   useEffect(() => {
-    if (!user) return;
+    if (!user || isInitializedRef.current) return;
 
-    const fetchNotifications = async () => {
+    // Clear any existing timeout
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // Debounce the fetch to prevent duplicate calls
+    fetchTimeoutRef.current = setTimeout(async () => {
+      if (isInitializedRef.current) return; // Double-check to prevent race conditions
+      
       try {
+        console.log('🔔 Fetching notifications for user:', user.id);
         const { data, error } = await supabase
           .from('notifications')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
-          .limit(20); // REDUCED limit for faster loading
+          .limit(15); // REDUCED limit for faster loading
 
         if (error) {
           console.error('Error fetching notifications:', error);
-          // Don't set empty array on error to prevent loss of existing notifications
           return;
         }
 
         if (data) {
           setNotifications(data);
           setUnreadCount(data.filter(n => !n.is_read).length);
+          isInitializedRef.current = true; // Mark as initialized
+          console.log('✅ Loaded', data.length, 'notifications');
         }
       } catch (error) {
         console.error('Failed to fetch notifications:', error);
       }
-    };
-
-    fetchNotifications();
+    }, 100); // 100ms debounce
 
     // Set up real-time subscription
     const subscription = supabase
@@ -197,8 +207,11 @@ export const useRealtimeNotifications = () => {
       if (notificationTimeoutRef.current) {
         clearTimeout(notificationTimeoutRef.current);
       }
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
     };
-  }, [user, toast, haptics, showBrowserNotification]);
+  }, [user?.id, toast, haptics, showBrowserNotification]); // More specific dependencies
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
