@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +22,8 @@ export const useRealtimeNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false);
+  const processedNotificationIds = useRef<Set<string>>(new Set());
+  const notificationTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Request browser notification permission
   const requestNotificationPermission = useCallback(async () => {
@@ -124,41 +126,72 @@ export const useRealtimeNotifications = () => {
         (payload) => {
           const newNotification = payload.new as Notification;
           
-          // Add to notifications list
-          setNotifications(prev => [newNotification, ...prev]);
-          
-          // Increment unread count
-          setUnreadCount(prev => prev + 1);
-          
-          // Show toast notification
-          toast({
-            title: newNotification.title,
-            description: newNotification.message,
-          });
-
-          // Trigger haptic feedback
-          if (newNotification.type === 'match') {
-            haptics.match();
-          } else if (newNotification.type === 'like') {
-            haptics.like();
-          } else if (newNotification.type === 'message') {
-            haptics.message();
-          } else {
-            haptics.successFeedback();
+          // Prevent duplicate processing
+          if (processedNotificationIds.current.has(newNotification.id)) {
+            console.log('Duplicate notification detected, skipping:', newNotification.id);
+            return;
           }
+          
+          processedNotificationIds.current.add(newNotification.id);
+          
+          // Clear previous timeout to debounce rapid notifications
+          if (notificationTimeoutRef.current) {
+            clearTimeout(notificationTimeoutRef.current);
+          }
+          
+          // Debounce notification processing
+          notificationTimeoutRef.current = setTimeout(() => {
+            // Add to notifications list
+            setNotifications(prev => {
+              // Check if notification already exists
+              if (prev.some(n => n.id === newNotification.id)) {
+                return prev;
+              }
+              return [newNotification, ...prev];
+            });
+            
+            // Increment unread count only if not already in list
+            setUnreadCount(prev => {
+              // Double-check to avoid incrementing for duplicates
+              const exists = notifications.some(n => n.id === newNotification.id);
+              return exists ? prev : prev + 1;
+            });
+            
+            // Only show UI feedback for high-priority notifications (like/match)
+            if (newNotification.type === 'like' || newNotification.type === 'match') {
+              // Show toast notification (debounced)
+              toast({
+                title: newNotification.title,
+                description: newNotification.message,
+              });
 
-          // Show browser notification
-          showBrowserNotification(
-            newNotification.title,
-            newNotification.message,
-            newNotification.type
-          );
+              // Trigger haptic feedback
+              if (newNotification.type === 'match') {
+                haptics.match();
+              } else if (newNotification.type === 'like') {
+                haptics.like();
+              }
+
+              // Show browser notification
+              showBrowserNotification(
+                newNotification.title,
+                newNotification.message,
+                newNotification.type
+              );
+            } else if (newNotification.type === 'message') {
+              // More subtle feedback for messages
+              haptics.message();
+            }
+          }, 300); // 300ms debounce for notification processing
         }
       )
       .subscribe();
 
     return () => {
       subscription.unsubscribe();
+      if (notificationTimeoutRef.current) {
+        clearTimeout(notificationTimeoutRef.current);
+      }
     };
   }, [user, toast, haptics, showBrowserNotification]);
 
