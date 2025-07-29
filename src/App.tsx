@@ -68,17 +68,27 @@ const PostHogInitializer = () => {
   useEffect(() => {
     const initializePostHog = async () => {
       try {
+        console.log('🔍 Fetching PostHog API key from secrets...');
         const { data: secrets } = await supabase.functions.invoke('secrets', {
           body: { name: 'POSTHOG_API_KEY' }
         });
         
+        console.log('📊 Secrets response:', secrets);
+        
         if (secrets?.value) {
+          console.log('✅ PostHog API key found, initializing analytics...');
           analytics.init(secrets.value);
+          
+          // Test event to verify PostHog is working
+          setTimeout(() => {
+            console.log('🧪 Sending test event to PostHog...');
+            analytics.track('app_loaded', { timestamp: Date.now() });
+          }, 1000);
         } else {
-          console.warn('PostHog API key not found in secrets');
+          console.warn('⚠️ PostHog API key not found in secrets');
         }
       } catch (error) {
-        console.error('Failed to initialize PostHog:', error);
+        console.error('❌ Failed to initialize PostHog:', error);
       }
     };
 
