@@ -21,7 +21,7 @@ const HeroContent = () => {
       </h1>
       
       {/* Modern Subtitle */}
-      <p className="text-xl md:text-2xl text-gray-600 max-w-xl leading-relaxed">
+      <p className="text-xl md:text-2xl text-gray-600 max-w-xl leading-relaxed text-center mx-auto">
         Connect with others who truly understand your 
         <span className="font-semibold text-gray-800"> Multiple Sclerosis journey</span>. 
         Build meaningful friendships in our safe community.
