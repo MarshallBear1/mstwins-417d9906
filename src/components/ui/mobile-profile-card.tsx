@@ -78,9 +78,8 @@ const MobileProfileCard = ({
       className={cn("flip-card", className)} 
       style={{ 
         ...style, 
-        minHeight: '340px', 
-        maxHeight: '360px',
-        maxWidth: '280px', 
+        minHeight: '420px', 
+        maxWidth: '300px', 
         perspective: '1000px',
         position: 'relative'
       }}
@@ -99,9 +98,9 @@ const MobileProfileCard = ({
           display: 'block'
         }}>
           {/* Smaller Header focused on profile picture */}
-          <div className="relative h-32 bg-blue-500 flex items-center justify-center overflow-hidden">
+          <div className="relative h-48 bg-blue-500 flex items-center justify-center overflow-hidden">
             {/* Smaller Profile Image with reduced border */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg hover:scale-110 transition-all duration-300 mobile-touch-target">
+            <button onClick={() => onImageClick?.(0)} className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-lg hover:scale-110 transition-all duration-300 mobile-touch-target">
               {profile.avatar_url ? (
                 <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover transition-opacity duration-200" loading="eager" onLoad={e => {
                   e.currentTarget.style.opacity = '1';
@@ -143,7 +142,7 @@ const MobileProfileCard = ({
           </div>
 
           {/* Modern Content Section */}
-          <CardContent className="p-3 space-y-2">
+          <CardContent className="p-4 space-y-3">
             {/* Compact Name and Age */}
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">{profile.first_name}</h3>
@@ -191,10 +190,10 @@ const MobileProfileCard = ({
             {/* Compact About */}
             {profile.about_me && (
               <div>
-                <p className={`text-sm text-gray-600 leading-relaxed ${!showAllAbout ? 'line-clamp-3' : ''}`}>
+                <p className={`text-sm text-gray-600 leading-relaxed ${!showAllAbout ? 'line-clamp-2' : ''}`}>
                   {profile.about_me}
                 </p>
-                {profile.about_me.length > 120 && (
+                {profile.about_me.length > 80 && (
                   <button
                     onClick={() => setShowAllAbout(!showAllAbout)}
                     className="text-xs text-blue-600 hover:text-blue-700 mt-1 font-medium"
@@ -208,7 +207,7 @@ const MobileProfileCard = ({
 
           {/* Compact Action Buttons */}
           {(onPass || onLike) && (
-            <div className="p-3 pt-2 flex gap-2">
+            <div className="p-4 pt-3 flex gap-2">
               {onPass && (
                 <Button
                   onClick={onPass}
