@@ -484,14 +484,14 @@ const Dashboard = () => {
       <div className="bg-white/90 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40 shadow-[0_1px_10px_rgba(0,0,0,0.05)]" style={{
         paddingTop: isMobile ? `max(0.75rem, ${safeAreaInsets.top}px)` : undefined
       }}>
-        <div className="flex items-center justify-between mobile-safe-x py-4">
-          {/* Left side - Modern Logo */}
+        <div className="flex items-center justify-between mobile-safe-x py-3 px-4">
+          {/* Left side - Modern Logo (borderless and bigger) */}
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
+            <div className="w-11 h-11">
               <img 
                 src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
                 alt="MSTwins" 
-                className="w-full h-full object-contain p-1" 
+                className="w-full h-full object-contain" 
               />
             </div>
             <span className="text-xl font-bold tracking-tight">
@@ -499,8 +499,8 @@ const Dashboard = () => {
             </span>
           </div>
           
-          {/* Right side - Clean action buttons */}
-          <div className="flex items-center space-x-2">
+          {/* Right side - Clean action buttons with better mobile spacing */}
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             <ReferralDropdown />
             <FeedbackDialog />
             <NotificationBell />

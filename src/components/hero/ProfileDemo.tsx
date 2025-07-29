@@ -87,7 +87,7 @@ const ProfileDemo = () => {
           {/* Name and Age */}
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-bold text-gray-900">{profile.name}</h3>
-            <span className="text-lg font-semibold text-gray-600">{profile.age} years</span>
+            <span className="text-lg font-semibold text-gray-600">{profile.age}</span>
           </div>
 
           {/* Location and Diagnosis */}

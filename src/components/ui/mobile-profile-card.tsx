@@ -72,9 +72,9 @@ export const MobileProfileCard = ({
   const hasExtendedContent = profile.additional_photos?.length || profile.selected_prompts?.length || profile.medications?.length || profile.symptoms?.length;
   const allImages = [...(profile.avatar_url ? [profile.avatar_url] : []), ...(profile.additional_photos || [])];
   return <div className={cn("flip-card-container profile-card-mobile mx-auto", className)} style={{
-    minHeight: '520px',
+    minHeight: '420px',
     width: '100%',
-    maxWidth: '340px',
+    maxWidth: '300px',
     display: 'block',
     visibility: 'visible',
     position: 'relative'
@@ -91,10 +91,10 @@ export const MobileProfileCard = ({
         position: 'relative',
         display: 'block'
       }}>
-          {/* Modern Header with gradient */}
-          <div className="relative h-64 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 flex items-center justify-center overflow-hidden">
-            {/* Profile Image */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-2xl hover:scale-110 transition-all duration-300 mobile-touch-target">
+          {/* Smaller Header focused on profile picture */}
+          <div className="relative h-48 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 flex items-center justify-center overflow-hidden">
+            {/* Larger Profile Image as main focus */}
+            <button onClick={() => onImageClick?.(0)} className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-2xl hover:scale-110 transition-all duration-300 mobile-touch-target">
               {profile.avatar_url ? <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover transition-opacity duration-200" loading="eager" onLoad={e => {
               e.currentTarget.style.opacity = '1';
             }} onError={e => {
@@ -124,113 +124,83 @@ export const MobileProfileCard = ({
           </div>
 
           {/* Modern Content Section */}
-          <CardContent className="p-5 profile-content-scroll">
-            {/* Header Info with modern typography */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold text-gray-900 leading-tight mb-1">
-                  {profile.first_name} {profile.last_name}
-                </h3>
-                {profile.date_of_birth && (
-                  <span className="text-lg text-gray-600 font-medium">
-                    {calculateAge(profile.date_of_birth)} years old
+          <CardContent className="p-4 space-y-3">
+            {/* Compact Name and Age */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">{profile.first_name}</h3>
+              <span className="text-sm font-medium text-gray-600">{calculateAge(profile.date_of_birth)}</span>
+            </div>
+
+            {/* Compact Location */}
+            {profile.location && (
+              <div className="flex items-center gap-2 text-gray-600">
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm truncate">{profile.location}</span>
+              </div>
+            )}
+
+            {/* MS Info - more compact */}
+            {profile.ms_subtype && (
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs px-2 py-1">
+                  {profile.ms_subtype}
+                </Badge>
+                {profile.diagnosis_year && (
+                  <span className="text-xs text-gray-500">
+                    Diagnosed {profile.diagnosis_year}
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <div className={cn("w-2.5 h-2.5 rounded-full", isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-gray-400')} />
-                <span className="text-xs text-gray-500 font-medium">
-                  {isUserOnline(profile.user_id) ? 'Online' : getLastSeenText(profile.last_seen)}
-                </span>
-              </div>
-            </div>
+            )}
 
-            {/* Location with modern icon */}
-            <div className="flex items-center gap-2 text-gray-600 mb-4">
-              <MapPin className="w-4 h-4 shrink-0" />
-              <span className="text-sm font-medium">{profile.location}</span>
-            </div>
-
-            <div className="space-y-4">
-              {/* MS Type with modern badge */}
-              {profile.ms_subtype && (
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">MS Type</h4>
-                  <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200 font-medium">
-                    {profile.ms_subtype.toUpperCase()}
+            {/* Compact Hobbies */}
+            {profile.hobbies && profile.hobbies.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {profile.hobbies.slice(0, 3).map((hobby, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
+                    {hobby}
                   </Badge>
-                </div>
-              )}
+                ))}
+                {profile.hobbies.length > 3 && (
+                  <Badge variant="outline" className="text-xs px-2 py-1">
+                    +{profile.hobbies.length - 3}
+                  </Badge>
+                )}
+              </div>
+            )}
 
-              {/* Diagnosis Year */}
-              {profile.diagnosis_year && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Calendar className="w-4 h-4 shrink-0" />
-                  <span className="text-sm font-medium">Diagnosed in {profile.diagnosis_year}</span>
-                </div>
-              )}
+            {/* Compact About */}
+            {profile.about_me && (
+              <div>
+                <p className={`text-sm text-gray-600 leading-relaxed ${!showAllAbout ? 'line-clamp-2' : ''}`}>
+                  {profile.about_me}
+                </p>
+                {profile.about_me.length > 80 && (
+                  <button
+                    onClick={() => setShowAllAbout(!showAllAbout)}
+                    className="text-xs text-blue-600 hover:text-blue-700 mt-1"
+                  >
+                    {showAllAbout ? 'Show less' : 'Show more'}
+                  </button>
+                )}
+              </div>
+            )}
 
-              {/* Hobbies/Interests with modern badges */}
-              {profile.hobbies && profile.hobbies.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Interests</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.hobbies.slice(0, 4).map((hobby, index) => (
-                      <Badge key={index} variant="outline" className="text-xs bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors">
-                        {hobby}
-                      </Badge>
-                    ))}
-                    {profile.hobbies.length > 4 && (
-                      <Badge variant="outline" className="text-xs text-gray-500 bg-gray-50 border-gray-200">
-                        +{profile.hobbies.length - 4} more
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* About Me with better typography */}
-              {profile.about_me && (
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">About</h4>
-                  <div className="text-sm text-gray-600 leading-relaxed">
-                    <p className={cn("transition-all duration-300", !showAllAbout && profile.about_me.length > 150 && "line-clamp-3")}>
-                      {profile.about_me}
-                    </p>
-                    {profile.about_me.length > 150 && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setShowAllAbout(!showAllAbout)} 
-                        className="p-0 h-auto text-xs text-blue-600 hover:text-blue-700 mt-2 transition-colors font-medium"
-                      >
-                        {showAllAbout ? (
-                          <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></>
-                        ) : (
-                          <>Show More <ChevronDown className="w-3 h-3 ml-1" /></>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Modern Action buttons */}
+            {/* Compact Action buttons */}
             {showActions && (
-              <div className="flex gap-3 pt-4 mt-4">
+              <div className="flex gap-2 pt-3">
                 <Button 
                   variant="outline" 
                   onClick={onPass} 
                   disabled={actionLoading} 
-                  className="flex-1 h-12 border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 font-semibold rounded-xl transition-all duration-200 mobile-touch-target"
+                  className="flex-1 h-10 border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 font-medium rounded-xl transition-all duration-200"
                 >
                   Pass
                 </Button>
                 <Button 
                   onClick={onLike} 
                   disabled={actionLoading} 
-                  className="flex-1 h-12 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 mobile-touch-target"
+                  className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   Like
                 </Button>
