@@ -465,7 +465,18 @@ const ProfileViewDialog = ({
                       <div className="flex gap-3">
                         <Button
                           variant="outline"
-                          onClick={onPass}
+                          onClick={() => {
+                            // Flip to front first if we're on the back side
+                            if (isFlipped) {
+                              setIsFlipped(false);
+                              // Small delay to let the flip animation complete before executing pass
+                              setTimeout(() => {
+                                onPass?.();
+                              }, 350); // Slightly longer than the 300ms animation
+                            } else {
+                              onPass?.();
+                            }
+                          }}
                           className="flex-1 hover:bg-red-50 hover:border-red-200 hover:text-red-700"
                           disabled={isLiking}
                         >
