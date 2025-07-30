@@ -32,7 +32,7 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
 
   // Optimized fetch with server-side filtering
   const fetchProfiles = useCallback(async (isRefresh = false) => {
-    if (!user || loading) return;
+    if (!user) return;
 
     console.log('🔄 Fetching optimized discover profiles');
     setLoading(true);
@@ -118,7 +118,7 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
     } finally {
       setLoading(false);
     }
-  }, [user, loading]);
+  }, [user]); // Removed 'loading' from dependencies to prevent infinite loop
 
   // Preload next batch
   const preloadMore = useCallback(async () => {
@@ -175,21 +175,34 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
     } finally {
       setIsPreloading(false);
     }
-  }, [user, isPreloading]);
+  }, [user]); // Removed 'isPreloading' from dependencies
 
-  // Initial load
+  // Add loading state ref to prevent concurrent requests
+  const loadingRef = useRef(false);
+
+  // Initial load with proper guards
   useEffect(() => {
-    if (user) {
-      fetchProfiles(true);
+    if (user && !loadingRef.current) {
+      loadingRef.current = true;
+      fetchProfiles(true).finally(() => {
+        loadingRef.current = false;
+      });
     }
-  }, [user, fetchProfiles]);
+  }, [user?.id]); // Only depend on user.id, not the entire user object
 
   return {
     profiles,
     loading,
     isPreloading,
     hasMore: hasMoreRef.current,
-    refetch: () => fetchProfiles(true),
+    refetch: () => {
+      if (!loadingRef.current) {
+        loadingRef.current = true;
+        fetchProfiles(true).finally(() => {
+          loadingRef.current = false;
+        });
+      }
+    },
     preloadMore
   };
 };
