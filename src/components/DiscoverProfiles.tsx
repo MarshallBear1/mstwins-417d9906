@@ -60,7 +60,7 @@ const DiscoverProfiles = memo(() => {
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
 
-  // Optimized profile fetching with parallel queries
+  // Optimized profile fetching with parallel queries and increased limit for preloading
   const fetchProfiles = useCallback(async () => {
     if (!user) return;
 
@@ -93,7 +93,7 @@ const DiscoverProfiles = memo(() => {
           .neq('user_id', user.id)
           .eq('moderation_status', 'approved')
           .order('last_seen', { ascending: false })
-          .limit(20),
+          .limit(50), // Increased limit for better preloading
         
         supabase
           .from('likes')
@@ -136,12 +136,29 @@ const DiscoverProfiles = memo(() => {
     fetchProfiles();
   }, [fetchProfiles]);
 
+  // Preload images for better UX
+  useEffect(() => {
+    if (profiles.length > 0) {
+      const preloadImages = profiles.slice(currentIndex, currentIndex + 5).map(profile => {
+        if (profile.avatar_url) {
+          const img = new Image();
+          img.src = profile.avatar_url;
+        }
+        // Preload additional photos
+        profile.additional_photos?.forEach(photo => {
+          const img = new Image();
+          img.src = photo;
+        });
+      });
+    }
+  }, [profiles, currentIndex]);
+
   // Memoized current profile calculation
   const currentProfile = useMemo(() => {
     return profiles[currentIndex] || null;
   }, [profiles, currentIndex]);
 
-  // Optimized like function with cooldown
+  // Optimized like function with cooldown and immediate UI update
   const likeProfile = useCallback(async (profileUserId: string) => {
     if (!user || actionCooldown) return;
 
@@ -164,8 +181,11 @@ const DiscoverProfiles = memo(() => {
     }
 
     setActionCooldown(true);
-    setTimeout(() => setActionCooldown(false), 1000);
-
+    
+    // Move to next profile immediately for better UX (optimistic update)
+    const nextIndex = currentIndex + 1;
+    setCurrentIndex(nextIndex);
+    
     try {
       const { error } = await supabase
         .from('likes')
@@ -178,9 +198,6 @@ const DiscoverProfiles = memo(() => {
 
       vibrate();
       analytics.track('profile_liked', { liked_user_id: profileUserId });
-      
-      // Move to next profile immediately for better UX
-      setCurrentIndex(prev => prev + 1);
       refreshRemainingLikes();
 
       toast({
@@ -189,6 +206,9 @@ const DiscoverProfiles = memo(() => {
       });
     } catch (error: any) {
       console.error('Error liking profile:', error);
+      // Revert optimistic update on error
+      setCurrentIndex(currentIndex);
+      
       toast({
         title: "Error liking profile",
         description: error.message === 'Users cannot like their own profile' 
@@ -196,15 +216,20 @@ const DiscoverProfiles = memo(() => {
           : "Please try again later.",
         variant: "destructive"
       });
+    } finally {
+      setTimeout(() => setActionCooldown(false), 500); // Reduced cooldown
     }
-  }, [user, actionCooldown, remainingLikes, vibrate, refreshRemainingLikes, toast]);
+  }, [user, actionCooldown, remainingLikes, vibrate, refreshRemainingLikes, toast, currentIndex]);
 
-  // Optimized pass function with cooldown
+  // Optimized pass function with cooldown and immediate UI update
   const passProfile = useCallback(async (profileUserId: string) => {
     if (!user || actionCooldown) return;
 
     setActionCooldown(true);
-    setTimeout(() => setActionCooldown(false), 1000);
+    
+    // Move to next profile immediately (optimistic update)
+    const nextIndex = currentIndex + 1;
+    setCurrentIndex(nextIndex);
 
     try {
       const { error } = await supabase
@@ -218,9 +243,6 @@ const DiscoverProfiles = memo(() => {
 
       vibrate();
       analytics.track('profile_passed', { passed_user_id: profileUserId });
-      
-      // Move to next profile immediately
-      setCurrentIndex(prev => prev + 1);
 
       toast({
         title: "Profile passed",
@@ -228,13 +250,18 @@ const DiscoverProfiles = memo(() => {
       });
     } catch (error) {
       console.error('Error passing profile:', error);
+      // Revert optimistic update on error
+      setCurrentIndex(currentIndex);
+      
       toast({
         title: "Error passing profile",
         description: "Please try again later.",
         variant: "destructive"
       });
+    } finally {
+      setTimeout(() => setActionCooldown(false), 500); // Reduced cooldown
     }
-  }, [user, actionCooldown, vibrate, toast]);
+  }, [user, actionCooldown, vibrate, toast, currentIndex]);
 
   // Memoized image click handler
   const handleImageClick = useCallback(() => {
