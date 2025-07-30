@@ -85,7 +85,7 @@ const MobileProfileCard = ({
       style={{ 
         ...style, 
         minHeight: '420px', 
-        maxWidth: '300px', 
+        width: '300px', // Fixed width instead of maxWidth
         perspective: '1000px',
         position: 'relative'
       }}

@@ -345,7 +345,9 @@ const DiscoverProfiles = memo(() => {
       {/* Compact Profile Card */}
       {currentProfile && (
         <div className="flex flex-col items-center space-y-4">
-          <DiscoverProfileCard profile={currentProfile} />
+          <div className="w-[300px]"> {/* Fixed width container */}
+            <DiscoverProfileCard profile={currentProfile} />
+          </div>
           
           {/* Action Buttons */}
           <div className="flex space-x-3 w-full max-w-[300px]">
