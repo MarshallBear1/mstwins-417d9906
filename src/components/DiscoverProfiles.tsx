@@ -337,7 +337,7 @@ const DiscoverProfiles = memo(() => {
               disabled={actionCooldown || remainingLikes <= 0}
             >
               <Heart className="w-4 h-4 mr-2" />
-              Like ({remainingLikes})
+              Like ({remainingLikes ?? 0})
             </Button>
           </div>
         </div>
