@@ -363,22 +363,53 @@ const DiscoverProfiles = memo(() => {
     );
   }
 
-  // Show empty state with debug info
+  // Show empty state with detailed information
   if (profiles.length === 0 || currentIndex >= profiles.length) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <div className="text-center">
           <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No more profiles to discover
+            You've seen everyone!
           </h3>
           <p className="text-gray-600 mb-4">
-            Check back later for new profiles or adjust your preferences.
+            You've viewed all available profiles. Check back later for new members, or try adjusting your preferences.
           </p>
-          <Button onClick={fetchProfiles} className="bg-gradient-primary text-white">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          
+          {/* Show activity summary */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-sm">
+            <h4 className="font-medium text-blue-900 mb-2">Your Activity:</h4>
+            <p className="text-blue-700">You've interacted with most profiles in our community!</p>
+            <p className="text-blue-600 text-xs mt-1">New profiles appear as people join MStwins.</p>
+          </div>
+          
+          <div className="flex space-x-3">
+            <Button onClick={fetchProfiles} variant="outline" className="text-primary border-primary">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+            <Button 
+              onClick={() => {
+                // Reset passes for this user (admin function)
+                if (window.confirm('Reset your pass history? This will show profiles you previously passed on.')) {
+                  supabase
+                    .from('passes')
+                    .delete()
+                    .eq('passer_id', user?.id)
+                    .then(() => {
+                      toast({
+                        title: "Pass history cleared",
+                        description: "You can now see profiles you previously passed on."
+                      });
+                      fetchProfiles();
+                    });
+                }
+              }}
+              className="bg-gradient-primary text-white"
+            >
+              Reset Pass History
+            </Button>
+          </div>
           
           {/* Debug information */}
           {process.env.NODE_ENV === 'development' && (
@@ -387,7 +418,7 @@ const DiscoverProfiles = memo(() => {
               <p className="text-gray-600">User: {user?.id ? 'Authenticated' : 'Not authenticated'}</p>
               <p className="text-gray-600">Profiles loaded: {profiles.length}</p>
               <p className="text-gray-600">Current index: {currentIndex}</p>
-              <p className="text-gray-600">Status: {debugInfo || 'No status'}</p>
+              <p className="text-gray-600">Status: {debugInfo || 'User has viewed most profiles'}</p>
               <p className="text-gray-600">Remaining likes: {remainingLikes}</p>
             </div>
           )}
