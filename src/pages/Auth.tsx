@@ -148,12 +148,9 @@ const Auth = () => {
     try {
       console.log('Sending password reset email to:', forgotPasswordEmail);
       
-      // Use mstwins.com for the redirect URL
-      const redirectUrl = `https://mstwins.com/auth?type=recovery`;
-      console.log('Redirect URL:', redirectUrl);
-      
+      // Generate a custom reset link that goes to mstwins.com
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: redirectUrl,
+        redirectTo: 'https://mstwins.com/auth?type=recovery',
       });
       
       if (error) {
