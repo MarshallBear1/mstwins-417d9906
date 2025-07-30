@@ -429,7 +429,7 @@ const DiscoverProfiles = memo(() => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
       {/* Remaining likes warning */}
       <LikeLimitWarning 
         open={remainingLikes <= 2 && remainingLikes > 0} 
@@ -439,7 +439,7 @@ const DiscoverProfiles = memo(() => {
       
       {/* Compact Profile Card */}
       {currentProfile && (
-        <div className="mx-auto max-w-md">
+        <div className="w-full max-w-md">
           <DiscoverProfileCard profile={currentProfile} />
           
           {/* Action Buttons */}
