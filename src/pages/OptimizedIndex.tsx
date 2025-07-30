@@ -1,5 +1,6 @@
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import OptimizedHero from "@/components/OptimizedHero";
 import CriticalCSS from "@/components/CriticalCSS";
@@ -22,6 +23,54 @@ const LoadingSpinner = () => (
 );
 
 const OptimizedIndex = () => {
+  const navigate = useNavigate();
+
+  // Check for password reset parameters and redirect to auth page
+  useEffect(() => {
+    const checkForPasswordReset = () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      const type = urlParams.get('type') || hashParams.get('type');
+      const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
+      const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
+      const code = urlParams.get('code') || hashParams.get('code');
+      
+      console.log('🔍 Landing page password reset check:', {
+        url: window.location.href,
+        type,
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        hasCode: !!code,
+        hashParams: Object.fromEntries(hashParams.entries()),
+        urlParams: Object.fromEntries(urlParams.entries())
+      });
+
+      // Check for password reset flow (either with tokens or code)
+      if (type === 'recovery' || (accessToken && type === 'recovery') || (code && type === 'recovery')) {
+        console.log('🔑 Password reset detected on landing page, redirecting to auth...');
+        
+        // Preserve all parameters when redirecting to auth
+        const currentHash = window.location.hash;
+        const currentSearch = window.location.search;
+        
+        if (currentHash) {
+          // If parameters are in hash, redirect with hash preserved
+          navigate(`/auth${currentSearch}${currentHash}`, { replace: true });
+        } else if (currentSearch) {
+          // If parameters are in search, redirect with search preserved  
+          navigate(`/auth${currentSearch}`, { replace: true });
+        } else {
+          // Fallback redirect
+          navigate('/auth?type=recovery', { replace: true });
+        }
+        return;
+      }
+    };
+
+    checkForPasswordReset();
+  }, [navigate]);
+
   return (
     <div className="min-h-screen mobile-safe-bottom">
       <SEO

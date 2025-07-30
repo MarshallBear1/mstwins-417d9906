@@ -42,12 +42,14 @@ const Auth = () => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     
     const type = urlParams.get('type') || hashParams.get('type');
+    const code = urlParams.get('code') || hashParams.get('code');
     const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
     const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
     
-    console.log('🔑 Password reset check:', {
+    console.log('🔑 Auth page password reset check:', {
       url: window.location.href,
       type,
+      hasCode: !!code,
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
       urlParams: Object.fromEntries(urlParams.entries()),
@@ -57,13 +59,13 @@ const Auth = () => {
     if (type === 'recovery') {
       console.log('🔑 Recovery type detected');
       
+      // Set password reset mode immediately
+      setIsPasswordReset(true);
+      setIsSignUp(false);
+      
       if (accessToken && refreshToken) {
-        console.log('✅ Access and refresh tokens found, setting up password reset flow');
-        // User clicked password reset link with tokens
-        setIsPasswordReset(true);
-        setIsSignUp(false);
-        
-        // Set the session from the URL parameters
+        console.log('✅ Access and refresh tokens found, setting up token-based password reset flow');
+        // Handle token-based recovery (current flow)
         supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -73,17 +75,21 @@ const Auth = () => {
           title: "Reset Your Password",
           description: "Please enter your new password below.",
         });
+      } else if (code) {
+        console.log('✅ Code found, setting up code-based password reset flow');
+        // Handle code-based recovery (alternative flow)
+        toast({
+          title: "Reset Your Password", 
+          description: "Please enter your new password below.",
+        });
       } else {
-        console.log('⚠️ Recovery type found but missing tokens, checking auth state...');
-        // Type is recovery but no tokens - let's check if Supabase auth state has them
+        console.log('⚠️ Recovery type found but missing tokens/code, checking auth state...');
+        // Type is recovery but no tokens/code - let's check if Supabase auth state has them
         supabase.auth.getSession().then(({ data: { session }, error }) => {
-          console.log('🔍 Current auth session:', { session, error });
+          console.log('🔍 Current auth session:', { session: !!session, error });
           
           if (session?.access_token) {
             console.log('✅ Found session with tokens, setting up password reset flow');
-            setIsPasswordReset(true);
-            setIsSignUp(false);
-            
             toast({
               title: "Reset Your Password",
               description: "Please enter your new password below.",
