@@ -198,16 +198,70 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
 
     if (!background) setDiscoverLoading(true);
     try {
-      // This is a simplified version - you'd implement the full discover logic here
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .neq('user_id', user.id)
-        .limit(10);
+      // Enhanced discover algorithm matching the main component
+      const [recentProfilesResult, olderProfilesResult, likedResult, passedResult] = await Promise.all([
+        // Get recently active profiles (last 7 days)
+        supabase
+          .from('profiles')
+          .select('*')
+          .neq('user_id', user.id)
+          .eq('moderation_status', 'approved')
+          .neq('hide_from_discover', true)
+          .gte('last_seen', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+          .order('last_seen', { ascending: false })
+          .limit(7), // Smaller limit for cache
+        
+        // Get older profiles to encourage re-engagement
+        supabase
+          .from('profiles')
+          .select('*')
+          .neq('user_id', user.id)
+          .eq('moderation_status', 'approved')
+          .neq('hide_from_discover', true)
+          .lt('last_seen', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(3), // Smaller limit for cache
 
-      if (error) throw error;
+        supabase
+          .from('likes')
+          .select('liked_id')
+          .eq('liker_id', user.id),
+        
+        supabase
+          .from('passes')
+          .select('passed_id')
+          .eq('passer_id', user.id)
+      ]);
 
-      if (data) {
+      if (recentProfilesResult.error) throw recentProfilesResult.error;
+      if (olderProfilesResult.error) throw olderProfilesResult.error;
+
+      const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
+      const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
+
+      // Combine and filter profiles using the same algorithm
+      const recentProfiles = recentProfilesResult.data || [];
+      const olderProfiles = olderProfilesResult.data || [];
+      
+      const recentFiltered = recentProfiles.filter(
+        profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
+      );
+      const olderFiltered = olderProfiles.filter(
+        profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
+      );
+      
+      // Simple interleaving for cache: alternate between recent and older
+      const combinedProfiles = [];
+      const maxLength = Math.max(recentFiltered.length, olderFiltered.length);
+      
+      for (let i = 0; i < maxLength; i++) {
+        if (i < recentFiltered.length) combinedProfiles.push(recentFiltered[i]);
+        if (i < olderFiltered.length) combinedProfiles.push(olderFiltered[i]);
+      }
+
+      const data = combinedProfiles.slice(0, 10); // Limit to 10 for cache
+
+      if (data.length > 0) {
         setDiscoverProfiles(data);
         dashboardCache.set(user.id, 'discover', data, { ttl: 2 * 60 * 1000 }); // Shorter cache for discover
         console.log(`✅ Discover profiles fetched and cached (${background ? 'background' : 'foreground'})`);
