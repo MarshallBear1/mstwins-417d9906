@@ -200,24 +200,13 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
     setLoading(true);
     try {
-      // Optimized query with join to reduce database round trips
       const { data, error } = await supabase
         .from('matches')
         .select(`
           id,
           user1_id,
           user2_id,
-          created_at,
-          profiles!matches_user1_id_fkey(
-            id, user_id, first_name, last_name, avatar_url, location, about_me, 
-            ms_subtype, diagnosis_year, date_of_birth, hobbies, symptoms, medications, 
-            gender, last_seen, additional_photos, selected_prompts, extended_profile_completed
-          ),
-          profiles2:profiles!matches_user2_id_fkey(
-            id, user_id, first_name, last_name, avatar_url, location, about_me, 
-            ms_subtype, diagnosis_year, date_of_birth, hobbies, symptoms, medications, 
-            gender, last_seen, additional_photos, selected_prompts, extended_profile_completed
-          )
+          created_at
         `)
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
@@ -227,12 +216,32 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         return;
       }
 
+      // Get user profiles for each match in batch
+      const otherUserIds = (data || []).map(match => 
+        match.user1_id === user.id ? match.user2_id : match.user1_id
+      );
+
+      if (otherUserIds.length === 0) {
+        setMatches([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('user_id', otherUserIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        return;
+      }
+
       // Get unread message counts for all matches in one query
-      const matchIds = (data || []).map(match => match.id);
       const { data: unreadCounts, error: unreadError } = await supabase
         .from('messages')
         .select('match_id')
-        .in('match_id', matchIds)
+        .in('match_id', (data || []).map(match => match.id))
         .eq('receiver_id', user.id)
         .eq('is_read', false);
 
@@ -246,11 +255,16 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         return acc;
       }, {} as Record<string, number>);
 
-      // Process matches with optimized data structure
+      // Create a lookup map for profiles
+      const profileMap = (profilesData || []).reduce((acc, profile) => {
+        acc[profile.user_id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Process matches with profiles
       const matchesWithProfiles = (data || []).map(match => {
-        const otherUserProfile = match.user1_id === user.id 
-          ? (match as any).profiles2 
-          : (match as any).profiles;
+        const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
+        const otherUserProfile = profileMap[otherUserId];
 
         return {
           ...match,
