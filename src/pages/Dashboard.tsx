@@ -16,6 +16,7 @@ import FeedbackDialog from "@/components/FeedbackDialog";
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
+import { AnalyticsDebugPanel } from "@/components/AnalyticsDebugPanel";
 import { useOptimizedDashboardData } from "@/hooks/useOptimizedDashboardData";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
@@ -79,6 +80,7 @@ const Dashboard = () => {
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
   const [extendedPromptDismissed, setExtendedPromptDismissed] = useState(false);
+  const [showAnalyticsDebug, setShowAnalyticsDebug] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -260,7 +262,25 @@ const Dashboard = () => {
       case "forum":
         return <ForumPage />;
       case "profile":
-        return profile ? <ProfileCard profile={profile as any} onProfileUpdate={fetchProfile} onSignOut={handleSignOut} /> : null;
+        return profile ? (
+          <div className="space-y-6">
+            <ProfileCard profile={profile as any} onProfileUpdate={fetchProfile} onSignOut={handleSignOut} />
+            
+            {process.env.NODE_ENV === 'development' && (
+              <div className="p-4">
+                <h3 className="text-lg font-medium mb-4">Developer Tools</h3>
+                <Button
+                  onClick={() => setShowAnalyticsDebug(!showAnalyticsDebug)}
+                  variant="outline"
+                  className="mb-4"
+                >
+                  {showAnalyticsDebug ? 'Hide' : 'Show'} Analytics Debug
+                </Button>
+                {showAnalyticsDebug && <AnalyticsDebugPanel />}
+              </div>
+            )}
+          </div>
+        ) : null;
       default:
         return null;
     }

@@ -10,17 +10,27 @@ class AnalyticsService {
   init(apiKey: string, config?: any) {
     if (this.initialized) return;
     
-    posthog.init(apiKey, {
-      api_host: 'https://us.i.posthog.com',
-      person_profiles: 'identified_only',
-      capture_pageview: false, // We'll manually capture pageviews
-      capture_pageleave: true,
-      ...config
-    });
-    
-    this.initialized = true;
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📊 PostHog analytics initialized');
+    try {
+      posthog.init(apiKey, {
+        api_host: 'https://us.i.posthog.com',
+        person_profiles: 'identified_only',
+        capture_pageview: false, // We'll manually capture pageviews
+        capture_pageleave: true,
+        debug: process.env.NODE_ENV === 'development',
+        ...config
+      });
+      
+      this.initialized = true;
+      console.log('📊 PostHog analytics initialized successfully', {
+        apiKey: apiKey.substring(0, 8) + '...',
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+      });
+
+      // Test connection
+      this.track('analytics_initialized', { timestamp: Date.now() });
+    } catch (error) {
+      console.error('❌ Failed to initialize PostHog:', error);
     }
   }
 
@@ -156,8 +166,41 @@ class AnalyticsService {
 
   // Custom events
   track(eventName: string, properties?: Record<string, any>) {
-    if (!this.initialized) return;
-    posthog.capture(eventName, properties);
+    if (!this.initialized) {
+      console.warn('🚫 Analytics not initialized, skipping event:', eventName);
+      return;
+    }
+    
+    try {
+      posthog.capture(eventName, properties);
+      console.log('📊 Analytics event sent:', eventName, properties);
+    } catch (error) {
+      console.error('❌ Failed to send analytics event:', eventName, error);
+    }
+  }
+
+  // Debug helpers
+  getDebugInfo() {
+    return {
+      initialized: this.initialized,
+      distinctId: this.initialized ? posthog.get_distinct_id() : null,
+      sessionId: this.initialized ? posthog.get_session_id() : null,
+      environment: process.env.NODE_ENV
+    };
+  }
+
+  // Manual test function
+  testAnalytics() {
+    console.log('🧪 Testing analytics...');
+    console.log('Debug info:', this.getDebugInfo());
+    
+    this.track('manual_test', {
+      timestamp: Date.now(),
+      userAgent: navigator.userAgent,
+      url: window.location.href
+    });
+    
+    console.log('✅ Test event sent. Check PostHog dashboard in a few minutes.');
   }
 
   // User properties
