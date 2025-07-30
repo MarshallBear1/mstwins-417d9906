@@ -82,12 +82,12 @@ const Auth = () => {
     }
   }, [toast]);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (but not during password reset)
   useEffect(() => {
-    if (user) {
+    if (user && !isPasswordReset) {
       navigate("/dashboard");
     }
-  }, [user, navigate]);
+  }, [user, navigate, isPasswordReset]);
 
   const handlePasswordValidation = (isValid: boolean, errors: string[]) => {
     setPasswordValid(isValid);
@@ -460,6 +460,10 @@ const Auth = () => {
                       required
                     />
                   </div>
+                  <PasswordStrengthIndicator 
+                    password={newPassword} 
+                    onValidationChange={handlePasswordValidation}
+                  />
                 </div>
 
                 <Button 
