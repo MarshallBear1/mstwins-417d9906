@@ -193,15 +193,18 @@ const MobileProfileCard = ({
             {/* Compact Hobbies */}
             {profile.hobbies && profile.hobbies.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {profile.hobbies.slice(0, 3).map((hobby, index) => (
+                {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 3)).map((hobby, index) => (
                   <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
                     {capitalizeText(hobby)}
                   </Badge>
                 ))}
                 {profile.hobbies.length > 3 && (
-                  <Badge variant="outline" className="text-xs px-2 py-1">
-                    +{profile.hobbies.length - 3}
-                  </Badge>
+                  <button
+                    onClick={() => setShowAllHobbies(!showAllHobbies)}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 border border-gray-300 rounded-md hover:bg-blue-50 transition-colors"
+                  >
+                    {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 3}`}
+                  </button>
                 )}
               </div>
             )}

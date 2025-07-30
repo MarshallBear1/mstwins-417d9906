@@ -20,8 +20,8 @@ interface RobotAnnouncementPopupProps {
 
 const RobotAnnouncementPopup = ({ announcement, onDismiss }: RobotAnnouncementPopupProps) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4">
-      <div className="bg-background rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in border border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4" onClick={onDismiss}>
+      <div className="bg-background rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in border border-border" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start space-x-3 mb-4">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
             <img 
