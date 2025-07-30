@@ -14,6 +14,7 @@ interface Profile {
   last_name: string;
   date_of_birth: string;
   location: string;
+  gender?: string;
   avatar_url?: string;
   ms_subtype?: string;
   diagnosis_year?: number;
@@ -49,6 +50,7 @@ const MobileProfileCard = ({
 }: MobileProfileCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showAllAbout, setShowAllAbout] = useState(false);
+  const [showAllHobbies, setShowAllHobbies] = useState(false);
   
   // Use the hook for realtime presence if not provided as props
   const { isUserOnline: hookIsUserOnline, getLastSeenText: hookGetLastSeenText } = useRealtimePresence();
@@ -150,10 +152,15 @@ const MobileProfileCard = ({
 
           {/* Modern Content Section */}
           <CardContent className="p-4 space-y-3">
-            {/* Compact Name and Age */}
+            {/* Compact Name, Age and Gender */}
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">{profile.first_name}</h3>
-              <span className="text-sm font-medium text-gray-600">{calculateAge(profile.date_of_birth)}</span>
+              <div className="flex items-center gap-2">
+                {profile.gender && (
+                  <span className="text-xs text-gray-500 capitalize">{profile.gender}</span>
+                )}
+                <span className="text-sm font-medium text-gray-600">{calculateAge(profile.date_of_birth)}</span>
+              </div>
             </div>
 
             {/* Compact Location */}
@@ -167,7 +174,7 @@ const MobileProfileCard = ({
             {/* MS Info - more compact */}
             {profile.ms_subtype && (
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs px-2 py-1">
+                <Badge variant="outline" className="text-xs px-2 py-1 capitalize">
                   {profile.ms_subtype}
                 </Badge>
                 {profile.diagnosis_year && (
@@ -202,15 +209,20 @@ const MobileProfileCard = ({
               <div>
                 <div className="text-xs font-medium text-gray-700 mb-1">Interests:</div>
                 <div className="flex flex-wrap gap-1">
-                  {profile.hobbies.slice(0, 3).map((hobby, index) => (
+                  {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 5)).map((hobby, index) => (
                     <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
                       {hobby}
                     </Badge>
                   ))}
-                  {profile.hobbies.length > 3 && (
-                    <Badge variant="outline" className="text-xs px-2 py-1">
-                      +{profile.hobbies.length - 3}
-                    </Badge>
+                  {profile.hobbies.length > 5 && (
+                    <button
+                      onClick={() => setShowAllHobbies(!showAllHobbies)}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      <Badge variant="outline" className="text-xs px-2 py-1 hover:bg-blue-50 cursor-pointer">
+                        {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 5}`}
+                      </Badge>
+                    </button>
                   )}
                 </div>
               </div>
