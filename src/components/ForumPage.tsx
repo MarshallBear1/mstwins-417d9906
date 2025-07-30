@@ -538,6 +538,26 @@ const ForumPage = () => {
   const likeUserProfile = async (profileUserId: string) => {
     if (!user) return;
 
+    // Prevent users from liking themselves
+    if (user.id === profileUserId) {
+      toast({
+        title: "Can't like yourself",
+        description: "You can't like your own profile!",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check remaining likes
+    if (remainingLikes <= 0) {
+      toast({
+        title: "No likes remaining",
+        description: "You've used all your likes for today. Come back tomorrow!",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       // Check if we already liked this profile
       const { data: existingLike } = await supabase
@@ -564,6 +584,9 @@ const ForumPage = () => {
         });
 
       if (error) throw error;
+
+      // Refresh remaining likes
+      refreshRemainingLikes();
 
       toast({
         title: "Profile liked!",
