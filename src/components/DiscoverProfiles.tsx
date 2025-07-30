@@ -178,15 +178,18 @@ const DiscoverProfiles = memo(() => {
 
       if (profilesResult.error) {
         console.error('❌ Profiles query error:', profilesResult.error);
+        setDebugInfo(`Profile query error: ${profilesResult.error.message}`);
         throw profilesResult.error;
       }
 
       if (likedResult.error) {
         console.error('❌ Likes query error:', likedResult.error);
+        setDebugInfo(`Likes query error: ${likedResult.error.message}`);
       }
 
       if (passedResult.error) {
         console.error('❌ Passes query error:', passedResult.error);
+        setDebugInfo(`Passes query error: ${passedResult.error.message}`);
       }
 
       const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
