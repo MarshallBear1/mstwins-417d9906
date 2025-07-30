@@ -48,7 +48,39 @@ serve(async (req) => {
       )
     }
 
-    // Check if user has admin role
+    const { name } = await req.json()
+    
+    // Allow PostHog API key access for all authenticated users
+    if (name === 'POSTHOG_API_KEY') {
+      const secretValue = Deno.env.get(name)
+      
+      if (!secretValue) {
+        console.warn(`User ${userData.user.id} requested non-existent PostHog secret`)
+        return new Response(
+          JSON.stringify({ error: `Secret ${name} not found` }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Log successful PostHog secret access
+      console.log(`User ${userData.user.id} successfully accessed PostHog secret`)
+      await supabase.rpc('log_security_event', {
+        user_id_param: userData.user.id,
+        event_type_param: 'posthog_secret_accessed',
+        event_details_param: {
+          ip_address: req.headers.get('cf-connecting-ip') || 'unknown',
+          user_agent: req.headers.get('user-agent') || 'unknown',
+          timestamp: new Date().toISOString()
+        }
+      })
+
+      return new Response(
+        JSON.stringify({ value: secretValue }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Check if user has admin role for other secrets
     const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
@@ -76,7 +108,6 @@ serve(async (req) => {
       )
     }
 
-    const { name } = await req.json()
     
     if (!name) {
       return new Response(

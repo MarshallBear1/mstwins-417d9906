@@ -18,7 +18,7 @@ export const SecurityEnhancements: React.FC = () => {
     };
 
     // Enhanced CSP with stricter policies
-    const cspContent = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.posthog.com https://api.openai.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';";
+    const cspContent = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://us-assets.i.posthog.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://api.openai.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';";
     addMetaTag('Content-Security-Policy', cspContent);
     
     // Add additional security headers
@@ -204,7 +204,11 @@ export const useSecurityMonitoring = () => {
           try {
             if (entry.name && !entry.name.includes(location.hostname) && 
                 !entry.name.includes('supabase.co') && 
-                !entry.name.includes('posthog.com')) {
+                !entry.name.includes('posthog.com') &&
+                !entry.name.includes('i.posthog.com') &&
+                !entry.name.includes('gstatic.com') &&
+                !entry.name.includes('googleapis.com') &&
+                !entry.name.includes('gpteng.co')) {
               console.warn('🔒 External resource loaded:', entry.name);
             }
           } catch (error) {
@@ -223,6 +227,12 @@ export const useSecurityMonitoring = () => {
         const key = localStorage.key(i);
         if (key) {
           const value = localStorage.getItem(key);
+          
+          // Skip PostHog keys and other legitimate analytics
+          if (key.includes('posthog') || key.includes('ph_') || key.includes('analytics')) {
+            continue;
+          }
+          
           suspiciousKeys.forEach(suspiciousKey => {
             if (key.toLowerCase().includes(suspiciousKey) || 
                 (value && value.toLowerCase().includes(suspiciousKey))) {
