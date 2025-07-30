@@ -258,7 +258,7 @@ const DiscoverProfiles = memo(() => {
     return profiles[currentIndex] || null;
   }, [profiles, currentIndex]);
 
-  // Optimized like function with cooldown
+  // Optimized like function with cooldown and proper daily like checking
   const likeProfile = useCallback(async (profileUserId: string) => {
     if (!user || actionCooldown) return;
 
@@ -271,27 +271,52 @@ const DiscoverProfiles = memo(() => {
       return;
     }
 
-    if (remainingLikes <= 0) {
-      toast({
-        title: "No likes remaining",
-        description: "You've used all your likes for today. Come back tomorrow!",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setActionCooldown(true);
     setTimeout(() => setActionCooldown(false), 1000);
 
     try {
-      const { error } = await supabase
+      // First check if user can like (daily limit) and increment counter
+      const { data: canLike, error: limitError } = await supabase
+        .rpc('check_and_increment_daily_likes', { target_user_id: profileUserId });
+
+      if (limitError) {
+        console.error('Error checking daily likes:', limitError);
+        throw limitError;
+      }
+
+      if (!canLike) {
+        toast({
+          title: "Daily limit reached",
+          description: "You've used all your likes for today. Come back tomorrow!",
+          variant: "destructive"
+        });
+        refreshRemainingLikes(); // Refresh to show correct count
+        return;
+      }
+
+      // Now insert the like
+      const { error: likeError } = await supabase
         .from('likes')
         .insert({
           liker_id: user.id,
           liked_id: profileUserId
         });
 
-      if (error) throw error;
+      if (likeError) {
+        // If it's a duplicate like error, show a friendlier message
+        if (likeError.code === '23505') {
+          toast({
+            title: "Already liked",
+            description: "You've already liked this profile!",
+            variant: "destructive"
+          });
+          // Move to next profile even if duplicate
+          setCurrentIndex(prev => prev + 1);
+          refreshRemainingLikes();
+          return;
+        }
+        throw likeError;
+      }
 
       vibrate();
       analytics.track('profile_liked', { liked_user_id: profileUserId });
@@ -306,15 +331,33 @@ const DiscoverProfiles = memo(() => {
       });
     } catch (error: any) {
       console.error('Error liking profile:', error);
-      toast({
-        title: "Error liking profile",
-        description: error.message === 'Users cannot like their own profile' 
-          ? "You can't like your own profile!" 
-          : "Please try again later.",
-        variant: "destructive"
-      });
+      
+      // More specific error messages
+      if (error.message?.includes('daily limit') || error.message?.includes('limit reached')) {
+        toast({
+          title: "Daily limit reached",
+          description: "You've used all your likes for today. Come back tomorrow!",
+          variant: "destructive"
+        });
+      } else if (error.code === '23505') {
+        toast({
+          title: "Already liked",
+          description: "You've already liked this profile!",
+          variant: "destructive"
+        });
+        setCurrentIndex(prev => prev + 1);
+      } else {
+        toast({
+          title: "Error liking profile",
+          description: "Please try again later.",
+          variant: "destructive"
+        });
+      }
+      
+      // Always refresh remaining likes on error to show correct count
+      refreshRemainingLikes();
     }
-  }, [user, actionCooldown, remainingLikes, vibrate, refreshRemainingLikes, toast]);
+  }, [user, actionCooldown, vibrate, refreshRemainingLikes, toast]);
 
   // Optimized pass function with cooldown
   const passProfile = useCallback(async (profileUserId: string) => {
