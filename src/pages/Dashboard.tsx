@@ -57,7 +57,7 @@ const Dashboard = () => {
   const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
   const { requestAllPermissions } = useRealtimeNotifications();
   
-  const [loading, setLoading] = useState(true);
+
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [likes, setLikes] = useState<Profile[]>([]);
@@ -95,17 +95,28 @@ const Dashboard = () => {
     return () => window.removeEventListener('focus', handleFocus);
   }, [user]);
   const fetchProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      setProfileLoading(false);
+      return;
+    }
+    
+    console.log('🔄 Starting profile fetch for user:', user.id);
     setProfileLoading(true);
+    
     try {
       const {
         data,
         error
       } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
+      
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('❌ Error fetching profile:', error);
+        setProfile(null);
         return;
       }
+      
+      console.log('✅ Profile fetched successfully:', data ? 'Profile exists' : 'No profile found');
+      
       setProfile(data ? {
         ...data,
         selected_prompts: Array.isArray(data.selected_prompts) ? data.selected_prompts as {
@@ -122,11 +133,14 @@ const Dashboard = () => {
           });
         } catch (error) {
           console.error('Error updating last seen:', error);
+          // Don't block UI for this background operation
         }
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('❌ Exception in fetchProfile:', error);
+      setProfile(null);
     } finally {
+      console.log('✅ Profile loading completed');
       setProfileLoading(false);
     }
   };

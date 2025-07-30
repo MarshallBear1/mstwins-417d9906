@@ -58,7 +58,18 @@ const DiscoverProfiles = () => {
 
   // Memoized fetchProfiles function to prevent infinite loops
   const fetchProfiles = useCallback(async (isRefresh = false) => {
-    if (!user) return;
+    if (!user) {
+      console.log('🚫 DiscoverProfiles: No user, skipping fetch');
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
+    console.log('🔄 DiscoverProfiles: Starting profile fetch', {
+      isRefresh,
+      showingSkipped,
+      userId: user.id
+    });
 
     // Only show loading spinner on initial load, not on refresh
     if (!isRefresh) {
@@ -196,8 +207,11 @@ const DiscoverProfiles = () => {
       console.log('📊 Setting currentIndex to 0');
       setCurrentIndex(0);
     } catch (error) {
-      console.error('Error fetching profiles:', error);
+      console.error('❌ Error fetching profiles:', error);
+      // Ensure we reset loading states even on error
+      setProfiles([]);
     } finally {
+      console.log('✅ DiscoverProfiles: Profile fetch completed');
       setLoading(false);
       setRefreshing(false);
     }
@@ -234,9 +248,10 @@ const DiscoverProfiles = () => {
 
   useEffect(() => {
     if (user) {
+      console.log('🔄 DiscoverProfiles: Initial fetch triggered by user change');
       fetchProfiles();
     }
-  }, [user, fetchProfiles]); // Add fetchProfiles to dependencies
+  }, [user, showingSkipped]); // Remove fetchProfiles from dependencies to prevent infinite loops
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
