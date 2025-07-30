@@ -259,14 +259,14 @@ const Dashboard = () => {
 
   // Fetch likes when the likes tab is opened and on initial load
   useEffect(() => {
-    if (activeTab === 'matches' && user) {
+    if (activeTab === 'likes' && user) {
       fetchLikes();
     }
   }, [activeTab, user]);
 
   // Auto-refresh likes every 30 seconds when on matches tab
   useEffect(() => {
-    if (activeTab !== 'matches' || !user) return;
+    if (activeTab !== 'likes' || !user) return;
     
     const interval = setInterval(() => {
       fetchLikes();
@@ -377,7 +377,7 @@ const Dashboard = () => {
               </div>}
             <DiscoverProfiles />
           </div>;
-      case "matches":
+      case "likes":
         return <MatchesPage 
           likes={likes}
           likesLoading={likesLoading}
@@ -386,6 +386,8 @@ const Dashboard = () => {
           setSelectedProfileForView={setSelectedProfileForView}
           setShowProfileView={setShowProfileView}
         />;
+      case "messages":
+        return <Messaging />;
       case "forum":
         return <ForumPage />;
       case "profile":

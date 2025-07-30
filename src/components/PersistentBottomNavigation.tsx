@@ -13,7 +13,8 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'discover', label: 'Discover', icon: Heart, path: '/dashboard' },
-  { id: 'matches', label: 'Matches', icon: MessageCircle, path: '/dashboard?tab=matches' },
+  { id: 'likes', label: 'Likes', icon: Users, path: '/dashboard?tab=likes' },
+  { id: 'messages', label: 'Messages', icon: MessageCircle, path: '/dashboard?tab=messages' },
   { id: 'forum', label: 'Forum', icon: Edit, path: '/dashboard?tab=forum' },
   { id: 'profile', label: 'Profile', icon: User, path: '/dashboard?tab=profile' },
 ];
@@ -68,7 +69,7 @@ const PersistentBottomNavigation = () => {
         paddingBottom: isMobile ? `max(0.75rem, ${safeAreaInsets.bottom}px)` : '0.75rem'
       }}
     >
-      <div className="flex items-center justify-around py-3 mobile-safe-x max-w-md mx-auto">
+      <div className="flex items-center justify-around py-2 mobile-safe-x max-w-full mx-auto px-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -76,16 +77,16 @@ const PersistentBottomNavigation = () => {
             <button 
               key={tab.id} 
               onClick={() => handleTabClick(tab)} 
-              className={`flex flex-col items-center space-y-1 py-2 px-4 transition-all duration-300 ease-out mobile-touch-target ${
+              className={`flex flex-col items-center space-y-1 py-2 px-2 transition-all duration-300 ease-out mobile-touch-target min-w-[60px] ${
                 isActive 
                   ? "text-black transform scale-105" 
                   : "text-gray-400 hover:text-gray-600 active:scale-95"
               }`}
             >
               <div className={`transition-all duration-300 ${isActive ? 'transform scale-110' : ''}`}>
-                <Icon className={`${isActive ? 'w-6 h-6' : 'w-5 h-5'} stroke-[1.5]`} />
+                <Icon className={`${isActive ? 'w-5 h-5' : 'w-4 h-4'} stroke-[1.5]`} />
               </div>
-              <span className={`text-xs font-medium transition-all duration-300 ${
+              <span className={`text-[10px] font-medium transition-all duration-300 text-center leading-tight ${
                 isActive ? 'text-black font-semibold' : 'text-gray-400'
               }`}>
                 {tab.label}
