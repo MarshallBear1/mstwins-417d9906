@@ -76,17 +76,17 @@ const MatchesPage = ({
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                  <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">
                     {likedProfile.first_name} {likedProfile.last_name}
                   </h4>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {likedProfile.ms_subtype && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
                         {likedProfile.ms_subtype}
                       </span>
                     )}
                     {likedProfile.location && (
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
                         📍 {likedProfile.location}
                       </span>
                     )}

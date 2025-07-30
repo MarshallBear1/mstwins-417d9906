@@ -888,37 +888,37 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                       <div className="flex-1 min-w-0 space-y-2">
                         {/* Header with name and unread count */}
                         <div className="flex items-center justify-between">
-                          <h3 className="font-bold text-gray-900 text-lg truncate">
+                          <h3 className="font-semibold text-gray-900 text-base truncate">
                             {match.other_user.first_name} {match.other_user.last_name}
                           </h3>
                           {match.unread_count > 0 && (
-                            <Badge className="bg-blue-500 text-white rounded-full h-6 min-w-[24px] text-xs font-medium shadow-md">
+                            <Badge className="bg-blue-500 text-white rounded-full h-5 min-w-[20px] text-xs font-medium shadow-md">
                               {match.unread_count}
                             </Badge>
                           )}
                         </div>
                         
                         {/* Profile details */}
-                        <div className="flex flex-wrap gap-2 text-xs">
+                        <div className="flex flex-wrap gap-1.5 text-xs">
                           {match.other_user.ms_subtype && (
-                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-1">
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-1.5 py-0.5 text-xs">
                               {match.other_user.ms_subtype.toUpperCase()}
                             </Badge>
                           )}
                           {match.other_user.gender && (
-                            <Badge variant="outline" className="border-gray-300 text-gray-600 rounded-full px-2 py-1">
+                            <Badge variant="outline" className="border-gray-300 text-gray-600 rounded-full px-1.5 py-0.5 text-xs">
                               {match.other_user.gender}
                             </Badge>
                           )}
                           {match.other_user.location && (
-                            <Badge variant="outline" className="border-purple-300 text-purple-700 bg-purple-50 rounded-full px-2 py-1">
+                            <Badge variant="outline" className="border-purple-300 text-purple-700 bg-purple-50 rounded-full px-1.5 py-0.5 text-xs">
                               📍 {match.other_user.location}
                             </Badge>
                           )}
                         </div>
                         
                         {/* Last message */}
-                        <p className="text-sm text-gray-500 truncate font-medium">
+                        <p className="text-xs text-gray-500 truncate font-medium">
                           {getLastMessage(match.id) || "Start the conversation!"}
                         </p>
                         
