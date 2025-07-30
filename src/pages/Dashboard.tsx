@@ -16,6 +16,7 @@ import FeedbackDialog from "@/components/FeedbackDialog";
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
+import { useOptimizedDashboardData } from "@/hooks/useOptimizedDashboardData";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
@@ -61,15 +62,22 @@ const Dashboard = () => {
   const { requestAllPermissions } = useRealtimeNotifications();
   
 
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [likes, setLikes] = useState<Profile[]>([]);
-  const [likesLoading, setLikesLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'discover';
+
+  // Use optimized data fetching hook
+  const { 
+    profile, 
+    likes, 
+    profileLoading, 
+    likesLoading, 
+    fetchProfile, 
+    fetchLikes 
+  } = useOptimizedDashboardData({ user, activeTab });
+
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
-  const [searchParams] = useSearchParams();
-  const activeTab = searchParams.get('tab') || 'discover';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -82,7 +90,7 @@ const Dashboard = () => {
       const lastLogin = localStorage.getItem(`lastLogin_${user.id}`);
       setIsReturningUser(!!lastLogin);
       localStorage.setItem(`lastLogin_${user.id}`, new Date().toISOString());
-      fetchProfile();
+      // Profile fetching is now handled by the optimized hook
     }
   }, [user]);
 
@@ -96,67 +104,7 @@ const Dashboard = () => {
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [user]);
-  const fetchProfile = async () => {
-    if (!user) {
-      setProfileLoading(false);
-      return;
-    }
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 Starting profile fetch for user:', user.id);
-    }
-    setProfileLoading(true);
-    
-    try {
-      // Only select necessary fields for better performance
-      const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts, extended_profile_completed';
-      
-      const {
-        data,
-        error
-      } = await supabase.from('profiles').select(selectFields).eq('user_id', user.id).maybeSingle();
-      
-      if (error) {
-        console.error('❌ Error fetching profile:', error);
-        setProfile(null);
-        return;
-      }
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ Profile fetched successfully:', data ? 'Profile exists' : 'No profile found');
-      }
-      
-      setProfile(data ? {
-        ...data,
-        selected_prompts: Array.isArray(data.selected_prompts) ? data.selected_prompts as {
-          question: string;
-          answer: string;
-        }[] : []
-      } : null);
-
-      // Update last_seen timestamp in background to not block UI
-      if (data) {
-        try {
-          await supabase.rpc('update_user_last_seen', {
-            user_id_param: user.id
-          });
-        } catch (error) {
-          console.error('Error updating last seen:', error);
-          // Don't block UI for this background operation
-        }
-      }
-    } catch (error) {
-      console.error('❌ Exception in fetchProfile:', error);
-      setProfile(null);
-    } finally {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ Profile loading completed');
-      }
-      setProfileLoading(false);
-    }
-  };
-
+  }, [user, fetchProfile]);
   // Auto-prompt for browser notifications
   useEffect(() => {
     if (!user || !profile) return;
@@ -179,101 +127,6 @@ const Dashboard = () => {
 
     return () => clearTimeout(timer);
   }, [user, profile, requestAllPermissions]);
-  const fetchLikes = async () => {
-    if (!user) return;
-    setLikesLoading(true);
-    try {
-      const startTime = performance.now();
-      
-      // Optimized parallel queries to reduce loading time
-      const [likesResult, matchesResult] = await Promise.all([
-        supabase
-          .from('likes')
-          .select('liker_id, created_at')
-          .eq('liked_id', user.id)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('matches')
-          .select('user1_id, user2_id')
-          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-      ]);
-      
-      if (likesResult.error) {
-        console.error('Error fetching likes:', likesResult.error);
-        return;
-      }
-      
-      if (!likesResult.data || likesResult.data.length === 0) {
-        setLikes([]);
-        return;
-      }
-
-      const matchedIds = matchesResult.data?.map(match => 
-        match.user1_id === user.id ? match.user2_id : match.user1_id
-      ) || [];
-
-      // Filter out matched users
-      const unmatchedLikers = likesResult.data.filter(like => 
-        !matchedIds.includes(like.liker_id)
-      );
-      
-      if (unmatchedLikers.length === 0) {
-        setLikes([]);
-        return;
-      }
-
-      // Get profiles with optimized field selection
-      const likerIds = unmatchedLikers.map(like => like.liker_id);
-      const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts';
-      
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select(selectFields)
-        .in('user_id', likerIds);
-      
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        return;
-      }
-      
-      const formattedProfiles = (profiles || []).map(profile => ({
-        ...profile,
-        selected_prompts: Array.isArray(profile.selected_prompts) ? 
-          profile.selected_prompts as { question: string; answer: string; }[] : []
-      }));
-      
-      setLikes(formattedProfiles);
-      
-      const loadTime = performance.now() - startTime;
-      console.log(`🚀 Likes loaded in ${loadTime.toFixed(2)}ms`);
-      
-      if (loadTime > 1000) {
-        console.warn(`⚠️ Slow likes query: ${loadTime.toFixed(2)}ms`);
-      }
-    } catch (error) {
-      console.error('Error fetching likes:', error);
-    } finally {
-      setLikesLoading(false);
-    }
-  };
-
-  // Fetch likes when the likes tab is opened and on initial load
-  useEffect(() => {
-    if (activeTab === 'likes' && user) {
-      fetchLikes();
-    }
-  }, [activeTab, user]);
-
-  // Auto-refresh likes every 30 seconds when on matches tab
-  useEffect(() => {
-    if (activeTab !== 'likes' || !user) return;
-    
-    const interval = setInterval(() => {
-      fetchLikes();
-    }, 30000); // Refresh every 30 seconds
-    
-    return () => clearInterval(interval);
-  }, [activeTab, user]);
 
   // Set up real-time subscription to refresh likes when there are new notifications
   useEffect(() => {
@@ -297,7 +150,7 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, fetchLikes]);
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -365,11 +218,8 @@ const Dashboard = () => {
                   <Button variant="ghost" size="sm" onClick={() => {
                 // Mark as dismissed for this session
                 sessionStorage.setItem(`extended_prompt_dismissed_${user?.id}`, 'true');
-                // Force re-render by updating state
-                setProfile(prev => prev ? {
-                  ...prev,
-                  extended_profile_completed: true
-                } : null);
+                // Force re-render by reloading
+                window.location.reload();
               }} className="flex-shrink-0 p-1 h-auto">
                     <X className="w-4 h-4" />
                   </Button>
@@ -391,10 +241,7 @@ const Dashboard = () => {
       case "forum":
         return <ForumPage />;
       case "profile":
-        return <ProfileCard profile={profile} onProfileUpdate={updatedProfile => setProfile({
-          ...updatedProfile,
-          last_seen: profile.last_seen
-        })} onSignOut={handleSignOut} />;
+        return profile ? <ProfileCard profile={profile as any} onProfileUpdate={fetchProfile} onSignOut={handleSignOut} /> : null;
       default:
         return null;
     }
