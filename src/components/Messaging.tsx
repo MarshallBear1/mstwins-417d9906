@@ -796,15 +796,20 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                     className={`flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                   >
                     {!isOwnMessage && showAvatar && (
-                      <Avatar className="h-8 w-8 mt-1">
-                        <AvatarImage 
-                          src={selectedMatch.other_user.avatar_url || undefined} 
-                          alt={selectedMatch.other_user.first_name}
-                        />
-                        <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
-                          {selectedMatch.other_user.first_name[0]}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-8 w-8 mt-1">
+                          <AvatarImage 
+                            src={selectedMatch.other_user.avatar_url || undefined} 
+                            alt={selectedMatch.other_user.first_name}
+                          />
+                          <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
+                            {selectedMatch.other_user.first_name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        {isUserOnline(selectedMatch.other_user.user_id || selectedMatch.other_user.id || '') && (
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                        )}
+                      </div>
                     )}
                     {!isOwnMessage && !showAvatar && <div className="w-8" />}
                     
