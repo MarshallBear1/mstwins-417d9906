@@ -2,6 +2,8 @@ import posthog from 'posthog-js';
 
 class AnalyticsService {
   private initialized = false;
+  private initAttempts = 0;
+  private maxInitAttempts = 3;
 
   isInitialized(): boolean {
     return this.initialized;
@@ -10,24 +12,47 @@ class AnalyticsService {
   init(apiKey: string, config?: any) {
     if (this.initialized) return;
     
-    posthog.init(apiKey, {
-      api_host: 'https://us.i.posthog.com',
-      person_profiles: 'identified_only',
-      capture_pageview: false, // We'll manually capture pageviews
-      capture_pageleave: true,
-      ...config
-    });
+    this.initAttempts++;
     
-    this.initialized = true;
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📊 PostHog analytics initialized');
+    try {
+      if (!apiKey) {
+        console.warn('📊 Analytics: No API key provided, analytics disabled');
+        return;
+      }
+
+      posthog.init(apiKey, {
+        api_host: 'https://us.i.posthog.com',
+        person_profiles: 'identified_only',
+        capture_pageview: false, // We'll manually capture pageviews
+        capture_pageleave: true,
+        ...config
+      });
+      
+      this.initialized = true;
+      console.log('📊 PostHog analytics initialized successfully');
+    } catch (error) {
+      console.error('📊 Analytics initialization failed:', error);
+      
+      if (this.initAttempts < this.maxInitAttempts) {
+        console.log(`📊 Retrying analytics init (attempt ${this.initAttempts + 1}/${this.maxInitAttempts})`);
+        setTimeout(() => this.init(apiKey, config), 1000 * this.initAttempts);
+      } else {
+        console.warn('📊 Analytics initialization failed after multiple attempts, analytics disabled');
+      }
     }
   }
 
   // Page tracking
   pageView(route: string) {
-    if (!this.initialized) return;
-    posthog.capture('$pageview', { $current_url: route });
+    if (!this.initialized) {
+      console.warn('📊 Analytics not initialized, skipping pageview:', route);
+      return;
+    }
+    try {
+      posthog.capture('$pageview', { $current_url: route });
+    } catch (error) {
+      console.error('📊 Failed to track pageview:', error);
+    }
   }
 
   // User events
@@ -156,8 +181,15 @@ class AnalyticsService {
 
   // Custom events
   track(eventName: string, properties?: Record<string, any>) {
-    if (!this.initialized) return;
-    posthog.capture(eventName, properties);
+    if (!this.initialized) {
+      console.warn('📊 Analytics not initialized, skipping event:', eventName);
+      return;
+    }
+    try {
+      posthog.capture(eventName, properties);
+    } catch (error) {
+      console.error('📊 Failed to track event:', eventName, error);
+    }
   }
 
   // User properties

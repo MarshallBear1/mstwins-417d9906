@@ -27,6 +27,8 @@ import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
 import PersistentBottomNavigation from "@/components/PersistentBottomNavigation";
 import MatchesPage from "@/components/MatchesPage";
 import ForumPage from "@/components/ForumPage";
+import { AuthErrorBoundary } from "@/components/AuthErrorBoundary";
+import { LoadingWithRetry } from "@/components/LoadingWithRetry";
 interface Profile {
   id: string;
   user_id: string;
@@ -178,9 +180,14 @@ const Dashboard = () => {
     navigate("/");
   };
   if (authLoading) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>;
+    return (
+      <LoadingWithRetry 
+        isLoading={true}
+        loadingText="Checking authentication..."
+        onRetry={() => window.location.reload()}
+        showConnectionStatus={true}
+      />
+    );
   }
   if (!user) {
     console.log('❌ No user found, redirecting to auth');
@@ -207,34 +214,54 @@ const Dashboard = () => {
 
   if (!profile) {
     console.log('❌ No profile found, showing completion screen');
-    return <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
-        <Card className="w-full max-w-md border-2 border-primary/20 shadow-xl animate-pulse">
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-              <User className="w-8 h-8 text-primary" />
-            </div>
-            <h2 className="text-2xl font-bold text-primary mb-4 animate-fade-in">
-              Complete Your Profile! ✨
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              You're so close! Complete your profile to start discovering amazing connections in the MS community.
-            </p>
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-6 border border-primary/10">
-              <p className="text-sm text-primary font-medium">
-                🚀 Profile completion unlocks:
+    
+    if (profileLoading) {
+      return (
+        <LoadingWithRetry 
+          isLoading={true}
+          loadingText="Loading your profile..."
+          onRetry={fetchProfile}
+          showConnectionStatus={true}
+        />
+      );
+    }
+
+    return (
+      <AuthErrorBoundary 
+        fallbackMessage="We couldn't load your profile. This might be due to a connection issue."
+        showSignInOption={true}
+        onSignInClick={() => navigate('/auth')}
+      >
+        <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
+          <Card className="w-full max-w-md border-2 border-primary/20 shadow-xl animate-pulse">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                <User className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-primary mb-4 animate-fade-in">
+                Complete Your Profile! ✨
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                You're so close! Complete your profile to start discovering amazing connections in the MS community.
               </p>
-              <ul className="text-xs text-muted-foreground mt-2 text-left">
-                <li>• Discover supportive community members</li>
-                <li>• Get likes and matches</li>
-                <li>• Start meaningful conversations</li>
-              </ul>
-            </div>
-            <Button onClick={() => navigate("/profile-setup")} className="w-full bg-gradient-primary hover:opacity-90 text-white font-medium py-3 animate-scale-in" size="lg">
-              Complete Profile Now
-            </Button>
-          </CardContent>
-        </Card>
-      </div>;
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-6 border border-primary/10">
+                <p className="text-sm text-primary font-medium">
+                  🚀 Profile completion unlocks:
+                </p>
+                <ul className="text-xs text-muted-foreground mt-2 text-left">
+                  <li>• Discover supportive community members</li>
+                  <li>• Get likes and matches</li>
+                  <li>• Start meaningful conversations</li>
+                </ul>
+              </div>
+              <Button onClick={() => navigate("/profile-setup")} className="w-full bg-gradient-primary hover:opacity-90 text-white font-medium py-3 animate-scale-in" size="lg">
+                Complete Profile Now
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AuthErrorBoundary>
+    );
   }
   const renderContent = () => {
     console.log('🔍 Dashboard renderContent called with activeTab:', activeTab);
@@ -275,19 +302,25 @@ const Dashboard = () => {
         return null;
     }
   };
-  return <MobileKeyboardHandler>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-      <SEO 
-        title="MStwins Dashboard - Your MS Support Community"
-        description="Access your Multiple Sclerosis support network. Discover new connections, manage matches, and engage with your community."
-        canonical="https://mstwins.com/dashboard"
-      />
+  return (
+    <AuthErrorBoundary 
+      fallbackMessage="There was an issue loading the dashboard. Please try again."
+      showSignInOption={true}
+      onSignInClick={() => navigate('/auth')}
+    >
+      <MobileKeyboardHandler>
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <SEO 
+            title="MStwins Dashboard - Your MS Support Community"
+            description="Access your Multiple Sclerosis support network. Discover new connections, manage matches, and engage with your community."
+            canonical="https://mstwins.com/dashboard"
+          />
 
-      {/* Notification Popup */}
-      <NotificationPopup />
+          {/* Notification Popup */}
+          <NotificationPopup />
 
-      {/* Robot Announcement Popup */}
-      {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />}
+          {/* Robot Announcement Popup */}
+          {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />}
       
       {/* Modern header with clean design */}
       <div className="bg-white/90 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40 shadow-[0_1px_10px_rgba(0,0,0,0.05)]" style={{
@@ -356,9 +389,11 @@ const Dashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Persistent Bottom Navigation */}
-      <PersistentBottomNavigation />
-      </div>
-    </MobileKeyboardHandler>;
+          {/* Persistent Bottom Navigation */}
+          <PersistentBottomNavigation />
+        </div>
+      </MobileKeyboardHandler>
+    </AuthErrorBoundary>
+  );
 };
 export default memo(Dashboard);

@@ -201,9 +201,21 @@ const OptimizedDiscoverProfiles = ({
 
   if (isLoading && profiles.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="text-gray-600">Finding amazing people for you...</p>
+      <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-6"></div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">Finding amazing connections...</h3>
+        <p className="text-gray-600 max-w-sm">We're searching for people in your area who share your interests and MS journey.</p>
+        
+        {/* Add retry option after 5 seconds */}
+        <button 
+          onClick={() => {
+            console.log('🔄 User requested manual refresh');
+            onRefresh();
+          }}
+          className="mt-4 text-sm text-blue-600 hover:text-blue-800 underline"
+        >
+          Taking too long? Try refreshing
+        </button>
       </div>
     );
   }

@@ -32,25 +32,29 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
 
   // Optimized fetch with server-side filtering
   const fetchProfiles = useCallback(async (isRefresh = false) => {
-    if (!user) {
-      console.log('❌ No user provided to fetchProfiles');
-      return;
-    }
-
-    console.log('🔄 Fetching optimized discover profiles for user:', user.id);
-    setLoading(true);
+    if (loading && !isRefresh) return;
     
     if (isRefresh) {
-      console.log('🔄 Refreshing profiles');
       offsetRef.current = 0;
       hasMoreRef.current = true;
-      likedIdsRef.current.clear();
-      passedIdsRef.current.clear();
-      setProfiles([]);
     }
 
+    if (!hasMoreRef.current && !isRefresh) return;
+
     try {
-      // First, get user's likes and passes to filter server-side
+      setLoading(!isRefresh);
+      setIsPreloading(isRefresh);
+
+      console.log('🔍 Fetching discover profiles:', {
+        userId: user?.id,
+        offset: offsetRef.current,
+        isRefresh,
+        hasMore: hasMoreRef.current
+      });
+
+      // First, get user's liked and passed IDs to filter server-side  
+      const BATCH_SIZE = 50;
+      
       const [likesResult, passesResult] = await Promise.all([
         supabase
           .from('likes')
@@ -62,17 +66,23 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
           .eq('passer_id', user.id)
       ]);
 
-      const likedIds = new Set((likesResult.data || []).map(like => like.liked_id));
-      const passedIds = new Set((passesResult.data || []).map(pass => pass.passed_id));
-      
-      likedIdsRef.current = likedIds;
-      passedIdsRef.current = passedIds;
+      if (likesResult.error) {
+        console.error('🚨 Error fetching likes:', likesResult.error);
+        throw likesResult.error;
+      }
 
-      // Build exclusion filter
-      const excludeIds = [...likedIds, ...passedIds, user.id];
+      if (passesResult.error) {
+        console.error('🚨 Error fetching passes:', passesResult.error);
+        throw passesResult.error;
+      }
+
+      const likedIds = (likesResult.data || []).map(like => like.liked_id);
+      const passedIds = (passesResult.data || []).map(pass => pass.passed_id);
       
-      // Fetch profiles with server-side filtering
-      const { data, error } = await supabase
+      // Combine all excluded IDs including the current user
+      const allExcludedIds = [...new Set([...likedIds, ...passedIds, user.id])];
+      
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select(`
           id,
@@ -91,53 +101,54 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
           about_me,
           last_seen,
           additional_photos,
-          selected_prompts
+          selected_prompts,
+          extended_profile_completed
         `)
-        .not('user_id', 'in', `(${excludeIds.join(',')})`)
-        .eq('moderation_status', 'approved')
+        .not('user_id', 'in', allExcludedIds)
+        .neq('user_id', user.id)
         .order('last_seen', { ascending: false })
-        .range(offsetRef.current, offsetRef.current + 49);
-
-      console.log('🔍 Profile query details:', {
-        excludeIds,
-        excludeCount: excludeIds.length,
-        offset: offsetRef.current,
-        limit: 49
-      });
+        .range(offsetRef.current, offsetRef.current + BATCH_SIZE - 1);
 
       if (error) {
-        console.error('❌ Supabase query error:', error);
+        console.error('🚨 Error fetching discover profiles:', error);
         throw error;
       }
 
-      console.log('🔍 Raw profile query result:', {
-        dataCount: data?.length || 0,
-        data: data?.slice(0, 3) // Log first 3 for debugging
-      });
-
-      const formattedProfiles = (data || []).map(profile => ({
-        ...profile,
-        selected_prompts: Array.isArray(profile.selected_prompts) ? 
-          profile.selected_prompts : []
-      }));
-
-      console.log('✅ Fetched profiles:', formattedProfiles.length);
-
-      if (isRefresh) {
-        setProfiles(formattedProfiles as Profile[]);
+      if (profileData) {
+        console.log(`📊 Fetched ${profileData.length} profiles (${isRefresh ? 'refresh' : 'pagination'}):`, {
+          totalProfiles: isRefresh ? profileData.length : profiles.length + profileData.length,
+          hasMore: profileData.length === BATCH_SIZE,
+          excludedCount: allExcludedIds.length
+        });
+        
+        const newProfiles = profileData as Profile[];
+        
+        if (isRefresh) {
+          setProfiles(newProfiles);
+        } else {
+          setProfiles(prev => [...prev, ...newProfiles]);
+        }
+        
+        offsetRef.current += profileData.length;
+        hasMoreRef.current = profileData.length === BATCH_SIZE;
       } else {
-        setProfiles(prev => [...prev, ...formattedProfiles as Profile[]]);
+        console.log('📊 No profile data returned');
+        hasMoreRef.current = false;
       }
-
-      offsetRef.current += 50;
-      hasMoreRef.current = data?.length === 50;
-
-    } catch (error: any) {
-      console.error('❌ Error fetching profiles:', error);
+    } catch (error) {
+      console.error('🚨 Error fetching discover profiles:', {
+        error: error instanceof Error ? error.message : error,
+        userId: user?.id,
+        offset: offsetRef.current
+      });
+      
+      // Set hasMore to false on error to prevent infinite retry loops
+      hasMoreRef.current = false;
     } finally {
       setLoading(false);
+      setIsPreloading(false);
     }
-  }, [user]); // Removed 'loading' from dependencies to prevent infinite loop
+  }, [user, profiles.length]);
 
   // Preload next batch
   const preloadMore = useCallback(async () => {
@@ -194,7 +205,7 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
     } finally {
       setIsPreloading(false);
     }
-  }, [user]); // Removed 'isPreloading' from dependencies
+  }, [user]);
 
   // Add loading state ref to prevent concurrent requests
   const loadingRef = useRef(false);
@@ -207,7 +218,7 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
         loadingRef.current = false;
       });
     }
-  }, [user?.id]); // Only depend on user.id, not the entire user object
+  }, [user?.id, fetchProfiles]);
 
   return {
     profiles,
