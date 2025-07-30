@@ -219,7 +219,7 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
           .eq('moderation_status', 'approved')
           .neq('hide_from_discover', true)
           .lt('last_seen', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-          .order('created_at', { ascending: false })
+          .order('user_id', { ascending: false })
           .limit(3), // Smaller limit for cache
 
         supabase

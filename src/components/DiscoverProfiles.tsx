@@ -65,6 +65,7 @@ const DiscoverProfiles = memo(() => {
   const fetchProfiles = useCallback(async () => {
     if (!user) return;
 
+    console.log('🔍 Starting fetchProfiles...');
     setLoading(true);
     
     try {
@@ -129,7 +130,7 @@ const DiscoverProfiles = memo(() => {
           .eq('moderation_status', 'approved')
           .neq('hide_from_discover', true)
           .lt('last_seen', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-          .order('created_at', { ascending: false }) // Order older profiles by creation to give variety
+          .order('user_id', { ascending: false }) // Order older profiles by user_id to give variety
           .limit(15),
         
         supabase
@@ -198,15 +199,17 @@ const DiscoverProfiles = memo(() => {
 
       setProfiles(filteredProfiles as Profile[]);
       setCurrentIndex(0);
+      console.log(`✅ Profiles loaded: ${filteredProfiles.length} profiles found`);
       
     } catch (error: any) {
-      console.error('Error fetching profiles:', error);
+      console.error('❌ Error fetching profiles:', error);
       toast({
         title: "Error loading profiles",
         description: error.message || "Please try again later.",
         variant: "destructive"
       });
     } finally {
+      console.log('🏁 Finished fetchProfiles, setting loading to false');
       setLoading(false);
     }
   }, [user, toast]);
