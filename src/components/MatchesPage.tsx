@@ -50,12 +50,59 @@ const MatchesPage = ({
           <p className="text-gray-500 text-sm">
             Keep discovering profiles - your matches will appear here!
           </p>
+          
+          {/* Debug section - remove in production */}
+          <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+            <p className="text-xs text-gray-600 mb-2">Debug Info:</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                console.log('🔄 Manual likes refresh triggered');
+                fetchLikes();
+              }}
+              className="mr-2"
+            >
+              Refresh Likes
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={async () => {
+                if (!user) return;
+                console.log('🔍 Checking likes table directly...');
+                
+                // Check total likes for user
+                const { data: totalLikes, error: totalError } = await supabase
+                  .from('likes')
+                  .select('*')
+                  .eq('liked_id', user.id);
+                console.log('Total likes for user:', { data: totalLikes, error: totalError });
+                
+                // Check matches for user
+                const { data: matches, error: matchesError } = await supabase
+                  .from('matches')
+                  .select('*')
+                  .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+                console.log('User matches:', { data: matches, error: matchesError });
+                
+                // Check user ID
+                console.log('Current user ID:', user.id);
+              }}
+            >
+              Check DB
+            </Button>
+          </div>
         </div>
       );
     }
 
     return (
       <div className="space-y-3 sm:space-y-4">
+        {/* Show debug info when there are likes */}
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <p className="text-xs text-blue-600">Debug: Found {likes.length} likes</p>
+        </div>
         {likes.map(likedProfile => (
           <Card key={likedProfile.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <CardContent className="p-3 sm:p-4">

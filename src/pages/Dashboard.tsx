@@ -183,6 +183,8 @@ const Dashboard = () => {
     if (!user) return;
     setLikesLoading(true);
     try {
+      console.log('🔍 Fetching likes for user:', user.id);
+      
       // Get people who liked the current user
       const {
         data: likeData,
@@ -190,48 +192,72 @@ const Dashboard = () => {
       } = await supabase.from('likes').select('liker_id, created_at').eq('liked_id', user.id).order('created_at', {
         ascending: false
       });
+      
       if (error) {
-        console.error('Error fetching likes:', error);
+        console.error('❌ Error fetching likes:', error);
         return;
       }
+      
+      console.log('✅ Raw likes data:', likeData);
+      
       if (!likeData || likeData.length === 0) {
+        console.log('ℹ️ No likes found for user');
         setLikes([]);
         return;
       }
 
       // Get existing matches to exclude them from likes
       const {
-        data: existingMatches
+        data: existingMatches,
+        error: matchesError
       } = await supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      
+      if (matchesError) {
+        console.error('❌ Error fetching matches:', matchesError);
+      }
+      
       const matchedIds = existingMatches?.map(match => match.user1_id === user.id ? match.user2_id : match.user1_id) || [];
+      console.log('🤝 Already matched user IDs:', matchedIds);
 
       // Filter out users who are already matched
       const unmatchedLikers = likeData.filter(like => !matchedIds.includes(like.liker_id));
+      console.log('💕 Unmatched likers:', unmatchedLikers);
+      
       if (unmatchedLikers.length === 0) {
+        console.log('ℹ️ All likers are already matched');
         setLikes([]);
         return;
       }
 
       // Get the profiles of people who liked the user (excluding matches)
       const likerIds = unmatchedLikers.map(like => like.liker_id);
+      console.log('👥 Fetching profiles for liker IDs:', likerIds);
+      
       const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts';
       const {
         data: profiles,
         error: profilesError
       } = await supabase.from('profiles').select(selectFields).in('user_id', likerIds);
+      
       if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
+        console.error('❌ Error fetching profiles:', profilesError);
         return;
       }
-      setLikes((profiles || []).map(profile => ({
+      
+      console.log('👤 Fetched profiles:', profiles);
+      
+      const formattedProfiles = (profiles || []).map(profile => ({
         ...profile,
         selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as {
           question: string;
           answer: string;
         }[] : []
-      })));
+      }));
+      
+      console.log('✅ Setting likes with formatted profiles:', formattedProfiles);
+      setLikes(formattedProfiles);
     } catch (error) {
-      console.error('Error fetching likes:', error);
+      console.error('❌ Exception in fetchLikes:', error);
     } finally {
       setLikesLoading(false);
     }
