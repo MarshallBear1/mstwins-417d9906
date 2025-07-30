@@ -437,6 +437,18 @@ const Dashboard = () => {
             <ReferralDropdown />
             <FeedbackDialog />
             <NotificationBell />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/dashboard?tab=profile')}
+              className={`p-2 transition-colors ${
+                activeTab === 'profile' 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+            >
+              <User className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </div>

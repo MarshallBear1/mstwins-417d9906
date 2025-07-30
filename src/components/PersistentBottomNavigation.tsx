@@ -16,7 +16,6 @@ const tabs: Tab[] = [
   { id: 'likes', label: 'Likes', icon: Users, path: '/dashboard?tab=likes' },
   { id: 'messages', label: 'Messages', icon: MessageCircle, path: '/dashboard?tab=messages' },
   { id: 'forum', label: 'Forum', icon: Edit, path: '/dashboard?tab=forum' },
-  { id: 'profile', label: 'Profile', icon: User, path: '/dashboard?tab=profile' },
 ];
 
 const PersistentBottomNavigation = () => {
