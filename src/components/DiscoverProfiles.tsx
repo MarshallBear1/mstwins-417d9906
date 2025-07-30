@@ -1,7 +1,7 @@
 import { useState, useEffect, memo, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, RefreshCw } from "lucide-react";
+import { Heart, RefreshCw, MapPin, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
@@ -10,8 +10,7 @@ import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import LikeLimitWarning from "@/components/LikeLimitWarning";
-import { useNativeCapabilities } from "@/hooks/useNativeCapabilities";
-import MobileProfileCard from "@/components/ui/mobile-profile-card";
+import { useHaptics } from "@/hooks/useHaptics";
 
 // Memoize the calculate age function to prevent recalculation
 const calculateAge = (birthDate: string | null) => {
@@ -26,7 +25,6 @@ const calculateAge = (birthDate: string | null) => {
   }
   return age;
 };
-
 
 interface Profile {
   id: string;
@@ -45,577 +43,334 @@ interface Profile {
   about_me: string | null;
   last_seen: string | null;
   additional_photos?: string[];
-  selected_prompts?: {
-    question: string;
-    answer: string;
-  }[];
-  extended_profile_completed?: boolean;
+  selected_prompts?: any;
 }
 
-const DiscoverProfiles = () => {
+const DiscoverProfiles = memo(() => {
   const { user } = useAuth();
-  const { isUserOnline, getLastSeenText } = useRealtimePresence();
-  const { remainingLikes, refreshRemainingLikes, isLimitEnforced, shouldShowWarning, hasUnlimitedLikes } = useDailyLikes();
   const { toast } = useToast();
-  const { enhancedLikeAction, enhancedButtonPress, enhancedErrorAction, enhancedSuccessAction } = useNativeCapabilities();
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [showingSkipped, setShowingSkipped] = useState(false);
-  const [showMatchAnnouncement, setShowMatchAnnouncement] = useState(false);
-  const [showImageViewer, setShowImageViewer] = useState(false);
-  const [showLimitWarning, setShowLimitWarning] = useState(false);
-  const [refreshing, setRefreshing] = useState(false); // Separate refresh state
-  
-  const [imageViewerIndex, setImageViewerIndex] = useState(0);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [actionCooldown, setActionCooldown] = useState(false);
+  const { remainingLikes, refreshRemainingLikes } = useDailyLikes();
+  const { vibrate } = useHaptics();
+  const { isUserOnline } = useRealtimePresence();
 
-  // Memoized fetchProfiles function to prevent infinite loops
-  const fetchProfiles = useCallback(async (isRefresh = false) => {
-    if (!user) {
-      console.log('🚫 DiscoverProfiles: No user, skipping fetch');
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
+  // Optimized profile fetching with parallel queries
+  const fetchProfiles = useCallback(async () => {
+    if (!user) return;
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 DiscoverProfiles: Starting profile fetch', {
-        isRefresh,
-        showingSkipped,
-        userId: user.id
-      });
-    }
-
-    // Only show loading spinner on initial load, not on refresh
-    if (!isRefresh) {
-      setLoading(true);
-    } else {
-      setRefreshing(true);
-    }
-
+    setLoading(true);
     try {
-      if (showingSkipped) {
-        // Optimized query for skipped profiles - get all excluded IDs first
-        console.log('🔍 Fetching skipped profiles with optimized approach...');
-        
-        // Get passed profiles and exclusions in parallel
-        const [passedResult, likesResult, matchesResult] = await Promise.all([
-          supabase.from('passes').select('passed_id').eq('passer_id', user.id).limit(500),
-          supabase.from('likes').select('liked_id').eq('liker_id', user.id).limit(500),
-          supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`).limit(100)
-        ]);
-
-        const passedIds = passedResult.data?.map(p => p.passed_id) || [];
-        const likedIds = likesResult.data?.map(l => l.liked_id) || [];
-        const matchedIds = matchesResult.data?.map(m => 
-          m.user1_id === user.id ? m.user2_id : m.user1_id
-        ) || [];
-        
-        // Only show skipped profiles that aren't now matched or liked
-        const availableSkippedIds = passedIds.filter(id => 
-          !matchedIds.includes(id) && !likedIds.includes(id)
-        );
-
-        if (availableSkippedIds.length > 0) {
-          const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts, extended_profile_completed';
-          
-          const { data: skippedProfiles, error } = await supabase
-            .from('profiles')
-            .select(selectFields)
-            .in('user_id', availableSkippedIds);
-          
-          if (error) {
-            console.error('Error fetching skipped profiles:', error);
-            setProfiles([]);
-          } else {
-            console.log(`✅ Found ${skippedProfiles?.length || 0} available skipped profiles`);
-            setProfiles((skippedProfiles || []).map(profile => ({
-              ...profile,
-              selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as { question: string; answer: string; }[] : []
-            })));
-          }
-        } else {
-          console.log('📭 No skipped profiles available');
-          setProfiles([]);
-        }
-      } else {
-        // Optimized query for new profiles - parallel fetch of exclusions
-        console.log('🔍 Fetching new profiles with optimized parallel queries...');
-        
-        // Fetch all exclusion data in parallel (3 queries → 1 parallel batch)
-        const [likesResult, matchesResult, passesResult] = await Promise.all([
-          supabase.from('likes').select('liked_id').eq('liker_id', user.id).limit(500),
-          supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`).limit(100),
-          supabase.from('passes').select('passed_id').eq('passer_id', user.id).limit(500)
-        ]);
-
-        const likedIds = likesResult.data?.map(l => l.liked_id) || [];
-        const matchedIds = matchesResult.data?.map(m => 
-          m.user1_id === user.id ? m.user2_id : m.user1_id
-        ) || [];
-        const passedIds = passesResult.data?.map(p => p.passed_id) || [];
-        
-        const excludedIds = [...likedIds, ...matchedIds, ...passedIds, user.id];
-        
-        console.log('📝 Optimized exclusion data:', {
-          likedIds: likedIds.length,
-          matchedIds: matchedIds.length, 
-          passedIds: passedIds.length,
-          totalExcluded: excludedIds.length
-        });
-
-        // Fetch recently active profiles (within 2 days)
-        const twoDaysAgo = new Date();
-        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-        
-        // Only select essential fields for better performance
-        const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts, extended_profile_completed';
-        
-        let recentQuery = supabase.from('profiles').select(selectFields);
-        let olderQuery = supabase.from('profiles').select(selectFields);
-        
-        if (excludedIds.length > 1) {
-          recentQuery = recentQuery.not('user_id', 'in', `(${excludedIds.join(',')})`);
-          olderQuery = olderQuery.not('user_id', 'in', `(${excludedIds.join(',')})`);
-        } else {
-          recentQuery = recentQuery.neq('user_id', user.id);
-          olderQuery = olderQuery.neq('user_id', user.id);
-        }
-
-        // Get recently active profiles (last 2 days)
-        const recentProfiles = await recentQuery
-          .gte('last_seen', twoDaysAgo.toISOString())
+      const [profilesResult, likedResult, passedResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select(`
+            id,
+            user_id,
+            first_name,
+            last_name,
+            date_of_birth,
+            location,
+            gender,
+            ms_subtype,
+            diagnosis_year,
+            symptoms,
+            medications,
+            hobbies,
+            avatar_url,
+            about_me,
+            last_seen,
+            additional_photos,
+            selected_prompts
+          `)
+          .neq('user_id', user.id)
+          .eq('moderation_status', 'approved')
           .order('last_seen', { ascending: false })
-          .limit(25);
-
-        // Get older profiles (2+ days ago or null)
-        const olderProfiles = await olderQuery
-          .or(`last_seen.lt.${twoDaysAgo.toISOString()},last_seen.is.null`)
-          .order('last_seen', { ascending: false, nullsFirst: true })
-          .limit(25);
-
-        if (recentProfiles.error || olderProfiles.error) {
-          console.error('Error fetching profiles:', recentProfiles.error || olderProfiles.error);
-          return;
-        }
-
-        // Mix profiles: alternate between recent and older
-        const mixedProfiles: any[] = [];
-        const recentList = recentProfiles.data || [];
-        const olderList = olderProfiles.data || [];
+          .limit(20),
         
-        const maxLength = Math.max(recentList.length, olderList.length);
-        for (let i = 0; i < maxLength; i++) {
-          if (i < recentList.length) {
-            mixedProfiles.push(recentList[i]);
-          }
-          if (i < olderList.length) {
-            mixedProfiles.push(olderList[i]);
-          }
-        }
-
-        console.log(`✅ Mixed discovery: ${recentList.length} recent + ${olderList.length} older = ${mixedProfiles.length} total profiles`);
-
-        const processedProfiles = mixedProfiles.map(profile => ({
-          ...profile,
-          selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as { question: string; answer: string; }[] : []
-        }));
+        supabase
+          .from('likes')
+          .select('liked_id')
+          .eq('liker_id', user.id),
         
-        setProfiles(processedProfiles);
-      }
-      
-      console.log('📊 Setting currentIndex to 0');
+        supabase
+          .from('passes')
+          .select('passed_id')
+          .eq('passer_id', user.id)
+      ]);
+
+      if (profilesResult.error) throw profilesResult.error;
+
+      const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
+      const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
+
+      // Filter out already liked/passed profiles
+      const filteredProfiles = profilesResult.data?.filter(
+        profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
+      ) || [];
+
+      setProfiles(filteredProfiles as Profile[]);
       setCurrentIndex(0);
     } catch (error) {
-      console.error('❌ Error fetching profiles:', error);
-      // Ensure we reset loading states even on error
-      setProfiles([]);
+      console.error('Error fetching profiles:', error);
+      toast({
+        title: "Error loading profiles",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
     } finally {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ DiscoverProfiles: Profile fetch completed');
-      }
       setLoading(false);
-      setRefreshing(false);
     }
-  }, [user, showingSkipped]); // Include dependencies
+  }, [user, toast]);
 
-  // Preload next profile images for faster loading
+  // Initial load
   useEffect(() => {
-    const preloadImages = () => {
-      // Preload the next 3 profiles' images
-      for (let i = currentIndex + 1; i <= Math.min(currentIndex + 3, profiles.length - 1); i++) {
-        const profile = profiles[i];
-        if (profile) {
-          // Preload avatar
-          if (profile.avatar_url) {
-            const img = new Image();
-            img.src = profile.avatar_url;
-          }
-          
-          // Preload additional photos
-          if (profile.additional_photos) {
-            profile.additional_photos.slice(0, 4).forEach(photoUrl => {
-              const img = new Image();
-              img.src = photoUrl;
-            });
-          }
-        }
-      }
-    };
+    fetchProfiles();
+  }, [fetchProfiles]);
 
-    if (profiles.length > 0 && currentIndex >= 0) {
-      preloadImages();
-    }
+  // Memoized current profile calculation
+  const currentProfile = useMemo(() => {
+    return profiles[currentIndex] || null;
   }, [profiles, currentIndex]);
 
-  useEffect(() => {
-    if (user) {
-      console.log('🔄 DiscoverProfiles: Initial fetch triggered by user change');
-      fetchProfiles();
-    }
-  }, [user, showingSkipped]); // Remove fetchProfiles from dependencies to prevent infinite loops
+  // Optimized like function with cooldown
+  const likeProfile = useCallback(async (profileUserId: string) => {
+    if (!user || actionCooldown) return;
 
-
-
-  const handleLike = useCallback(async () => {
-    if (!user || !currentProfile || actionLoading) return;
-    
-    // Show warning before like action when user has 4 likes remaining
-    if (shouldShowWarning()) {
-      setShowLimitWarning(true);
-    }
-    
-    // Check daily like limit before proceeding (local check first)
-    if (isLimitEnforced() && remainingLikes <= 0) {
-      enhancedErrorAction(); // Non-blocking
+    if (user.id === profileUserId) {
       toast({
-        title: "Daily Like Limit Reached",
-        description: "You've reached your daily limit of 10 likes. Come back tomorrow for more!",
-        variant: "destructive",
+        title: "Can't like yourself",
+        description: "You can't like your own profile!",
+        variant: "destructive"
       });
       return;
     }
-    
-    // Minimal loading state - just to prevent double-clicks
-    setActionLoading(true);
-    
-    // OPTIMISTIC UI UPDATE - Move to next profile immediately for speed
-    const profileToLike = currentProfile; // Store reference before moving
-    handleNext(); // Move UI immediately
-    
-    // Non-blocking haptic feedback and analytics
-    enhancedLikeAction(); // Remove await for speed
-    analytics.profileLiked(user.id, profileToLike.user_id);
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🚀 Starting like process for profile:', profileToLike.user_id);
+
+    if (remainingLikes <= 0) {
+      toast({
+        title: "No likes remaining",
+        description: "You've used all your likes for today. Come back tomorrow!",
+        variant: "destructive"
+      });
+      return;
     }
-    
-    // Clear loading immediately since UI is already updated
-    setTimeout(() => setActionLoading(false), 50);
-    
-         // Background processing - don't block UI
-     Promise.resolve().then(async () => {
-       try {
-         // Parallel operations for speed
-         const [canLikeResult, existingLikeResult] = await Promise.all([
-           // Check like limit
-           supabase.rpc('check_and_increment_daily_likes', {
-             target_user_id: profileToLike.user_id
-           }),
-           // Check for existing like (for match detection)
-           supabase
-             .from('likes')
-             .select('*')
-             .eq('liker_id', profileToLike.user_id)
-             .eq('liked_id', user.id)
-             .maybeSingle()
-         ]);
-         
-         const { data: canLike, error: limitError } = canLikeResult;
-         const { data: existingLike } = existingLikeResult;
-         
-         if (limitError || !canLike) {
-           console.error('❌ Like limit reached:', limitError);
-           toast({
-             title: "Daily Like Limit Reached",
-             description: "You've reached your daily limit of 10 likes. Come back tomorrow for more!",
-             variant: "destructive",
-           });
-           return;
-         }
 
-         const willCreateMatch = !!existingLike;
-         console.log('📊 Will create match:', willCreateMatch);
+    setActionCooldown(true);
+    setTimeout(() => setActionCooldown(false), 1000);
 
-         // Insert the like (non-blocking for UI)
-         const { error: insertError } = await supabase
-           .from('likes')
-           .insert({
-             liker_id: user.id,
-             liked_id: profileToLike.user_id
-           });
+    try {
+      const { error } = await supabase
+        .from('likes')
+        .insert({
+          liker_id: user.id,
+          liked_id: profileUserId
+        });
 
-         if (insertError) {
-           console.error('❌ Error creating like:', insertError);
-           return;
-         }
+      if (error) throw error;
 
-         console.log('✅ Like processed successfully');
-         
-         // Update remaining likes count in background
-         refreshRemainingLikes();
+      vibrate();
+      analytics.track('profile_liked', { liked_user_id: profileUserId });
+      
+      // Move to next profile immediately for better UX
+      setCurrentIndex(prev => prev + 1);
+      refreshRemainingLikes();
 
-         // Background email notifications (completely non-blocking)
-         supabase.functions.invoke('email-notification-worker', {
-           body: {
-             type: willCreateMatch ? 'match' : 'like',
-             likerUserId: user.id,
-             likedUserId: profileToLike.user_id
-           }
-         }).catch((emailError) => {
-           console.error('❌ Email notification error (non-critical):', emailError);
-         });
-
-         // Show match notification if it's a match
-         if (willCreateMatch) {
-           enhancedSuccessAction(); // Non-blocking haptic
-           toast({
-             title: "🎉 It's a Match!",
-             description: `You and ${profileToLike.first_name} liked each other!`,
-           });
-         }
-        
-      } catch (error) {
-        console.error('❌ Background like processing error:', error);
-        // Error is handled in background - UI already moved forward
-      }
-    });
-  }, [user, actionLoading, shouldShowWarning, isLimitEnforced, remainingLikes, enhancedErrorAction, toast, enhancedLikeAction, analytics]);
-
-  const handlePass = useCallback(async () => {
-    if (!user || !currentProfile || actionLoading) return;
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('⏭️ Starting pass process for profile:', currentProfile.user_id);
-    }
-    
-    // Minimal loading state - just to prevent double-clicks
-    setActionLoading(true);
-    
-    // OPTIMISTIC UI UPDATE - Move to next profile immediately for speed
-    const profileToPass = currentProfile; // Store reference before moving
-    handleNext(); // Move UI immediately
-    
-    // Non-blocking haptic feedback and analytics
-    enhancedButtonPress(); // Remove await for speed
-    analytics.profilePassed(user.id, profileToPass.user_id);
-    
-    // Clear loading immediately since UI is already updated
-    setTimeout(() => setActionLoading(false), 50);
-    
-    // Background processing - don't block UI
-    if (!showingSkipped) {
-      Promise.resolve().then(async () => {
-        try {
-          // Record the pass in the database (background)
-          const { error } = await supabase
-            .from('passes')
-            .insert({
-              passer_id: user.id,
-              passed_id: profileToPass.user_id
-            });
-
-          if (error && process.env.NODE_ENV === 'development') {
-            console.error('❌ Error recording pass:', error);
-          } else if (process.env.NODE_ENV === 'development') {
-            console.log('✅ Pass recorded successfully');
-          }
-        } catch (error) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error('❌ Exception during pass:', error);
-          }
-        }
+      toast({
+        title: "Profile liked!",
+        description: "Your like has been sent."
+      });
+    } catch (error: any) {
+      console.error('Error liking profile:', error);
+      toast({
+        title: "Error liking profile",
+        description: error.message === 'Users cannot like their own profile' 
+          ? "You can't like your own profile!" 
+          : "Please try again later.",
+        variant: "destructive"
       });
     }
-    
-    // Update remaining likes count after action
-    refreshRemainingLikes();
-  }, [user, actionLoading, enhancedButtonPress, analytics, showingSkipped, refreshRemainingLikes]);
+  }, [user, actionCooldown, remainingLikes, vibrate, refreshRemainingLikes, toast]);
 
-  const handleNext = () => {
-    // Immediately move to next profile for snappiness
-    if (currentIndex < profiles.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      // No more profiles, fetch new ones
-      fetchProfiles();
+  // Optimized pass function with cooldown
+  const passProfile = useCallback(async (profileUserId: string) => {
+    if (!user || actionCooldown) return;
+
+    setActionCooldown(true);
+    setTimeout(() => setActionCooldown(false), 1000);
+
+    try {
+      const { error } = await supabase
+        .from('passes')
+        .insert({
+          passer_id: user.id,
+          passed_id: profileUserId
+        });
+
+      if (error) throw error;
+
+      vibrate();
+      analytics.track('profile_passed', { passed_user_id: profileUserId });
+      
+      // Move to next profile immediately
+      setCurrentIndex(prev => prev + 1);
+
+      toast({
+        title: "Profile passed",
+        description: "Moved to the next profile."
+      });
+    } catch (error) {
+      console.error('Error passing profile:', error);
+      toast({
+        title: "Error passing profile",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
     }
-  };
+  }, [user, actionCooldown, vibrate, toast]);
 
-  const currentProfile = profiles[currentIndex];
-  
-  // Debug logging (only in development)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 Debug info:', {
-      profilesLength: profiles.length,
-      currentIndex,
-      hasCurrentProfile: !!currentProfile,
-      loading,
-      showingSkipped
-    });
-  }
-
-  const openImageViewer = (imageIndex: number) => {
-    setImageViewerIndex(imageIndex);
-    setShowImageViewer(true);
-  };
-
-  // Memoize image preparation to avoid recalculation
-  const allImages = useMemo(() => {
-    if (!currentProfile) return [];
-    return [
-      ...(currentProfile.avatar_url ? [currentProfile.avatar_url] : []),
-      ...(currentProfile.additional_photos || [])
-    ];
+  // Memoized image click handler
+  const handleImageClick = useCallback(() => {
+    if (currentProfile?.additional_photos) {
+      const images = [currentProfile.avatar_url, ...currentProfile.additional_photos].filter(Boolean) as string[];
+      setSelectedImages(images);
+      setImageViewerOpen(true);
+    }
   }, [currentProfile]);
 
-  if (loading || refreshing) {
+  // Show loading state
+  if (loading && profiles.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="text-gray-600">Finding amazing people for you...</p>
       </div>
     );
   }
 
-  if (!currentProfile) {
+  // Show empty state
+  if (profiles.length === 0 || currentIndex >= profiles.length) {
     return (
-      <div className="p-6 text-center">
-        <div className="mb-8">
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="text-center">
           <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Discover Community</h2>
-          <p className="text-muted-foreground">Find supportive connections in the MS community</p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            No more profiles to discover
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Check back later for new profiles or adjust your preferences.
+          </p>
+          <Button onClick={fetchProfiles} className="bg-gradient-primary text-white">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
         </div>
-        <Card className="mb-4">
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <p className="text-muted-foreground mb-4">
-                No new profiles to discover right now.
-              </p>
-              <p className="text-sm text-muted-foreground mb-6">
-                More profiles will appear as new users join the MS<span className="text-blue-600">Twins</span> community. Check back later to find your perfect matches!
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Remaining likes warning */}
+      <LikeLimitWarning 
+        open={remainingLikes <= 2 && remainingLikes > 0} 
+        onOpenChange={() => {}} 
+        remainingLikes={remainingLikes} 
+      />
+      
+      {/* Profile Card */}
+      {currentProfile && (
+        <Card className="mx-auto max-w-md overflow-hidden shadow-lg">
+          <CardContent className="p-0">
+            {/* Profile Image */}
+            <div 
+              className="relative h-96 bg-gradient-to-br from-blue-400/20 via-purple-300/20 to-pink-300/20 cursor-pointer"
+              onClick={handleImageClick}
+            >
+              {currentProfile.avatar_url ? (
+                <img
+                  src={currentProfile.avatar_url}
+                  alt={`${currentProfile.first_name}'s profile`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <User className="w-24 h-24 text-gray-400" />
+                </div>
+              )}
+              
+              {/* Online status */}
+              {isUserOnline(currentProfile.user_id) && (
+                <div className="absolute top-4 left-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs">
+                  Online
+                </div>
+              )}
+            </div>
+            
+            {/* Profile Info */}
+            <div className="p-4 space-y-3">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {currentProfile.first_name} {currentProfile.last_name}
+                </h2>
+                {currentProfile.date_of_birth && (
+                  <p className="text-gray-600">Age {calculateAge(currentProfile.date_of_birth)}</p>
+                )}
+              </div>
+              
+              <div className="flex items-center text-gray-600">
+                <MapPin className="w-4 h-4 mr-1" />
+                <span>{currentProfile.location}</span>
+              </div>
+              
+              {currentProfile.ms_subtype && (
+                <div className="bg-blue-50 px-3 py-2 rounded-lg">
+                  <span className="text-blue-700 font-medium">{currentProfile.ms_subtype}</span>
+                </div>
+              )}
+              
+              {currentProfile.about_me && (
+                <p className="text-gray-700 text-sm">{currentProfile.about_me}</p>
+              )}
+              
+              {/* Action Buttons */}
+              <div className="flex space-x-3 pt-4">
                 <Button
+                  onClick={() => passProfile(currentProfile.user_id)}
                   variant="outline"
-                  onClick={() => fetchProfiles(true)} // Pass isRefresh=true for refresh button
-                  className="flex items-center gap-2"
-                  disabled={loading || refreshing}
+                  className="flex-1"
+                  disabled={actionCooldown}
                 >
-                  <RefreshCw className={`w-4 h-4 ${loading || refreshing ? 'animate-spin' : ''}`} />
-                  Refresh Profiles
+                  Pass
                 </Button>
                 <Button
-                  variant="outline"
-                  onClick={() => {
-                    const newSkippedState = !showingSkipped;
-                    setShowingSkipped(newSkippedState);
-                    setCurrentIndex(0); // Reset to first profile
-                    // If switching to skipped view, auto-fetch skipped profiles
-                    if (newSkippedState) {
-                      fetchProfiles(false); // Remove setTimeout and call directly
-                    } else {
-                      fetchProfiles(false); // Refresh normal profiles when going back
-                    }
-                  }}
-                  className="flex items-center gap-2"
+                  onClick={() => likeProfile(currentProfile.user_id)}
+                  className="flex-1 bg-gradient-primary text-white"
+                  disabled={actionCooldown || remainingLikes <= 0}
                 >
-                  {showingSkipped ? 'Back to Discovery' : 'Review Skipped Profiles'}
+                  <Heart className="w-4 h-4 mr-2" />
+                  Like ({remainingLikes})
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
-
-  const hasExtendedContent = currentProfile.additional_photos?.length || 
-                           currentProfile.selected_prompts?.length || 
-                           currentProfile.medications?.length || 
-                           currentProfile.symptoms?.length;
-
-  return (
-    <div className="mobile-safe-x mobile-safe-bottom pb-1 px-3 sm:p-6">
-      {/* Match Announcement Modal */}
-      {showMatchAnnouncement && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4">
-          <div className="bg-white rounded-2xl p-6 sm:p-8 text-center max-w-sm w-full mx-4 shadow-2xl animate-scale-in">
-            <div className="mb-6">
-              <img 
-                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
-                alt="MSTwins mascot" 
-                className="w-16 sm:w-20 h-16 sm:h-20 mx-auto mb-4 animate-bounce"
-              />
-              <h2 className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">🎉 It's a Match!</h2>
-              <p className="text-gray-600 text-sm sm:text-base">
-                You and {currentProfile?.first_name} {currentProfile?.last_name} liked each other! Start chatting now.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button 
-                onClick={() => setShowMatchAnnouncement(false)}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm sm:text-base mobile-touch-target"
-              >
-                Continue Discovering
-              </button>
-              <button 
-                onClick={() => {
-                  setShowMatchAnnouncement(false);
-                  // Navigate to matches tab (you'd need to pass this function down from parent)
-                }}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm sm:text-base"
-              >
-                Start Chatting
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
-      {/* Centered Profile Card Container */}
-      <div className="flex justify-center">
-        <div className="w-full max-w-sm px-2 pb-2">
-          <MobileProfileCard
-            profile={currentProfile}
-            onImageClick={openImageViewer}
-            isUserOnline={isUserOnline}
-            getLastSeenText={getLastSeenText}
-            onLike={handleLike}
-            onPass={handlePass}
-            className="animate-scale-in"
-          />
-        </div>
-      </div>
-
-      {/* Profile Image Viewer */}
-      <ProfileImageViewer 
-        images={allImages}
-        currentIndex={imageViewerIndex}
-        isOpen={showImageViewer}
-        onClose={() => setShowImageViewer(false)}
+      {/* Image viewer */}
+      <ProfileImageViewer
+        images={selectedImages}
+        isOpen={imageViewerOpen}
+        onClose={() => setImageViewerOpen(false)}
+        currentIndex={0}
       />
-
-      {/* Like Limit Warning Dialog */}
-      <LikeLimitWarning 
-        open={showLimitWarning}
-        onOpenChange={setShowLimitWarning}
-        remainingLikes={remainingLikes}
-      />
-
     </div>
   );
-};
+});
 
-export default memo(DiscoverProfiles);
+DiscoverProfiles.displayName = 'DiscoverProfiles';
+
+export default DiscoverProfiles;

@@ -93,7 +93,7 @@ const ForumPage = () => {
       const currentOffset = reset ? 0 : offset;
       const startTime = performance.now();
       
-      // Optimized single query with joins to reduce API calls
+      // Separate queries for better performance and reliability
       const { data: postsData, error: postsError } = await supabase
         .from('forum_posts')
         .select(`
@@ -104,15 +104,7 @@ const ForumPage = () => {
           author_id,
           created_at,
           likes_count,
-          comments_count,
-          profiles!author_id (
-            user_id,
-            first_name,
-            last_name,
-            avatar_url,
-            ms_subtype,
-            location
-          )
+          comments_count
         `)
         .eq('moderation_status', 'approved')
         .order('created_at', { ascending: false })
@@ -129,6 +121,19 @@ const ForumPage = () => {
         return;
       }
 
+      // Get unique author IDs for batch profile fetch
+      const authorIds = [...new Set(postsData.map(post => post.author_id))];
+      
+      // Fetch profiles in batch
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, avatar_url, ms_subtype, location')
+        .in('user_id', authorIds);
+
+      // Create profile lookup map for O(1) access
+      const profilesMap = new Map(
+        profilesData?.map(profile => [profile.user_id, profile]) || []
+      );
       // Only fetch user likes separately (reduced from 3 queries to 2)
       const postIds = postsData.map(post => post.id);
       const { data: likesData } = await supabase
@@ -140,7 +145,7 @@ const ForumPage = () => {
       const likedPostIds = new Set(likesData?.map(like => like.post_id) || []);
       
       const postsWithLikes = postsData.map(post => {
-        const profile = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
+        const profile = profilesMap.get(post.author_id);
         return {
           ...post,
           author: {
@@ -151,7 +156,6 @@ const ForumPage = () => {
             location: profile?.location || null,
           },
           user_has_liked: likedPostIds.has(post.id),
-          profiles: undefined // Remove to clean up response
         };
       });
 
