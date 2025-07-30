@@ -286,6 +286,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     try {
       console.log('🔄 Fetching messages for match:', matchId);
       
+      // Fetch all messages regardless of moderation status
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -298,10 +299,41 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       }
 
       console.log('✅ Messages fetched:', data?.length || 0, 'messages');
-      setMessages(data || []);
       
-      // Cache the messages for this match
-      setMessageHistory(prev => new Map(prev.set(matchId, data || [])));
+      // Debug: Log moderation status of messages
+      if (data && data.length > 0) {
+        console.log('📋 Message moderation status breakdown:', 
+          data.reduce((acc, msg) => {
+            const status = msg.moderation_status || 'null';
+            acc[status] = (acc[status] || 0) + 1;
+            return acc;
+          }, {})
+        );
+        
+        // Filter out any blocked messages for display
+        const visibleMessages = data.filter(msg => 
+          !msg.moderation_status || 
+          msg.moderation_status === 'approved' || 
+          msg.moderation_status === 'pending'
+        );
+        
+        if (visibleMessages.length !== data.length) {
+          console.log(`📊 Showing ${visibleMessages.length} of ${data.length} messages (filtered out blocked messages)`);
+        }
+        
+        setMessages(visibleMessages);
+      } else {
+        setMessages(data || []);
+      }
+      
+      // Cache the visible messages for this match (not blocked ones)
+      const messagesToCache = data && data.length > 0 ? 
+        data.filter(msg => 
+          !msg.moderation_status || 
+          msg.moderation_status === 'approved' || 
+          msg.moderation_status === 'pending'
+        ) : data || [];
+      setMessageHistory(prev => new Map(prev.set(matchId, messagesToCache)));
       
       // Mark messages as read
       if (data && data.length > 0) {
@@ -441,7 +473,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           match_id: selectedMatch.id,
           sender_id: user.id,
           receiver_id: receiverId,
-          content: contentResult.filtered
+          content: contentResult.filtered,
+          moderation_status: 'approved' // Explicitly approve messages that pass client-side filtering
         })
         .select()
         .single();
