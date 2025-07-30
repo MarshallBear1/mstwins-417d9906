@@ -17,6 +17,7 @@ import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
 import { useOptimizedDashboardData } from "@/hooks/useOptimizedDashboardData";
+import { usePreloadedData } from "@/hooks/usePreloadedData";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
@@ -66,15 +67,23 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'discover';
 
-  // Use optimized data fetching hook
+  // Use the new comprehensive preloading hook
+  const preloadedData = usePreloadedData({ user, activeTab });
+  
+  // Extract data from the preloading hook with preloading capabilities
   const { 
     profile, 
+    profileLoading,
+    fetchProfile,
     likes, 
-    profileLoading, 
     likesLoading, 
-    fetchProfile, 
-    fetchLikes 
-  } = useOptimizedDashboardData({ user, activeTab });
+    fetchLikes,
+    matches,
+    matchesLoading,
+    preloadMatches,
+    preloadedProfiles,
+    preloadDiscoverProfiles
+  } = preloadedData;
 
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
