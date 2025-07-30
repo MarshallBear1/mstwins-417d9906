@@ -1,4 +1,5 @@
 import { useEffect, useState, memo } from "react";
+import { dashboardCache } from "@/lib/dashboardCache";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,10 +18,16 @@ import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
 import { AnalyticsDebugPanel } from "@/components/AnalyticsDebugPanel";
-import { useOptimizedDashboardData } from "@/hooks/useOptimizedDashboardData";
+import { usePreloadedDashboardData } from "@/hooks/usePreloadedDashboardData";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { 
+  DiscoverSkeletonGrid, 
+  LikesSkeletonList, 
+  MessagesSkeletonList, 
+  ForumSkeletonList 
+} from "@/components/SkeletonLoaders";
 import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
@@ -66,15 +73,22 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'discover';
 
-  // Use optimized data fetching hook
+  // Use preloaded data fetching hook for better performance
   const { 
     profile, 
-    likes, 
+    likes,
+    discoverProfiles,
+    messages,
     profileLoading, 
-    likesLoading, 
+    likesLoading,
+    discoverLoading,
+    messagesLoading,
     fetchProfile, 
-    fetchLikes 
-  } = useOptimizedDashboardData({ user, activeTab });
+    fetchLikes,
+    fetchMessages,
+    fetchAllData,
+    setProfile
+  } = usePreloadedDashboardData({ user, activeTab });
 
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
@@ -146,14 +160,14 @@ const Dashboard = () => {
       filter: `liked_id=eq.${user.id}`
     }, () => {
       // Always refresh likes when someone likes the current user
-      fetchLikes();
+      fetchLikes(false); // Force fresh fetch, skip cache
     }).on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
       table: 'matches'
     }, () => {
       // Always refresh likes when a new match is created (to remove them from likes)
-      fetchLikes();
+      fetchLikes(false); // Force fresh fetch, skip cache
     }).subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -204,6 +218,9 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "discover":
+        if (discoverLoading && discoverProfiles.length === 0) {
+          return <DiscoverSkeletonGrid />;
+        }
         return <div className="pt-6">
             {/* Extended Profile Prompt */}
             {profile && !profile.extended_profile_completed && !extendedPromptDismissed && <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mx-4 mb-4">
@@ -239,15 +256,21 @@ const Dashboard = () => {
             <DiscoverProfiles />
           </div>;
       case "likes":
+        if (likesLoading && likes.length === 0) {
+          return <LikesSkeletonList />;
+        }
         return <MatchesPage 
           likes={likes}
           likesLoading={likesLoading}
-          fetchLikes={fetchLikes}
+          fetchLikes={() => fetchLikes(false)} // Force fresh fetch for manual refresh
           selectedProfileForView={selectedProfileForView}
           setSelectedProfileForView={setSelectedProfileForView}
           setShowProfileView={setShowProfileView}
         />;
       case "messages":
+        if (messagesLoading && messages.length === 0) {
+          return <MessagesSkeletonList />;
+        }
         const urlParams = new URLSearchParams(window.location.search);
         const matchId = urlParams.get('match');
         return <Messaging 
@@ -260,11 +283,19 @@ const Dashboard = () => {
           }}
         />;
       case "forum":
+        // You can add forum loading state here if needed
         return <ForumPage />;
       case "profile":
         return profile ? (
           <div className="space-y-6">
-            <ProfileCard profile={profile as any} onProfileUpdate={fetchProfile} onSignOut={handleSignOut} />
+            <ProfileCard 
+              profile={profile as any} 
+               onProfileUpdate={(updatedProfile: any) => {
+                 setProfile(updatedProfile);
+                 dashboardCache.set(user.id, 'profile', updatedProfile);
+               }}
+              onSignOut={handleSignOut} 
+            />
             
             {process.env.NODE_ENV === 'development' && (
               <div className="p-4">
