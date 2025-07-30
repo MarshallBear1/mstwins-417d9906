@@ -19,7 +19,8 @@ interface Profile {
   diagnosis_year?: number;
   hobbies?: string[];
   about_me?: string;
-  photos?: { url: string; caption?: string }[];
+  symptoms?: string[];
+  additional_photos?: string[];
   selected_prompts?: { question: string; answer: string }[];
   last_seen: string | null;
 }
@@ -66,8 +67,9 @@ const MobileProfileCard = ({
   };
 
   const hasExtendedContent = Boolean(
-    (profile.photos && profile.photos.length > 1) ||
+    (profile.additional_photos && profile.additional_photos.length > 0) ||
     (profile.selected_prompts && profile.selected_prompts.length > 0) ||
+    (profile.symptoms && profile.symptoms.length > 0) ||
     (profile.about_me && profile.about_me.length > 80) ||
     profile.hobbies?.length ||
     profile.ms_subtype ||
@@ -176,19 +178,41 @@ const MobileProfileCard = ({
               </div>
             )}
 
+            {/* Symptoms */}
+            {profile.symptoms && profile.symptoms.length > 0 && (
+              <div>
+                <div className="text-xs font-medium text-gray-700 mb-1">Symptoms:</div>
+                <div className="flex flex-wrap gap-1">
+                  {profile.symptoms.slice(0, 2).map((symptom, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
+                      {symptom}
+                    </Badge>
+                  ))}
+                  {profile.symptoms.length > 2 && (
+                    <Badge variant="outline" className="text-xs px-2 py-1">
+                      +{profile.symptoms.length - 2}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Compact Hobbies */}
             {profile.hobbies && profile.hobbies.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {profile.hobbies.slice(0, 3).map((hobby, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
-                    {hobby}
-                  </Badge>
-                ))}
-                {profile.hobbies.length > 3 && (
-                  <Badge variant="outline" className="text-xs px-2 py-1">
-                    +{profile.hobbies.length - 3}
-                  </Badge>
-                )}
+              <div>
+                <div className="text-xs font-medium text-gray-700 mb-1">Interests:</div>
+                <div className="flex flex-wrap gap-1">
+                  {profile.hobbies.slice(0, 3).map((hobby, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
+                      {hobby}
+                    </Badge>
+                  ))}
+                  {profile.hobbies.length > 3 && (
+                    <Badge variant="outline" className="text-xs px-2 py-1">
+                      +{profile.hobbies.length - 3}
+                    </Badge>
+                  )}
+                </div>
               </div>
             )}
 
@@ -271,19 +295,33 @@ const MobileProfileCard = ({
             </div>
 
             <CardContent className="p-4 space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 8rem)' }}>
+              {/* Symptoms */}
+              {profile.symptoms && profile.symptoms.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Symptoms</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.symptoms.map((symptom, index) => (
+                      <Badge key={index} variant="outline" className="text-xs px-2 py-1">
+                        {symptom}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Additional Photos */}
-              {profile.photos && profile.photos.length > 1 && (
+              {profile.additional_photos && profile.additional_photos.length > 0 && (
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">More Photos</h4>
                   <div className="grid grid-cols-2 gap-2">
-                    {profile.photos.slice(1, 5).map((photo, index) => (
+                    {profile.additional_photos.slice(0, 4).map((photoUrl, index) => (
                       <button
                         key={index}
                         onClick={() => onImageClick?.(index + 1)}
                         className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-200"
                       >
                         <img
-                          src={photo.url}
+                          src={photoUrl}
                           alt={`${profile.first_name}'s photo ${index + 2}`}
                           className="w-full h-full object-cover"
                         />
@@ -298,7 +336,7 @@ const MobileProfileCard = ({
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">About Me</h4>
                   <div className="space-y-3">
-                    {profile.selected_prompts.slice(0, 2).map((prompt, index) => (
+                    {profile.selected_prompts.map((prompt, index) => (
                       <div key={index} className="bg-gray-50 rounded-lg p-3">
                         <p className="text-xs font-medium text-gray-700 mb-1">{prompt.question}</p>
                         <p className="text-sm text-gray-900">{prompt.answer}</p>
@@ -307,7 +345,6 @@ const MobileProfileCard = ({
                   </div>
                 </div>
               )}
-
 
             </CardContent>
 
