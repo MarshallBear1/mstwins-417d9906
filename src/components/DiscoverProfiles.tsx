@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, RefreshCw } from "lucide-react";
@@ -52,48 +52,21 @@ const DiscoverProfiles = () => {
   const [showMatchAnnouncement, setShowMatchAnnouncement] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [refreshing, setRefreshing] = useState(false); // Separate refresh state
   
   const [imageViewerIndex, setImageViewerIndex] = useState(0);
 
-  // Preload next profile images for faster loading
-  useEffect(() => {
-    const preloadImages = () => {
-      // Preload the next 3 profiles' images
-      for (let i = currentIndex + 1; i <= Math.min(currentIndex + 3, profiles.length - 1); i++) {
-        const profile = profiles[i];
-        if (profile) {
-          // Preload avatar
-          if (profile.avatar_url) {
-            const img = new Image();
-            img.src = profile.avatar_url;
-          }
-          
-          // Preload additional photos
-          if (profile.additional_photos) {
-            profile.additional_photos.slice(0, 4).forEach(photoUrl => {
-              const img = new Image();
-              img.src = photoUrl;
-            });
-          }
-        }
-      }
-    };
-
-    if (profiles.length > 0 && currentIndex >= 0) {
-      preloadImages();
-    }
-  }, [profiles, currentIndex]);
-
-  useEffect(() => {
-    if (user) {
-      fetchProfiles();
-    }
-  }, [user]);
-
-  const fetchProfiles = async () => {
+  // Memoized fetchProfiles function to prevent infinite loops
+  const fetchProfiles = useCallback(async (isRefresh = false) => {
     if (!user) return;
 
-    setLoading(true);
+    // Only show loading spinner on initial load, not on refresh
+    if (!isRefresh) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+
     try {
       if (showingSkipped) {
         // Optimized query for skipped profiles - get all excluded IDs first
@@ -226,8 +199,44 @@ const DiscoverProfiles = () => {
       console.error('Error fetching profiles:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [user, showingSkipped]); // Include dependencies
+
+  // Preload next profile images for faster loading
+  useEffect(() => {
+    const preloadImages = () => {
+      // Preload the next 3 profiles' images
+      for (let i = currentIndex + 1; i <= Math.min(currentIndex + 3, profiles.length - 1); i++) {
+        const profile = profiles[i];
+        if (profile) {
+          // Preload avatar
+          if (profile.avatar_url) {
+            const img = new Image();
+            img.src = profile.avatar_url;
+          }
+          
+          // Preload additional photos
+          if (profile.additional_photos) {
+            profile.additional_photos.slice(0, 4).forEach(photoUrl => {
+              const img = new Image();
+              img.src = photoUrl;
+            });
+          }
+        }
+      }
+    };
+
+    if (profiles.length > 0 && currentIndex >= 0) {
+      preloadImages();
+    }
+  }, [profiles, currentIndex]);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfiles();
+    }
+  }, [user, fetchProfiles]); // Add fetchProfiles to dependencies
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
@@ -261,6 +270,7 @@ const DiscoverProfiles = () => {
       return;
     }
     
+    // Minimal loading state - just to prevent double-clicks
     setActionLoading(true);
     
     // OPTIMISTIC UI UPDATE - Move to next profile immediately for speed
@@ -272,6 +282,9 @@ const DiscoverProfiles = () => {
     analytics.profileLiked(user.id, profileToLike.user_id);
     
     console.log('🚀 Starting like process for profile:', profileToLike.user_id);
+    
+    // Clear loading immediately since UI is already updated
+    setTimeout(() => setActionLoading(false), 50);
     
          // Background processing - don't block UI
      Promise.resolve().then(async () => {
@@ -348,19 +361,16 @@ const DiscoverProfiles = () => {
       } catch (error) {
         console.error('❌ Background like processing error:', error);
         // Error is handled in background - UI already moved forward
-      } finally {
-        setActionLoading(false);
       }
     });
-    
-    // UI is already responsive - set loading to false quickly
-    setTimeout(() => setActionLoading(false), 100);
   };
 
   const handlePass = async () => {
     if (!user || !currentProfile || actionLoading) return;
     
     console.log('⏭️ Starting pass process for profile:', currentProfile.user_id);
+    
+    // Minimal loading state - just to prevent double-clicks
     setActionLoading(true);
     
     // OPTIMISTIC UI UPDATE - Move to next profile immediately for speed
@@ -370,6 +380,9 @@ const DiscoverProfiles = () => {
     // Non-blocking haptic feedback and analytics
     enhancedButtonPress(); // Remove await for speed
     analytics.profilePassed(user.id, profileToPass.user_id);
+    
+    // Clear loading immediately since UI is already updated
+    setTimeout(() => setActionLoading(false), 50);
     
     // Background processing - don't block UI
     if (!showingSkipped) {
@@ -389,16 +402,13 @@ const DiscoverProfiles = () => {
             console.log('✅ Pass recorded successfully');
           }
         } catch (error) {
-          console.error('❌ Background pass processing error:', error);
-          // Error is handled in background - UI already moved forward
+          console.error('❌ Exception during pass:', error);
         }
       });
     }
     
-    // UI is already responsive - set loading to false quickly
-    setTimeout(() => setActionLoading(false), 50);
-    
-    console.log('⏭️ Pass process completed');
+    // Update remaining likes count after action
+    refreshRemainingLikes();
   };
 
   const handleNext = () => {
@@ -433,7 +443,7 @@ const DiscoverProfiles = () => {
     ...(currentProfile.additional_photos || [])
   ] : [];
 
-  if (loading) {
+  if (loading || refreshing) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -461,11 +471,11 @@ const DiscoverProfiles = () => {
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
                   variant="outline"
-                  onClick={fetchProfiles}
+                  onClick={() => fetchProfiles(true)} // Pass isRefresh=true for refresh button
                   className="flex items-center gap-2"
-                  disabled={loading}
+                  disabled={loading || refreshing}
                 >
-                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-4 h-4 ${loading || refreshing ? 'animate-spin' : ''}`} />
                   Refresh Profiles
                 </Button>
                 <Button
@@ -476,18 +486,13 @@ const DiscoverProfiles = () => {
                     setCurrentIndex(0); // Reset to first profile
                     // If switching to skipped view, auto-fetch skipped profiles
                     if (newSkippedState) {
-                      setTimeout(() => {
-                        fetchProfiles();
-                      }, 100);
+                      fetchProfiles(false); // Remove setTimeout and call directly
                     } else {
-                      setTimeout(() => {
-                        fetchProfiles();
-                      }, 100);
+                      fetchProfiles(false); // Refresh normal profiles when going back
                     }
                   }}
                   className="flex items-center gap-2"
                 >
-                  <Heart className="w-4 h-4" />
                   {showingSkipped ? 'Back to Discovery' : 'Review Skipped Profiles'}
                 </Button>
               </div>
