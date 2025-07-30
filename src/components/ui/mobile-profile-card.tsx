@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,15 @@ const MobileProfileCard = ({
   const [showAllSymptoms, setShowAllSymptoms] = useState(false);
   const [showAllMedications, setShowAllMedications] = useState(false);
   
+  // Reset all states when profile changes (new profile loaded)
+  useEffect(() => {
+    setIsFlipped(false);
+    setShowAllAbout(false);
+    setShowAllHobbies(false);
+    setShowAllSymptoms(false);
+    setShowAllMedications(false);
+  }, [profile.id]);
+  
   // Use the hook for realtime presence if not provided as props
   const { isUserOnline: hookIsUserOnline, getLastSeenText: hookGetLastSeenText } = useRealtimePresence();
   const isUserOnline = propIsUserOnline || hookIsUserOnline;
@@ -87,6 +96,17 @@ const MobileProfileCard = ({
     profile.ms_subtype ||
     profile.diagnosis_year
   );
+
+  // Enhanced handlers that reset to front when passing
+  const handlePass = () => {
+    setIsFlipped(false); // Always go back to front when passing
+    onPass?.();
+  };
+
+  const handleLike = () => {
+    setIsFlipped(false); // Always go back to front when liking
+    onLike?.();
+  };
 
   return (
     <div 
@@ -232,7 +252,7 @@ const MobileProfileCard = ({
             <div className="p-4 pt-3 flex gap-2">
               {onPass && (
                 <Button
-                  onClick={onPass}
+                  onClick={handlePass}
                   variant="outline"
                   className="flex-1 h-10 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-all duration-200"
                 >
@@ -242,7 +262,7 @@ const MobileProfileCard = ({
               )}
               {onLike && (
                 <Button
-                  onClick={onLike}
+                  onClick={handleLike}
                   className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group"
                 >
                   <Heart className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
@@ -408,25 +428,25 @@ const MobileProfileCard = ({
             {(onPass || onLike) && (
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
                 <div className="flex gap-2">
-                  {onPass && (
-                    <Button
-                      onClick={onPass}
-                      variant="outline"
-                      className="flex-1 h-10 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-all duration-200"
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Pass
-                    </Button>
-                  )}
-                  {onLike && (
-                    <Button
-                      onClick={onLike}
-                      className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group"
-                    >
-                      <Heart className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
-                      Like
-                    </Button>
-                  )}
+                   {onPass && (
+                     <Button
+                       onClick={handlePass}
+                       variant="outline"
+                       className="flex-1 h-10 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-all duration-200"
+                     >
+                       <X className="w-4 h-4 mr-1" />
+                       Pass
+                     </Button>
+                   )}
+                   {onLike && (
+                     <Button
+                       onClick={handleLike}
+                       className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group"
+                     >
+                       <Heart className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
+                       Like
+                     </Button>
+                   )}
                 </div>
               </div>
             )}
