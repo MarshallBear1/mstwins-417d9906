@@ -642,8 +642,7 @@ const ForumPage = () => {
           ) : (
             // List view header
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Community Forum</h1>
-              <p className="text-gray-600 text-sm">Connect, share, and support each other</p>
+              <h1 className="text-2xl font-bold text-gray-900">Forum</h1>
             </div>
           )}
           
@@ -753,7 +752,7 @@ const ForumPage = () => {
                                   viewProfile(post.author_id);
                                 }}
                               >
-                                {post.author.first_name} {post.author.last_name}
+                                {post.author.first_name}
                               </span>
                               <Button
                                 variant="outline"
@@ -766,12 +765,14 @@ const ForumPage = () => {
                               >
                                 View Profile
                               </Button>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
                               <Badge className={`text-xs ${flair.color}`}>
                                 {flair.label}
                               </Badge>
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                              <span className="text-xs text-gray-500">
+                                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                              </span>
                             </div>
                           </div>
                         </div>
