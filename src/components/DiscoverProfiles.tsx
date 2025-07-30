@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useCallback, useMemo } from "react";
+import { useState, useEffect, memo, useCallback, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, RefreshCw, MapPin, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +59,12 @@ const DiscoverProfiles = memo(() => {
   const { remainingLikes, refreshRemainingLikes } = useDailyLikes();
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
+  
+  // Preloading state and refs
+  const [isPreloading, setIsPreloading] = useState(false);
+  const preloadedProfilesRef = useRef<Profile[]>([]);
+  const lastFetchOffsetRef = useRef(0);
+  const hasMoreProfilesRef = useRef(true);
 
   // Authentication guard - ensure user is authenticated before making queries
   const isAuthenticated = user && user.id && !authLoading;
@@ -139,16 +145,14 @@ const DiscoverProfiles = memo(() => {
     }
   }, [isAuthenticated, user, toast]);
 
-  const fetchProfiles = useCallback(async () => {
-    // Authentication guard - don't proceed if user is not authenticated
-    if (!isAuthenticated) {
-      console.log('🚫 Cannot fetch profiles - user not authenticated');
+  // Preload function to fetch additional profiles
+  const preloadProfiles = useCallback(async (offset: number = 0) => {
+    if (!isAuthenticated || isPreloading || !hasMoreProfilesRef.current) {
       return;
     }
 
-    console.log('🔄 Fetching discover profiles for authenticated user:', user.id);
-    setLoading(true);
-    setShowSkippedProfiles(false);
+    console.log('🔄 Preloading profiles with offset:', offset);
+    setIsPreloading(true);
     
     try {
       const [profilesResult, likedResult, passedResult] = await Promise.all([
@@ -176,7 +180,93 @@ const DiscoverProfiles = memo(() => {
           .neq('user_id', user.id)
           .eq('moderation_status', 'approved')
           .order('last_seen', { ascending: false })
-          .limit(200), // Increased limit significantly
+          .range(offset, offset + 49), // Fetch 50 profiles at a time
+        
+        supabase
+          .from('likes')
+          .select('liked_id')
+          .eq('liker_id', user.id),
+        
+        supabase
+          .from('passes')
+          .select('passed_id')
+          .eq('passer_id', user.id)
+      ]);
+
+      if (profilesResult.error) {
+        console.error('❌ Profile preload error:', profilesResult.error);
+        return;
+      }
+
+      const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
+      const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
+
+      // Filter out already liked/passed profiles
+      const filteredProfiles = profilesResult.data?.filter(
+        profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
+      ) || [];
+
+      console.log('✅ Preloaded profiles count:', filteredProfiles.length);
+
+      // Update preloaded profiles
+      preloadedProfilesRef.current = [...preloadedProfilesRef.current, ...filteredProfiles as Profile[]];
+      
+      // Update offset and check if we have more profiles
+      lastFetchOffsetRef.current = offset + 50;
+      hasMoreProfilesRef.current = profilesResult.data?.length === 50;
+      
+    } catch (error: any) {
+      console.error('❌ Error preloading profiles:', error);
+    } finally {
+      setIsPreloading(false);
+    }
+  }, [isAuthenticated, user]);
+
+  const fetchProfiles = useCallback(async (isInitialLoad: boolean = false) => {
+    // Authentication guard - don't proceed if user is not authenticated
+    if (!isAuthenticated) {
+      console.log('🚫 Cannot fetch profiles - user not authenticated');
+      return;
+    }
+
+    console.log('🔄 Fetching discover profiles for authenticated user:', user.id);
+    setLoading(true);
+    setShowSkippedProfiles(false);
+    
+    // Reset preload state on initial load
+    if (isInitialLoad) {
+      preloadedProfilesRef.current = [];
+      lastFetchOffsetRef.current = 0;
+      hasMoreProfilesRef.current = true;
+    }
+    
+    try {
+      const [profilesResult, likedResult, passedResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select(`
+            id,
+            user_id,
+            first_name,
+            last_name,
+            date_of_birth,
+            location,
+            gender,
+            ms_subtype,
+            diagnosis_year,
+            symptoms,
+            medications,
+            hobbies,
+            avatar_url,
+            about_me,
+            last_seen,
+            additional_photos,
+            selected_prompts
+          `)
+          .neq('user_id', user.id)
+          .eq('moderation_status', 'approved')
+          .order('last_seen', { ascending: false })
+          .limit(50), // Initial batch of 50 profiles
         
         supabase
           .from('likes')
@@ -216,6 +306,15 @@ const DiscoverProfiles = memo(() => {
       setProfiles(filteredProfiles as Profile[]);
       setCurrentIndex(0);
       
+      // Update fetch offset and start preloading
+      lastFetchOffsetRef.current = 50;
+      hasMoreProfilesRef.current = profilesResult.data?.length === 50;
+      
+      // Start preloading additional profiles
+      if (hasMoreProfilesRef.current) {
+        preloadProfiles(50);
+      }
+      
       if (filteredProfiles.length === 0) {
         console.log('⚠️ No profiles available after filtering');
       }
@@ -246,12 +345,38 @@ const DiscoverProfiles = memo(() => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, user, toast]);
+  }, [isAuthenticated, user, toast, preloadProfiles]);
 
   // Initial load
   useEffect(() => {
-    fetchProfiles();
+    fetchProfiles(true);
   }, [fetchProfiles]);
+
+  // Auto-load preloaded profiles when near the end
+  useEffect(() => {
+    const threshold = 3; // Load more when 3 profiles left
+    
+    if (profiles.length > 0 && currentIndex >= profiles.length - threshold) {
+      // Check if we have preloaded profiles ready
+      if (preloadedProfilesRef.current.length > 0) {
+        console.log('📈 Loading preloaded profiles:', preloadedProfilesRef.current.length);
+        
+        // Add preloaded profiles to current profiles
+        setProfiles(prev => [...prev, ...preloadedProfilesRef.current]);
+        
+        // Clear preloaded profiles
+        preloadedProfilesRef.current = [];
+        
+        // Start preloading next batch
+        if (hasMoreProfilesRef.current) {
+          preloadProfiles(lastFetchOffsetRef.current);
+        }
+      } else if (hasMoreProfilesRef.current && !isPreloading) {
+        // If no preloaded profiles and we have more, start preloading
+        preloadProfiles(lastFetchOffsetRef.current);
+      }
+    }
+  }, [currentIndex, profiles.length, isPreloading, preloadProfiles]);
 
   // Memoized current profile calculation
   const currentProfile = useMemo(() => {
@@ -445,7 +570,7 @@ const DiscoverProfiles = memo(() => {
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={fetchProfiles} className="bg-gradient-primary text-white">
+            <Button onClick={() => fetchProfiles(true)} className="bg-gradient-primary text-white">
               <RefreshCw className="w-4 h-4 mr-2" />
               {showSkippedProfiles ? "Back to New Profiles" : "Refresh"}
             </Button>
