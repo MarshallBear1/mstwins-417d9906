@@ -36,24 +36,40 @@ const Auth = () => {
   // Use security monitoring
   useSecurityMonitoring();
 
-  // Check for password reset parameters
+  // Enhanced password reset parameter detection and auth state handling
   useEffect(() => {
+    // Check both URL query parameters and hash parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const type = urlParams.get('type');
-    const code = urlParams.get('code');
-    const accessToken = urlParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token');
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    
+    // Get parameters from both sources
+    const type = urlParams.get('type') || hashParams.get('type');
+    const code = urlParams.get('code') || hashParams.get('code');
+    const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
+    
+    console.log('🔑 Password reset check:', {
+      url: window.location.href,
+      type,
+      hasCode: !!code,
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+      urlParams: Object.fromEntries(urlParams.entries()),
+      hashParams: Object.fromEntries(hashParams.entries())
+    });
     
     if (type === 'recovery') {
+      console.log('🔑 Recovery type detected');
       // User clicked password reset link - set flag immediately to prevent redirects
       setIsPasswordReset(true);
       setIsSignUp(false);
       
       if (code) {
+        console.log('✅ Using code-based recovery flow');
         // Handle code-based recovery (newer Supabase flow)
         supabase.auth.exchangeCodeForSession(code).then(({ error, data }) => {
           if (error) {
-            console.error('Code exchange error:', error);
+            console.error('❌ Code exchange error:', error);
             toast({
               title: "Invalid Reset Link",
               description: "This password reset link is invalid or has expired. Please request a new one.",
@@ -61,15 +77,15 @@ const Auth = () => {
             });
             setIsPasswordReset(false);
           } else {
-            console.log('Password reset session established');
+            console.log('✅ Password reset session established via code exchange');
             toast({
               title: "Reset Your Password",
               description: "Please enter your new password below.",
             });
-            // Session is now valid, user will see password reset form
           }
         });
       } else if (accessToken && refreshToken) {
+        console.log('✅ Using token-based recovery flow');
         // Handle token-based recovery (older flow)
         supabase.auth.setSession({
           access_token: accessToken,
@@ -80,8 +96,60 @@ const Auth = () => {
           title: "Reset Your Password",
           description: "Please enter your new password below.",
         });
+      } else {
+        console.log('⚠️ No code or tokens found in URL, checking current session...');
+        // Fallback: Check if there's already a valid session
+        supabase.auth.getSession().then(({ data: { session }, error }) => {
+          if (error) {
+            console.error('❌ Session check error:', error);
+            toast({
+              title: "Invalid Reset Link",
+              description: "This password reset link is invalid or has expired. Please request a new one.",
+              variant: "destructive",
+            });
+            setIsPasswordReset(false);
+          } else if (session?.access_token) {
+            console.log('✅ Found valid session, using for password reset');
+            toast({
+              title: "Reset Your Password",
+              description: "Please enter your new password below.",
+            });
+          } else {
+            console.log('❌ No valid session found');
+            toast({
+              title: "Invalid Reset Link",
+              description: "This password reset link is missing required authentication tokens. Please request a new reset link.",
+              variant: "destructive",
+            });
+            setIsPasswordReset(false);
+          }
+        });
       }
     }
+  }, [toast]);
+
+  // Enhanced auth state change listener for password recovery
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔑 Auth state change:', { event, hasSession: !!session });
+      
+      // Handle PASSWORD_RECOVERY events or SIGNED_IN during recovery flow
+      if (event === 'PASSWORD_RECOVERY' || 
+          (event === 'SIGNED_IN' && window.location.search.includes('type=recovery'))) {
+        console.log('✅ Password recovery event detected');
+        setIsPasswordReset(true);
+        setIsSignUp(false);
+        
+        toast({
+          title: "Reset Your Password",
+          description: "Please enter your new password below.",
+        });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [toast]);
 
   // Redirect if already authenticated (but not during password reset)
