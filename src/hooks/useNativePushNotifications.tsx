@@ -75,7 +75,11 @@ export const useNativePushNotifications = () => {
           const notificationData = notification.notification.data;
           if (notificationData?.type) {
             // Navigate based on notification type
-            window.location.href = '/dashboard';
+            // Use proper navigation instead of hard reload
+          if (window.location.pathname !== '/dashboard') {
+            window.history.pushState({}, '', '/dashboard');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
           }
         });
       } else {

@@ -92,7 +92,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             // Only redirect if user is not already on dashboard and this is a new sign-in (not session restoration)
             if (window.location.pathname !== '/dashboard' && event === 'SIGNED_IN') {
               setTimeout(() => {
-                window.location.href = '/dashboard';
+                // Use proper navigation instead of hard reload
+        if (window.location.pathname !== '/dashboard') {
+          window.history.pushState({}, '', '/dashboard');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }
               }, 200);
             }
           }
@@ -191,7 +195,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Navigate directly to dashboard after signup, skipping initial profile setup prompt
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          // Use proper navigation instead of hard reload
+        if (window.location.pathname !== '/dashboard') {
+          window.history.pushState({}, '', '/dashboard');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }
         }, 200); // Reduced delay for snappier UX
       } else if (data.user && !data.session) {
         toast({
@@ -234,7 +242,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!isPasswordReset) {
         // Navigate to dashboard after signin
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          // Use proper navigation instead of hard reload
+        if (window.location.pathname !== '/dashboard') {
+          window.history.pushState({}, '', '/dashboard');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }
         }, 200); // Reduced delay for snappier UX
       }
 

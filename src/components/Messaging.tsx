@@ -639,7 +639,14 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setSelectedMatch(null)}
+                onClick={() => {
+                  setSelectedMatch(null);
+                  setMessages([]);
+                  // Clear any URL parameters to prevent reload loops
+                  if (window.location.search.includes('match=')) {
+                    window.history.replaceState({}, '', window.location.pathname + window.location.search.replace(/[?&]match=[^&]*/, ''));
+                  }
+                }}
                 className="h-10 w-10 p-0 rounded-full hover:bg-gray-100"
               >
                 <ArrowLeft className="w-5 h-5" />

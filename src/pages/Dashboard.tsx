@@ -524,7 +524,12 @@ const Dashboard = () => {
       </div>
 
       {/* Profile View Dialog */}
-      <Dialog open={showProfileView} onOpenChange={setShowProfileView}>
+      <Dialog open={showProfileView} onOpenChange={(open) => {
+        setShowProfileView(open);
+        if (!open) {
+          setSelectedProfileForView(null);
+        }
+      }}>
         <DialogContent className="p-0 max-w-[90vw] w-full max-h-[90vh] overflow-hidden sm:max-w-md border-0 bg-transparent shadow-none">
           {selectedProfileForView && (
             <div className="h-full w-full flex items-center justify-center">

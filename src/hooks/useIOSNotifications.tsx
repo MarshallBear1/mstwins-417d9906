@@ -186,16 +186,25 @@ export const useIOSNotifications = () => {
       switch (type) {
         case 'like':
         case 'match':
-          // Navigate to matches/discover page
-          window.location.href = '/dashboard';
+          // Navigate to matches/discover page - use proper navigation instead of reload
+          if (window.location.pathname !== '/dashboard') {
+            window.history.pushState({}, '', '/dashboard');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
           break;
         case 'message':
-          // Navigate to messages
-          window.location.href = '/dashboard'; // Assuming messages are in dashboard
+          // Navigate to messages - use proper navigation instead of reload
+          if (window.location.pathname !== '/dashboard' || !window.location.search.includes('tab=matches')) {
+            window.history.pushState({}, '', '/dashboard?tab=matches');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
           break;
         case 'likes_reset':
-          // Navigate to discover page
-          window.location.href = '/dashboard';
+          // Navigate to discover page - use proper navigation instead of reload
+          if (window.location.pathname !== '/dashboard') {
+            window.history.pushState({}, '', '/dashboard');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
           break;
       }
     });
@@ -214,13 +223,25 @@ export const useIOSNotifications = () => {
       switch (type) {
         case 'like':
         case 'match':
-          window.location.href = '/dashboard';
+          // Navigate to matches/discover page - use proper navigation instead of reload
+          if (window.location.pathname !== '/dashboard') {
+            window.history.pushState({}, '', '/dashboard');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
           break;
         case 'message':
-          window.location.href = '/dashboard';
+          // Navigate to messages - use proper navigation instead of reload
+          if (window.location.pathname !== '/dashboard' || !window.location.search.includes('tab=matches')) {
+            window.history.pushState({}, '', '/dashboard?tab=matches');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
           break;
         case 'likes_reset':
-          window.location.href = '/dashboard';
+          // Navigate to discover page - use proper navigation instead of reload
+          if (window.location.pathname !== '/dashboard') {
+            window.history.pushState({}, '', '/dashboard');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
           break;
       }
     });
