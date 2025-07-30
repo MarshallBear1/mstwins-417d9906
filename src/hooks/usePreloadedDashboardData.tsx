@@ -139,11 +139,16 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
 
           if (profilesError) throw profilesError;
 
-          // Combine likes with profile data
-          const likesWithProfiles = data.map(like => ({
-            ...like,
-            liker: profiles?.find(profile => profile.user_id === like.liker_id) || null
-          }));
+          // Combine likes with profile data - flatten the structure for MatchesPage
+          const likesWithProfiles = data.map(like => {
+            const likerProfile = profiles?.find(profile => profile.user_id === like.liker_id);
+            return {
+              ...like,
+              // Flatten the liker profile data to the top level for MatchesPage compatibility
+              ...likerProfile,
+              liker: likerProfile // Keep the nested structure for backwards compatibility if needed
+            };
+          });
 
           setLikes(likesWithProfiles);
           dashboardCache.set(user.id, 'likes', likesWithProfiles);
