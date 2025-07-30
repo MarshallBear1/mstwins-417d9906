@@ -57,7 +57,7 @@ const ProfileViewDialog = ({
   const [showAllSymptoms, setShowAllSymptoms] = useState(false);
   const [showAllMedications, setShowAllMedications] = useState(false);
 
-  // Reset all expanded states when dialog opens/closes
+  // Reset all expanded states when dialog opens/closes or profile changes
   React.useEffect(() => {
     if (!open) {
       setIsFlipped(false);
@@ -66,6 +66,11 @@ const ProfileViewDialog = ({
       setShowAllMedications(false);
     }
   }, [open]);
+
+  // Reset flip state when profile changes (for passing to next card)
+  React.useEffect(() => {
+    setIsFlipped(false);
+  }, [profile?.id]);
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return null;
@@ -106,7 +111,7 @@ const ProfileViewDialog = ({
           >
             {/* Front Side - Original Card */}
             <div 
-              className="relative bg-white rounded-xl shadow-xl overflow-hidden max-w-md mx-auto max-h-[90vh] overflow-y-auto"
+              className="relative bg-white rounded-xl shadow-xl overflow-hidden w-[400px] max-w-[90vw] mx-auto max-h-[90vh] overflow-y-auto"
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(0deg)'
@@ -324,7 +329,7 @@ const ProfileViewDialog = ({
 
             {/* Back Side - Extended Content */}
             <div 
-              className="absolute inset-0 bg-white rounded-xl shadow-xl overflow-hidden max-w-md mx-auto max-h-[90vh]"
+              className="absolute inset-0 bg-white rounded-xl shadow-xl overflow-hidden w-[400px] max-w-[90vw] mx-auto max-h-[90vh]"
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)'
