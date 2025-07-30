@@ -47,7 +47,7 @@ interface Profile {
 }
 
 const DiscoverProfiles = memo(() => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,11 +59,18 @@ const DiscoverProfiles = memo(() => {
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
 
-  // Optimized profile fetching with parallel queries
-  const fetchProfiles = useCallback(async () => {
-    if (!user) return;
+  // Authentication guard - ensure user is authenticated before making queries
+  const isAuthenticated = user && user.id && !authLoading;
 
-    console.log('🔄 Fetching discover profiles for user:', user.id);
+  // Optimized profile fetching with authentication guard
+  const fetchProfiles = useCallback(async () => {
+    // Authentication guard - don't proceed if user is not authenticated
+    if (!isAuthenticated) {
+      console.log('🚫 Cannot fetch profiles - user not authenticated');
+      return;
+    }
+
+    console.log('🔄 Fetching discover profiles for authenticated user:', user.id);
     setLoading(true);
     
     try {
@@ -135,17 +142,34 @@ const DiscoverProfiles = memo(() => {
       if (filteredProfiles.length === 0) {
         console.log('⚠️ No profiles available after filtering');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error fetching profiles:', error);
-      toast({
-        title: "Error loading profiles",
-        description: "Please try again later.",
-        variant: "destructive"
-      });
+      
+      // Enhanced error handling for authentication issues
+      const errorMessage = error?.message || 'Unknown error';
+      const isAuthError = errorMessage.includes('JWT') || 
+                         errorMessage.includes('auth') || 
+                         errorMessage.includes('unauthorized') ||
+                         errorMessage.includes('invalid claim');
+      
+      if (isAuthError) {
+        console.error('🔐 Authentication error detected:', errorMessage);
+        toast({
+          title: "Authentication Error",
+          description: "Please refresh the page and try logging in again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error loading profiles",
+          description: "Please try again later.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
-  }, [user, toast]);
+  }, [isAuthenticated, user, toast]);
 
   // Initial load
   useEffect(() => {
@@ -261,12 +285,31 @@ const DiscoverProfiles = memo(() => {
     }
   }, [currentProfile]);
 
-  // Show loading state
-  if (loading && profiles.length === 0) {
+  // Show loading state for authentication or data fetching
+  if (authLoading || (loading && profiles.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="text-gray-600">Finding amazing people for you...</p>
+        <p className="text-gray-600">
+          {authLoading ? 'Authenticating...' : 'Finding amazing people for you...'}
+        </p>
+      </div>
+    );
+  }
+
+  // Show authentication required state
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="text-center">
+          <User className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Authentication Required
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Please log in to discover profiles.
+          </p>
+        </div>
       </div>
     );
   }
