@@ -38,6 +38,8 @@ const OptimizedIndex = () => {
       
       console.log('🔍 Landing page password reset check:', {
         url: window.location.href,
+        hash: window.location.hash,
+        search: window.location.search,
         type,
         hasAccessToken: !!accessToken,
         hasRefreshToken: !!refreshToken,
@@ -46,8 +48,8 @@ const OptimizedIndex = () => {
         urlParams: Object.fromEntries(urlParams.entries())
       });
 
-      // Check for password reset flow (either with tokens or code)
-      if (type === 'recovery' || (accessToken && type === 'recovery') || (code && type === 'recovery')) {
+      // Simplified condition for password reset detection
+      if (type === 'recovery') {
         console.log('🔑 Password reset detected on landing page, redirecting to auth...');
         
         // Preserve all parameters when redirecting to auth
@@ -56,19 +58,27 @@ const OptimizedIndex = () => {
         
         if (currentHash) {
           // If parameters are in hash, redirect with hash preserved
+          console.log('📍 Redirecting with hash:', `/auth${currentSearch}${currentHash}`);
           navigate(`/auth${currentSearch}${currentHash}`, { replace: true });
         } else if (currentSearch) {
           // If parameters are in search, redirect with search preserved  
+          console.log('📍 Redirecting with search:', `/auth${currentSearch}`);
           navigate(`/auth${currentSearch}`, { replace: true });
         } else {
           // Fallback redirect
+          console.log('📍 Fallback redirect to:', '/auth?type=recovery');
           navigate('/auth?type=recovery', { replace: true });
         }
         return;
+      } else {
+        console.log('ℹ️ No password reset detected - normal landing page load');
       }
     };
 
-    checkForPasswordReset();
+    // Add a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(checkForPasswordReset, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, [navigate]);
 
   return (

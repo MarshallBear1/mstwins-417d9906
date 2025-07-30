@@ -27,7 +27,13 @@ const Auth = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isPasswordReset, setIsPasswordReset] = useState(false);
+  
+  // Immediate check for password reset parameters (before any other effects)
+  const initialUrlParams = new URLSearchParams(window.location.search);
+  const initialHashParams = new URLSearchParams(window.location.hash.substring(1));
+  const initialType = initialUrlParams.get('type') || initialHashParams.get('type');
+  
+  const [isPasswordReset, setIsPasswordReset] = useState(initialType === 'recovery');
   
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
@@ -127,12 +133,15 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [toast]);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (but NOT during password reset)
   useEffect(() => {
-    if (user) {
+    if (user && !isPasswordReset) {
+      console.log('👤 User authenticated and not in password reset mode, redirecting to dashboard');
       navigate("/dashboard");
+    } else if (user && isPasswordReset) {
+      console.log('🔑 User authenticated but in password reset mode, staying on auth page');
     }
-  }, [user, navigate]);
+  }, [user, navigate, isPasswordReset]);
 
   const handlePasswordValidation = (isValid: boolean, errors: string[]) => {
     setPasswordValid(isValid);
