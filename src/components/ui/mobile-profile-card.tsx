@@ -130,14 +130,18 @@ const MobileProfileCard = ({
             {/* See More Button - Single button only */}
             {hasExtendedContent && (
               <div className="absolute top-3 left-3">
-                <button 
-                  onClick={() => setIsFlipped(!isFlipped)}
-                  className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
-                  title="See more details"
-                >
-                  <Eye className="w-3 h-3" />
-                  <span className="text-xs font-medium">See More</span>
-                </button>
+                              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsFlipped(!isFlipped);
+                }}
+                className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                title="See more details"
+              >
+                <Eye className="w-3 h-3" />
+                <span className="text-xs font-medium">See More</span>
+              </button>
               </div>
             )}
           </div>
@@ -249,7 +253,11 @@ const MobileProfileCard = ({
               
               {/* Back Button */}
               <button 
-                onClick={() => setIsFlipped(false)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsFlipped(false);
+                }}
                 className="absolute top-3 left-3 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
                 title="Back to main"
               >
