@@ -21,14 +21,14 @@ const supabase = createClient(
 );
 
 const getEmailTemplate = (firstName: string = "there") => ({
-  subject: "🎉 Day 1 Complete - Thank You & New Updates Inside!",
+  subject: "🐛 Bug Fixes + 💬 New Forum Feature - MST wins Updates!",
   html: `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>MST wins - Day 1 Update</title>
+      <title>MST wins - Latest Updates</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc;">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
@@ -44,50 +44,66 @@ const getEmailTemplate = (firstName: string = "there") => ({
           <h2 style="color: #1a202c; margin: 0 0 20px 0; font-size: 24px;">Hey ${firstName}! 🎉</h2>
           
           <p style="color: #4a5568; line-height: 1.6; margin: 0 0 20px 0; font-size: 16px;">
-            What an incredible first day! We're absolutely amazed by the response from our MS community. 
-            <strong>Thank you</strong> for being part of this journey from day one.
+            We've been hard at work improving your MST wins experience! Here's what's new and fixed in our latest update.
           </p>
 
-          <div style="background-color: #f7fafc; border-left: 4px solid #667eea; padding: 20px; margin: 25px 0; border-radius: 4px;">
-            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 18px;">🚀 New Features Just Dropped!</h3>
-            <ul style="color: #4a5568; margin: 0; padding-left: 20px; line-height: 1.8;">
-              <li>Enhanced profile viewing with flippable cards</li>
-              <li>Improved messaging experience</li>
-              <li>Better match discovery</li>
-              <li>Smoother notifications</li>
+          <!-- Bug Fixes Section -->
+          <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 20px; margin: 25px 0; border-radius: 4px;">
+            <h3 style="color: #065f46; margin: 0 0 15px 0; font-size: 18px;">🐛 Bug Fixes & Improvements</h3>
+            <ul style="color: #047857; margin: 0; padding-left: 20px; line-height: 1.8;">
+              <li>Fixed profile dialog positioning issues in chat</li>
+              <li>Improved likes tab to exclude already matched users</li>
+              <li>Enhanced mobile responsiveness across the platform</li>
+              <li>Resolved various performance issues</li>
+              <li>Better error handling and user feedback</li>
+            </ul>
+          </div>
+
+          <!-- New Forum Feature -->
+          <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 4px;">
+            <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 18px;">💬 NEW: Community Forum!</h3>
+            <p style="color: #a16207; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">
+              🎉 Introducing our brand new community forum!
+            </p>
+            <ul style="color: #a16207; margin: 0; padding-left: 20px; line-height: 1.8;">
+              <li>Share experiences and support each other</li>
+              <li>Ask questions and get answers from the community</li>
+              <li>Discuss MS-related topics in a safe space</li>
+              <li>Like and comment on posts</li>
+              <li>Connect beyond just dating and relationships</li>
             </ul>
           </div>
 
           <p style="color: #4a5568; line-height: 1.6; margin: 20px 0; font-size: 16px;">
-            We'd love to hear your thoughts! Your feedback helps us build the best possible experience for our community.
+            The forum is perfect for building deeper connections within our MS community. Whether you want to share tips, ask for advice, or just chat with others who understand your journey!
           </p>
 
           <!-- Call to Action Buttons -->
           <div style="text-align: center; margin: 35px 0;">
+            <a href="https://mstwins.com/dashboard?tab=forum" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
+              💬 Try the Forum
+            </a>
             <a href="https://mstwins.com/dashboard" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
               🔥 Log Back In
-            </a>
-            <a href="https://mstwins.com/" style="display: inline-block; background-color: #48bb78; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
-              💝 Refer Friends
             </a>
           </div>
 
           <div style="background-color: #edf2f7; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center;">
-            <h4 style="color: #2d3748; margin: 0 0 15px 0; font-size: 16px;">Help Us Improve!</h4>
+            <h4 style="color: #2d3748; margin: 0 0 15px 0; font-size: 16px;">Keep the Feedback Coming!</h4>
             <p style="color: #4a5568; margin: 0 0 15px 0; font-size: 14px;">
-              Your feedback shapes our platform. Let us know what you think!
+              Your feedback helps us build the best possible experience for our community.
             </p>
             <a href="https://mstwins.com/dashboard" style="display: inline-block; background-color: #4299e1; color: #ffffff; text-decoration: none; padding: 10px 25px; border-radius: 6px; font-weight: bold; font-size: 14px;">
-              💬 Send Feedback
+              💝 Send Feedback
             </a>
           </div>
 
           <p style="color: #4a5568; line-height: 1.6; margin: 25px 0 0 0; font-size: 16px;">
-            Together, we're building something special for the MS community. Thank you for being part of this journey! 💜
+            Thank you for being part of our growing MS community. Together, we're building something truly special! 💜
           </p>
 
           <p style="color: #4a5568; line-height: 1.6; margin: 15px 0 0 0; font-size: 16px;">
-            With gratitude,<br>
+            With love and support,<br>
             <strong>The MST wins Team</strong>
           </p>
         </div>
