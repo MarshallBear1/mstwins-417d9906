@@ -89,10 +89,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (!isPasswordReset) {
             analytics.userSignedIn(session.user.id);
             
-            // Navigate to dashboard after signin (only if not password reset)
-            setTimeout(() => {
-              window.location.href = '/dashboard';
-            }, 200);
+            // Only redirect if user is not already on dashboard and this is a new sign-in (not session restoration)
+            if (window.location.pathname !== '/dashboard' && event === 'SIGNED_IN') {
+              setTimeout(() => {
+                window.location.href = '/dashboard';
+              }, 200);
+            }
           }
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
