@@ -137,14 +137,14 @@ const App = () => (
         <SecurityContextProvider>
           <TooltipProvider>
             <ErrorBoundary>
-              <NativeCapabilities />
-              <IOSNotificationManager />
               <MobileStatusBar theme="light" color="#2563eb" />
               <MobileOptimizationsProvider disableContextMenu={true} />
               <IOSEnhancements />
               <AccessibilityEnhancements />
               <Toaster />
               <Sonner />
+              <NativeCapabilities />
+              <IOSNotificationManager />
           <BrowserRouter>
             <PostHogInitializer />
             <RouteTracker />
