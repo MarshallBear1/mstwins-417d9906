@@ -26,24 +26,35 @@ export const AdminAuthProvider = ({ children }: AdminAuthProviderProps) => {
   const [adminLoading, setAdminLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing admin session on mount
+    // Only run admin checks if we're on an admin route or have an existing admin session
     const checkExistingSession = async () => {
       if (!user || !session) {
         setAdminLoading(false);
         return;
       }
 
+      // Check if we're on an admin route
+      const isAdminRoute = window.location.pathname.includes('/admin') || 
+                          window.location.pathname.includes('/temp-admin-login');
+      
       const storedToken = sessionStorage.getItem('admin_session_token');
+      
       if (storedToken) {
+        // We have a stored token, validate it
         await validateStoredSession(storedToken);
-      } else {
-        // Check if user has admin role even without stored session
+      } else if (isAdminRoute) {
+        // Only check admin role if we're actually on an admin route
+        console.log('🔒 On admin route, checking admin permissions...');
         const hasAdminRole = await checkUserAdminRole();
         if (hasAdminRole) {
           // User has admin role but no session, create one
           await authenticateAdminUser();
         }
+      } else {
+        // Not on admin route and no stored token, skip admin checks
+        console.log('📱 Regular user route, skipping admin authentication');
       }
+      
       setAdminLoading(false);
     };
 
