@@ -215,8 +215,7 @@ const Dashboard = () => {
             {profile && !profile.extended_profile_completed && !sessionStorage.getItem(`extended_prompt_dismissed_${user?.id}`) && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4" onClick={() => {
                 sessionStorage.setItem(`extended_prompt_dismissed_${user?.id}`, 'true');
-                // Trigger re-render without page reload
-                window.dispatchEvent(new Event('storage'));
+                setExtendedPromptDismissed(true);
               }}>
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 max-w-md w-full mx-4 shadow-2xl animate-scale-in" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-start space-x-3">
@@ -238,8 +237,7 @@ const Dashboard = () => {
                     <Button variant="ghost" size="sm" onClick={(e) => {
                       e.stopPropagation();
                       sessionStorage.setItem(`extended_prompt_dismissed_${user?.id}`, 'true');
-                      // Trigger re-render without page reload
-                      window.dispatchEvent(new Event('storage'));
+                      setExtendedPromptDismissed(true);
                     }} className="flex-shrink-0 p-1 h-auto">
                       <X className="w-4 h-4" />
                     </Button>

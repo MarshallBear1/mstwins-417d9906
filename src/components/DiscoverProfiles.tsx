@@ -432,8 +432,8 @@ const DiscoverProfiles = memo(() => {
       />
       {/* Mobile Profile Card - Better Centered */}
       {currentProfile && (
-        <div className="flex justify-center items-center min-h-[500px] px-4">
-          <div className="w-full max-w-[300px]">
+        <div className="flex justify-center items-center min-h-[600px] px-4">
+          <div className="w-full max-w-[320px] mx-auto">
             <MobileProfileCard
               profile={{
                 id: currentProfile.id,
