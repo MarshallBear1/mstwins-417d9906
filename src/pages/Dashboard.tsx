@@ -22,6 +22,7 @@ import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
+import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
 interface Profile {
   id: string;
   user_id: string;
@@ -100,14 +101,19 @@ const Dashboard = () => {
       return;
     }
     
-    console.log('🔄 Starting profile fetch for user:', user.id);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Starting profile fetch for user:', user.id);
+    }
     setProfileLoading(true);
     
     try {
+      // Only select necessary fields for better performance
+      const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts, extended_profile_completed';
+      
       const {
         data,
         error
-      } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
+      } = await supabase.from('profiles').select(selectFields).eq('user_id', user.id).maybeSingle();
       
       if (error) {
         console.error('❌ Error fetching profile:', error);
@@ -115,7 +121,9 @@ const Dashboard = () => {
         return;
       }
       
-      console.log('✅ Profile fetched successfully:', data ? 'Profile exists' : 'No profile found');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Profile fetched successfully:', data ? 'Profile exists' : 'No profile found');
+      }
       
       setProfile(data ? {
         ...data,
@@ -140,7 +148,9 @@ const Dashboard = () => {
       console.error('❌ Exception in fetchProfile:', error);
       setProfile(null);
     } finally {
-      console.log('✅ Profile loading completed');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Profile loading completed');
+      }
       setProfileLoading(false);
     }
   };
@@ -202,10 +212,11 @@ const Dashboard = () => {
 
       // Get the profiles of people who liked the user (excluding matches)
       const likerIds = unmatchedLikers.map(like => like.liker_id);
+      const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts';
       const {
         data: profiles,
         error: profilesError
-      } = await supabase.from('profiles').select('*').in('user_id', likerIds);
+      } = await supabase.from('profiles').select(selectFields).in('user_id', likerIds);
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
         return;
@@ -352,16 +363,19 @@ const Dashboard = () => {
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-center space-x-3 sm:space-x-4">
                         <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
-                           {likedProfile.avatar_url ? <img src={likedProfile.avatar_url} alt={`${likedProfile.first_name}'s avatar`} className="w-full h-full object-cover" loading="lazy" onLoad={e => {
-                      e.currentTarget.style.opacity = '1';
-                    }} onError={e => {
-                      e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${likedProfile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
-                    }} style={{
-                      opacity: 0,
-                      transition: 'opacity 0.3s ease'
-                    }} /> : <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-                              <User className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                            </div>}
+                           {likedProfile.avatar_url ? (
+                              <OptimizedAvatar
+                                src={likedProfile.avatar_url}
+                                alt={`${likedProfile.first_name}'s avatar`}
+                                fallbackSeed={likedProfile.first_name}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                                <User className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                              </div>
+                            )}
                         </div>
                         
                         <div className="flex-1 min-w-0">

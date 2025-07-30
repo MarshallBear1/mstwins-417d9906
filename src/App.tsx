@@ -20,6 +20,7 @@ import { NativeCapabilities } from "./hooks/useNativeCapabilities";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import IOSNotificationManager from "./components/IOSNotificationManager";
 import PersistentBottomNavigation from "./components/PersistentBottomNavigation";
+import { PerformanceMonitor } from "./components/PerformanceOptimizer";
 
 // Lazy load non-critical pages with error handling
 const Auth = lazy(() => import("./pages/Auth").catch(err => {
@@ -81,27 +82,45 @@ const PostHogInitializer = () => {
   useEffect(() => {
     const initializePostHog = async () => {
       try {
-        console.log('🔍 Fetching PostHog API key from secrets...');
+        // Check if PostHog is already initialized
+        if (analytics.isInitialized()) {
+          return;
+        }
+
+        // Check cache first
+        const cachedKey = sessionStorage.getItem('posthog_key');
+        if (cachedKey) {
+          analytics.init(cachedKey);
+          return;
+        }
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔍 Fetching PostHog API key from secrets...');
+        }
+        
         const { data: secrets } = await supabase.functions.invoke('secrets', {
           body: { name: 'POSTHOG_API_KEY' }
         });
         
-        console.log('📊 Secrets response:', secrets);
-        
         if (secrets?.value) {
-          console.log('✅ PostHog API key found, initializing analytics...');
+          // Cache the key for the session
+          sessionStorage.setItem('posthog_key', secrets.value);
           analytics.init(secrets.value);
           
-          // Test event to verify PostHog is working
-          setTimeout(() => {
-            console.log('🧪 Sending test event to PostHog...');
-            analytics.track('app_loaded', { timestamp: Date.now() });
-          }, 1000);
-        } else {
-          console.warn('⚠️ PostHog API key not found in secrets');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ PostHog initialized');
+            // Test event only in development
+            setTimeout(() => {
+              analytics.track('app_loaded', { timestamp: Date.now() });
+            }, 1000);
+          }
+        } else if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ PostHog API key not found');
         }
       } catch (error) {
-        console.error('❌ Failed to initialize PostHog:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ Failed to initialize PostHog:', error);
+        }
       }
     };
 
@@ -145,6 +164,7 @@ const App = () => (
               <Sonner />
               <NativeCapabilities />
               <IOSNotificationManager />
+              <PerformanceMonitor />
           <BrowserRouter>
             <PostHogInitializer />
             <RouteTracker />

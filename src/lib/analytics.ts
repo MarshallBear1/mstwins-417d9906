@@ -3,6 +3,10 @@ import posthog from 'posthog-js';
 class AnalyticsService {
   private initialized = false;
 
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
   init(apiKey: string, config?: any) {
     if (this.initialized) return;
     
@@ -15,7 +19,9 @@ class AnalyticsService {
     });
     
     this.initialized = true;
-    console.log('📊 PostHog analytics initialized');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📊 PostHog analytics initialized');
+    }
   }
 
   // Page tracking

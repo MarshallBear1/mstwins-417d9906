@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useCallback } from "react";
+import { useState, useEffect, memo, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, RefreshCw } from "lucide-react";
@@ -12,6 +12,20 @@ import ProfileImageViewer from "@/components/ProfileImageViewer";
 import LikeLimitWarning from "@/components/LikeLimitWarning";
 import { useNativeCapabilities } from "@/hooks/useNativeCapabilities";
 import MobileProfileCard from "@/components/ui/mobile-profile-card";
+
+// Memoize the calculate age function to prevent recalculation
+const calculateAge = (birthDate: string | null) => {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  const age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    return age - 1;
+  }
+  return age;
+};
 
 
 interface Profile {
@@ -65,11 +79,13 @@ const DiscoverProfiles = () => {
       return;
     }
 
-    console.log('🔄 DiscoverProfiles: Starting profile fetch', {
-      isRefresh,
-      showingSkipped,
-      userId: user.id
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 DiscoverProfiles: Starting profile fetch', {
+        isRefresh,
+        showingSkipped,
+        userId: user.id
+      });
+    }
 
     // Only show loading spinner on initial load, not on refresh
     if (!isRefresh) {
@@ -85,9 +101,9 @@ const DiscoverProfiles = () => {
         
         // Get passed profiles and exclusions in parallel
         const [passedResult, likesResult, matchesResult] = await Promise.all([
-          supabase.from('passes').select('passed_id').eq('passer_id', user.id),
-          supabase.from('likes').select('liked_id').eq('liker_id', user.id),
-          supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+          supabase.from('passes').select('passed_id').eq('passer_id', user.id).limit(500),
+          supabase.from('likes').select('liked_id').eq('liker_id', user.id).limit(500),
+          supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`).limit(100)
         ]);
 
         const passedIds = passedResult.data?.map(p => p.passed_id) || [];
@@ -102,9 +118,11 @@ const DiscoverProfiles = () => {
         );
 
         if (availableSkippedIds.length > 0) {
+          const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts, extended_profile_completed';
+          
           const { data: skippedProfiles, error } = await supabase
             .from('profiles')
-            .select('*')
+            .select(selectFields)
             .in('user_id', availableSkippedIds);
           
           if (error) {
@@ -127,9 +145,9 @@ const DiscoverProfiles = () => {
         
         // Fetch all exclusion data in parallel (3 queries → 1 parallel batch)
         const [likesResult, matchesResult, passesResult] = await Promise.all([
-          supabase.from('likes').select('liked_id').eq('liker_id', user.id),
-          supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`),
-          supabase.from('passes').select('passed_id').eq('passer_id', user.id)
+          supabase.from('likes').select('liked_id').eq('liker_id', user.id).limit(500),
+          supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`).limit(100),
+          supabase.from('passes').select('passed_id').eq('passer_id', user.id).limit(500)
         ]);
 
         const likedIds = likesResult.data?.map(l => l.liked_id) || [];
@@ -151,8 +169,11 @@ const DiscoverProfiles = () => {
         const twoDaysAgo = new Date();
         twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
         
-        let recentQuery = supabase.from('profiles').select('*');
-        let olderQuery = supabase.from('profiles').select('*');
+        // Only select essential fields for better performance
+        const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts, extended_profile_completed';
+        
+        let recentQuery = supabase.from('profiles').select(selectFields);
+        let olderQuery = supabase.from('profiles').select(selectFields);
         
         if (excludedIds.length > 1) {
           recentQuery = recentQuery.not('user_id', 'in', `(${excludedIds.join(',')})`);
@@ -211,7 +232,9 @@ const DiscoverProfiles = () => {
       // Ensure we reset loading states even on error
       setProfiles([]);
     } finally {
-      console.log('✅ DiscoverProfiles: Profile fetch completed');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ DiscoverProfiles: Profile fetch completed');
+      }
       setLoading(false);
       setRefreshing(false);
     }
@@ -253,20 +276,9 @@ const DiscoverProfiles = () => {
     }
   }, [user, showingSkipped]); // Remove fetchProfiles from dependencies to prevent infinite loops
 
-  const calculateAge = (birthDate: string | null) => {
-    if (!birthDate) return null;
-    const today = new Date();
-    const birth = new Date(birthDate);
-    const age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      return age - 1;
-    }
-    return age;
-  };
 
-  const handleLike = async () => {
+
+  const handleLike = useCallback(async () => {
     if (!user || !currentProfile || actionLoading) return;
     
     // Show warning before like action when user has 4 likes remaining
@@ -296,7 +308,9 @@ const DiscoverProfiles = () => {
     enhancedLikeAction(); // Remove await for speed
     analytics.profileLiked(user.id, profileToLike.user_id);
     
-    console.log('🚀 Starting like process for profile:', profileToLike.user_id);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🚀 Starting like process for profile:', profileToLike.user_id);
+    }
     
     // Clear loading immediately since UI is already updated
     setTimeout(() => setActionLoading(false), 50);
@@ -378,12 +392,14 @@ const DiscoverProfiles = () => {
         // Error is handled in background - UI already moved forward
       }
     });
-  };
+  }, [user, actionLoading, shouldShowWarning, isLimitEnforced, remainingLikes, enhancedErrorAction, toast, enhancedLikeAction, analytics]);
 
-  const handlePass = async () => {
+  const handlePass = useCallback(async () => {
     if (!user || !currentProfile || actionLoading) return;
     
-    console.log('⏭️ Starting pass process for profile:', currentProfile.user_id);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('⏭️ Starting pass process for profile:', currentProfile.user_id);
+    }
     
     // Minimal loading state - just to prevent double-clicks
     setActionLoading(true);
@@ -411,20 +427,22 @@ const DiscoverProfiles = () => {
               passed_id: profileToPass.user_id
             });
 
-          if (error) {
+          if (error && process.env.NODE_ENV === 'development') {
             console.error('❌ Error recording pass:', error);
-          } else {
+          } else if (process.env.NODE_ENV === 'development') {
             console.log('✅ Pass recorded successfully');
           }
         } catch (error) {
-          console.error('❌ Exception during pass:', error);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('❌ Exception during pass:', error);
+          }
         }
       });
     }
     
     // Update remaining likes count after action
     refreshRemainingLikes();
-  };
+  }, [user, actionLoading, enhancedButtonPress, analytics, showingSkipped, refreshRemainingLikes]);
 
   const handleNext = () => {
     // Immediately move to next profile for snappiness
@@ -438,25 +456,30 @@ const DiscoverProfiles = () => {
 
   const currentProfile = profiles[currentIndex];
   
-  // Debug logging
-  console.log('🔍 Debug info:', {
-    profilesLength: profiles.length,
-    currentIndex,
-    hasCurrentProfile: !!currentProfile,
-    loading,
-    showingSkipped
-  });
+  // Debug logging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 Debug info:', {
+      profilesLength: profiles.length,
+      currentIndex,
+      hasCurrentProfile: !!currentProfile,
+      loading,
+      showingSkipped
+    });
+  }
 
   const openImageViewer = (imageIndex: number) => {
     setImageViewerIndex(imageIndex);
     setShowImageViewer(true);
   };
 
-  // Prepare all images for the viewer
-  const allImages = currentProfile ? [
-    ...(currentProfile.avatar_url ? [currentProfile.avatar_url] : []),
-    ...(currentProfile.additional_photos || [])
-  ] : [];
+  // Memoize image preparation to avoid recalculation
+  const allImages = useMemo(() => {
+    if (!currentProfile) return [];
+    return [
+      ...(currentProfile.avatar_url ? [currentProfile.avatar_url] : []),
+      ...(currentProfile.additional_photos || [])
+    ];
+  }, [currentProfile]);
 
   if (loading || refreshing) {
     return (
