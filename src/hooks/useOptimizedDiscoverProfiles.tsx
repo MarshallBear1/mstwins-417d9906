@@ -240,7 +240,7 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
     } else if (!user?.id) {
       console.warn('🚨 No user ID available for profile fetching');
     }
-  }, [user?.id, fetchProfiles]);
+  }, [user?.id]); // Remove fetchProfiles from dependency to prevent infinite loops
 
   return {
     profiles,
