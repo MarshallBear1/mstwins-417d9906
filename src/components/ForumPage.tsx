@@ -229,29 +229,71 @@ const ForumPage = () => {
   const likePost = async (postId: string) => {
     if (!user) return;
 
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
     try {
-      const { error } = await supabase
-        .from('forum_likes')
-        .insert({
-          post_id: postId,
-          user_id: user.id
+      if (post.user_has_liked) {
+        // Unlike the post
+        const { error } = await supabase
+          .from('forum_likes')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        // Update local state
+        setPosts(prev => prev.map(p => 
+          p.id === postId 
+            ? { ...p, likes_count: p.likes_count - 1, user_has_liked: false }
+            : p
+        ));
+
+        // Update selected post if it's the current one
+        if (selectedPost?.id === postId) {
+          setSelectedPost(prev => prev ? { ...prev, likes_count: prev.likes_count - 1, user_has_liked: false } : null);
+        }
+
+        toast({
+          title: "Post unliked!",
+          description: "Your like has been removed."
         });
+      } else {
+        // Like the post
+        const { error } = await supabase
+          .from('forum_likes')
+          .insert({
+            post_id: postId,
+            user_id: user.id
+          });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Update local state
-      setPosts(prev => prev.map(post => 
-        post.id === postId 
-          ? { ...post, likes_count: post.likes_count + 1, user_has_liked: true }
-          : post
-      ));
+        // Update local state
+        setPosts(prev => prev.map(p => 
+          p.id === postId 
+            ? { ...p, likes_count: p.likes_count + 1, user_has_liked: true }
+            : p
+        ));
 
-      toast({
-        title: "Post liked!",
-        description: "Your like has been added."
-      });
+        // Update selected post if it's the current one
+        if (selectedPost?.id === postId) {
+          setSelectedPost(prev => prev ? { ...prev, likes_count: prev.likes_count + 1, user_has_liked: true } : null);
+        }
+
+        toast({
+          title: "Post liked!",
+          description: "Your like has been added."
+        });
+      }
     } catch (error) {
-      console.error('Error liking post:', error);
+      console.error('Error toggling post like:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update like. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -611,7 +653,7 @@ const ForumPage = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span 
                                 className="font-medium cursor-pointer hover:text-blue-600"
                                 onClick={(e) => {
@@ -621,21 +663,23 @@ const ForumPage = () => {
                               >
                                 {post.author.first_name} {post.author.last_name}
                               </span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-6 px-2 text-xs"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  viewProfile(post.author_id);
-                                }}
-                              >
-                                <User className="w-3 h-3 mr-1" />
-                                View Profile
-                              </Button>
-                              <Badge className={`text-xs ${flair.color}`}>
-                                {flair.label}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-6 px-2 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    viewProfile(post.author_id);
+                                  }}
+                                >
+                                  <User className="w-3 h-3 mr-1" />
+                                  View Profile
+                                </Button>
+                                <Badge className={`text-xs ${flair.color}`}>
+                                  {flair.label}
+                                </Badge>
+                              </div>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-gray-500">
                               {post.author.ms_subtype && (
@@ -664,7 +708,6 @@ const ForumPage = () => {
                               e.stopPropagation();
                               likePost(post.id);
                             }}
-                            disabled={post.user_has_liked}
                             className={`gap-2 ${post.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
                           >
                             <Heart className={`w-4 h-4 ${post.user_has_liked ? 'fill-current' : ''}`} />
@@ -726,25 +769,27 @@ const ForumPage = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span 
                             className="font-medium cursor-pointer hover:text-blue-600"
                             onClick={() => viewProfile(selectedPost.author_id)}
                           >
                             {selectedPost.author.first_name} {selectedPost.author.last_name}
                           </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-6 px-2 text-xs"
-                            onClick={() => viewProfile(selectedPost.author_id)}
-                          >
-                            <User className="w-3 h-3 mr-1" />
-                            View Profile
-                          </Button>
-                          <Badge className={`text-xs ${getFlairInfo(selectedPost.flair).color}`}>
-                            {getFlairInfo(selectedPost.flair).label}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 px-2 text-xs"
+                              onClick={() => viewProfile(selectedPost.author_id)}
+                            >
+                              <User className="w-3 h-3 mr-1" />
+                              View Profile
+                            </Button>
+                            <Badge className={`text-xs ${getFlairInfo(selectedPost.flair).color}`}>
+                              {getFlairInfo(selectedPost.flair).label}
+                            </Badge>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           {selectedPost.author.ms_subtype && (
@@ -778,7 +823,6 @@ const ForumPage = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => likePost(selectedPost.id)}
-                      disabled={selectedPost.user_has_liked}
                       className={`gap-2 ${selectedPost.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
                     >
                       <Heart className={`w-4 h-4 ${selectedPost.user_has_liked ? 'fill-current' : ''}`} />
