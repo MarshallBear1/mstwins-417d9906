@@ -78,6 +78,7 @@ const Dashboard = () => {
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
+  const [extendedPromptDismissed, setExtendedPromptDismissed] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -90,6 +91,11 @@ const Dashboard = () => {
       const lastLogin = localStorage.getItem(`lastLogin_${user.id}`);
       setIsReturningUser(!!lastLogin);
       localStorage.setItem(`lastLogin_${user.id}`, new Date().toISOString());
+      
+      // Check if extended prompt was dismissed this session
+      const promptDismissed = sessionStorage.getItem(`extended_prompt_dismissed_${user.id}`);
+      setExtendedPromptDismissed(!!promptDismissed);
+      
       // Profile fetching is now handled by the optimized hook
     }
   }, [user]);
@@ -198,7 +204,7 @@ const Dashboard = () => {
       case "discover":
         return <div className="pt-6">
             {/* Extended Profile Prompt */}
-            {profile && !profile.extended_profile_completed && <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mx-4 mb-4">
+            {profile && !profile.extended_profile_completed && !extendedPromptDismissed && <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mx-4 mb-4">
                 <div className="flex items-start space-x-3">
                   <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="Helpful robot" className="w-10 h-10 rounded-full flex-shrink-0" />
                   <div className="flex-1">
@@ -215,12 +221,15 @@ const Dashboard = () => {
                       </Button>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => {
-                // Mark as dismissed for this session
-                sessionStorage.setItem(`extended_prompt_dismissed_${user?.id}`, 'true');
-                // Force re-render by reloading
-                window.location.reload();
-              }} className="flex-shrink-0 p-1 h-auto">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      setExtendedPromptDismissed(true);
+                      sessionStorage.setItem(`extended_prompt_dismissed_${user?.id}`, 'true');
+                    }} 
+                    className="flex-shrink-0 p-1 h-auto hover:bg-gray-100 rounded-full"
+                  >
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
