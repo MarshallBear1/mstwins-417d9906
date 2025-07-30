@@ -639,65 +639,49 @@ const ForumPage = () => {
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar 
-                            className="w-10 h-10 cursor-pointer" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              viewProfile(post.author_id);
-                            }}
-                          >
-                            <AvatarImage src={post.author.avatar_url || undefined} />
-                            <AvatarFallback>
-                              {post.author.first_name[0]}{post.author.last_name[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span 
-                                className="font-medium cursor-pointer hover:text-blue-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  viewProfile(post.author_id);
-                                }}
-                              >
-                                {post.author.first_name} {post.author.last_name}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-6 px-2 text-xs"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    viewProfile(post.author_id);
-                                  }}
-                                >
-                                  <User className="w-3 h-3 mr-1" />
-                                  View Profile
-                                </Button>
-                                <Badge className={`text-xs ${flair.color}`}>
-                                  {flair.label}
-                                </Badge>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              {post.author.ms_subtype && (
-                                <span>{post.author.ms_subtype}</span>
-                              )}
-                              {post.author.location && (
-                                <span>• {post.author.location}</span>
-                              )}
-                              <span>• {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
-                            </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
+                            <span 
+                              className="font-medium cursor-pointer hover:text-blue-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                viewProfile(post.author_id);
+                              }}
+                            >
+                              {post.author.first_name} {post.author.last_name}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 px-2 text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                viewProfile(post.author_id);
+                              }}
+                            >
+                              <User className="w-3 h-3 mr-1" />
+                              View Profile
+                            </Button>
+                            <Badge className={`text-xs ${flair.color}`}>
+                              {flair.label}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                            {post.author.ms_subtype && (
+                              <span>{post.author.ms_subtype}</span>
+                            )}
+                            {post.author.location && (
+                              <span>• {post.author.location}</span>
+                            )}
+                            <span>• {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
                           </div>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors">{post.title}</h3>
-                      <p className="text-gray-700 mb-4 line-clamp-3">{post.content}</p>
-                      <div className="text-xs text-primary/60 mb-2">Click to view full post and comments →</div>
+                      <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors text-center">{post.title}</h3>
+                      <p className="text-gray-700 mb-4 line-clamp-3 text-center">{post.content}</p>
+                      <div className="text-xs text-primary/60 mb-2 text-center">Click to view full post and comments →</div>
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -758,48 +742,35 @@ const ForumPage = () => {
               <Card className="mb-6">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar 
-                        className="w-10 h-10 cursor-pointer" 
-                        onClick={() => viewProfile(selectedPost.author_id)}
-                      >
-                        <AvatarImage src={selectedPost.author.avatar_url || undefined} />
-                        <AvatarFallback>
-                          {selectedPost.author.first_name[0]}{selectedPost.author.last_name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span 
-                            className="font-medium cursor-pointer hover:text-blue-600"
-                            onClick={() => viewProfile(selectedPost.author_id)}
-                          >
-                            {selectedPost.author.first_name} {selectedPost.author.last_name}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-6 px-2 text-xs"
-                              onClick={() => viewProfile(selectedPost.author_id)}
-                            >
-                              <User className="w-3 h-3 mr-1" />
-                              View Profile
-                            </Button>
-                            <Badge className={`text-xs ${getFlairInfo(selectedPost.flair).color}`}>
-                              {getFlairInfo(selectedPost.flair).label}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          {selectedPost.author.ms_subtype && (
-                            <span>{selectedPost.author.ms_subtype}</span>
-                          )}
-                          {selectedPost.author.location && (
-                            <span>• {selectedPost.author.location}</span>
-                          )}
-                          <span>• {formatDistanceToNow(new Date(selectedPost.created_at), { addSuffix: true })}</span>
-                        </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
+                        <span 
+                          className="font-medium cursor-pointer hover:text-blue-600"
+                          onClick={() => viewProfile(selectedPost.author_id)}
+                        >
+                          {selectedPost.author.first_name} {selectedPost.author.last_name}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs"
+                          onClick={() => viewProfile(selectedPost.author_id)}
+                        >
+                          <User className="w-3 h-3 mr-1" />
+                          View Profile
+                        </Button>
+                        <Badge className={`text-xs ${getFlairInfo(selectedPost.flair).color}`}>
+                          {getFlairInfo(selectedPost.flair).label}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                        {selectedPost.author.ms_subtype && (
+                          <span>{selectedPost.author.ms_subtype}</span>
+                        )}
+                        {selectedPost.author.location && (
+                          <span>• {selectedPost.author.location}</span>
+                        )}
+                        <span>• {formatDistanceToNow(new Date(selectedPost.created_at), { addSuffix: true })}</span>
                       </div>
                     </div>
                     {selectedPost.author_id === user?.id && (
@@ -815,8 +786,8 @@ const ForumPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <h1 className="font-bold text-2xl mb-4">{selectedPost.title}</h1>
-                  <p className="text-gray-700 mb-4 whitespace-pre-wrap">{selectedPost.content}</p>
+                  <h1 className="font-bold text-2xl mb-4 text-center">{selectedPost.title}</h1>
+                  <p className="text-gray-700 mb-4 whitespace-pre-wrap text-center">{selectedPost.content}</p>
                   
                   <div className="flex items-center gap-4">
                     <Button
