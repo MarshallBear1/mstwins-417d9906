@@ -323,13 +323,7 @@ const ForumPage = () => {
             author_id,
             post_id,
             created_at,
-            likes_count,
-            profiles!forum_comments_author_id_fkey (
-              user_id,
-              first_name,
-              last_name,
-              avatar_url
-            )
+            likes_count
           `)
           .eq('post_id', postId)
           .eq('moderation_status', 'approved')
@@ -344,8 +338,22 @@ const ForumPage = () => {
 
       const likedCommentIds = new Set(likesResult.data?.map(like => like.comment_id) || []);
       
+      // Get unique author IDs for batch profile fetch
+      const authorIds = [...new Set((commentsResult.data || []).map(comment => comment.author_id))];
+      
+      // Fetch profiles in batch
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, avatar_url')
+        .in('user_id', authorIds);
+
+      // Create profile lookup map for O(1) access
+      const profilesMap = new Map(
+        profilesData?.map(profile => [profile.user_id, profile]) || []
+      );
+      
       const commentsWithLikes: ForumComment[] = (commentsResult.data || []).map(comment => {
-        const profile = Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles;
+        const profile = profilesMap.get(comment.author_id);
         return {
           ...comment,
           author: {
@@ -354,7 +362,6 @@ const ForumPage = () => {
             avatar_url: profile?.avatar_url || null,
           },
           user_has_liked: likedCommentIds.has(comment.id),
-          profiles: undefined // Clean up response
         };
       });
 
@@ -743,38 +750,38 @@ const ForumPage = () => {
                               {post.author.first_name[0]}{post.author.last_name[0]}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <div className="flex items-center gap-3">
-                              <span 
-                                className="font-medium cursor-pointer hover:text-blue-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  viewProfile(post.author_id);
-                                }}
-                              >
-                                {post.author.first_name}
-                              </span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-6 px-2 text-xs"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  viewProfile(post.author_id);
-                                }}
-                              >
-                                View Profile
-                              </Button>
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge className={`text-xs ${flair.color}`}>
-                                {flair.label}
-                              </Badge>
-                              <span className="text-xs text-gray-500">
-                                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                              </span>
-                            </div>
-                          </div>
+                           <div>
+                             <div className="flex items-center gap-3">
+                               <span 
+                                 className="font-medium cursor-pointer hover:text-blue-600"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   viewProfile(post.author_id);
+                                 }}
+                               >
+                                 {post.author.first_name}
+                               </span>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="h-6 px-2 text-xs"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   viewProfile(post.author_id);
+                                 }}
+                               >
+                                 View Profile
+                               </Button>
+                             </div>
+                             <div className="mt-1">
+                               <Badge className={`text-xs ${flair.color}`}>
+                                 {flair.label}
+                               </Badge>
+                             </div>
+                             <div className="bg-gray-100 rounded px-2 py-1 mt-2 text-xs text-gray-500">
+                               Additional details available in profile
+                             </div>
+                           </div>
                         </div>
                       </div>
                     </CardHeader>
@@ -950,44 +957,32 @@ const ForumPage = () => {
                         {selectedPost.author.first_name[0]}{selectedPost.author.last_name[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span 
-                          className="font-medium cursor-pointer hover:text-blue-600"
-                          onClick={() => viewProfile(selectedPost.author_id)}
-                        >
-                          {selectedPost.author.first_name} {selectedPost.author.last_name}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-6 px-2 text-xs"
-                            onClick={() => viewProfile(selectedPost.author_id)}
-                          >
-                            View Profile
-                          </Button>
-                          <Badge className={`text-xs ${getFlairInfo(selectedPost.flair).color}`}>
-                            {getFlairInfo(selectedPost.flair).label}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap">
-                        {selectedPost.author.ms_subtype && (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-0.5">
-                            {selectedPost.author.ms_subtype}
-                          </Badge>
-                        )}
-                        {selectedPost.author.location && (
-                          <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs px-2 py-0.5">
-                            📍 {selectedPost.author.location}
-                          </Badge>
-                        )}
-                        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 text-xs px-2 py-0.5">
-                          {formatDistanceToNow(new Date(selectedPost.created_at), { addSuffix: true })}
-                        </Badge>
-                      </div>
-                    </div>
+                     <div>
+                       <div className="flex items-center gap-2 flex-wrap">
+                         <span 
+                           className="font-medium cursor-pointer hover:text-blue-600"
+                           onClick={() => viewProfile(selectedPost.author_id)}
+                         >
+                           {selectedPost.author.first_name}
+                         </span>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           className="h-6 px-2 text-xs"
+                           onClick={() => viewProfile(selectedPost.author_id)}
+                         >
+                           View Profile
+                         </Button>
+                       </div>
+                       <div className="mt-1">
+                         <Badge className={`text-xs ${getFlairInfo(selectedPost.flair).color}`}>
+                           {getFlairInfo(selectedPost.flair).label}
+                         </Badge>
+                       </div>
+                       <div className="bg-gray-100 rounded px-2 py-1 mt-2 text-xs text-gray-500">
+                         Additional details available in profile
+                       </div>
+                     </div>
                   </div>
                   {selectedPost.author_id === user?.id && (
                     <Button
@@ -1057,23 +1052,20 @@ const ForumPage = () => {
                               {comment.author.first_name[0]}{comment.author.last_name[0]}
                             </AvatarFallback>
                           </Avatar>
-                          <span 
-                            className="font-medium text-sm cursor-pointer hover:text-blue-600"
-                            onClick={() => viewProfile(comment.author_id)}
-                          >
-                            {comment.author.first_name} {comment.author.last_name}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-5 px-1.5 text-xs ml-2"
-                            onClick={() => viewProfile(comment.author_id)}
-                          >
-                            View
-                          </Button>
-                          <span className="text-xs text-gray-500">
-                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                          </span>
+                           <span 
+                             className="font-medium text-sm cursor-pointer hover:text-blue-600"
+                             onClick={() => viewProfile(comment.author_id)}
+                           >
+                             {comment.author.first_name}
+                           </span>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             className="h-5 px-1.5 text-xs ml-2"
+                             onClick={() => viewProfile(comment.author_id)}
+                           >
+                             View
+                           </Button>
                         </div>
                         <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
                         <Button
