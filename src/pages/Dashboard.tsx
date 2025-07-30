@@ -8,7 +8,7 @@ import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, Eye, Arro
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
-import OptimizedDiscoverProfiles from "@/components/OptimizedDiscoverProfiles";
+import DiscoverProfiles from "@/components/DiscoverProfiles";
 import Messaging from "@/components/Messaging";
 import ProfileCard from "@/components/ProfileCard";
 import ReferralDropdown from "@/components/ReferralDropdown";
@@ -16,19 +16,16 @@ import FeedbackDialog from "@/components/FeedbackDialog";
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
-import { usePreloadedData } from "@/hooks/usePreloadedData";
-import { useOptimizedDiscoverProfiles } from "@/hooks/useOptimizedDiscoverProfiles";
+import { useOptimizedDashboardData } from "@/hooks/useOptimizedDashboardData";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
-import PersistentBottomNavigation from "@/components/PersistentBottomNavigation";
+import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
 import MatchesPage from "@/components/MatchesPage";
 import ForumPage from "@/components/ForumPage";
-import { AuthErrorBoundary } from "@/components/AuthErrorBoundary";
-import LoadingWithRetry from "@/components/LoadingWithRetry";
 interface Profile {
   id: string;
   user_id: string;
@@ -68,43 +65,19 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'discover';
 
-  // Use optimized data hooks
+  // Use optimized data fetching hook
   const { 
     profile, 
-    profileLoading,
-    fetchProfile,
     likes, 
+    profileLoading, 
     likesLoading, 
-    fetchLikes
-  } = usePreloadedData({ user, activeTab });
-
-  // Optimized discover profiles hook
-  const {
-    profiles: discoverProfiles,
-    loading: discoverLoading,
-    error: discoverError,
-    connectionStatus: discoverConnectionStatus,
-    refetch: refetchProfiles,
-    preloadMore,
-    retry: retryProfiles
-  } = useOptimizedDiscoverProfiles(user);
+    fetchProfile, 
+    fetchLikes 
+  } = useOptimizedDashboardData({ user, activeTab });
 
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
   const [showProfileView, setShowProfileView] = useState(false);
-  const [extendedPromptDismissed, setExtendedPromptDismissed] = useState(false);
-
-  // Listen for storage changes to update state without reload
-  useEffect(() => {
-    const handleStorageChange = () => {
-      if (user && sessionStorage.getItem(`extended_prompt_dismissed_${user.id}`)) {
-        setExtendedPromptDismissed(true);
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -182,112 +155,77 @@ const Dashboard = () => {
     await signOut();
     navigate("/");
   };
-  if (authLoading) {
-    return (
-      <LoadingWithRetry 
-        isLoading={true}
-        loadingText="Checking authentication..."
-        onRetry={() => window.location.reload()}
-        showConnectionStatus={true}
-      />
-    );
+  if (authLoading || profileLoading) {
+    return <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>;
   }
-  if (!user) {
-    console.log('❌ No user found, redirecting to auth');
-    return null;
-  }
-
-  console.log('🔍 Dashboard state:', { 
-    hasUser: !!user, 
-    hasProfile: !!profile, 
-    profileLoading,
-    userId: user?.id,
-    activeTab,
-    profileData: profile ? 'exists' : 'null'
-  });
+  if (!user) return null;
 
   // Profile enforcement - redirect to profile setup if no profile exists
-  // Add debugging for profile
-  console.log('🔍 Profile check:', { 
-    hasProfile: !!profile, 
-    profileData: profile,
-    activeTab,
-    profileLoading 
-  });
-
   if (!profile) {
-    console.log('❌ No profile found, showing completion screen');
-    
-    if (profileLoading) {
-      return (
-        <LoadingWithRetry 
-          isLoading={true}
-          loadingText="Loading your profile..."
-          onRetry={fetchProfile}
-          showConnectionStatus={true}
-        />
-      );
-    }
-
-    return (
-      <AuthErrorBoundary 
-        fallbackMessage="We couldn't load your profile. This might be due to a connection issue."
-        showSignInOption={true}
-        onSignInClick={() => navigate('/auth')}
-      >
-        <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
-          <Card className="w-full max-w-md border-2 border-primary/20 shadow-xl animate-pulse">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-                <User className="w-8 h-8 text-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-primary mb-4 animate-fade-in">
-                Complete Your Profile! ✨
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                You're so close! Complete your profile to start discovering amazing connections in the MS community.
+    return <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
+        <Card className="w-full max-w-md border-2 border-primary/20 shadow-xl animate-pulse">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+              <User className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold text-primary mb-4 animate-fade-in">
+              Complete Your Profile! ✨
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              You're so close! Complete your profile to start discovering amazing connections in the MS community.
+            </p>
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-6 border border-primary/10">
+              <p className="text-sm text-primary font-medium">
+                🚀 Profile completion unlocks:
               </p>
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-6 border border-primary/10">
-                <p className="text-sm text-primary font-medium">
-                  🚀 Profile completion unlocks:
-                </p>
-                <ul className="text-xs text-muted-foreground mt-2 text-left">
-                  <li>• Discover supportive community members</li>
-                  <li>• Get likes and matches</li>
-                  <li>• Start meaningful conversations</li>
-                </ul>
-              </div>
-              <Button onClick={() => navigate("/profile-setup")} className="w-full bg-gradient-primary hover:opacity-90 text-white font-medium py-3 animate-scale-in" size="lg">
-                Complete Profile Now
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </AuthErrorBoundary>
-    );
+              <ul className="text-xs text-muted-foreground mt-2 text-left">
+                <li>• Discover supportive community members</li>
+                <li>• Get likes and matches</li>
+                <li>• Start meaningful conversations</li>
+              </ul>
+            </div>
+            <Button onClick={() => navigate("/profile-setup")} className="w-full bg-gradient-primary hover:opacity-90 text-white font-medium py-3 animate-scale-in" size="lg">
+              Complete Profile Now
+            </Button>
+          </CardContent>
+        </Card>
+      </div>;
   }
   const renderContent = () => {
-    console.log('🔍 Dashboard renderContent called with activeTab:', activeTab);
-    console.log('🔍 Discover profiles data:', { 
-      profilesCount: discoverProfiles.length, 
-      discoverLoading,
-      hasUser: !!user,
-      hasProfile: !!profile
-    });
-    
     switch (activeTab) {
       case "discover":
         return <div className="pt-6">
-            <OptimizedDiscoverProfiles 
-              profiles={discoverProfiles}
-              isLoading={discoverLoading}
-              error={discoverError}
-              connectionStatus={discoverConnectionStatus}
-              onRefresh={refetchProfiles}
-              onPreloadMore={preloadMore}
-              onRetry={retryProfiles}
-              hasMore={true}
-            />
+            {/* Extended Profile Prompt */}
+            {profile && !profile.extended_profile_completed && <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mx-4 mb-4">
+                <div className="flex items-start space-x-3">
+                  <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="Helpful robot" className="w-10 h-10 rounded-full flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="bg-white rounded-lg p-3 shadow-sm relative">
+                      <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
+                      <p className="text-sm text-foreground font-medium mb-1">
+                        💡 Stand out even more!
+                      </p>
+                      <p className="text-sm text-foreground mb-3">
+                        Add more photos and personal stories to get noticed by potential matches.
+                      </p>
+                      <Button size="sm" onClick={() => navigate("/extended-profile")} className="bg-gradient-primary hover:opacity-90 text-white">
+                        Add More Details
+                      </Button>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => {
+                // Mark as dismissed for this session
+                sessionStorage.setItem(`extended_prompt_dismissed_${user?.id}`, 'true');
+                // Force re-render by reloading
+                window.location.reload();
+              }} className="flex-shrink-0 p-1 h-auto">
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>}
+            <DiscoverProfiles />
           </div>;
       case "likes":
         return <MatchesPage 
@@ -308,25 +246,19 @@ const Dashboard = () => {
         return null;
     }
   };
-  return (
-    <AuthErrorBoundary 
-      fallbackMessage="There was an issue loading the dashboard. Please try again."
-      showSignInOption={true}
-      onSignInClick={() => navigate('/auth')}
-    >
-      <MobileKeyboardHandler>
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          <SEO 
-            title="MStwins Dashboard - Your MS Support Community"
-            description="Access your Multiple Sclerosis support network. Discover new connections, manage matches, and engage with your community."
-            canonical="https://mstwins.com/dashboard"
-          />
+  return <MobileKeyboardHandler>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <SEO 
+        title="MStwins Dashboard - Your MS Support Community"
+        description="Access your Multiple Sclerosis support network. Discover new connections, manage matches, and engage with your community."
+        canonical="https://mstwins.com/dashboard"
+      />
 
-          {/* Notification Popup */}
-          <NotificationPopup />
+      {/* Notification Popup */}
+      <NotificationPopup />
 
-          {/* Robot Announcement Popup */}
-          {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />}
+      {/* Robot Announcement Popup */}
+      {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />}
       
       {/* Modern header with clean design */}
       <div className="bg-white/90 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40 shadow-[0_1px_10px_rgba(0,0,0,0.05)]" style={{
@@ -394,12 +326,7 @@ const Dashboard = () => {
           )}
         </DialogContent>
       </Dialog>
-
-          {/* Persistent Bottom Navigation */}
-          <PersistentBottomNavigation />
-        </div>
-      </MobileKeyboardHandler>
-    </AuthErrorBoundary>
-  );
+      </div>
+    </MobileKeyboardHandler>;
 };
 export default memo(Dashboard);

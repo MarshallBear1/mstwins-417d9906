@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, ArrowLeft, User, Trash2, Heart, MessageCircle } from "lucide-react";
+import { Send, ArrowLeft, User, Trash2, Heart } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -205,8 +205,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
     setLoading(true);
     try {
-      // Single optimized query to get matches with last message info
-      const { data: matchesWithMessages, error } = await supabase
+      const { data, error } = await supabase
         .from('matches')
         .select(`
           id,
@@ -219,133 +218,130 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
       if (error) {
         console.error('Error fetching matches:', error);
-        // Fallback to simpler query if the complex one fails
-        const { data: simpleMatches, error: simpleError } = await supabase
-          .from('matches')
-          .select('id, user1_id, user2_id, created_at')
-          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-          .order('created_at', { ascending: false });
-          
-        if (simpleError) {
-          console.error('Error with fallback query:', simpleError);
-          return;
-        }
-        
-        // Process simple matches without optimization
-        await processMatchesSimple(simpleMatches || []);
         return;
       }
 
-      // Process optimized matches
-      await processMatchesOptimized(matchesWithMessages || []);
+      // Get user profiles for each match in batch
+      const otherUserIds = (data || []).map(match => 
+        match.user1_id === user.id ? match.user2_id : match.user1_id
+      );
+
+      if (otherUserIds.length === 0) {
+        setMatches([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('user_id', otherUserIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        return;
+      }
+
+      // Get unread message counts for all matches in one query
+      const { data: unreadCounts, error: unreadError } = await supabase
+        .from('messages')
+        .select('match_id')
+        .in('match_id', (data || []).map(match => match.id))
+        .eq('receiver_id', user.id)
+        .eq('is_read', false);
+
+      if (unreadError) {
+        console.error('Error fetching unread counts:', unreadError);
+      }
+
+      // Count unread messages per match
+      const unreadCountMap = (unreadCounts || []).reduce((acc, msg) => {
+        acc[msg.match_id] = (acc[msg.match_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Get last message for each match
+      const { data: lastMessages, error: lastMessagesError } = await supabase
+        .from('messages')
+        .select('match_id, content, created_at, sender_id')
+        .in('match_id', (data || []).map(match => match.id))
+        .order('created_at', { ascending: false });
+
+      if (lastMessagesError) {
+        console.error('Error fetching last messages:', lastMessagesError);
+      }
+
+      // Create map of last message per match
+      const lastMessageMap = (lastMessages || []).reduce((acc, msg) => {
+        if (!acc[msg.match_id]) {
+          acc[msg.match_id] = msg;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Create a lookup map for profiles
+      const profileMap = (profilesData || []).reduce((acc, profile) => {
+        acc[profile.user_id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Process matches with profiles
+      const matchesWithProfiles = (data || []).map(match => {
+        const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
+        const otherUserProfile = profileMap[otherUserId];
+
+        return {
+          ...match,
+          other_user: otherUserProfile ? {
+            id: otherUserProfile.id,
+            user_id: otherUserProfile.user_id,
+            first_name: otherUserProfile.first_name,
+            last_name: otherUserProfile.last_name,
+            avatar_url: otherUserProfile.avatar_url,
+            location: otherUserProfile.location,
+            about_me: otherUserProfile.about_me,
+            ms_subtype: otherUserProfile.ms_subtype,
+            diagnosis_year: otherUserProfile.diagnosis_year,
+            date_of_birth: otherUserProfile.date_of_birth,
+            hobbies: otherUserProfile.hobbies || [],
+            symptoms: otherUserProfile.symptoms || [],
+            medications: otherUserProfile.medications || [],
+            gender: otherUserProfile.gender,
+            last_seen: otherUserProfile.last_seen,
+            additional_photos: otherUserProfile.additional_photos || [],
+            selected_prompts: Array.isArray(otherUserProfile.selected_prompts) 
+              ? otherUserProfile.selected_prompts as { question: string; answer: string; }[]
+              : [],
+            extended_profile_completed: otherUserProfile.extended_profile_completed || false
+          } : {
+            first_name: 'Unknown',
+            last_name: 'User',
+            avatar_url: null,
+            location: '',
+            about_me: '',
+            ms_subtype: '',
+            diagnosis_year: null,
+            date_of_birth: '',
+            hobbies: [],
+            symptoms: [],
+            medications: [],
+            gender: null,
+            last_seen: null,
+            additional_photos: [],
+            selected_prompts: [],
+            extended_profile_completed: false
+          },
+          unread_count: unreadCountMap[match.id] || 0,
+          last_message: lastMessageMap[match.id] || null
+        };
+      });
+
+      setMatches(matchesWithProfiles);
     } catch (error) {
       console.error('Error fetching matches:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const processMatchesSimple = async (data: any[]) => {
-    if (data.length === 0) {
-      setMatches([]);
-      return;
-    }
-
-    // Get user profiles for each match in batch
-    const otherUserIds = data.map(match => 
-      match.user1_id === user.id ? match.user2_id : match.user1_id
-    );
-
-    const [profilesResult, unreadResult, lastMessagesResult] = await Promise.all([
-      supabase.from('profiles').select('*').in('user_id', otherUserIds),
-      supabase.from('messages').select('match_id').in('match_id', data.map(m => m.id)).eq('receiver_id', user.id).eq('is_read', false),
-      supabase.from('messages').select('match_id, content, created_at, sender_id').in('match_id', data.map(m => m.id)).order('created_at', { ascending: false })
-    ]);
-
-    const profileMap = (profilesResult.data || []).reduce((acc, profile) => {
-      acc[profile.user_id] = profile;
-      return acc;
-    }, {} as Record<string, any>);
-
-    const unreadCountMap = (unreadResult.data || []).reduce((acc, msg) => {
-      acc[msg.match_id] = (acc[msg.match_id] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const lastMessageMap = (lastMessagesResult.data || []).reduce((acc, msg) => {
-      if (!acc[msg.match_id]) {
-        acc[msg.match_id] = msg;
-      }
-      return acc;
-    }, {} as Record<string, any>);
-
-    const processedMatches = data.map(match => ({
-      ...match,
-      other_user: createUserProfile(profileMap[match.user1_id === user.id ? match.user2_id : match.user1_id]),
-      unread_count: unreadCountMap[match.id] || 0,
-      last_message: lastMessageMap[match.id] || null
-    }));
-
-    // Sort by most recent message
-    processedMatches.sort((a, b) => {
-      const aTime = a.last_message?.created_at || a.created_at;
-      const bTime = b.last_message?.created_at || b.created_at;
-      return new Date(bTime).getTime() - new Date(aTime).getTime();
-    });
-
-    setMatches(processedMatches);
-
-  };
-
-  const processMatchesOptimized = async (data: any[]) => {
-    // This would be for if the complex query worked, but we'll use the simple approach
-    await processMatchesSimple(data);
-  };
-
-  const createUserProfile = (profile: any) => {
-    if (!profile) {
-      return {
-        first_name: 'Unknown',
-        last_name: 'User',
-        avatar_url: null,
-        location: '',
-        about_me: '',
-        ms_subtype: '',
-        diagnosis_year: null,
-        date_of_birth: '',
-        hobbies: [],
-        symptoms: [],
-        medications: [],
-        gender: null,
-        last_seen: null,
-        additional_photos: [],
-        selected_prompts: [],
-        extended_profile_completed: false
-      };
-    }
-
-    return {
-      id: profile.id,
-      user_id: profile.user_id,
-      first_name: profile.first_name,
-      last_name: profile.last_name,
-      avatar_url: profile.avatar_url,
-      location: profile.location,
-      about_me: profile.about_me,
-      ms_subtype: profile.ms_subtype,
-      diagnosis_year: profile.diagnosis_year,
-      date_of_birth: profile.date_of_birth,
-      hobbies: profile.hobbies || [],
-      symptoms: profile.symptoms || [],
-      medications: profile.medications || [],
-      gender: profile.gender,
-      last_seen: profile.last_seen,
-      additional_photos: profile.additional_photos || [],
-      selected_prompts: Array.isArray(profile.selected_prompts) 
-        ? profile.selected_prompts as { question: string; answer: string; }[]
-        : [],
-      extended_profile_completed: profile.extended_profile_completed || false
-    };
   };
 
   const fetchMessages = async (matchId: string) => {
@@ -702,11 +698,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                       {selectedMatch.other_user.first_name[0]}{selectedMatch.other_user.last_name[0]}
                     </AvatarFallback>
                   </Avatar>
-                  {/* Online/Offline indicator */}
-                  {isUserOnline(selectedMatch.other_user.user_id || selectedMatch.other_user.id || '') ? (
+                  {isUserOnline(selectedMatch.other_user.user_id || selectedMatch.other_user.id || '') && (
                     <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
-                  ) : (
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border-2 border-white" />
                   )}
                 </div>
                 
@@ -905,71 +898,86 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             </div>
           ) : (
             <ScrollArea className="flex-1">
-              <div className="space-y-3 sm:space-y-4 p-4">
-                {matches.map((match) => (
-                  <Card 
-                    key={match.id} 
-                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => setSelectedMatch(match)}
-                  >
-                    <CardContent className="p-3 sm:p-4">
-                      <div className="flex items-center space-x-3 sm:space-x-4">
-                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
-                          {match.other_user.avatar_url ? (
-                            <img 
-                              src={match.other_user.avatar_url} 
-                              alt={`${match.other_user.first_name}'s avatar`} 
-                              className="w-full h-full object-cover" 
-                              loading="lazy" 
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-                              <User className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-                            </div>
-                           )}
-                           {/* Online/Offline indicator */}
-                           {isUserOnline(match.other_user.user_id || match.other_user.id || '') ? (
-                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-                           ) : (
-                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white" />
-                           )}
+              <div className="p-4">
+                {matches.map((match, index) => (
+                  <div key={match.id}>
+                    <div
+                      onClick={() => setSelectedMatch(match)}
+                      className="flex items-start gap-4 p-4 rounded-2xl hover:bg-gray-50 cursor-pointer transition-all duration-200 hover:shadow-md border border-transparent hover:border-gray-200"
+                    >
+                      <div className="relative flex-shrink-0">
+                        <Avatar className="h-14 w-14 border-2 border-white shadow-lg">
+                          <AvatarImage 
+                            src={match.other_user.avatar_url || undefined} 
+                            alt={match.other_user.first_name}
+                          />
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-sm">
+                            {match.other_user.first_name[0]}{match.other_user.last_name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0 space-y-2">
+                        {/* Header with name and unread count */}
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-gray-900 text-base truncate">
+                            {match.other_user.first_name} {match.other_user.last_name}
+                          </h3>
                           {match.unread_count > 0 && (
-                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg animate-pulse">
+                            <div className="bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-medium shadow-md">
                               {match.unread_count > 9 ? '9+' : match.unread_count}
                             </div>
                           )}
                         </div>
                         
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                            {match.other_user.first_name} {match.other_user.last_name}
-                          </h4>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {match.other_user.ms_subtype && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
-                                {match.other_user.ms_subtype.toUpperCase()}
-                              </span>
-                            )}
-                            {match.other_user.location && (
-                              <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
-                                📍 {match.other_user.location}
-                              </span>
-                            )}
-                          </div>
-                          {match.last_message && (
-                            <div className="flex items-center mt-1 gap-1">
-                              {match.unread_count > 0 && match.last_message.sender_id !== user?.id && (
-                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
-                              )}
-                              <p className="text-xs text-gray-500 truncate">
-                                {match.last_message.sender_id === user?.id ? 'You: ' : ''}{match.last_message.content}
-                              </p>
-                            </div>
+                        {/* Profile details */}
+                        <div className="flex flex-wrap gap-1.5 text-xs">
+                          {match.other_user.ms_subtype && (
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-1.5 py-0.5 text-xs">
+                              {match.other_user.ms_subtype.toUpperCase()}
+                            </Badge>
+                          )}
+                          {match.other_user.gender && (
+                            <Badge variant="outline" className="border-gray-300 text-gray-600 rounded-full px-1.5 py-0.5 text-xs">
+                              {match.other_user.gender}
+                            </Badge>
+                          )}
+                          {match.other_user.location && (
+                            <Badge variant="outline" className="border-purple-300 text-purple-700 bg-purple-50 rounded-full px-1.5 py-0.5 text-xs">
+                              📍 {match.other_user.location}
+                            </Badge>
                           )}
                         </div>
+                        
+                        {/* Last message */}
+                        <p className="text-xs text-gray-500 truncate font-medium">
+                          {match.last_message 
+                            ? `${match.last_message.sender_id === user?.id ? 'You: ' : ''}${match.last_message.content}`
+                            : "Start the conversation!"
+                          }
+                        </p>
+                        
+                        {/* Match date */}
+                        <p className="text-xs text-gray-400">
+                          Matched {new Date(match.created_at).toLocaleDateString([], { 
+                            month: 'short', 
+                            day: 'numeric',
+                            year: new Date(match.created_at).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                          })}
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    
+                    {/* Separator between matches */}
+                    {index < matches.length - 1 && (
+                      <div className="mx-4 my-2">
+                        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </ScrollArea>

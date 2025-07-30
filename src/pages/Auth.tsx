@@ -71,13 +71,11 @@ const Auth = () => {
       
       if (accessToken && refreshToken) {
         console.log('✅ Access and refresh tokens found, setting up token-based password reset flow');
-        // Delay session setup to avoid race condition with useAuth redirect
-        setTimeout(() => {
-          supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-        }, 100);
+        // Handle token-based recovery (current flow)
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
         
         toast({
           title: "Reset Your Password",
@@ -190,9 +188,12 @@ const Auth = () => {
           description: "Your password has been updated. You can now sign in with your new password.",
         });
         
-        // Clear URL and redirect to dashboard
-        window.history.replaceState({}, document.title, "/dashboard");
-        navigate("/dashboard");
+        // Clear the URL parameters and reset state
+        window.history.replaceState({}, document.title, "/auth");
+        setIsPasswordReset(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        setIsSignUp(false);
       }
     } catch (error: any) {
       toast({

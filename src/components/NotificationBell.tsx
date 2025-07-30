@@ -114,13 +114,13 @@ const NotificationBell = () => {
     // Navigate to appropriate tab based on notification type
     switch (notification.type) {
       case 'like':
-        navigate('/dashboard?tab=likes');
+        navigate('/dashboard?tab=matches');
         break;
       case 'match':
-        navigate('/dashboard?tab=messages');
+        navigate('/dashboard?tab=matches');
         break;
       case 'message':
-        navigate('/dashboard?tab=messages');
+        navigate('/dashboard?tab=matches');
         break;
       default:
         navigate('/dashboard');

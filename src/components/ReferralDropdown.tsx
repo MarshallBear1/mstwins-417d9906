@@ -13,7 +13,7 @@ const ReferralDropdown = () => {
   const { shareApp, isSupported, copyToClipboard } = useShare();
   const { user } = useAuth();
 
-  const referralLink = `https://mstwins.com?ref=${user?.id || 'user'}`;
+  const referralLink = `${window.location.origin}?ref=${user?.id || 'user'}`;
   
   const handleNativeShare = async () => {
     const success = await shareApp();
@@ -77,7 +77,7 @@ const ReferralDropdown = () => {
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-[100]" 
+            className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-sm" 
             onClick={() => setIsOpen(false)}
           />
           

@@ -23,12 +23,11 @@ export const useRobotAnnouncements = () => {
 
   // Load dismissed announcements from localStorage
   useEffect(() => {
-    if (!user) return;
-    const dismissed = localStorage.getItem(`dismissedAnnouncements_${user.id}`);
+    const dismissed = localStorage.getItem('dismissedAnnouncements');
     if (dismissed) {
       setDismissedAnnouncements(new Set(JSON.parse(dismissed)));
     }
-  }, [user]);
+  }, []);
 
   // Fetch active announcements
   useEffect(() => {
@@ -60,10 +59,9 @@ export const useRobotAnnouncements = () => {
   }, [user, dismissedAnnouncements]);
 
   const dismissAnnouncement = (announcementId: string) => {
-    if (!user) return;
     const updated = new Set([...dismissedAnnouncements, announcementId]);
     setDismissedAnnouncements(updated);
-    localStorage.setItem(`dismissedAnnouncements_${user.id}`, JSON.stringify([...updated]));
+    localStorage.setItem('dismissedAnnouncements', JSON.stringify([...updated]));
     setShowAnnouncement(false);
     setCurrentAnnouncement(null);
   };
