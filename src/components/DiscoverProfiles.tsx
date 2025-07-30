@@ -430,11 +430,10 @@ const DiscoverProfiles = memo(() => {
         onOpenChange={() => {}} 
         remainingLikes={remainingLikes} 
       />
-      
-      {/* Mobile Profile Card - Centered */}
+      {/* Mobile Profile Card - Better Centered */}
       {currentProfile && (
-        <div className="flex justify-center px-4">
-          <div className="w-full max-w-[320px]">
+        <div className="flex justify-center items-center min-h-[500px] px-4">
+          <div className="w-full max-w-[300px]">
             <MobileProfileCard
               profile={{
                 id: currentProfile.id,
@@ -461,13 +460,6 @@ const DiscoverProfiles = memo(() => {
               isUserOnline={isUserOnline}
               className="mx-auto"
             />
-            
-            {/* Like count indicator below card */}
-            <div className="text-center mt-3">
-              <span className="text-sm text-muted-foreground bg-white/80 px-3 py-1 rounded-full shadow-sm">
-                {remainingLikes} likes remaining today
-              </span>
-            </div>
           </div>
         </div>
       )}

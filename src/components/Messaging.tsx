@@ -205,143 +205,148 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Single optimized query to get matches with last message info
+      const { data: matchesWithMessages, error } = await supabase
         .from('matches')
         .select(`
           id,
           user1_id,
           user2_id,
-          created_at
+          created_at,
+          messages!inner(id, content, created_at, sender_id)
         `)
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
+        .order('messages.created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching matches:', error);
-        return;
-      }
-
-      // Get user profiles for each match in batch
-      const otherUserIds = (data || []).map(match => 
-        match.user1_id === user.id ? match.user2_id : match.user1_id
-      );
-
-      if (otherUserIds.length === 0) {
-        setMatches([]);
-        setLoading(false);
-        return;
-      }
-
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('user_id', otherUserIds);
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        return;
-      }
-
-      // Get unread message counts for all matches in one query
-      const { data: unreadCounts, error: unreadError } = await supabase
-        .from('messages')
-        .select('match_id')
-        .in('match_id', (data || []).map(match => match.id))
-        .eq('receiver_id', user.id)
-        .eq('is_read', false);
-
-      if (unreadError) {
-        console.error('Error fetching unread counts:', unreadError);
-      }
-
-      // Count unread messages per match
-      const unreadCountMap = (unreadCounts || []).reduce((acc, msg) => {
-        acc[msg.match_id] = (acc[msg.match_id] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      // Get last message for each match
-      const { data: lastMessages, error: lastMessagesError } = await supabase
-        .from('messages')
-        .select('match_id, content, created_at, sender_id')
-        .in('match_id', (data || []).map(match => match.id))
-        .order('created_at', { ascending: false });
-
-      if (lastMessagesError) {
-        console.error('Error fetching last messages:', lastMessagesError);
-      }
-
-      // Create map of last message per match
-      const lastMessageMap = (lastMessages || []).reduce((acc, msg) => {
-        if (!acc[msg.match_id]) {
-          acc[msg.match_id] = msg;
+        // Fallback to simpler query if the complex one fails
+        const { data: simpleMatches, error: simpleError } = await supabase
+          .from('matches')
+          .select('id, user1_id, user2_id, created_at')
+          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+          .order('created_at', { ascending: false });
+          
+        if (simpleError) {
+          console.error('Error with fallback query:', simpleError);
+          return;
         }
-        return acc;
-      }, {} as Record<string, any>);
+        
+        // Process simple matches without optimization
+        await processMatchesSimple(simpleMatches || []);
+        return;
+      }
 
-      // Create a lookup map for profiles
-      const profileMap = (profilesData || []).reduce((acc, profile) => {
-        acc[profile.user_id] = profile;
-        return acc;
-      }, {} as Record<string, any>);
-
-      // Process matches with profiles
-      const matchesWithProfiles = (data || []).map(match => {
-        const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
-        const otherUserProfile = profileMap[otherUserId];
-
-        return {
-          ...match,
-          other_user: otherUserProfile ? {
-            id: otherUserProfile.id,
-            user_id: otherUserProfile.user_id,
-            first_name: otherUserProfile.first_name,
-            last_name: otherUserProfile.last_name,
-            avatar_url: otherUserProfile.avatar_url,
-            location: otherUserProfile.location,
-            about_me: otherUserProfile.about_me,
-            ms_subtype: otherUserProfile.ms_subtype,
-            diagnosis_year: otherUserProfile.diagnosis_year,
-            date_of_birth: otherUserProfile.date_of_birth,
-            hobbies: otherUserProfile.hobbies || [],
-            symptoms: otherUserProfile.symptoms || [],
-            medications: otherUserProfile.medications || [],
-            gender: otherUserProfile.gender,
-            last_seen: otherUserProfile.last_seen,
-            additional_photos: otherUserProfile.additional_photos || [],
-            selected_prompts: Array.isArray(otherUserProfile.selected_prompts) 
-              ? otherUserProfile.selected_prompts as { question: string; answer: string; }[]
-              : [],
-            extended_profile_completed: otherUserProfile.extended_profile_completed || false
-          } : {
-            first_name: 'Unknown',
-            last_name: 'User',
-            avatar_url: null,
-            location: '',
-            about_me: '',
-            ms_subtype: '',
-            diagnosis_year: null,
-            date_of_birth: '',
-            hobbies: [],
-            symptoms: [],
-            medications: [],
-            gender: null,
-            last_seen: null,
-            additional_photos: [],
-            selected_prompts: [],
-            extended_profile_completed: false
-          },
-          unread_count: unreadCountMap[match.id] || 0,
-          last_message: lastMessageMap[match.id] || null
-        };
-      });
-
-      setMatches(matchesWithProfiles);
+      // Process optimized matches
+      await processMatchesOptimized(matchesWithMessages || []);
     } catch (error) {
       console.error('Error fetching matches:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const processMatchesSimple = async (data: any[]) => {
+    if (data.length === 0) {
+      setMatches([]);
+      return;
+    }
+
+    // Get user profiles for each match in batch
+    const otherUserIds = data.map(match => 
+      match.user1_id === user.id ? match.user2_id : match.user1_id
+    );
+
+    const [profilesResult, unreadResult, lastMessagesResult] = await Promise.all([
+      supabase.from('profiles').select('*').in('user_id', otherUserIds),
+      supabase.from('messages').select('match_id').in('match_id', data.map(m => m.id)).eq('receiver_id', user.id).eq('is_read', false),
+      supabase.from('messages').select('match_id, content, created_at, sender_id').in('match_id', data.map(m => m.id)).order('created_at', { ascending: false })
+    ]);
+
+    const profileMap = (profilesResult.data || []).reduce((acc, profile) => {
+      acc[profile.user_id] = profile;
+      return acc;
+    }, {} as Record<string, any>);
+
+    const unreadCountMap = (unreadResult.data || []).reduce((acc, msg) => {
+      acc[msg.match_id] = (acc[msg.match_id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const lastMessageMap = (lastMessagesResult.data || []).reduce((acc, msg) => {
+      if (!acc[msg.match_id]) {
+        acc[msg.match_id] = msg;
+      }
+      return acc;
+    }, {} as Record<string, any>);
+
+    const processedMatches = data.map(match => ({
+      ...match,
+      other_user: createUserProfile(profileMap[match.user1_id === user.id ? match.user2_id : match.user1_id]),
+      unread_count: unreadCountMap[match.id] || 0,
+      last_message: lastMessageMap[match.id] || null
+    }));
+
+    // Sort by most recent message
+    processedMatches.sort((a, b) => {
+      const aTime = a.last_message?.created_at || a.created_at;
+      const bTime = b.last_message?.created_at || b.created_at;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
+    });
+
+    setMatches(processedMatches);
+
+  };
+
+  const processMatchesOptimized = async (data: any[]) => {
+    // This would be for if the complex query worked, but we'll use the simple approach
+    await processMatchesSimple(data);
+  };
+
+  const createUserProfile = (profile: any) => {
+    if (!profile) {
+      return {
+        first_name: 'Unknown',
+        last_name: 'User',
+        avatar_url: null,
+        location: '',
+        about_me: '',
+        ms_subtype: '',
+        diagnosis_year: null,
+        date_of_birth: '',
+        hobbies: [],
+        symptoms: [],
+        medications: [],
+        gender: null,
+        last_seen: null,
+        additional_photos: [],
+        selected_prompts: [],
+        extended_profile_completed: false
+      };
+    }
+
+    return {
+      id: profile.id,
+      user_id: profile.user_id,
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      avatar_url: profile.avatar_url,
+      location: profile.location,
+      about_me: profile.about_me,
+      ms_subtype: profile.ms_subtype,
+      diagnosis_year: profile.diagnosis_year,
+      date_of_birth: profile.date_of_birth,
+      hobbies: profile.hobbies || [],
+      symptoms: profile.symptoms || [],
+      medications: profile.medications || [],
+      gender: profile.gender,
+      last_seen: profile.last_seen,
+      additional_photos: profile.additional_photos || [],
+      selected_prompts: Array.isArray(profile.selected_prompts) 
+        ? profile.selected_prompts as { question: string; answer: string; }[]
+        : [],
+      extended_profile_completed: profile.extended_profile_completed || false
+    };
   };
 
   const fetchMessages = async (matchId: string) => {

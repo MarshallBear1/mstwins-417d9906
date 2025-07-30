@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Heart, Users, MessageCircle, User, Edit } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
+import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Tab {
@@ -24,6 +25,7 @@ const PersistentBottomNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isMobile, safeAreaInsets } = useMobileOptimizations();
+  const { remainingLikes } = useDailyLikes();
   const [activeTab, setActiveTab] = useState('discover');
   const [unreadCounts, setUnreadCounts] = useState<{[key: string]: number}>({});
 
@@ -124,12 +126,28 @@ const PersistentBottomNavigation = () => {
   }
 
   return (
-    <div 
-      className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 z-50 shadow-[0_-2px_20px_rgba(0,0,0,0.08)]" 
-      style={{
-        paddingBottom: isMobile ? `max(0.75rem, ${safeAreaInsets.bottom}px)` : '0.75rem'
-      }}
-    >
+    <>
+      {/* Likes counter above tabs - only show on discover tab */}
+      {activeTab === 'discover' && (
+        <div className="fixed bottom-16 left-0 right-0 z-40 pointer-events-none" style={{
+          bottom: isMobile ? `max(4rem, ${safeAreaInsets.bottom + 64}px)` : '4rem'
+        }}>
+          <div className="flex justify-center px-4">
+            <div className="bg-white/90 backdrop-blur-md border border-gray-200 px-3 py-2 rounded-full shadow-lg pointer-events-auto">
+              <span className="text-sm font-medium text-gray-700">
+                {remainingLikes} likes remaining today
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div 
+        className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 z-50 shadow-[0_-2px_20px_rgba(0,0,0,0.08)]" 
+        style={{
+          paddingBottom: isMobile ? `max(0.75rem, ${safeAreaInsets.bottom}px)` : '0.75rem'
+        }}
+      >
       <div className="flex items-center justify-around py-2 mobile-safe-x max-w-full mx-auto px-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -166,6 +184,7 @@ const PersistentBottomNavigation = () => {
         })}
       </div>
     </div>
+    </>
   );
 };
 
