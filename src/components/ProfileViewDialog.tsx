@@ -90,7 +90,7 @@ const ProfileViewDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[400px] max-w-[90vw] max-h-[90vh] overflow-hidden p-0" style={{ perspective: '1000px' }}>
+        <DialogContent className="sm:max-w-[400px] max-w-[90vw] max-h-[90vh] overflow-hidden p-0 [&>button]:hidden" style={{ perspective: '1000px' }}>
           <DialogHeader className="sr-only">
             <DialogTitle>
               {profile.first_name} {profile.last_name}'s Profile
