@@ -92,10 +92,10 @@ export default function FeedbackDialog() {
           <span className="sr-only">Feedback</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-[500px] p-0 rounded-3xl border-0 shadow-2xl bg-white/95 backdrop-blur-xl overflow-hidden">
+      <DialogContent className="w-[95vw] max-w-[500px] p-0 rounded-3xl border-0 shadow-2xl bg-white backdrop-blur-xl overflow-hidden mx-auto">
         {/* Modern Header */}
         <div className="bg-blue-600 p-6 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/5" />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-90" />
           <div className="relative z-10">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">

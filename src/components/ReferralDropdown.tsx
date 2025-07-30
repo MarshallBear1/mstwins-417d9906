@@ -77,16 +77,16 @@ const ReferralDropdown = () => {
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" 
+            className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-sm" 
             onClick={() => setIsOpen(false)}
           />
           
-          {/* Dropdown Card */}
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-80 sm:absolute sm:top-12 sm:right-0 sm:left-auto sm:translate-x-0 sm:w-80 z-50 transform transition-all duration-300 animate-in slide-in-from-top-2 fade-in">
-            <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden">
+          {/* Dropdown Card - Improved positioning */}
+          <div className="fixed top-16 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] max-w-sm sm:absolute sm:top-14 sm:right-0 sm:left-auto sm:translate-x-0 sm:w-80 z-[101] mx-auto">
+            <Card className="border-0 shadow-2xl bg-white backdrop-blur-xl rounded-2xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
               {/* Modern Header */}
               <div className="bg-blue-600 p-4 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-black/5" />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-90" />
                 <div className="relative z-10 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
@@ -101,83 +101,72 @@ const ReferralDropdown = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsOpen(false)}
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
+                    className="h-8 w-8 p-0 text-white hover:bg-white/10 rounded-full flex-shrink-0"
                   >
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
-              
+
+              {/* Content */}
               <CardContent className="p-4 space-y-4">
-                {/* Native Share Button for Mobile */}
+                {/* Native Share Button */}
                 {isSupported && (
                   <Button
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
                     onClick={handleNativeShare}
+                    className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
                   >
-                    <Share2 className="w-4 h-4 mr-2" />
+                    <Sparkles className="w-4 h-4 mr-2" />
                     Share MSTwins App
                   </Button>
                 )}
-                
-                {/* Copy Link Section */}
+
+                {/* Referral Link Section */}
                 <div className="space-y-3">
-                  <label className="text-sm font-semibold text-gray-700">Your Referral Link</label>
+                  <h4 className="font-semibold text-gray-900 text-sm">Your Referral Link</h4>
                   <div className="flex gap-2">
-                    <div className="flex-1 p-3 bg-gray-50 rounded-xl text-sm font-mono text-gray-600 truncate border border-gray-200">
+                    <div className="flex-1 p-3 bg-gray-50 rounded-lg border text-sm text-gray-700 truncate font-mono">
                       {referralLink}
                     </div>
                     <Button
+                      onClick={copyReferralLink}
                       variant="outline"
                       size="sm"
-                      onClick={copyReferralLink}
-                      className="h-12 px-4 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl transition-all duration-200"
+                      className="px-3 py-3 border-gray-200 hover:bg-gray-50 flex-shrink-0"
                     >
-                      {copied ? (
-                        <Check className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
+                      {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                     </Button>
                   </div>
                 </div>
 
-                {/* Social Sharing */}
+                {/* Social Media Section */}
                 <div className="space-y-3">
-                  <label className="text-sm font-semibold text-gray-700">Share on Social Media</label>
-                  <div className="grid gap-2">
+                  <h4 className="font-semibold text-gray-900 text-sm">Share on Social Media</h4>
+                  <div className="grid grid-cols-3 gap-3">
                     {socialLinks.map((social) => (
-                      <Button
+                      <a
                         key={social.name}
-                        variant="outline"
-                        className="w-full h-12 justify-start gap-3 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-all duration-200"
-                        onClick={() => {
-                          window.open(social.url, '_blank', 'noopener,noreferrer');
-                          setIsOpen(false);
-                        }}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${social.color} text-white rounded-xl p-3 flex flex-col items-center justify-center gap-2 hover:scale-105 transition-all duration-200 shadow-md hover:shadow-lg text-xs font-medium min-h-[72px]`}
+                        onClick={() => setIsOpen(false)}
                       >
-                        <social.icon className="w-4 h-4" />
-                        Share on {social.name}
-                      </Button>
+                        <social.icon className="w-5 h-5" />
+                        <span>{social.name}</span>
+                      </a>
                     ))}
                   </div>
                 </div>
 
-                {/* Benefits */}
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-100">
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-gray-900">
-                    💙 Why Refer Friends?
-                  </h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                {/* Benefits Section */}
+                <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
+                  <h4 className="font-semibold text-blue-900 text-sm mb-2">Why Refer Friends?</h4>
+                  <ul className="text-xs text-blue-800 space-y-1">
                     <li>• Help others find supportive MS connections</li>
-                    <li>• Grow our caring community together</li>
-                    <li>• Make a difference in someone's journey</li>
+                    <li>• Grow our caring community</li>
+                    <li>• Make finding your MSTwin easier</li>
                   </ul>
-                </div>
-
-                {/* Community Message */}
-                <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
-                  🤝 Building connections • 💙 MS support network
                 </div>
               </CardContent>
             </Card>

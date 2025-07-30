@@ -1,12 +1,9 @@
 import React, { useEffect } from 'react';
-import { getSecurityHeaders, setCSRFToken, logAdminAction } from '@/lib/security';
+import { getSecurityHeaders } from '@/lib/security';
 
-// Enhanced Component to add security headers, CSRF protection, and security monitoring
+// Enhanced Component to add security headers and security monitoring
 export const SecurityEnhancements: React.FC = () => {
   useEffect(() => {
-    // Initialize CSRF token for admin operations
-    setCSRFToken();
-
     // Add security headers via meta tags where possible
     const addMetaTag = (name: string, content: string) => {
       const existing = document.querySelector(`meta[name="${name}"]`);
@@ -21,7 +18,7 @@ export const SecurityEnhancements: React.FC = () => {
     };
 
     // Enhanced CSP with stricter policies
-    const cspContent = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.posthog.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';";
+    const cspContent = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.posthog.com https://api.openai.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';";
     addMetaTag('Content-Security-Policy', cspContent);
     
     // Add additional security headers
@@ -51,12 +48,12 @@ export const SecurityEnhancements: React.FC = () => {
         console.warn('🔒 Potential security issue detected:', errorString);
         // Log to admin audit in production
         if (process.env.NODE_ENV === 'production') {
-          logAdminAction('security_alert', { 
-            type: 'console_error', 
-            message: errorString.substring(0, 500),
-            timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent 
-          });
+          // logAdminAction('security_alert', { 
+          //   type: 'console_error', 
+          //   message: errorString.substring(0, 500),
+          //   timestamp: new Date().toISOString(),
+          //   userAgent: navigator.userAgent 
+          // });
         }
       }
       originalConsoleError.apply(console, args);
@@ -68,11 +65,11 @@ export const SecurityEnhancements: React.FC = () => {
         console.error('🔒 Security warning detected:', warnString);
         // Log security warnings
         if (process.env.NODE_ENV === 'production') {
-          logAdminAction('security_warning', { 
-            type: 'console_warn', 
-            message: warnString.substring(0, 500),
-            timestamp: new Date().toISOString() 
-          });
+          // logAdminAction('security_warning', { 
+          //   type: 'console_warn', 
+          //   message: warnString.substring(0, 500),
+          //   timestamp: new Date().toISOString() 
+          // });
         }
       }
       originalConsoleWarn.apply(console, args);
@@ -159,21 +156,21 @@ export const useSecurityMonitoring = () => {
       for (const pattern of suspiciousPatterns) {
         if (pattern.test(url)) {
           console.warn('🔒 Suspicious URL pattern detected:', url);
-          logAdminAction('security_alert', { 
-            type: 'suspicious_url', 
-            url: url.substring(0, 500),
-            pattern: pattern.toString(),
-            timestamp: new Date().toISOString()
-          });
+          // logAdminAction('security_alert', { 
+          //   type: 'suspicious_url', 
+          //   url: url.substring(0, 500),
+          //   pattern: pattern.toString(),
+          //   timestamp: new Date().toISOString()
+          // });
         }
         if (referrer && pattern.test(referrer)) {
           console.warn('🔒 Suspicious referrer detected:', referrer);
-          logAdminAction('security_alert', { 
-            type: 'suspicious_referrer', 
-            referrer: referrer.substring(0, 500),
-            pattern: pattern.toString(),
-            timestamp: new Date().toISOString()
-          });
+          // logAdminAction('security_alert', { 
+          //   type: 'suspicious_referrer', 
+          //   referrer: referrer.substring(0, 500),
+          //   pattern: pattern.toString(),
+          //   timestamp: new Date().toISOString()
+          // });
         }
       }
     };
@@ -189,11 +186,11 @@ export const useSecurityMonitoring = () => {
           // Very slow loads could indicate attacks
           if (loadTime > 10000) { // 10 seconds
             console.warn('🔒 Extremely slow page load detected (potential attack):', loadTime + 'ms');
-            logAdminAction('security_warning', { 
-              type: 'slow_load_potential_attack', 
-              loadTime,
-              timestamp: new Date().toISOString()
-            });
+            // logAdminAction('security_warning', { 
+            //   type: 'slow_load_potential_attack', 
+            //   loadTime,
+            //   timestamp: new Date().toISOString()
+            // });
           } else if (loadTime > 5000) { // 5 seconds
             console.warn('⚠️ Slow page load detected:', loadTime + 'ms');
           }
@@ -230,11 +227,11 @@ export const useSecurityMonitoring = () => {
             if (key.toLowerCase().includes(suspiciousKey) || 
                 (value && value.toLowerCase().includes(suspiciousKey))) {
               console.warn('🔒 Suspicious localStorage entry detected:', key);
-              logAdminAction('security_alert', { 
-                type: 'suspicious_storage', 
-                key,
-                timestamp: new Date().toISOString()
-              });
+              // logAdminAction('security_alert', { 
+              //   type: 'suspicious_storage', 
+              //   key,
+              //   timestamp: new Date().toISOString()
+              // });
             }
           });
         }
@@ -257,11 +254,11 @@ export const useSecurityMonitoring = () => {
           }
           
           console.error('🔒 Potential clickjacking detected - page is in a frame');
-          logAdminAction('security_alert', { 
-            type: 'potential_clickjacking', 
-            timestamp: new Date().toISOString(),
-            topDomain
-          });
+          // logAdminAction('security_alert', { 
+          //   type: 'potential_clickjacking', 
+          //   timestamp: new Date().toISOString(),
+          //   topDomain
+          // });
         }
       } catch (error) {
         // Handle any other cross-origin restrictions

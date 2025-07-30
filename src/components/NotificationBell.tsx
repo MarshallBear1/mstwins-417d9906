@@ -105,8 +105,8 @@ const NotificationBell = () => {
 
       {/* Modern notification panel */}
       {showNotifications && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-80 sm:absolute sm:top-16 sm:right-4 sm:left-auto sm:translate-x-0 sm:w-80 z-50">
-          <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden max-h-[70vh] sm:max-h-none">
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] max-w-sm sm:absolute sm:top-14 sm:right-0 sm:left-auto sm:translate-x-0 sm:w-80 z-[101] mx-auto">
+          <Card className="border-0 shadow-2xl bg-white backdrop-blur-xl rounded-2xl overflow-hidden max-h-[70vh] sm:max-h-none animate-in slide-in-from-top-2 fade-in duration-200">
             <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-purple-50">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-bold text-gray-900">Notifications</CardTitle>
@@ -125,7 +125,7 @@ const NotificationBell = () => {
                     variant="ghost" 
                     size="sm" 
                     onClick={() => setShowNotifications(false)}
-                    className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                    className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full flex-shrink-0"
                   >
                     <X className="w-4 h-4" />
                   </Button>
