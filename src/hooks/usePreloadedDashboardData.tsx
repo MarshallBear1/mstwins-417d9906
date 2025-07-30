@@ -110,16 +110,8 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
         .select(`
           id,
           created_at,
-          liker:profiles!likes_liker_id_fkey(
-            id,
-            user_id,
-            first_name,
-            last_name,
-            avatar_url,
-            location,
-            ms_subtype,
-            hobbies
-          )
+          liker_id,
+          liked_id
         `)
         .eq('liked_id', user.id)
         .order('created_at', { ascending: false });
@@ -127,10 +119,43 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
       if (error) throw error;
 
       if (data) {
-        setLikes(data);
-        dashboardCache.set(user.id, 'likes', data);
-        console.log(`✅ Likes fetched and cached (${background ? 'background' : 'foreground'})`);
-        return data;
+        // Fetch liker profiles separately
+        const likerIds = data.map(like => like.liker_id);
+        
+        if (likerIds.length > 0) {
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select(`
+              id,
+              user_id,
+              first_name,
+              last_name,
+              avatar_url,
+              location,
+              ms_subtype,
+              hobbies
+            `)
+            .in('user_id', likerIds);
+
+          if (profilesError) throw profilesError;
+
+          // Combine likes with profile data
+          const likesWithProfiles = data.map(like => ({
+            ...like,
+            liker: profiles?.find(profile => profile.user_id === like.liker_id) || null
+          }));
+
+          setLikes(likesWithProfiles);
+          dashboardCache.set(user.id, 'likes', likesWithProfiles);
+          console.log(`✅ Likes fetched and cached (${background ? 'background' : 'foreground'})`);
+          return likesWithProfiles;
+        } else {
+          // No likes data
+          setLikes([]);
+          dashboardCache.set(user.id, 'likes', []);
+          console.log(`✅ No likes found (${background ? 'background' : 'foreground'})`);
+          return [];
+        }
       }
     } catch (error) {
       console.error('❌ Error fetching likes:', error);
@@ -197,10 +222,7 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
           id,
           created_at,
           user1_id,
-          user2_id,
-          messages(id, content, created_at),
-          user1:profiles!matches_user1_id_fkey(first_name, last_name, avatar_url),
-          user2:profiles!matches_user2_id_fkey(first_name, last_name, avatar_url)
+          user2_id
         `)
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
@@ -208,6 +230,7 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
       if (error) throw error;
 
       if (data) {
+        // For now, just return basic match data - detailed message loading can be added later
         setMessages(data);
         dashboardCache.set(user.id, 'messages', data);
         console.log(`✅ Messages fetched and cached (${background ? 'background' : 'foreground'})`);
@@ -313,10 +336,11 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
     }
   }, [user, fetchAllData]);
 
-  // Invalidate cache when user changes
+  // Invalidate cache when user changes and clear any stale data
   useEffect(() => {
     if (user) {
-      dashboardCache.invalidate(user.id);
+      dashboardCache.clear(); // Clear all cache to ensure fresh data
+      console.log('🧹 Cache cleared for fresh data fetch');
     }
   }, [user?.id]);
 
