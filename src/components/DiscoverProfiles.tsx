@@ -244,10 +244,7 @@ const DiscoverProfiles = memo(() => {
       vibrate();
       analytics.track('profile_passed', { passed_user_id: profileUserId });
 
-      toast({
-        title: "Profile passed",
-        description: "Moved to the next profile."
-      });
+      // Removed toast notification for cleaner UX
     } catch (error) {
       console.error('Error passing profile:', error);
       // Revert optimistic update on error
