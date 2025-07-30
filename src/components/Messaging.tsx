@@ -336,7 +336,20 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         };
       });
 
-      setMatches(matchesWithProfiles);
+      // Sort matches by most recent activity (last message time, then creation time)
+      const sortedMatches = matchesWithProfiles.sort((a, b) => {
+        // If both have last messages, sort by last message time
+        if (a.last_message && b.last_message) {
+          return new Date(b.last_message.created_at).getTime() - new Date(a.last_message.created_at).getTime();
+        }
+        // If only one has a last message, prioritize it
+        if (a.last_message && !b.last_message) return -1;
+        if (!a.last_message && b.last_message) return 1;
+        // If neither has messages, sort by match creation time (most recent first)
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+
+      setMatches(sortedMatches);
     } catch (error) {
       console.error('Error fetching matches:', error);
     } finally {

@@ -12,7 +12,7 @@ interface Profile {
   user_id: string;
   first_name: string;
   last_name: string;
-  date_of_birth: string;
+  date_of_birth: string | null;
   location: string;
   gender?: string;
   avatar_url?: string;
@@ -57,7 +57,8 @@ const MobileProfileCard = ({
   const isUserOnline = propIsUserOnline || hookIsUserOnline;
   const getLastSeenText = propGetLastSeenText || hookGetLastSeenText;
 
-  const calculateAge = (dateOfBirth: string) => {
+  const calculateAge = (dateOfBirth: string | null) => {
+    if (!dateOfBirth) return null;
     const birth = new Date(dateOfBirth);
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
@@ -159,7 +160,9 @@ const MobileProfileCard = ({
                 {profile.gender && (
                   <span className="text-xs text-gray-500 capitalize">{profile.gender}</span>
                 )}
-                <span className="text-sm font-medium text-gray-600">{calculateAge(profile.date_of_birth)}</span>
+                {calculateAge(profile.date_of_birth) && (
+                  <span className="text-sm font-medium text-gray-600">{calculateAge(profile.date_of_birth)}</span>
+                )}
               </div>
             </div>
 
