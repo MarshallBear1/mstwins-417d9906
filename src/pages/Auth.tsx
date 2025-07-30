@@ -71,11 +71,13 @@ const Auth = () => {
       
       if (accessToken && refreshToken) {
         console.log('✅ Access and refresh tokens found, setting up token-based password reset flow');
-        // Handle token-based recovery (current flow)
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
+        // Delay session setup to avoid race condition with useAuth redirect
+        setTimeout(() => {
+          supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+        }, 100);
         
         toast({
           title: "Reset Your Password",
