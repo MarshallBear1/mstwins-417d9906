@@ -900,10 +900,14 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             <ScrollArea className="flex-1">
               <div className="space-y-3 sm:space-y-4 p-4">
                 {matches.map((match) => (
-                  <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card 
+                    key={match.id} 
+                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => setSelectedMatch(match)}
+                  >
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-center space-x-3 sm:space-x-4">
-                        <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
+                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
                           {match.other_user.avatar_url ? (
                             <img 
                               src={match.other_user.avatar_url} 
@@ -913,27 +917,27 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                             />
                           ) : (
                             <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-                              <User className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                              <User className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                             </div>
                           )}
                           {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
-                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
                           )}
                           {match.unread_count > 0 && (
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg animate-pulse">
+                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg animate-pulse">
                               {match.unread_count > 9 ? '9+' : match.unread_count}
                             </div>
                           )}
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">
+                          <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
                             {match.other_user.first_name} {match.other_user.last_name}
                           </h4>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {match.other_user.ms_subtype && (
                               <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
-                                {match.other_user.ms_subtype}
+                                {match.other_user.ms_subtype.toUpperCase()}
                               </span>
                             )}
                             {match.other_user.location && (
@@ -943,30 +947,15 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                             )}
                           </div>
                           {match.last_message && (
-                            <p className="text-xs text-gray-500 truncate mt-1">
-                              {match.last_message.sender_id === user?.id ? 'You: ' : ''}{match.last_message.content}
-                            </p>
+                            <div className="flex items-center mt-1 gap-1">
+                              {match.unread_count > 0 && match.last_message.sender_id !== user?.id && (
+                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
+                              )}
+                              <p className="text-xs text-gray-500 truncate">
+                                {match.last_message.sender_id === user?.id ? 'You: ' : ''}{match.last_message.content}
+                              </p>
+                            </div>
                           )}
-                        </div>
-                        
-                        <div className="flex-shrink-0 flex flex-col gap-2 min-w-0 sm:min-w-[120px]">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm" 
-                            onClick={() => setShowProfileView(true)}
-                          >
-                            <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                            View
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="w-full bg-gradient-primary hover:opacity-90 text-white text-xs sm:text-sm" 
-                            onClick={() => setSelectedMatch(match)}
-                          >
-                            <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                            Message
-                          </Button>
                         </div>
                       </div>
                     </CardContent>
