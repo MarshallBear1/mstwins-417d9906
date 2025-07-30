@@ -29,9 +29,11 @@ interface Profile {
 
 interface DiscoverProfileCardProps {
   profile: Profile;
+  isFlipped?: boolean;
+  onFlipChange?: (flipped: boolean) => void;
 }
 
-const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
+const DiscoverProfileCard = ({ profile, isFlipped, onFlipChange }: DiscoverProfileCardProps) => {
   const { isUserOnline, getLastSeenText } = useRealtimePresence();
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [imageViewerIndex, setImageViewerIndex] = useState(0);
@@ -54,6 +56,8 @@ const DiscoverProfileCard = ({ profile }: DiscoverProfileCardProps) => {
         onImageClick={openImageViewer}
         isUserOnline={isUserOnline}
         getLastSeenText={getLastSeenText}
+        isFlipped={isFlipped}
+        onFlipChange={onFlipChange}
       />
 
       <ProfileImageViewer

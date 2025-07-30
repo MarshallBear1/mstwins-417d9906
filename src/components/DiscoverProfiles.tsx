@@ -56,6 +56,7 @@ const DiscoverProfiles = memo(() => {
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [actionCooldown, setActionCooldown] = useState(false);
+  const [isCardFlipped, setIsCardFlipped] = useState(false); // Add flip state here
   const { remainingLikes, refreshRemainingLikes } = useDailyLikes();
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
@@ -187,6 +188,7 @@ const DiscoverProfiles = memo(() => {
     // Move to next profile immediately for better UX (optimistic update)
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
+    setIsCardFlipped(false); // Reset flip state for next profile
     
     try {
       const { error } = await supabase
@@ -232,6 +234,7 @@ const DiscoverProfiles = memo(() => {
     // Move to next profile immediately (optimistic update)
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
+    setIsCardFlipped(false); // Reset flip state for next profile
 
     try {
       const { error } = await supabase
@@ -346,7 +349,11 @@ const DiscoverProfiles = memo(() => {
       {currentProfile && (
         <div className="flex flex-col items-center space-y-4">
           <div className="w-[300px]"> {/* Fixed width container */}
-            <DiscoverProfileCard profile={currentProfile} />
+            <DiscoverProfileCard 
+              profile={currentProfile} 
+              isFlipped={isCardFlipped}
+              onFlipChange={setIsCardFlipped}
+            />
           </div>
           
           {/* Action Buttons */}

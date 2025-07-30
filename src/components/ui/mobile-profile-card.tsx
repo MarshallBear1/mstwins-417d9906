@@ -35,6 +35,8 @@ interface MobileProfileCardProps {
   style?: React.CSSProperties;
   isUserOnline?: (userId: string) => boolean;
   getLastSeenText?: (lastSeen: string | null) => string;
+  isFlipped?: boolean;
+  onFlipChange?: (flipped: boolean) => void;
 }
 
 const MobileProfileCard = ({
@@ -46,11 +48,23 @@ const MobileProfileCard = ({
   style,
   isUserOnline: propIsUserOnline,
   getLastSeenText: propGetLastSeenText,
+  isFlipped: propIsFlipped,
+  onFlipChange,
   ...props
 }: MobileProfileCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showAllAbout, setShowAllAbout] = useState(false);
   const [showAllHobbies, setShowAllHobbies] = useState(false);
+  
+  // Use external flip state if provided, otherwise use internal state
+  const actualIsFlipped = propIsFlipped !== undefined ? propIsFlipped : isFlipped;
+  const handleFlipChange = (newFlipped: boolean) => {
+    if (onFlipChange) {
+      onFlipChange(newFlipped);
+    } else {
+      setIsFlipped(newFlipped);
+    }
+  };
   
   // Use the hook for realtime presence if not provided as props
   const { isUserOnline: hookIsUserOnline, getLastSeenText: hookGetLastSeenText } = useRealtimePresence();
@@ -91,7 +105,7 @@ const MobileProfileCard = ({
       }}
       {...props}
     >
-      <div className={cn("flip-card-inner", isFlipped && "rotate-y-180")} style={{
+      <div className={cn("flip-card-inner", actualIsFlipped && "rotate-y-180")} style={{
         width: '100%',
         height: '100%',
         position: 'relative'
@@ -135,11 +149,11 @@ const MobileProfileCard = ({
             {/* See More Button - Single button only */}
             {hasExtendedContent && (
               <div className="absolute top-3 left-3">
-                              <button 
+                <button 
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setIsFlipped(!isFlipped);
+                  handleFlipChange(!actualIsFlipped);
                 }}
                 className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
                 title="See more details"
@@ -277,7 +291,7 @@ const MobileProfileCard = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setIsFlipped(false);
+                  handleFlipChange(false);
                 }}
                 className="absolute top-3 left-3 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
                 title="Back to main"
