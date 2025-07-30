@@ -388,8 +388,8 @@ const MobileProfileCard = ({
                 </div>
               )}
 
-              {/* Full About Section if long */}
-              {profile.about_me && profile.about_me.length > 80 && (
+              {/* Full About Section if long and not already shown in full on front */}
+              {profile.about_me && profile.about_me.length > 80 && !showAllAbout && (
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">More About Me</h4>
                   <div className="bg-gray-50 rounded-lg p-3">

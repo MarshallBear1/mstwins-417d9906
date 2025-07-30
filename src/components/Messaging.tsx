@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, ArrowLeft, User, Trash2, Heart } from "lucide-react";
+import { Send, ArrowLeft, User, Trash2, Heart, MessageCircle } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -898,86 +898,79 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             </div>
           ) : (
             <ScrollArea className="flex-1">
-              <div className="p-4">
-                {matches.map((match, index) => (
-                  <div key={match.id}>
-                    <div
-                      onClick={() => setSelectedMatch(match)}
-                      className="flex items-start gap-4 p-4 rounded-2xl hover:bg-gray-50 cursor-pointer transition-all duration-200 hover:shadow-md border border-transparent hover:border-gray-200"
-                    >
-                      <div className="relative flex-shrink-0">
-                        <Avatar className="h-14 w-14 border-2 border-white shadow-lg">
-                          <AvatarImage 
-                            src={match.other_user.avatar_url || undefined} 
-                            alt={match.other_user.first_name}
-                          />
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-sm">
-                            {match.other_user.first_name[0]}{match.other_user.last_name[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0 space-y-2">
-                        {/* Header with name and unread count */}
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-gray-900 text-base truncate">
-                            {match.other_user.first_name} {match.other_user.last_name}
-                          </h3>
+              <div className="space-y-3 sm:space-y-4 p-4">
+                {matches.map((match) => (
+                  <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
+                          {match.other_user.avatar_url ? (
+                            <img 
+                              src={match.other_user.avatar_url} 
+                              alt={`${match.other_user.first_name}'s avatar`} 
+                              className="w-full h-full object-cover" 
+                              loading="lazy" 
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                              <User className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                            </div>
+                          )}
+                          {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
+                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                          )}
                           {match.unread_count > 0 && (
-                            <div className="bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-medium shadow-md">
+                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg animate-pulse">
                               {match.unread_count > 9 ? '9+' : match.unread_count}
                             </div>
                           )}
                         </div>
                         
-                        {/* Profile details */}
-                        <div className="flex flex-wrap gap-1.5 text-xs">
-                          {match.other_user.ms_subtype && (
-                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-1.5 py-0.5 text-xs">
-                              {match.other_user.ms_subtype.toUpperCase()}
-                            </Badge>
-                          )}
-                          {match.other_user.gender && (
-                            <Badge variant="outline" className="border-gray-300 text-gray-600 rounded-full px-1.5 py-0.5 text-xs">
-                              {match.other_user.gender}
-                            </Badge>
-                          )}
-                          {match.other_user.location && (
-                            <Badge variant="outline" className="border-purple-300 text-purple-700 bg-purple-50 rounded-full px-1.5 py-0.5 text-xs">
-                              📍 {match.other_user.location}
-                            </Badge>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">
+                            {match.other_user.first_name} {match.other_user.last_name}
+                          </h4>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {match.other_user.ms_subtype && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
+                                {match.other_user.ms_subtype}
+                              </span>
+                            )}
+                            {match.other_user.location && (
+                              <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
+                                📍 {match.other_user.location}
+                              </span>
+                            )}
+                          </div>
+                          {match.last_message && (
+                            <p className="text-xs text-gray-500 truncate mt-1">
+                              {match.last_message.sender_id === user?.id ? 'You: ' : ''}{match.last_message.content}
+                            </p>
                           )}
                         </div>
                         
-                        {/* Last message */}
-                        <p className="text-xs text-gray-500 truncate font-medium">
-                          {match.last_message 
-                            ? `${match.last_message.sender_id === user?.id ? 'You: ' : ''}${match.last_message.content}`
-                            : "Start the conversation!"
-                          }
-                        </p>
-                        
-                        {/* Match date */}
-                        <p className="text-xs text-gray-400">
-                          Matched {new Date(match.created_at).toLocaleDateString([], { 
-                            month: 'short', 
-                            day: 'numeric',
-                            year: new Date(match.created_at).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-                          })}
-                        </p>
+                        <div className="flex-shrink-0 flex flex-col gap-2 min-w-0 sm:min-w-[120px]">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm" 
+                            onClick={() => setShowProfileView(true)}
+                          >
+                            <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                            View
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="w-full bg-gradient-primary hover:opacity-90 text-white text-xs sm:text-sm" 
+                            onClick={() => setSelectedMatch(match)}
+                          >
+                            <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                            Message
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    
-                    {/* Separator between matches */}
-                    {index < matches.length - 1 && (
-                      <div className="mx-4 my-2">
-                        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
-                      </div>
-                    )}
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </ScrollArea>
