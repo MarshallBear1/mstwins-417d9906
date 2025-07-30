@@ -246,7 +246,17 @@ const Dashboard = () => {
           setShowProfileView={setShowProfileView}
         />;
       case "messages":
-        return <Messaging />;
+        const urlParams = new URLSearchParams(window.location.search);
+        const matchId = urlParams.get('match');
+        return <Messaging 
+          matchId={matchId || undefined} 
+          onBack={() => {
+            // Remove match parameter from URL when going back
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.delete('match');
+            window.history.pushState({}, '', currentUrl.toString());
+          }}
+        />;
       case "forum":
         return <ForumPage />;
       case "profile":

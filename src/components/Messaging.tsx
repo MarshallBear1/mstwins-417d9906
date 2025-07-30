@@ -907,7 +907,13 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                 {matches.map((match, index) => (
                   <div key={match.id}>
                     <div
-                      onClick={() => setSelectedMatch(match)}
+                      onClick={() => {
+                        // Use URL navigation instead of direct state change to prevent reload
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set('match', match.id);
+                        window.history.pushState({}, '', currentUrl.toString());
+                        setSelectedMatch(match);
+                      }}
                       className="flex items-start gap-4 p-4 rounded-2xl hover:bg-gray-50 cursor-pointer transition-all duration-200 hover:shadow-md border border-transparent hover:border-gray-200"
                     >
                       <div className="relative flex-shrink-0">
