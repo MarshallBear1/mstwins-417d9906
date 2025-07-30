@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, MessageCircle, Heart, Eye, User, Flag, ChevronDown } from "lucide-react";
+import { Plus, MessageCircle, Heart, Eye, User, Flag, ChevronDown, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -218,14 +218,7 @@ const ForumPage = () => {
   };
 
   const likePost = async (postId: string) => {
-    if (!user || remainingLikes <= 0) {
-      toast({
-        title: "No likes remaining",
-        description: "You've used all your likes for today. Try again tomorrow!",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!user) return;
 
     try {
       const { error } = await supabase
@@ -244,10 +237,9 @@ const ForumPage = () => {
           : post
       ));
 
-      refreshRemainingLikes();
       toast({
         title: "Post liked!",
-        description: `You have ${remainingLikes - 1} likes remaining today.`
+        description: "Your like has been added."
       });
     } catch (error) {
       console.error('Error liking post:', error);
@@ -360,6 +352,79 @@ const ForumPage = () => {
       setShowProfileView(true);
     } catch (error) {
       console.error('Error loading profile:', error);
+    }
+  };
+
+  const deletePost = async (postId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('forum_posts')
+        .delete()
+        .eq('id', postId)
+        .eq('author_id', user.id); // Ensure user can only delete their own posts
+
+      if (error) throw error;
+
+      // Remove from local state
+      setPosts(prev => prev.filter(post => post.id !== postId));
+
+      toast({
+        title: "Post deleted",
+        description: "Your post has been removed from the forum."
+      });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Error deleting post",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const likeProfile = async (profileUserId: string) => {
+    if (!user) return;
+
+    try {
+      // Check if we already liked this profile
+      const { data: existingLike } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('liker_id', user.id)
+        .eq('liked_id', profileUserId)
+        .single();
+
+      if (existingLike) {
+        toast({
+          title: "Already liked",
+          description: "You've already liked this profile.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('likes')
+        .insert({
+          liker_id: user.id,
+          liked_id: profileUserId
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile liked!",
+        description: "Your like has been sent."
+      });
+    } catch (error) {
+      console.error('Error liking profile:', error);
+      toast({
+        title: "Error liking profile",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -519,9 +584,16 @@ const ForumPage = () => {
                           {post.comments_count}
                         </Button>
                       </div>
-                      <span className="text-xs text-gray-400">
-                        Likes remaining: {remainingLikes}
-                      </span>
+                      {post.author_id === user?.id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deletePost(post.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -617,6 +689,8 @@ const ForumPage = () => {
               setSelectedProfile(null);
             }
           }}
+          showActions={true}
+          onLike={() => likeProfile(selectedProfile.user_id)}
         />
       )}
     </div>
