@@ -185,24 +185,6 @@ const MobileProfileCard = ({
               </div>
             )}
 
-            {/* Symptoms */}
-            {profile.symptoms && profile.symptoms.length > 0 && (
-              <div>
-                <div className="text-xs font-medium text-gray-700 mb-1">Symptoms:</div>
-                <div className="flex flex-wrap gap-1">
-                  {profile.symptoms.slice(0, 2).map((symptom, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
-                      {symptom}
-                    </Badge>
-                  ))}
-                  {profile.symptoms.length > 2 && (
-                    <Badge variant="outline" className="text-xs px-2 py-1">
-                      +{profile.symptoms.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Compact Hobbies */}
             {profile.hobbies && profile.hobbies.length > 0 && (
