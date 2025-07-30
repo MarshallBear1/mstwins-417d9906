@@ -625,16 +625,16 @@ const ForumPage = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={viewMode === 'detail' ? closePostDetail : closeProfileView}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 text-xs h-7 px-2"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3 h-3" />
                 Back to Forum
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-lg font-bold text-gray-900">
                   {viewMode === 'detail' ? 'Post Details' : 'Profile'}
                 </h1>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-xs">
                   {viewMode === 'detail' ? selectedPost?.title : `${selectedProfile?.first_name} ${selectedProfile?.last_name}`}
                 </p>
               </div>
@@ -869,7 +869,7 @@ const ForumPage = () => {
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
                       {selectedProfile.first_name} {selectedProfile.last_name}
                     </h3>
                     
@@ -918,18 +918,20 @@ const ForumPage = () => {
 
                     <div className="flex gap-3 mt-6">
                       <Button 
-                        className="flex-1 bg-gradient-primary hover:opacity-90 text-white" 
+                        size="sm"
+                        className="flex-1 bg-gradient-primary hover:opacity-90 text-white text-xs h-8 px-3" 
                         onClick={() => likeUserProfile(selectedProfile.user_id)}
                       >
-                        <Heart className="w-4 h-4 mr-2" />
+                        <Heart className="w-3 h-3 mr-1" />
                         Like Profile
                       </Button>
                       <Button 
                         variant="outline" 
+                        size="sm"
                         onClick={closeProfileView}
-                        className="flex-1"
+                        className="flex-1 text-xs h-8 px-3"
                       >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        <ArrowLeft className="w-3 h-3 mr-1" />
                         Back to Forum
                       </Button>
                     </div>
