@@ -355,6 +355,7 @@ export type Database = {
           id: string
           likes_count: number
           moderation_status: string | null
+          parent_comment_id: string | null
           post_id: string
           updated_at: string
         }
@@ -365,6 +366,7 @@ export type Database = {
           id?: string
           likes_count?: number
           moderation_status?: string | null
+          parent_comment_id?: string | null
           post_id: string
           updated_at?: string
         }
@@ -375,10 +377,18 @@ export type Database = {
           id?: string
           likes_count?: number
           moderation_status?: string | null
+          parent_comment_id?: string | null
           post_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "forum_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "forum_comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "forum_comments_post_id_fkey"
             columns: ["post_id"]

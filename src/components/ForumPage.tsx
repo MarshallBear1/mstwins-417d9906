@@ -40,6 +40,7 @@ interface ForumComment {
   content: string;
   author_id: string;
   post_id: string;
+  parent_comment_id: string | null;
   author: {
     first_name: string;
     last_name: string;
@@ -48,6 +49,7 @@ interface ForumComment {
   created_at: string;
   likes_count: number;
   user_has_liked: boolean;
+  replies?: ForumComment[];
 }
 
 const FORUM_FLAIRS = [
@@ -76,6 +78,8 @@ const ForumPage = () => {
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [showProfileView, setShowProfileView] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'detail' | 'profile'>('list'); // Add 'profile' mode
+  const [replyToComment, setReplyToComment] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
   const observerRef = useRef<IntersectionObserver>();
   const lastPostRef = useRef<HTMLDivElement>();
 
@@ -322,6 +326,7 @@ const ForumPage = () => {
             content,
             author_id,
             post_id,
+            parent_comment_id,
             created_at,
             likes_count
           `)
@@ -365,7 +370,29 @@ const ForumPage = () => {
         };
       });
 
-      setComments(commentsWithLikes);
+      // Organize comments into threads
+      const threadsMap = new Map<string, ForumComment>();
+      const topLevelComments: ForumComment[] = [];
+
+      // First pass: create all comments
+      commentsWithLikes.forEach(comment => {
+        threadsMap.set(comment.id, { ...comment, replies: [] });
+      });
+
+      // Second pass: organize into threads
+      commentsWithLikes.forEach(comment => {
+        const commentWithReplies = threadsMap.get(comment.id)!;
+        if (comment.parent_comment_id) {
+          const parent = threadsMap.get(comment.parent_comment_id);
+          if (parent) {
+            parent.replies!.push(commentWithReplies);
+          }
+        } else {
+          topLevelComments.push(commentWithReplies);
+        }
+      });
+
+      setComments(topLevelComments);
       
       const loadTime = performance.now() - startTime;
       console.log(`🚀 Comments loaded in ${loadTime.toFixed(2)}ms`);
@@ -374,21 +401,31 @@ const ForumPage = () => {
     }
   };
 
-  const addComment = async () => {
-    if (!user || !selectedPost || !newComment.trim()) return;
+  const addComment = async (parentCommentId?: string) => {
+    if (!user || !selectedPost) return;
+    
+    const content = parentCommentId ? replyContent.trim() : newComment.trim();
+    if (!content) return;
 
     try {
       const { error } = await supabase
         .from('forum_comments')
         .insert({
-          content: newComment.trim(),
+          content: content,
           post_id: selectedPost.id,
-          author_id: user.id
+          author_id: user.id,
+          parent_comment_id: parentCommentId || null
         });
 
       if (error) throw error;
 
-      setNewComment("");
+      if (parentCommentId) {
+        setReplyContent("");
+        setReplyToComment(null);
+      } else {
+        setNewComment("");
+      }
+      
       loadComments(selectedPost.id);
       
       // Update comments count
@@ -399,8 +436,8 @@ const ForumPage = () => {
       ));
 
       toast({
-        title: "Comment added!",
-        description: "Your comment has been posted."
+        title: parentCommentId ? "Reply added!" : "Comment added!",
+        description: parentCommentId ? "Your reply has been posted." : "Your comment has been posted."
       });
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -842,100 +879,113 @@ const ForumPage = () => {
             </div>
           )
         ) : viewMode === 'profile' && selectedProfile ? (
-          // Profile View (like matches page)
-          <div className="max-w-2xl mx-auto p-4">
+          // Improved Profile View
+          <div className="max-w-lg mx-auto p-4">
             <div className="text-center mb-6">
-              <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-bold mb-2">User Profile</h2>
-              <p className="text-muted-foreground">Connect with community members</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">User Profile</h2>
+              <p className="text-gray-600">Connect with community members</p>
             </div>
             
-            <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-6">
-                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
+            <Card className="overflow-hidden shadow-xl rounded-3xl border-0 bg-white">
+              <div className="relative h-32 bg-gradient-to-br from-blue-500 to-purple-600">
+                <div className="absolute inset-0 bg-black/10"></div>
+                
+                {/* Profile Avatar */}
+                <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
+                  <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
                     {selectedProfile.avatar_url ? (
                       <img
                         src={selectedProfile.avatar_url}
                         alt={`${selectedProfile.first_name}'s avatar`}
                         className="w-full h-full object-cover"
-                        loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-                        <Users className="w-12 h-12 text-white" />
+                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <User className="w-10 h-10 text-white" />
                       </div>
                     )}
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">
-                      {selectedProfile.first_name} {selectedProfile.last_name}
-                    </h3>
-                    
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {selectedProfile.ms_subtype && (
-                        <Badge className="bg-blue-100 text-blue-700">
-                          {selectedProfile.ms_subtype}
+                </div>
+              </div>
+
+              <CardContent className="pt-16 pb-6 px-6 text-center">
+                {/* Name */}
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  {selectedProfile.first_name} {selectedProfile.last_name}
+                </h3>
+                
+                {/* Tags */}
+                <div className="flex justify-center flex-wrap gap-2 mb-4">
+                  {selectedProfile.ms_subtype && (
+                    <Badge className="bg-blue-100 text-blue-700 text-sm px-3 py-1">
+                      {selectedProfile.ms_subtype}
+                    </Badge>
+                  )}
+                  {selectedProfile.location && (
+                    <Badge variant="outline" className="bg-gray-50 text-gray-600 text-sm px-3 py-1">
+                      📍 {selectedProfile.location}
+                    </Badge>
+                  )}
+                  {selectedProfile.diagnosis_year && (
+                    <Badge className="bg-purple-100 text-purple-700 text-sm px-3 py-1">
+                      Diagnosed {selectedProfile.diagnosis_year}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* About */}
+                {selectedProfile.about_me && (
+                  <div className="mb-6 text-left">
+                    <h4 className="font-semibold text-gray-900 mb-2 text-center">About</h4>
+                    <p className="text-gray-700 leading-relaxed text-sm bg-gray-50 rounded-lg p-3">
+                      {selectedProfile.about_me}
+                    </p>
+                  </div>
+                )}
+
+                {/* Interests */}
+                {selectedProfile.hobbies && selectedProfile.hobbies.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">Interests</h4>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {selectedProfile.hobbies.slice(0, 8).map((hobby, index) => (
+                        <Badge 
+                          key={index} 
+                          variant="secondary" 
+                          className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full"
+                        >
+                          {hobby}
+                        </Badge>
+                      ))}
+                      {selectedProfile.hobbies.length > 8 && (
+                        <Badge 
+                          variant="secondary" 
+                          className="bg-gray-50 text-gray-600 text-xs px-2 py-1 rounded-full"
+                        >
+                          +{selectedProfile.hobbies.length - 8} more
                         </Badge>
                       )}
-                      {selectedProfile.location && (
-                        <Badge variant="outline" className="bg-gray-100 text-gray-600">
-                          📍 {selectedProfile.location}
-                        </Badge>
-                      )}
-                      {selectedProfile.diagnosis_year && (
-                        <Badge variant="outline" className="bg-purple-100 text-purple-700">
-                          Diagnosed {selectedProfile.diagnosis_year}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {selectedProfile.about_me && (
-                      <div className="mb-4">
-                        <h4 className="font-semibold text-gray-900 mb-2">About</h4>
-                        <p className="text-gray-700 leading-relaxed">{selectedProfile.about_me}</p>
-                      </div>
-                    )}
-
-                    {selectedProfile.hobbies && selectedProfile.hobbies.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="font-semibold text-gray-900 mb-2">Interests</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedProfile.hobbies.slice(0, 8).map((hobby, index) => (
-                            <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700 text-xs">
-                              {hobby}
-                            </Badge>
-                          ))}
-                          {selectedProfile.hobbies.length > 8 && (
-                            <Badge variant="secondary" className="bg-gray-50 text-gray-600 text-xs">
-                              +{selectedProfile.hobbies.length - 8} more
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex gap-3 mt-6">
-                      <Button 
-                        size="sm"
-                        className="flex-1 bg-gradient-primary hover:opacity-90 text-white text-xs h-8 px-3" 
-                        onClick={() => likeUserProfile(selectedProfile.user_id)}
-                      >
-                        <Heart className="w-3 h-3 mr-1" />
-                        Like Profile
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={closeProfileView}
-                        className="flex-1 text-xs h-8 px-3"
-                      >
-                        <ArrowLeft className="w-3 h-3 mr-1" />
-                        Back to Forum
-                      </Button>
                     </div>
                   </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 justify-center">
+                  <Button 
+                    className="flex-1 max-w-36 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm h-10"
+                    onClick={() => likeUserProfile(selectedProfile.user_id)}
+                  >
+                    <Heart className="w-4 h-4 mr-2" />
+                    <span className="truncate">Like Profile</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={closeProfileView}
+                    className="flex-1 max-w-36 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-xl transition-all duration-200 text-sm h-10"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    <span className="truncate">Back to Forum</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -1032,7 +1082,7 @@ const ForumPage = () => {
                     placeholder="Write a comment..."
                     className="flex-1"
                   />
-                  <Button onClick={addComment} disabled={!newComment.trim()}>
+                  <Button onClick={() => addComment()} disabled={!newComment.trim()}>
                     Post
                   </Button>
                 </div>
@@ -1041,43 +1091,133 @@ const ForumPage = () => {
                 <ScrollArea className="h-96">
                   <div className="space-y-3 pr-4">
                     {comments.map(comment => (
-                      <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Avatar 
-                            className="w-6 h-6 cursor-pointer"
-                            onClick={() => viewProfile(comment.author_id)}
-                          >
-                            <AvatarImage src={comment.author.avatar_url || undefined} />
-                            <AvatarFallback>
-                              {comment.author.first_name[0]}{comment.author.last_name[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                           <span 
-                             className="font-medium text-sm cursor-pointer hover:text-blue-600"
-                             onClick={() => viewProfile(comment.author_id)}
-                           >
-                             {comment.author.first_name}
-                           </span>
-                           <Button
-                             variant="outline"
-                             size="sm"
-                             className="h-5 px-1.5 text-xs ml-2"
-                             onClick={() => viewProfile(comment.author_id)}
-                           >
-                             View
-                           </Button>
+                      <div key={comment.id}>
+                        {/* Main Comment */}
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Avatar 
+                              className="w-6 h-6 cursor-pointer"
+                              onClick={() => viewProfile(comment.author_id)}
+                            >
+                              <AvatarImage src={comment.author.avatar_url || undefined} />
+                              <AvatarFallback>
+                                {comment.author.first_name[0]}{comment.author.last_name[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                             <span 
+                               className="font-medium text-sm cursor-pointer hover:text-blue-600"
+                               onClick={() => viewProfile(comment.author_id)}
+                             >
+                               {comment.author.first_name}
+                             </span>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               className="h-5 px-1.5 text-xs ml-2"
+                               onClick={() => viewProfile(comment.author_id)}
+                             >
+                               View
+                             </Button>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-3">{comment.content}</p>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => likeComment(comment.id)}
+                              disabled={comment.user_has_liked}
+                              className={`gap-1 text-xs ${comment.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
+                            >
+                              <Heart className={`w-3 h-3 ${comment.user_has_liked ? 'fill-current' : ''}`} />
+                              {comment.likes_count}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setReplyToComment(comment.id)}
+                              className="text-xs text-blue-600 hover:text-blue-700"
+                            >
+                              Reply
+                            </Button>
+                          </div>
+                          
+                          {/* Reply Form */}
+                          {replyToComment === comment.id && (
+                            <div className="mt-3 flex gap-2">
+                              <Input
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                placeholder={`Reply to ${comment.author.first_name}...`}
+                                className="flex-1 text-sm"
+                              />
+                              <Button 
+                                size="sm"
+                                onClick={() => addComment(comment.id)} 
+                                disabled={!replyContent.trim()}
+                                className="text-xs px-3"
+                              >
+                                Reply
+                              </Button>
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setReplyToComment(null);
+                                  setReplyContent("");
+                                }}
+                                className="text-xs px-2"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                        <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => likeComment(comment.id)}
-                          disabled={comment.user_has_liked}
-                          className={`gap-1 text-xs ${comment.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
-                        >
-                          <Heart className={`w-3 h-3 ${comment.user_has_liked ? 'fill-current' : ''}`} />
-                          {comment.likes_count}
-                        </Button>
+                        
+                        {/* Replies */}
+                        {comment.replies && comment.replies.length > 0 && (
+                          <div className="ml-6 mt-2 space-y-2">
+                            {comment.replies.map(reply => (
+                              <div key={reply.id} className="p-3 bg-blue-50 rounded-lg border-l-2 border-blue-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Avatar 
+                                    className="w-5 h-5 cursor-pointer"
+                                    onClick={() => viewProfile(reply.author_id)}
+                                  >
+                                    <AvatarImage src={reply.author.avatar_url || undefined} />
+                                    <AvatarFallback className="text-xs">
+                                      {reply.author.first_name[0]}{reply.author.last_name[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span 
+                                    className="font-medium text-xs cursor-pointer hover:text-blue-600"
+                                    onClick={() => viewProfile(reply.author_id)}
+                                  >
+                                    {reply.author.first_name}
+                                  </span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-4 px-1 text-xs ml-1"
+                                    onClick={() => viewProfile(reply.author_id)}
+                                  >
+                                    View
+                                  </Button>
+                                </div>
+                                <p className="text-xs text-gray-700 mb-2">{reply.content}</p>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => likeComment(reply.id)}
+                                  disabled={reply.user_has_liked}
+                                  className={`gap-1 text-xs ${reply.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
+                                >
+                                  <Heart className={`w-2 h-2 ${reply.user_has_liked ? 'fill-current' : ''}`} />
+                                  {reply.likes_count}
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                     {comments.length === 0 && (
