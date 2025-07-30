@@ -45,13 +45,13 @@ const Auth = () => {
     const refreshToken = urlParams.get('refresh_token');
     
     if (type === 'recovery') {
-      // User clicked password reset link
+      // User clicked password reset link - set flag immediately to prevent redirects
       setIsPasswordReset(true);
       setIsSignUp(false);
       
       if (code) {
         // Handle code-based recovery (newer Supabase flow)
-        supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        supabase.auth.exchangeCodeForSession(code).then(({ error, data }) => {
           if (error) {
             console.error('Code exchange error:', error);
             toast({
@@ -61,10 +61,12 @@ const Auth = () => {
             });
             setIsPasswordReset(false);
           } else {
+            console.log('Password reset session established');
             toast({
               title: "Reset Your Password",
               description: "Please enter your new password below.",
             });
+            // Session is now valid, user will see password reset form
           }
         });
       } else if (accessToken && refreshToken) {
