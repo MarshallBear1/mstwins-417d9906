@@ -105,7 +105,7 @@ const ForumPage = () => {
           created_at,
           likes_count,
           comments_count,
-          profiles!forum_posts_author_id_fkey (
+          profiles!author_id (
             user_id,
             first_name,
             last_name,
