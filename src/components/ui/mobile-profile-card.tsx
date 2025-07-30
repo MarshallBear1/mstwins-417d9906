@@ -174,7 +174,7 @@ const MobileProfileCard = ({
             {/* MS Info - more compact */}
             {profile.ms_subtype && (
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs px-2 py-1 capitalize">
+                <Badge variant="outline" className="text-xs px-2 py-1 uppercase">
                   {profile.ms_subtype}
                 </Badge>
                 {profile.diagnosis_year && (
