@@ -540,3 +540,19 @@ select {
     @apply bg-white rounded-2xl shadow-2xl-modern border-0 overflow-hidden transform transition-all duration-300 hover:shadow-2xl-modern hover:scale-[1.02];
   }
 }
+
+/* Profile View Dialog positioning fix */
+.profile-view-dialog {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 999 !important;
+  max-height: 90vh !important;
+  max-width: 90vw !important;
+}
+
+/* Ensure dialog overlay has high z-index */
+[data-radix-dialog-overlay] {
+  z-index: 998 !important;
+}
