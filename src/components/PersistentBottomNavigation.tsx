@@ -129,8 +129,8 @@ const PersistentBottomNavigation = () => {
     <>
       {/* Likes counter above tabs - only show on discover tab and if visible */}
       {activeTab === 'discover' && remainingLikes !== 999 && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 pointer-events-none" style={{
-          bottom: isMobile ? `max(4rem, ${safeAreaInsets.bottom + 64}px)` : '4rem'
+        <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none" style={{
+          bottom: isMobile ? `max(6rem, ${safeAreaInsets.bottom + 96}px)` : '6rem'
         }}>
           <div className="flex justify-center px-4">
             <div className="bg-white/95 backdrop-blur-md border border-gray-200 px-4 py-2 rounded-full shadow-lg pointer-events-auto">
