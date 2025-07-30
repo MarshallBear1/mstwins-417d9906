@@ -54,6 +54,11 @@ interface Match {
     extended_profile_completed?: boolean;
   };
   unread_count: number;
+  last_message?: {
+    content: string;
+    sender_id: string;
+    created_at: string;
+  } | null;
 }
 
 interface MessagingProps {
@@ -255,6 +260,25 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         return acc;
       }, {} as Record<string, number>);
 
+      // Get last message for each match
+      const { data: lastMessages, error: lastMessagesError } = await supabase
+        .from('messages')
+        .select('match_id, content, created_at, sender_id')
+        .in('match_id', (data || []).map(match => match.id))
+        .order('created_at', { ascending: false });
+
+      if (lastMessagesError) {
+        console.error('Error fetching last messages:', lastMessagesError);
+      }
+
+      // Create map of last message per match
+      const lastMessageMap = (lastMessages || []).reduce((acc, msg) => {
+        if (!acc[msg.match_id]) {
+          acc[msg.match_id] = msg;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
       // Create a lookup map for profiles
       const profileMap = (profilesData || []).reduce((acc, profile) => {
         acc[profile.user_id] = profile;
@@ -307,7 +331,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             selected_prompts: [],
             extended_profile_completed: false
           },
-          unread_count: unreadCountMap[match.id] || 0
+          unread_count: unreadCountMap[match.id] || 0,
+          last_message: lastMessageMap[match.id] || null
         };
       });
 
@@ -931,9 +956,9 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                             {match.other_user.first_name} {match.other_user.last_name}
                           </h3>
                           {match.unread_count > 0 && (
-                            <Badge className="bg-blue-500 text-white rounded-full h-5 min-w-[20px] text-xs font-medium shadow-md">
-                              {match.unread_count}
-                            </Badge>
+                            <div className="bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-medium shadow-md">
+                              {match.unread_count > 9 ? '9+' : match.unread_count}
+                            </div>
                           )}
                         </div>
                         
@@ -958,7 +983,10 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                         
                         {/* Last message */}
                         <p className="text-xs text-gray-500 truncate font-medium">
-                          {getLastMessage(match.id) || "Start the conversation!"}
+                          {match.last_message 
+                            ? `${match.last_message.sender_id === user?.id ? 'You: ' : ''}${match.last_message.content}`
+                            : "Start the conversation!"
+                          }
                         </p>
                         
                         {/* Match date */}
