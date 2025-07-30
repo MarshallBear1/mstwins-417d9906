@@ -23,6 +23,8 @@ import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
 import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
+import MatchesPage from "@/components/MatchesPage";
+import ForumPage from "@/components/ForumPage";
 interface Profile {
   id: string;
   user_id: string;
