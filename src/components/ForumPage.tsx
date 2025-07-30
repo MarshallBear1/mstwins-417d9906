@@ -772,14 +772,20 @@ const ForumPage = () => {
                                 </Badge>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap">
                               {post.author.ms_subtype && (
-                                <span>{post.author.ms_subtype}</span>
+                                <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-0.5">
+                                  {post.author.ms_subtype}
+                                </Badge>
                               )}
                               {post.author.location && (
-                                <span>• {post.author.location}</span>
+                                <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs px-2 py-0.5">
+                                  📍 {post.author.location}
+                                </Badge>
                               )}
-                              <span>• {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+                              <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 text-xs px-2 py-0.5">
+                                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                              </Badge>
                             </div>
                           </div>
                         </div>
@@ -979,14 +985,20 @@ const ForumPage = () => {
                           </Badge>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap">
                         {selectedPost.author.ms_subtype && (
-                          <span>{selectedPost.author.ms_subtype}</span>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-0.5">
+                            {selectedPost.author.ms_subtype}
+                          </Badge>
                         )}
                         {selectedPost.author.location && (
-                          <span>• {selectedPost.author.location}</span>
+                          <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs px-2 py-0.5">
+                            📍 {selectedPost.author.location}
+                          </Badge>
                         )}
-                        <span>• {formatDistanceToNow(new Date(selectedPost.created_at), { addSuffix: true })}</span>
+                        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 text-xs px-2 py-0.5">
+                          {formatDistanceToNow(new Date(selectedPost.created_at), { addSuffix: true })}
+                        </Badge>
                       </div>
                     </div>
                   </div>
