@@ -13,7 +13,7 @@ const ReferralDropdown = () => {
   const { shareApp, isSupported, copyToClipboard } = useShare();
   const { user } = useAuth();
 
-  const referralLink = `https://mstwins.com?ref=${user?.id || 'user'}`;
+  const referralLink = `${window.location.origin}?ref=${user?.id || 'user'}`;
   
   const handleNativeShare = async () => {
     const success = await shareApp();
@@ -81,9 +81,9 @@ const ReferralDropdown = () => {
             onClick={() => setIsOpen(false)}
           />
           
-          {/* Dropdown Card - Perfect mobile centering */}
-          <div className="fixed top-16 left-1/2 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-sm sm:absolute sm:top-14 sm:right-0 sm:left-auto sm:translate-x-0 sm:w-80 z-[101]">
-            <Card className="border-0 shadow-2xl bg-white backdrop-blur-xl rounded-2xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+          {/* Dropdown Card - Perfect mobile centering matching NotificationBell */}
+          <div className="fixed top-16 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] max-w-sm sm:absolute sm:top-14 sm:right-0 sm:left-auto sm:translate-x-0 sm:w-80 z-[101] mx-auto">
+            <Card className="border-0 shadow-2xl bg-white backdrop-blur-xl rounded-2xl overflow-hidden max-h-[70vh] sm:max-h-none animate-in slide-in-from-top-2 fade-in duration-200">
               {/* Modern Header */}
               <div className="bg-blue-600 p-4 text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-90" />

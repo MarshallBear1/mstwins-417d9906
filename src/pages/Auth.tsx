@@ -223,8 +223,12 @@ const Auth = () => {
     try {
       console.log('Sending password reset email to:', forgotPasswordEmail);
       
+      // Dynamic redirect URL based on current environment
+      const redirectUrl = `${window.location.origin}/auth?type=recovery`;
+      console.log('🔗 Using redirect URL:', redirectUrl);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: 'https://mstwins.com/auth?type=recovery',
+        redirectTo: redirectUrl,
       });
       
       if (error) {
