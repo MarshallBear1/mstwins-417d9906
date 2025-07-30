@@ -8,7 +8,7 @@ import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, Eye, Arro
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
-import DiscoverProfiles from "@/components/DiscoverProfiles";
+import OptimizedDiscoverProfiles from "@/components/OptimizedDiscoverProfiles";
 import Messaging from "@/components/Messaging";
 import ProfileCard from "@/components/ProfileCard";
 import ReferralDropdown from "@/components/ReferralDropdown";
@@ -16,8 +16,8 @@ import FeedbackDialog from "@/components/FeedbackDialog";
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
-import { useOptimizedDashboardData } from "@/hooks/useOptimizedDashboardData";
 import { usePreloadedData } from "@/hooks/usePreloadedData";
+import { useOptimizedDiscoverProfiles } from "@/hooks/useOptimizedDiscoverProfiles";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
@@ -25,7 +25,6 @@ import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
 import PersistentBottomNavigation from "@/components/PersistentBottomNavigation";
-import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
 import MatchesPage from "@/components/MatchesPage";
 import ForumPage from "@/components/ForumPage";
 interface Profile {
@@ -67,23 +66,23 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'discover';
 
-  // Use the new comprehensive preloading hook
-  const preloadedData = usePreloadedData({ user, activeTab });
-  
-  // Extract data from the preloading hook with preloading capabilities
+  // Use optimized data hooks
   const { 
     profile, 
     profileLoading,
     fetchProfile,
     likes, 
     likesLoading, 
-    fetchLikes,
-    matches,
-    matchesLoading,
-    preloadMatches,
-    preloadedProfiles,
-    preloadDiscoverProfiles
-  } = preloadedData;
+    fetchLikes
+  } = usePreloadedData({ user, activeTab });
+
+  // Optimized discover profiles hook
+  const {
+    profiles: discoverProfiles,
+    loading: discoverLoading,
+    refetch: refetchProfiles,
+    preloadMore
+  } = useOptimizedDiscoverProfiles(user);
 
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [selectedProfileForView, setSelectedProfileForView] = useState<Profile | null>(null);
@@ -178,7 +177,7 @@ const Dashboard = () => {
     await signOut();
     navigate("/");
   };
-  if (authLoading || profileLoading) {
+  if (authLoading) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>;
@@ -220,7 +219,13 @@ const Dashboard = () => {
     switch (activeTab) {
       case "discover":
         return <div className="pt-6">
-            <DiscoverProfiles />
+            <OptimizedDiscoverProfiles 
+              profiles={discoverProfiles}
+              isLoading={discoverLoading}
+              onRefresh={refetchProfiles}
+              onPreloadMore={preloadMore}
+              hasMore={true}
+            />
           </div>;
       case "likes":
         return <MatchesPage 

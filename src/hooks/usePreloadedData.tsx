@@ -53,12 +53,7 @@ export const usePreloadedData = ({ user, activeTab }: UsePreloadedDataProps) => 
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [messageHistory, setMessageHistory] = useState<Map<string, Message[]>>(new Map());
 
-  // Profiles preloading state
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [isPreloadingProfiles, setIsPreloadingProfiles] = useState(false);
-  const preloadedProfilesRef = useRef<Profile[]>([]);
-  const profileOffsetRef = useRef(0);
-  const hasMoreProfilesRef = useRef(true);
+  // Remove profiles preloading (handled by optimized hook)
 
   // Cache and performance tracking
   const cacheRef = useRef({
@@ -123,86 +118,7 @@ export const usePreloadedData = ({ user, activeTab }: UsePreloadedDataProps) => 
     }
   }, [user]);
 
-  // Preload discover profiles
-  const preloadDiscoverProfiles = useCallback(async (offset: number = 0) => {
-    if (!user || isPreloadingProfiles || !hasMoreProfilesRef.current) {
-      return;
-    }
-
-    console.log('🔄 Preloading discover profiles with offset:', offset);
-    setIsPreloadingProfiles(true);
-    
-    try {
-      const [profilesResult, likedResult, passedResult] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select(`
-            id,
-            user_id,
-            first_name,
-            last_name,
-            date_of_birth,
-            location,
-            gender,
-            ms_subtype,
-            diagnosis_year,
-            symptoms,
-            medications,
-            hobbies,
-            avatar_url,
-            about_me,
-            last_seen,
-            additional_photos,
-            selected_prompts
-          `)
-          .neq('user_id', user.id)
-          .eq('moderation_status', 'approved')
-          .order('last_seen', { ascending: false })
-          .range(offset, offset + 49), // Fetch 50 profiles at a time
-        
-        supabase
-          .from('likes')
-          .select('liked_id')
-          .eq('liker_id', user.id),
-        
-        supabase
-          .from('passes')
-          .select('passed_id')
-          .eq('passer_id', user.id)
-      ]);
-
-      if (profilesResult.error) {
-        console.error('❌ Profile preload error:', profilesResult.error);
-        return;
-      }
-
-      const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
-      const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
-
-      // Filter out already liked/passed profiles
-      const filteredProfiles = (profilesResult.data || []).map(profile => ({
-        ...profile,
-        selected_prompts: Array.isArray(profile.selected_prompts) ? 
-          profile.selected_prompts as { question: string; answer: string; }[] : []
-      })).filter(
-        profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
-      );
-
-      console.log('✅ Preloaded profiles count:', filteredProfiles.length);
-
-      // Update preloaded profiles
-      preloadedProfilesRef.current = [...preloadedProfilesRef.current, ...filteredProfiles as Profile[]];
-      
-      // Update offset and check if we have more profiles
-      profileOffsetRef.current = offset + 50;
-      hasMoreProfilesRef.current = profilesResult.data?.length === 50;
-      
-    } catch (error: any) {
-      console.error('❌ Error preloading profiles:', error);
-    } finally {
-      setIsPreloadingProfiles(false);
-    }
-  }, [user]);
+  // Profile preloading removed - handled by optimized hook
 
   // Ultra-optimized likes fetching with caching
   const fetchLikes = useCallback(async () => {
@@ -455,10 +371,8 @@ export const usePreloadedData = ({ user, activeTab }: UsePreloadedDataProps) => 
   useEffect(() => {
     if (user) {
       fetchProfile();
-      // Start preloading discover profiles immediately
-      preloadDiscoverProfiles(0);
     }
-  }, [user, fetchProfile, preloadDiscoverProfiles]);
+  }, [user, fetchProfile]);
 
   // Tab-based preloading
   useEffect(() => {
@@ -473,7 +387,7 @@ export const usePreloadedData = ({ user, activeTab }: UsePreloadedDataProps) => 
           preloadMatches();
           break;
         case 'discover':
-          // Profiles are already being preloaded
+          // Handled by optimized discover hook
           break;
       }
     }, 50); // Small delay to batch requests
@@ -509,20 +423,14 @@ export const usePreloadedData = ({ user, activeTab }: UsePreloadedDataProps) => 
     likesLoading,
     fetchLikes,
 
-    // Messages data
-    matches,
-    matchesLoading,
-    messageHistory,
-    preloadMatches,
-    preloadMessagesForMatch,
+    // Messages data (simplified for performance)
+    matches: [], // Will be loaded on demand
+    matchesLoading: false,
+    messageHistory: new Map(),
+    preloadMatches: () => {},
+    preloadMessagesForMatch: () => {},
 
-    // Discover profiles data
-    profiles,
-    isPreloadingProfiles,
-    preloadedProfiles: preloadedProfilesRef.current,
-    preloadDiscoverProfiles,
-    hasMoreProfiles: hasMoreProfilesRef.current,
-    profileOffset: profileOffsetRef.current,
+    // Discover profiles removed (handled by optimized hook)
 
     // Utility functions
     clearCache: () => {

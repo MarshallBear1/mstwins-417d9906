@@ -40,7 +40,10 @@ export const usePerformanceMonitor = () => {
       metricsRef.current = metricsRef.current.slice(-100);
     }
 
-    console.log(`Performance: ${name} = ${value}ms`, metric);
+    // Reduce logging frequency for performance
+    if (metricsRef.current.length % 10 === 0) {
+      console.log(`Performance: ${name} = ${value}ms`);
+    }
   }, [user?.id]);
 
   // Measure component render time
