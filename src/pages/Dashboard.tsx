@@ -191,10 +191,20 @@ const Dashboard = () => {
     hasUser: !!user, 
     hasProfile: !!profile, 
     profileLoading,
-    userId: user?.id 
+    userId: user?.id,
+    activeTab,
+    profileData: profile ? 'exists' : 'null'
   });
 
   // Profile enforcement - redirect to profile setup if no profile exists
+  // Add debugging for profile
+  console.log('🔍 Profile check:', { 
+    hasProfile: !!profile, 
+    profileData: profile,
+    activeTab,
+    profileLoading 
+  });
+
   if (!profile) {
     console.log('❌ No profile found, showing completion screen');
     return <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
