@@ -59,65 +59,14 @@ const DiscoverProfiles = memo(() => {
   const { remainingLikes, refreshRemainingLikes } = useDailyLikes();
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
-  const [debugInfo, setDebugInfo] = useState<string>('');
-
-  // 🔍 Debug logging
-  console.log('🔍 DiscoverProfiles component rendered:', {
-    user: user?.id,
-    loading,
-    profilesCount: profiles.length,
-    currentIndex
-  });
-
-  // 🔍 Test database connection on mount
-  useEffect(() => {
-    const testConnection = async () => {
-      console.log('🔍 Testing database connection...');
-      try {
-        const { data, error } = await supabase.from('profiles').select('count').limit(1);
-        console.log('📊 Database test result:', { data, error });
-        
-        if (user) {
-          console.log('🔐 Auth user check:', {
-            userId: user.id,
-            email: user.email,
-            authenticated: !!user
-          });
-          
-          // Test if we can query profiles
-          const { data: profileTest, error: profileError } = await supabase
-            .from('profiles')
-            .select('id, first_name, moderation_status')
-            .limit(5);
-          
-          console.log('👤 Profile query test:', {
-            profiles: profileTest?.length || 0,
-            error: profileError,
-            sample: profileTest?.slice(0, 2)
-          });
-        }
-      } catch (error) {
-        console.error('❌ Database connection test failed:', error);
-        setDebugInfo(`DB Error: ${error}`);
-      }
-    };
-
-    testConnection();
-  }, [user]);
 
   // Optimized profile fetching with parallel queries
   const fetchProfiles = useCallback(async () => {
-    if (!user) {
-      console.log('❌ No user found, skipping profile fetch');
-      return;
-    }
+    if (!user) return;
 
-    console.log('🔄 Fetching discover profiles for user:', user.id);
     setLoading(true);
-    setDebugInfo('Loading profiles...');
     
     try {
-      console.log('📡 Starting parallel queries...');
       const [profilesResult, likedResult, passedResult] = await Promise.all([
         supabase
           .from('profiles')
@@ -157,72 +106,21 @@ const DiscoverProfiles = memo(() => {
           .eq('passer_id', user.id)
       ]);
 
-      console.log('📊 Query results:', {
-        profiles: {
-          count: profilesResult.data?.length || 0,
-          error: profilesResult.error,
-          sample: profilesResult.data?.slice(0, 2)?.map(p => ({ 
-            id: p.id, 
-            name: p.first_name, 
-            moderation_status: p.moderation_status 
-          }))
-        },
-        likes: {
-          count: likedResult.data?.length || 0,
-          error: likedResult.error
-        },
-        passes: {
-          count: passedResult.data?.length || 0,
-          error: passedResult.error
-        }
-      });
-
-      if (profilesResult.error) {
-        console.error('❌ Profiles query error:', profilesResult.error);
-        setDebugInfo(`Profile query error: ${profilesResult.error.message}`);
-        throw profilesResult.error;
-      }
-
-      if (likedResult.error) {
-        console.error('❌ Likes query error:', likedResult.error);
-        setDebugInfo(`Likes query error: ${likedResult.error.message}`);
-      }
-
-      if (passedResult.error) {
-        console.error('❌ Passes query error:', passedResult.error);
-        setDebugInfo(`Passes query error: ${passedResult.error.message}`);
-      }
+      if (profilesResult.error) throw profilesResult.error;
 
       const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
       const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
-
-      console.log('🔍 Filtering profiles:', {
-        totalProfiles: profilesResult.data?.length || 0,
-        likedIds: likedIds.size,
-        passedIds: passedIds.size
-      });
 
       // Filter out already liked/passed profiles
       const filteredProfiles = profilesResult.data?.filter(
         profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
       ) || [];
 
-      console.log('✅ Final filtered profiles:', {
-        count: filteredProfiles.length,
-        profiles: filteredProfiles.slice(0, 3).map(p => ({ 
-          id: p.id, 
-          name: p.first_name,
-          location: p.location 
-        }))
-      });
-
       setProfiles(filteredProfiles as Profile[]);
       setCurrentIndex(0);
-      setDebugInfo(`Loaded ${filteredProfiles.length} profiles`);
       
     } catch (error: any) {
-      console.error('❌ Error fetching profiles:', error);
-      setDebugInfo(`Error: ${error.message}`);
+      console.error('Error fetching profiles:', error);
       toast({
         title: "Error loading profiles",
         description: error.message || "Please try again later.",
@@ -347,19 +245,12 @@ const DiscoverProfiles = memo(() => {
     }
   }, [currentProfile]);
 
-  // Show loading state with debug info
+  // Show loading state
   if (loading && profiles.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         <p className="text-gray-600">Finding amazing people for you...</p>
-        {debugInfo && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-            <p className="text-blue-700 font-medium">Debug Info:</p>
-            <p className="text-blue-600">User: {user?.id || 'Not authenticated'}</p>
-            <p className="text-blue-600">Status: {debugInfo}</p>
-          </div>
-        )}
       </div>
     );
   }
@@ -367,7 +258,7 @@ const DiscoverProfiles = memo(() => {
   // Show empty state with detailed information
   if (profiles.length === 0 || currentIndex >= profiles.length) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="text-center">
           <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -411,18 +302,6 @@ const DiscoverProfiles = memo(() => {
               Reset Pass History
             </Button>
           </div>
-          
-          {/* Debug information */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-left">
-              <p className="text-gray-700 font-medium mb-2">Debug Info:</p>
-              <p className="text-gray-600">User: {user?.id ? 'Authenticated' : 'Not authenticated'}</p>
-              <p className="text-gray-600">Profiles loaded: {profiles.length}</p>
-              <p className="text-gray-600">Current index: {currentIndex}</p>
-              <p className="text-gray-600">Status: {debugInfo || 'User has viewed most profiles'}</p>
-              <p className="text-gray-600">Remaining likes: {remainingLikes}</p>
-            </div>
-          )}
         </div>
       </div>
     );
