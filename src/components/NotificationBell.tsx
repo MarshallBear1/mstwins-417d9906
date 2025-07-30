@@ -42,11 +42,11 @@ const NotificationBell = () => {
       setUnreadCount(cache.unreadCount);
     });
 
-    // Initial fetch
+    // Initial fetch - only run once on mount
     fetchNotifications().catch(console.error);
 
     return unsubscribe;
-  }, [subscribe, fetchNotifications]);
+  }, [subscribe]); // Removed fetchNotifications dependency to prevent infinite re-renders
 
   // Detect iOS/iPhone - browser notifications don't work properly on iOS
   const isIOS = () => {
