@@ -308,7 +308,7 @@ const DiscoverProfiles = memo(() => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 px-4">
       {/* Remaining likes warning */}
       <LikeLimitWarning 
         open={remainingLikes <= 2 && remainingLikes > 0} 
@@ -318,11 +318,11 @@ const DiscoverProfiles = memo(() => {
       
       {/* Compact Profile Card */}
       {currentProfile && (
-        <div className="w-full max-w-md">
+        <div className="flex flex-col items-center space-y-4">
           <DiscoverProfileCard profile={currentProfile} />
           
           {/* Action Buttons */}
-          <div className="flex space-x-3 mt-4 px-4">
+          <div className="flex space-x-3 w-full max-w-[300px]">
             <Button
               onClick={() => passProfile(currentProfile.user_id)}
               variant="outline"
