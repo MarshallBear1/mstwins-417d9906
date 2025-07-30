@@ -55,13 +55,29 @@ serve(async (req) => {
     const body = await req.json();
     const { operation, ...params } = body;
 
+    console.log(`📧 Admin email operation requested: ${operation}`, params);
+
     let result;
     switch (operation) {
+      case 'send-day2-email':
+        result = await supabase.functions.invoke('send-day2-email', { body: params });
+        break;
+      case 'send-day2-all-users':
+        result = await supabase.functions.invoke('send-day2-all-users', { body: params });
+        break;
       case 'send-day3-email':
         result = await supabase.functions.invoke('send-day3-email', { body: params });
         break;
       case 'send-day3-all-users':
         result = await supabase.functions.invoke('send-day3-all-users', { body: params });
+        break;
+      case 'send-day4-email':
+        console.log('🚀 Invoking send-day4-email function with params:', params);
+        result = await supabase.functions.invoke('send-day4-email', { body: params });
+        console.log('✅ Day 4 email function response:', result);
+        break;
+      case 'send-day4-all-users':
+        result = await supabase.functions.invoke('send-day4-all-users', { body: params });
         break;
       case 'send-announcement-email':
         result = await supabase.functions.invoke('send-announcement-email', { body: params });

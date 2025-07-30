@@ -66,12 +66,8 @@ const OptimizedHowItWorks = () => {
           </p>
         </div>
 
-        {/* Steps */}
-        <div className="relative mb-20">
-          {/* Clean Step Connection Line */}
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-blue-200 transform -translate-y-1/2 z-0"></div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
+        <div className="mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
               <div key={index} className="relative group">
                 {/* Clean Step Number */}

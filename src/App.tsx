@@ -8,12 +8,14 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, lazy, Suspense, memo } from "react";
 import { AuthProvider } from "./hooks/useAuth";
 import { analytics } from "./lib/analytics";
+import { supabase } from "@/integrations/supabase/client";
 import OptimizedIndex from "./pages/OptimizedIndex";
 import MobileStatusBar from "./components/MobileStatusBar";
 import MobileOptimizationsProvider from "./components/MobileOptimizationsProvider";
 import IOSEnhancements from "./components/IOSEnhancements";
 import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
-import { SecurityEnhancements } from "./components/SecurityEnhancements";
+import { SecurityContextProvider } from "./components/SecurityContextProvider";
+import { AdminAuthProvider } from "./hooks/useAdminAuth";
 import { NativeCapabilities } from "./hooks/useNativeCapabilities";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import IOSNotificationManager from "./components/IOSNotificationManager";
@@ -48,13 +50,25 @@ const AdminFeedback = lazy(() => import("./pages/AdminFeedback").catch(err => {
   console.error('Failed to load AdminFeedback page:', err);
   return { default: () => <div>Failed to load page. Please refresh.</div> };
 }));
-const Contact = lazy(() => import("./pages/Contact").catch(err => {
-  console.error('Failed to load Contact page:', err);
+const AdminModeration = lazy(() => import("./pages/AdminModeration").catch(err => {
+  console.error('Failed to load AdminModeration page:', err);
   return { default: () => <div>Failed to load page. Please refresh.</div> };
 }));
 const NotFound = lazy(() => import("./pages/NotFound").catch(err => {
   console.error('Failed to load NotFound page:', err);
   return { default: () => <div>Page not found. Please refresh.</div> };
+}));
+const TempPasswordAdminLogin = lazy(() => import("./components/TempPasswordAdminLogin").then(module => ({
+  default: module.TempPasswordAdminLogin
+})).catch(err => {
+  console.error('Failed to load TempPasswordAdminLogin component:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
+const TempAdminProtectedRoute = lazy(() => import("./components/TempAdminProtectedRoute").then(module => ({
+  default: module.TempAdminProtectedRoute
+})).catch(err => {
+  console.error('Failed to load TempAdminProtectedRoute component:', err);
+  return { default: ({ children }: { children: React.ReactNode }) => <>{children}</> };
 }));
 
 const LoadingSpinner = () => (
@@ -62,6 +76,40 @@ const LoadingSpinner = () => (
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
   </div>
 );
+
+const PostHogInitializer = () => {
+  useEffect(() => {
+    const initializePostHog = async () => {
+      try {
+        console.log('🔍 Fetching PostHog API key from secrets...');
+        const { data: secrets } = await supabase.functions.invoke('secrets', {
+          body: { name: 'POSTHOG_API_KEY' }
+        });
+        
+        console.log('📊 Secrets response:', secrets);
+        
+        if (secrets?.value) {
+          console.log('✅ PostHog API key found, initializing analytics...');
+          analytics.init(secrets.value);
+          
+          // Test event to verify PostHog is working
+          setTimeout(() => {
+            console.log('🧪 Sending test event to PostHog...');
+            analytics.track('app_loaded', { timestamp: Date.now() });
+          }, 1000);
+        } else {
+          console.warn('⚠️ PostHog API key not found in secrets');
+        }
+      } catch (error) {
+        console.error('❌ Failed to initialize PostHog:', error);
+      }
+    };
+
+    initializePostHog();
+  }, []);
+
+  return null;
+};
 
 const RouteTracker = () => {
   const location = useLocation();
@@ -85,18 +133,20 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <ErrorBoundary>
-          <SecurityEnhancements />
-          <NativeCapabilities />
-          <IOSNotificationManager />
-          <MobileStatusBar theme="light" color="#2563eb" />
-          <MobileOptimizationsProvider disableContextMenu={true} />
-          <IOSEnhancements />
-          <AccessibilityEnhancements />
-          <Toaster />
-          <Sonner />
+      <AdminAuthProvider>
+        <SecurityContextProvider>
+          <TooltipProvider>
+            <ErrorBoundary>
+              <NativeCapabilities />
+              <IOSNotificationManager />
+              <MobileStatusBar theme="light" color="#2563eb" />
+              <MobileOptimizationsProvider disableContextMenu={true} />
+              <IOSEnhancements />
+              <AccessibilityEnhancements />
+              <Toaster />
+              <Sonner />
           <BrowserRouter>
+            <PostHogInitializer />
             <RouteTracker />
             <Routes>
             <Route path="/" element={<OptimizedIndex />} />
@@ -130,15 +180,24 @@ const App = () => (
                 <TermsOfService />
               </Suspense>
             } />
-            <Route path="/contact" element={
+            <Route path="/temp-admin-login" element={
               <Suspense fallback={<LoadingSpinner />}>
-                <Contact />
+                <TempPasswordAdminLogin />
               </Suspense>
             } />
-            <Route path="/admin/feedback" element={
+            <Route path="/dashboard/admin/feedback" element={
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminFeedback />
+                <TempAdminProtectedRoute>
+                  <AdminFeedback />
+                </TempAdminProtectedRoute>
               </Suspense>
+            } />
+            <Route path="/dashboard/admin/moderation" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <TempAdminProtectedRoute>
+                  <AdminModeration />
+                </TempAdminProtectedRoute>
+                </Suspense>
             } />
             <Route path="*" element={
               <Suspense fallback={<LoadingSpinner />}>
@@ -146,11 +205,13 @@ const App = () => (
               </Suspense>
             } />
           </Routes>
-          <PersistentBottomNavigation />
-          <ReferralPopup />
-        </BrowserRouter>
-        </ErrorBoundary>
-      </TooltipProvider>
+              <PersistentBottomNavigation />
+              <ReferralPopup />
+            </BrowserRouter>
+            </ErrorBoundary>
+          </TooltipProvider>
+        </SecurityContextProvider>
+      </AdminAuthProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

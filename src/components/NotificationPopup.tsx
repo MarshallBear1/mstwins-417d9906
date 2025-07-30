@@ -1,30 +1,85 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { X, Heart, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { supabase } from "@/integrations/supabase/client";
 
 const NotificationPopup = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [currentNotification, setCurrentNotification] = useState<any>(null);
   const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
+  const [notificationQueue, setNotificationQueue] = useState<any[]>([]);
+  const [lastShownNotificationId, setLastShownNotificationId] = useState<string | null>(null);
   const { notifications, markAsRead } = useRealtimeNotifications();
+  const { getNotificationSettings } = useNotificationPreferences();
+  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const autoHideTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Debounced notification processing - FIXED: prevent infinite loops
+  const processNotificationQueue = useCallback(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      // CRITICAL FIX: Only process if not currently showing a notification
+      if (isVisible) return;
+
+      // Get new notifications that haven't been shown yet
+      const newNotifications = notifications.filter(
+        n => (n.type === 'like' || n.type === 'match') && 
+             !n.is_read && 
+             !dismissedNotifications.has(n.id) &&
+             n.id !== lastShownNotificationId
+      );
+
+      if (newNotifications.length > 0) {
+        // Filter based on user preferences
+        const allowedNotifications = newNotifications.filter(n => {
+          const notificationType = n.type as 'like' | 'match' | 'message';
+          const settings = getNotificationSettings(notificationType);
+          return settings.enablePopups;
+        });
+
+        if (allowedNotifications.length === 0) return;
+
+        // Sort by priority: matches first, then likes, then by creation time
+        const sortedNotifications = allowedNotifications.sort((a, b) => {
+          if (a.type === 'match' && b.type !== 'match') return -1;
+          if (b.type === 'match' && a.type !== 'match') return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+
+        const nextNotification = sortedNotifications[0];
+        setCurrentNotification(nextNotification);
+        setLastShownNotificationId(nextNotification.id);
+        setNotificationQueue(sortedNotifications.slice(1));
+        setIsVisible(true);
+
+        // FIXED: Shorter auto-hide times to prevent overlap
+        const autoHideDelay = nextNotification.type === 'match' ? 6000 : 4000;
+        autoHideTimeoutRef.current = setTimeout(() => {
+          handleDismiss();
+        }, autoHideDelay);
+      }
+    }, 1000); // INCREASED debounce to prevent rapid firing
+  }, [notifications, dismissedNotifications, isVisible, lastShownNotificationId, getNotificationSettings]);
 
   useEffect(() => {
-    // Check for new like or match notifications
-    const latestNotification = notifications.find(
-      n => (n.type === 'like' || n.type === 'match') && 
-           !n.is_read && 
-           !dismissedNotifications.has(n.id)
-    );
-
-    if (latestNotification && latestNotification.id !== currentNotification?.id) {
-      setCurrentNotification(latestNotification);
-      setIsVisible(true);
-    }
-  }, [notifications, dismissedNotifications]);
+    processNotificationQueue();
+    
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      if (autoHideTimeoutRef.current) {
+        clearTimeout(autoHideTimeoutRef.current);
+      }
+    };
+  }, [processNotificationQueue]);
 
   const fetchFromUserProfile = async (fromUserId: string) => {
     if (!fromUserId) return null;
@@ -46,16 +101,39 @@ const NotificationPopup = () => {
     }
   }, [currentNotification]);
 
-  const handleDismiss = async () => {
+  const handleDismiss = useCallback(async () => {
+    // Clear auto-hide timeout
+    if (autoHideTimeoutRef.current) {
+      clearTimeout(autoHideTimeoutRef.current);
+    }
+
     if (currentNotification) {
       // Mark notification as read in database
       await markAsRead(currentNotification.id);
       setDismissedNotifications(prev => new Set([...prev, currentNotification.id]));
     }
+    
     setIsVisible(false);
     setCurrentNotification(null);
     setFromUserProfile(null);
-  };
+    
+    // Process next notification in queue after a short delay
+    setTimeout(() => {
+      if (notificationQueue.length > 0) {
+        const nextNotification = notificationQueue[0];
+        setCurrentNotification(nextNotification);
+        setLastShownNotificationId(nextNotification.id);
+        setNotificationQueue(prev => prev.slice(1));
+        setIsVisible(true);
+        
+        // Auto-hide for the next notification
+        const autoHideDelay = nextNotification.type === 'match' ? 12000 : 8000;
+        autoHideTimeoutRef.current = setTimeout(() => {
+          handleDismiss();
+        }, autoHideDelay);
+      }
+    }, 1000); // 1 second delay between notifications
+  }, [currentNotification, markAsRead, notificationQueue]);
 
   if (!isVisible || !currentNotification) return null;
 

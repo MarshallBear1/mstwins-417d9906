@@ -21,6 +21,8 @@ export type Database = {
           id: string
           ip_address: unknown | null
           is_active: boolean
+          last_activity: string | null
+          session_data: Json | null
           session_token: string
           user_agent: string | null
           user_id: string
@@ -31,6 +33,8 @@ export type Database = {
           id?: string
           ip_address?: unknown | null
           is_active?: boolean
+          last_activity?: string | null
+          session_data?: Json | null
           session_token?: string
           user_agent?: string | null
           user_id: string
@@ -41,9 +45,123 @@ export type Database = {
           id?: string
           ip_address?: unknown | null
           is_active?: boolean
+          last_activity?: string | null
+          session_data?: Json | null
           session_token?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      announcement_campaigns: {
+        Row: {
+          campaign_name: string
+          completed_at: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          failed_count: number | null
+          id: string
+          list_id: string
+          sent_at: string | null
+          sent_count: number | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          campaign_name: string
+          completed_at?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          list_id: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          subject: string
+        }
+        Update: {
+          campaign_name?: string
+          completed_at?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          list_id?: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_campaigns_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "announcement_email_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcement_email_addresses: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          list_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          list_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          list_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_email_addresses_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "announcement_email_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcement_email_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          list_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          list_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          list_name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -249,6 +367,8 @@ export type Database = {
           id: string
           is_read: boolean
           match_id: string
+          moderation_flag_id: string | null
+          moderation_status: string | null
           receiver_id: string
           sender_id: string
         }
@@ -258,6 +378,8 @@ export type Database = {
           id?: string
           is_read?: boolean
           match_id: string
+          moderation_flag_id?: string | null
+          moderation_status?: string | null
           receiver_id: string
           sender_id: string
         }
@@ -267,6 +389,8 @@ export type Database = {
           id?: string
           is_read?: boolean
           match_id?: string
+          moderation_flag_id?: string | null
+          moderation_status?: string | null
           receiver_id?: string
           sender_id?: string
         }
@@ -278,7 +402,65 @@ export type Database = {
             referencedRelation: "matches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_moderation_flag_id_fkey"
+            columns: ["moderation_flag_id"]
+            isOneToOne: false
+            referencedRelation: "moderation_flags"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      moderation_flags: {
+        Row: {
+          confidence_score: number | null
+          content_id: string | null
+          content_text: string
+          content_type: string
+          created_at: string
+          flagged_categories: string[] | null
+          id: string
+          is_flagged: boolean
+          moderation_result: Json
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          content_id?: string | null
+          content_text: string
+          content_type: string
+          created_at?: string
+          flagged_categories?: string[] | null
+          id?: string
+          is_flagged?: boolean
+          moderation_result: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          content_id?: string | null
+          content_text?: string
+          content_type?: string
+          created_at?: string
+          flagged_categories?: string[] | null
+          id?: string
+          is_flagged?: boolean
+          moderation_result?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       notification_logs: {
         Row: {
@@ -384,6 +566,8 @@ export type Database = {
           last_seen: string | null
           location: string
           medications: string[] | null
+          moderation_flag_id: string | null
+          moderation_status: string | null
           ms_subtype: string | null
           selected_prompts: Json | null
           symptoms: string[] | null
@@ -406,6 +590,8 @@ export type Database = {
           last_seen?: string | null
           location: string
           medications?: string[] | null
+          moderation_flag_id?: string | null
+          moderation_status?: string | null
           ms_subtype?: string | null
           selected_prompts?: Json | null
           symptoms?: string[] | null
@@ -428,13 +614,23 @@ export type Database = {
           last_seen?: string | null
           location?: string
           medications?: string[] | null
+          moderation_flag_id?: string | null
+          moderation_status?: string | null
           ms_subtype?: string | null
           selected_prompts?: Json | null
           symptoms?: string[] | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_moderation_flag_id_fkey"
+            columns: ["moderation_flag_id"]
+            isOneToOne: false
+            referencedRelation: "moderation_flags"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_tokens: {
         Row: {
@@ -553,6 +749,27 @@ export type Database = {
         }
         Relationships: []
       }
+      security_config: {
+        Row: {
+          description: string | null
+          last_updated: string | null
+          setting_key: string
+          setting_value: Json
+        }
+        Insert: {
+          description?: string | null
+          last_updated?: string | null
+          setting_key: string
+          setting_value: Json
+        }
+        Update: {
+          description?: string | null
+          last_updated?: string | null
+          setting_key?: string
+          setting_value?: Json
+        }
+        Relationships: []
+      }
       security_settings: {
         Row: {
           created_at: string
@@ -666,6 +883,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      check_admin_rate_limit: {
+        Args: {
+          admin_user_id: string
+          action_type: string
+          time_window?: unknown
+          max_actions?: number
+        }
+        Returns: Json
+      }
       check_and_increment_daily_likes: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -686,6 +916,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      enhanced_log_admin_action: {
+        Args: {
+          action_type: string
+          action_details?: Json
+          security_level?: string
+        }
+        Returns: undefined
+      }
       enhanced_rate_limit_check: {
         Args: {
           user_id_param: string
@@ -694,6 +932,10 @@ export type Database = {
           time_window: unknown
         }
         Returns: boolean
+      }
+      enhanced_validate_admin_session: {
+        Args: { session_token: string }
+        Returns: Json
       }
       get_api_version: {
         Args: Record<PropertyKey, never>
@@ -718,6 +960,10 @@ export type Database = {
       get_remaining_likes_today: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      get_security_setting: {
+        Args: { setting_key: string }
+        Returns: Json
       }
       get_user_count: {
         Args: Record<PropertyKey, never>
@@ -750,6 +996,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      log_admin_action: {
+        Args: { action_type: string; action_details?: Json }
+        Returns: undefined
+      }
       log_failed_login_attempt: {
         Args: {
           email_input: string
@@ -774,6 +1028,15 @@ export type Database = {
         Args: { session_token: string }
         Returns: boolean
       }
+      send_announcement_email: {
+        Args: {
+          campaign_name: string
+          email_subject: string
+          email_content: string
+          list_name: string
+        }
+        Returns: Json
+      }
       trigger_email_queue_processing: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -786,11 +1049,23 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_security_config: {
+        Args: { setting_key: string; setting_value: Json; description?: string }
+        Returns: undefined
+      }
       update_user_last_seen: {
         Args: { user_id_param: string }
         Returns: undefined
       }
+      validate_admin_input_security: {
+        Args: { input_data: Json; validation_type: string }
+        Returns: Json
+      }
       validate_admin_session: {
+        Args: { session_token: string }
+        Returns: Json
+      }
+      validate_and_refresh_admin_session: {
         Args: { session_token: string }
         Returns: Json
       }

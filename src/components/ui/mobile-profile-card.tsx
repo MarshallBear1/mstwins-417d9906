@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, User, Heart, X, ArrowLeftRight, Eye } from "lucide-react";
+import { MapPin, User, Heart, X, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
+import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
 
 interface Profile {
   id: string;
@@ -67,7 +68,10 @@ const MobileProfileCard = ({
   const hasExtendedContent = Boolean(
     (profile.photos && profile.photos.length > 1) ||
     (profile.selected_prompts && profile.selected_prompts.length > 0) ||
-    (profile.about_me && profile.about_me.length > 100)
+    (profile.about_me && profile.about_me.length > 80) ||
+    profile.hobbies?.length ||
+    profile.ms_subtype ||
+    profile.diagnosis_year
   );
 
   return (
@@ -99,13 +103,13 @@ const MobileProfileCard = ({
             {/* Smaller Profile Image with reduced border */}
             <button onClick={() => onImageClick?.(0)} className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-lg hover:scale-110 transition-all duration-300 mobile-touch-target">
               {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt={profile.first_name} className="w-full h-full object-cover transition-opacity duration-200" loading="eager" onLoad={e => {
-                  e.currentTarget.style.opacity = '1';
-                }} onError={e => {
-                  e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
-                }} style={{
-                  opacity: '0'
-                }} />
+                <OptimizedAvatar
+                  src={profile.avatar_url}
+                  alt={profile.first_name}
+                  fallbackSeed={profile.first_name}
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                />
               ) : (
                 <div className="w-full h-full bg-white/20 flex items-center justify-center">
                   <User className="w-8 h-8 text-white" />
@@ -123,19 +127,12 @@ const MobileProfileCard = ({
               </div>
             </div>
             
-            {/* Flip Button and See More Button */}
+            {/* See More Button - Single button only */}
             {hasExtendedContent && (
-              <div className="absolute top-3 left-3 flex gap-2">
+              <div className="absolute top-3 left-3">
                 <button 
                   onClick={() => setIsFlipped(!isFlipped)}
-                  className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
-                  title="Flip card"
-                >
-                  <ArrowLeftRight className="w-3 h-3" />
-                </button>
-                <button 
-                  onClick={() => setIsFlipped(!isFlipped)}
-                  className="bg-white/20 backdrop-blur-md rounded-full px-2 py-1 flex items-center gap-1 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                  className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
                   title="See more details"
                 >
                   <Eye className="w-3 h-3" />
@@ -225,9 +222,9 @@ const MobileProfileCard = ({
               {onLike && (
                 <Button
                   onClick={onLike}
-                  className="flex-1 h-10 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                  className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group"
                 >
-                  <Heart className="w-4 h-4 mr-1" />
+                  <Heart className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
                   Like
                 </Button>
               )}
@@ -256,7 +253,7 @@ const MobileProfileCard = ({
                 className="absolute top-3 left-3 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
                 title="Back to main"
               >
-                <ArrowLeftRight className="w-3 h-3" />
+                <Eye className="w-3 h-3" />
               </button>
               
               <div className="text-center text-white z-10">
@@ -329,9 +326,9 @@ const MobileProfileCard = ({
                   {onLike && (
                     <Button
                       onClick={onLike}
-                      className="flex-1 h-10 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                      className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group"
                     >
-                      <Heart className="w-4 h-4 mr-1" />
+                      <Heart className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
                       Like
                     </Button>
                   )}
@@ -345,4 +342,4 @@ const MobileProfileCard = ({
   );
 };
 
-export default MobileProfileCard;
+export default memo(MobileProfileCard);

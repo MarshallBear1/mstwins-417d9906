@@ -90,7 +90,7 @@ const ProfileViewDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[450px] max-w-[95vw] max-h-[95vh] overflow-y-auto p-3" style={{ perspective: '1000px' }}>
+        <DialogContent className="sm:max-w-[400px] max-w-[90vw] max-h-[90vh] overflow-hidden p-0" style={{ perspective: '1000px' }}>
           <DialogHeader className="sr-only">
             <DialogTitle>
               {profile.first_name} {profile.last_name}'s Profile
@@ -106,28 +106,28 @@ const ProfileViewDialog = ({
           >
             {/* Front Side - Original Card */}
             <div 
-              className="relative bg-white rounded-xl shadow-xl overflow-hidden max-w-md mx-auto"
+              className="relative bg-white rounded-xl shadow-xl overflow-hidden max-w-md mx-auto max-h-[90vh] overflow-y-auto"
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(0deg)'
               }}
             >
               {/* Header Image Section */}
-              <div className="relative h-80 bg-gradient-to-br from-blue-400/20 via-purple-300/20 to-pink-300/20 overflow-hidden">
+              <div className="relative h-48 bg-gradient-to-br from-blue-400/20 via-purple-300/20 to-pink-300/20 overflow-hidden">
                 {/* Main Avatar */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   {profile.avatar_url ? (
                     <img 
                       src={profile.avatar_url} 
                       alt={`${profile.first_name}'s profile`}
-                      className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl cursor-pointer hover:scale-105 transition-transform duration-300"
+                      className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-xl cursor-pointer hover:scale-105 transition-transform duration-300"
                       onClick={() => setShowImageViewer(true)}
                       onError={(e) => {
                         e.currentTarget.src = `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile.first_name}&backgroundColor=b6e3f4,c0aede&eyes=happy&mouth=smile`;
                       }}
                     />
                   ) : (
-                    <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center border-4 border-white shadow-xl">
+                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-4 border-white shadow-xl">
                       <User className="w-12 h-12 text-muted-foreground" />
                     </div>
                   )}
@@ -184,14 +184,14 @@ const ProfileViewDialog = ({
               </div>
 
               {/* Profile Info Section */}
-              <div className="p-4 space-y-4">
+              <div className="p-3 space-y-3 overflow-y-auto">
                 {/* Name and Age */}
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-lg font-bold text-gray-900">
                     {profile.first_name} {profile.last_name}
                   </h2>
                   {profile.date_of_birth && (
-                    <p className="text-lg text-gray-600">
+                    <p className="text-sm text-gray-600">
                       {calculateAge(profile.date_of_birth)} years old
                     </p>
                   )}
@@ -324,7 +324,7 @@ const ProfileViewDialog = ({
 
             {/* Back Side - Extended Content */}
             <div 
-              className="absolute inset-0 bg-white rounded-xl shadow-xl overflow-hidden max-w-md mx-auto"
+              className="absolute inset-0 bg-white rounded-xl shadow-xl overflow-hidden max-w-md mx-auto max-h-[90vh]"
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)'

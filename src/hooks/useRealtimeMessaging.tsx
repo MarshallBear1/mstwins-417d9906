@@ -134,7 +134,8 @@ export const useRealtimeMessaging = (matchId?: string) => {
           match_id: matchId,
           sender_id: user.id,
           receiver_id: receiverId,
-          content: content.trim()
+          content: content.trim(),
+          moderation_status: 'approved'
         })
         .select()
         .single();

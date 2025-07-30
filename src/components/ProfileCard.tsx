@@ -222,27 +222,14 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
     
     setDeleting(true);
     try {
-      // First delete profile data
-      await supabase
-        .from('profiles')
-        .delete()
-        .eq('user_id', user.id);
+      // Use the database function to safely delete all user data
+      const { error } = await supabase.rpc('delete_user_account');
+      
+      if (error) {
+        throw error;
+      }
 
-      // Delete other user data
-      await Promise.all([
-        supabase.from('likes').delete().eq('liker_id', user.id),
-        supabase.from('likes').delete().eq('liked_id', user.id),
-        supabase.from('messages').delete().eq('sender_id', user.id),
-        supabase.from('messages').delete().eq('receiver_id', user.id),
-        supabase.from('matches').delete().or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`),
-        supabase.from('notifications').delete().eq('user_id', user.id),
-        supabase.from('passes').delete().eq('passer_id', user.id),
-        supabase.from('passes').delete().eq('passed_id', user.id),
-        supabase.from('feedback').delete().eq('user_id', user.id),
-        supabase.from('user_reports').delete().eq('reporter_id', user.id)
-      ]);
-
-      // Finally sign out the user (this will effectively "delete" their auth account from their perspective)
+      // Sign out the user after successful deletion
       await supabase.auth.signOut();
       
       toast({

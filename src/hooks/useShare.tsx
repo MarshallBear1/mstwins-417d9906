@@ -14,15 +14,6 @@ export const useShare = () => {
   const isSupported = Capacitor.isNativePlatform() || ('share' in navigator);
 
   const shareContent = async (options: ShareOptions): Promise<boolean> => {
-    if (!isSupported) {
-      toast({
-        title: "Not Supported",
-        description: "Sharing is not supported on this device.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
     try {
       // Use native share if available
       if (Capacitor.isNativePlatform()) {
@@ -35,8 +26,12 @@ export const useShare = () => {
         return true;
       }
       
-      // Use Web Share API for web browsers
-      if ('share' in navigator) {
+      // Try Web Share API for web browsers with fallback
+      if ('share' in navigator && navigator.canShare && navigator.canShare({
+        title: options.title,
+        text: options.text,
+        url: options.url
+      })) {
         await navigator.share({
           title: options.title,
           text: options.text,
@@ -45,16 +40,17 @@ export const useShare = () => {
         return true;
       }
 
-      return false;
+      // Fallback: Copy to clipboard
+      const shareText = `${options.title || ''}\n${options.text || ''}\n${options.url || ''}`.trim();
+      return await copyToClipboard(shareText);
+
     } catch (error) {
       console.error('Share error:', error);
       // Don't show error toast if user cancelled sharing
       if (error instanceof Error && error.name !== 'AbortError') {
-        toast({
-          title: "Share Failed",
-          description: "Could not share content. Please try again.",
-          variant: "destructive",
-        });
+        // Fallback: Copy to clipboard
+        const shareText = `${options.title || ''}\n${options.text || ''}\n${options.url || ''}`.trim();
+        return await copyToClipboard(shareText);
       }
       return false;
     }
