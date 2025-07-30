@@ -423,7 +423,7 @@ const DiscoverProfiles = memo(() => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
+    <div className="space-y-4 pb-4">
       {/* Remaining likes warning */}
       <LikeLimitWarning 
         open={remainingLikes <= 2 && remainingLikes > 0} 
@@ -431,28 +431,43 @@ const DiscoverProfiles = memo(() => {
         remainingLikes={remainingLikes} 
       />
       
-      {/* Mobile Profile Card */}
+      {/* Mobile Profile Card - Centered */}
       {currentProfile && (
-        <div className="w-full max-w-sm mx-auto">
-          <MobileProfileCard
-            profile={{
-              ...currentProfile,
-              date_of_birth: currentProfile.date_of_birth || "",
-              photos: currentProfile.additional_photos ? 
-                [{ url: currentProfile.avatar_url || "" }, ...currentProfile.additional_photos.map(url => ({ url }))] : 
-                currentProfile.avatar_url ? [{ url: currentProfile.avatar_url }] : []
-            }}
-            onImageClick={handleImageClick}
-            onLike={() => likeProfile(currentProfile.user_id)}
-            onPass={() => passProfile(currentProfile.user_id)}
-            isUserOnline={isUserOnline}
-          />
-          
-          {/* Like count indicator */}
-          <div className="text-center mt-2">
-            <span className="text-sm text-muted-foreground">
-              {remainingLikes} likes remaining today
-            </span>
+        <div className="flex justify-center px-4">
+          <div className="w-full max-w-[320px]">
+            <MobileProfileCard
+              profile={{
+                id: currentProfile.id,
+                user_id: currentProfile.user_id,
+                first_name: currentProfile.first_name,
+                last_name: currentProfile.last_name,
+                date_of_birth: currentProfile.date_of_birth || "",
+                location: currentProfile.location,
+                avatar_url: currentProfile.avatar_url || undefined,
+                ms_subtype: currentProfile.ms_subtype || undefined,
+                diagnosis_year: currentProfile.diagnosis_year || undefined,
+                hobbies: currentProfile.hobbies || [],
+                about_me: currentProfile.about_me || undefined,
+                photos: [
+                  ...(currentProfile.avatar_url ? [{ url: currentProfile.avatar_url }] : []),
+                  ...(currentProfile.additional_photos?.map(url => ({ url })) || [])
+                ],
+                selected_prompts: currentProfile.selected_prompts || [],
+                last_seen: currentProfile.last_seen
+              }}
+              onImageClick={handleImageClick}
+              onLike={() => likeProfile(currentProfile.user_id)}
+              onPass={() => passProfile(currentProfile.user_id)}
+              isUserOnline={isUserOnline}
+              className="mx-auto"
+            />
+            
+            {/* Like count indicator below card */}
+            <div className="text-center mt-3">
+              <span className="text-sm text-muted-foreground bg-white/80 px-3 py-1 rounded-full shadow-sm">
+                {remainingLikes} likes remaining today
+              </span>
+            </div>
           </div>
         </div>
       )}

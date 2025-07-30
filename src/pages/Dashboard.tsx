@@ -23,6 +23,7 @@ import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
+import PersistentBottomNavigation from "@/components/PersistentBottomNavigation";
 import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
 import MatchesPage from "@/components/MatchesPage";
 import ForumPage from "@/components/ForumPage";
@@ -326,6 +327,9 @@ const Dashboard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Persistent Bottom Navigation */}
+      <PersistentBottomNavigation />
       </div>
     </MobileKeyboardHandler>;
 };
