@@ -222,26 +222,24 @@ export const useIOSNotifications = () => {
       
       switch (type) {
         case 'like':
+          // Navigate to likes tab
+          window.history.pushState({}, '', '/dashboard?tab=likes');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+          break;
         case 'match':
-          // Navigate to matches/discover page - use proper navigation instead of reload
-          if (window.location.pathname !== '/dashboard') {
-            window.history.pushState({}, '', '/dashboard');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }
+          // Navigate to matches tab
+          window.history.pushState({}, '', '/dashboard?tab=matches');
+          window.dispatchEvent(new PopStateEvent('popstate'));
           break;
         case 'message':
-          // Navigate to messages - use proper navigation instead of reload
-          if (window.location.pathname !== '/dashboard' || !window.location.search.includes('tab=matches')) {
-            window.history.pushState({}, '', '/dashboard?tab=matches');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }
+          // Navigate to messages (matches tab)
+          window.history.pushState({}, '', '/dashboard?tab=matches');
+          window.dispatchEvent(new PopStateEvent('popstate'));
           break;
         case 'likes_reset':
-          // Navigate to discover page - use proper navigation instead of reload
-          if (window.location.pathname !== '/dashboard') {
-            window.history.pushState({}, '', '/dashboard');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }
+          // Navigate to discover page
+          window.history.pushState({}, '', '/dashboard');
+          window.dispatchEvent(new PopStateEvent('popstate'));
           break;
       }
     });

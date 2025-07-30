@@ -75,11 +75,24 @@ export const useNativePushNotifications = () => {
           const notificationData = notification.notification.data;
           if (notificationData?.type) {
             // Navigate based on notification type
-            // Use proper navigation instead of hard reload
-          if (window.location.pathname !== '/dashboard') {
-            window.history.pushState({}, '', '/dashboard');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }
+            switch (notificationData.type) {
+              case 'like':
+                window.history.pushState({}, '', '/dashboard?tab=likes');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+                break;
+              case 'match':
+                window.history.pushState({}, '', '/dashboard?tab=matches');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+                break;
+              case 'message':
+                window.history.pushState({}, '', '/dashboard?tab=matches');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+                break;
+              default:
+                window.history.pushState({}, '', '/dashboard');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+                break;
+            }
           }
         });
       } else {

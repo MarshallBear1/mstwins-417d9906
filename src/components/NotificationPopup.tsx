@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const NotificationPopup = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -13,6 +14,7 @@ const NotificationPopup = () => {
   const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
   const [notificationQueue, setNotificationQueue] = useState<any[]>([]);
   const [lastShownNotificationId, setLastShownNotificationId] = useState<string | null>(null);
+  const navigate = useNavigate();
   const { notifications, markAsRead } = useRealtimeNotifications();
   const { getNotificationSettings } = useNotificationPreferences();
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
@@ -135,6 +137,32 @@ const NotificationPopup = () => {
     }, 1000); // 1 second delay between notifications
   }, [currentNotification, markAsRead, notificationQueue]);
 
+  const handleNotificationClick = useCallback(() => {
+    if (!currentNotification) return;
+    
+    // Mark as read
+    markAsRead(currentNotification.id);
+    
+    // Navigate to appropriate tab based on notification type
+    switch (currentNotification.type) {
+      case 'like':
+        navigate('/dashboard?tab=likes');
+        break;
+      case 'match':
+        navigate('/dashboard?tab=matches');
+        break;
+      case 'message':
+        navigate('/dashboard?tab=matches');
+        break;
+      default:
+        navigate('/dashboard');
+        break;
+    }
+    
+    // Dismiss the popup
+    handleDismiss();
+  }, [currentNotification, markAsRead, navigate, handleDismiss]);
+
   if (!isVisible || !currentNotification) return null;
 
   const isMatch = currentNotification.type === 'match';
@@ -142,7 +170,10 @@ const NotificationPopup = () => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 animate-scale-in px-4 sm:inset-auto sm:top-4 sm:right-4 sm:justify-end sm:items-start">
-      <Card className="w-80 max-w-[calc(100vw-2rem)] shadow-xl border-0 bg-background/95 backdrop-blur-md">
+      <Card 
+        className="w-80 max-w-[calc(100vw-2rem)] shadow-xl border-0 bg-background/95 backdrop-blur-md cursor-pointer hover:shadow-2xl transition-shadow"
+        onClick={handleNotificationClick}
+      >
         <CardContent className="p-4">
           <div className="flex items-start space-x-3">
             {/* Robot mascot */}

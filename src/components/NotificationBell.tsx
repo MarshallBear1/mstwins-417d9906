@@ -9,9 +9,11 @@ import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const NotificationBell = () => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const navigate = useNavigate();
   const {
     notifications,
     unreadCount,
@@ -82,6 +84,25 @@ const NotificationBell = () => {
     if (!notification.is_read) {
       markAsRead(notification.id);
     }
+    
+    // Navigate to appropriate tab based on notification type
+    switch (notification.type) {
+      case 'like':
+        navigate('/dashboard?tab=likes');
+        break;
+      case 'match':
+        navigate('/dashboard?tab=matches');
+        break;
+      case 'message':
+        navigate('/dashboard?tab=matches');
+        break;
+      default:
+        navigate('/dashboard');
+        break;
+    }
+    
+    // Close the notifications panel
+    setShowNotifications(false);
   };
   return (
     <>
@@ -150,7 +171,7 @@ const NotificationBell = () => {
                            "p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer",
                            !notification.is_read && "bg-blue-50/50"
                          )}
-                         onClick={() => markAsRead(notification.id)}
+                         onClick={() => handleNotificationClick(notification)}
                       >
                         <div className="flex items-start gap-3">
                           <div className={cn(
