@@ -63,7 +63,9 @@ const DiscoverProfiles = memo(() => {
   const fetchProfiles = useCallback(async () => {
     if (!user) return;
 
+    console.log('🔄 Fetching discover profiles for user:', user.id);
     setLoading(true);
+    
     try {
       const [profilesResult, likedResult, passedResult] = await Promise.all([
         supabase
@@ -90,7 +92,7 @@ const DiscoverProfiles = memo(() => {
           .neq('user_id', user.id)
           .eq('moderation_status', 'approved')
           .order('last_seen', { ascending: false })
-          .limit(20),
+          .limit(50), // Increased limit to ensure we get enough profiles
         
         supabase
           .from('likes')
@@ -103,20 +105,38 @@ const DiscoverProfiles = memo(() => {
           .eq('passer_id', user.id)
       ]);
 
-      if (profilesResult.error) throw profilesResult.error;
+      console.log('📊 Profile query results:', {
+        totalProfiles: profilesResult.data?.length || 0,
+        likesCount: likedResult.data?.length || 0,
+        passesCount: passedResult.data?.length || 0,
+        hasError: !!profilesResult.error
+      });
+
+      if (profilesResult.error) {
+        console.error('❌ Profile fetch error:', profilesResult.error);
+        throw profilesResult.error;
+      }
 
       const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
       const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
+
+      console.log('🔍 Filtering profiles - Liked IDs:', likedIds.size, 'Passed IDs:', passedIds.size);
 
       // Filter out already liked/passed profiles
       const filteredProfiles = profilesResult.data?.filter(
         profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
       ) || [];
 
+      console.log('✅ Filtered profiles count:', filteredProfiles.length);
+
       setProfiles(filteredProfiles as Profile[]);
       setCurrentIndex(0);
+      
+      if (filteredProfiles.length === 0) {
+        console.log('⚠️ No profiles available after filtering');
+      }
     } catch (error) {
-      console.error('Error fetching profiles:', error);
+      console.error('❌ Error fetching profiles:', error);
       toast({
         title: "Error loading profiles",
         description: "Please try again later.",
