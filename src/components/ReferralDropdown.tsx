@@ -83,7 +83,7 @@ const ReferralDropdown = () => {
           
           {/* Dropdown Card */}
           <div className="absolute top-12 right-0 left-0 sm:left-auto sm:w-80 w-full px-4 sm:px-0 z-50 transform transition-all duration-300 animate-in slide-in-from-top-2 fade-in flex justify-center sm:justify-end">
-            <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden w-full max-w-sm sm:max-w-md">
+            <Card className="border shadow-2xl bg-white rounded-2xl overflow-hidden w-full max-w-sm sm:max-w-md">
               {/* Modern Header */}
               <div className="bg-blue-600 p-4 text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/5" />
@@ -108,7 +108,7 @@ const ReferralDropdown = () => {
                 </div>
               </div>
               
-              <CardContent className="p-4 space-y-4">
+              <CardContent className="p-4 space-y-4 bg-white">
                 {/* Native Share Button for Mobile */}
                 {isSupported && (
                   <Button
