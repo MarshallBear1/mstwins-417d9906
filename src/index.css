@@ -542,17 +542,21 @@ select {
 }
 
 /* Profile View Dialog positioning fix */
-.profile-view-dialog {
+[data-radix-dialog-overlay] {
+  z-index: 9998 !important;
   position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 999 !important;
-  max-height: 90vh !important;
-  max-width: 90vw !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
 }
 
-/* Ensure dialog overlay has high z-index */
-[data-radix-dialog-overlay] {
-  z-index: 998 !important;
+[data-radix-dialog-content] {
+  position: fixed !important;
+  top: 50vh !important;
+  left: 50vw !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+  max-height: 90vh !important;
+  max-width: 90vw !important;
 }

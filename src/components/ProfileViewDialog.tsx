@@ -96,9 +96,14 @@ const ProfileViewDialog = ({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent 
-          className="sm:max-w-[400px] max-w-[90vw] max-h-[90vh] overflow-hidden p-0 [&>button]:hidden profile-view-dialog"
+          className="sm:max-w-[400px] max-w-[90vw] max-h-[90vh] overflow-hidden p-0 [&>button]:hidden"
           style={{ 
-            perspective: '1000px'
+            perspective: '1000px',
+            position: 'fixed',
+            top: '50vh',
+            left: '50vw',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 9999
           }}
         >
           <DialogHeader className="sr-only">
