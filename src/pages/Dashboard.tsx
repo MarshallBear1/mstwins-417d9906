@@ -211,40 +211,6 @@ const Dashboard = () => {
     switch (activeTab) {
       case "discover":
         return <div className="pt-6">
-            {/* Extended Profile Prompt */}
-            {profile && !profile.extended_profile_completed && !sessionStorage.getItem(`extended_prompt_dismissed_${user?.id}`) && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in p-4" onClick={() => {
-                sessionStorage.setItem(`extended_prompt_dismissed_${user?.id}`, 'true');
-                setExtendedPromptDismissed(true);
-              }}>
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 max-w-md w-full mx-4 shadow-2xl animate-scale-in" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-start space-x-3">
-                    <img src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" alt="Helpful robot" className="w-10 h-10 rounded-full flex-shrink-0" />
-                    <div className="flex-1">
-                      <div className="bg-white rounded-lg p-3 shadow-sm relative">
-                        <div className="absolute -left-2 top-3 w-0 h-0 border-t-4 border-t-transparent border-r-4 border-r-white border-b-4 border-b-transparent"></div>
-                        <p className="text-sm text-foreground font-medium mb-1">
-                          💡 Stand out even more!
-                        </p>
-                        <p className="text-sm text-foreground mb-3">
-                          Add more photos and personal stories to get noticed by potential matches.
-                        </p>
-                        <Button size="sm" onClick={() => navigate("/extended-profile")} className="bg-gradient-primary hover:opacity-90 text-white">
-                          Add More Details
-                        </Button>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={(e) => {
-                      e.stopPropagation();
-                      sessionStorage.setItem(`extended_prompt_dismissed_${user?.id}`, 'true');
-                      setExtendedPromptDismissed(true);
-                    }} className="flex-shrink-0 p-1 h-auto">
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
             <DiscoverProfiles />
           </div>;
       case "likes":
