@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import Messaging from "@/components/Messaging";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { OptimizedButton } from "@/components/OptimizedComponents";
 
 // Import the likes component from Dashboard
 interface MatchesPageProps {
@@ -84,41 +85,52 @@ const MatchesPage = ({
                     <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                     View
                   </Button>
-                  <Button size="sm" className="w-full bg-gradient-primary hover:opacity-90 text-white text-xs sm:text-sm" onClick={async () => {
-                // Like back functionality (moved from Dashboard)
-                try {
-                  console.log('🚀 Starting like back process for:', likedProfile.user_id);
+                  <OptimizedButton 
+                    size="sm" 
+                    className="w-full bg-gradient-primary hover:opacity-90 text-white text-xs sm:text-sm" 
+                    onClick={async () => {
+                      // Like back functionality with optimized error handling
+                      try {
+                        console.log('🚀 Starting like back process for:', likedProfile.user_id);
 
-                  // Check if user already liked this person back
-                  const {
-                    data: existingLike
-                  } = await supabase.from('likes').select('id').eq('liker_id', user?.id).eq('liked_id', likedProfile.user_id).maybeSingle();
-                  if (existingLike) {
-                    console.log('✅ Already liked back');
-                    fetchLikes(); // Refresh to show updated state
-                    return;
-                  }
+                        // Check if user already liked this person back
+                        const { data: existingLike } = await supabase
+                          .from('likes')
+                          .select('id')
+                          .eq('liker_id', user?.id)
+                          .eq('liked_id', likedProfile.user_id)
+                          .maybeSingle();
 
-                  // Create a like back
-                  const {
-                    error
-                  } = await supabase.from('likes').insert({
-                    liker_id: user?.id,
-                    liked_id: likedProfile.user_id
-                  });
-                  if (error) {
-                    console.error('❌ Error liking back:', error);
-                    return;
-                  }
-                  console.log('✅ Liked back successfully!');
-                  fetchLikes(); // Refresh the likes to show updated state
-                } catch (error) {
-                  console.error('❌ Exception during like back:', error);
-                }
-              }}>
+                        if (existingLike) {
+                          console.log('✅ Already liked back');
+                          fetchLikes(); // Refresh to show updated state
+                          return;
+                        }
+
+                        // Create a like back
+                        const { error } = await supabase
+                          .from('likes')
+                          .insert({
+                            liker_id: user?.id,
+                            liked_id: likedProfile.user_id
+                          });
+
+                        if (error) {
+                          console.error('❌ Error liking back:', error);
+                          return;
+                        }
+
+                        console.log('✅ Liked back successfully!');
+                        fetchLikes(); // Refresh the likes to show updated state
+                      } catch (error) {
+                        console.error('❌ Exception during like back:', error);
+                      }
+                    }}
+                    debounceMs={2000}
+                  >
                     <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                     Like Back
-                  </Button>
+                  </OptimizedButton>
                 </div>
               </div>
             </CardContent>

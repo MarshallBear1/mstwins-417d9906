@@ -91,8 +91,9 @@ const ForumPage = () => {
 
     try {
       const currentOffset = reset ? 0 : offset;
+      const startTime = performance.now();
       
-      // Get posts first
+      // Optimized single query with joins to reduce API calls
       const { data: postsData, error: postsError } = await supabase
         .from('forum_posts')
         .select(`
@@ -103,7 +104,15 @@ const ForumPage = () => {
           author_id,
           created_at,
           likes_count,
-          comments_count
+          comments_count,
+          profiles!forum_posts_author_id_fkey (
+            user_id,
+            first_name,
+            last_name,
+            avatar_url,
+            ms_subtype,
+            location
+          )
         `)
         .eq('moderation_status', 'approved')
         .order('created_at', { ascending: false })
@@ -120,37 +129,29 @@ const ForumPage = () => {
         return;
       }
 
-      // Get author profiles and user likes in parallel
-      const authorIds = postsData.map(post => post.author_id);
+      // Only fetch user likes separately (reduced from 3 queries to 2)
       const postIds = postsData.map(post => post.id);
-      
-      const [profilesResult, likesResult] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('user_id, first_name, last_name, avatar_url, ms_subtype, location')
-          .in('user_id', authorIds),
-        supabase
-          .from('forum_likes')
-          .select('post_id')
-          .eq('user_id', user.id)
-          .in('post_id', postIds)
-      ]);
+      const { data: likesData } = await supabase
+        .from('forum_likes')
+        .select('post_id')
+        .eq('user_id', user.id)
+        .in('post_id', postIds);
 
-      const profileMap = new Map(profilesResult.data?.map(p => [p.user_id, p]) || []);
-      const likedPostIds = new Set(likesResult.data?.map(like => like.post_id) || []);
+      const likedPostIds = new Set(likesData?.map(like => like.post_id) || []);
       
       const postsWithLikes = postsData.map(post => {
-        const author = profileMap.get(post.author_id);
+        const profile = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
         return {
           ...post,
           author: {
-            first_name: author?.first_name || 'Unknown',
-            last_name: author?.last_name || 'User',
-            avatar_url: author?.avatar_url || null,
-            ms_subtype: author?.ms_subtype || null,
-            location: author?.location || null,
+            first_name: profile?.first_name || 'Unknown',
+            last_name: profile?.last_name || 'User',
+            avatar_url: profile?.avatar_url || null,
+            ms_subtype: profile?.ms_subtype || null,
+            location: profile?.location || null,
           },
-          user_has_liked: likedPostIds.has(post.id)
+          user_has_liked: likedPostIds.has(post.id),
+          profiles: undefined // Remove to clean up response
         };
       });
 
@@ -163,6 +164,13 @@ const ForumPage = () => {
       }
 
       setHasMore(postsData.length === 10);
+      
+      const loadTime = performance.now() - startTime;
+      console.log(`🚀 Forum posts loaded in ${loadTime.toFixed(2)}ms`);
+      
+      if (loadTime > 500) {
+        console.warn(`⚠️ Slow forum query: ${loadTime.toFixed(2)}ms`);
+      }
     } catch (error) {
       console.error('Error loading posts:', error);
       toast({
@@ -299,58 +307,57 @@ const ForumPage = () => {
 
   const loadComments = async (postId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('forum_comments')
-        .select(`
-          id,
-          content,
-          author_id,
-          post_id,
-          created_at,
-          likes_count
-        `)
-        .eq('post_id', postId)
-        .eq('moderation_status', 'approved')
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      // Get author profiles separately and check likes
-      let commentsWithLikes: ForumComment[] = [];
-      if (data && data.length > 0) {
-        const authorIds = data.map(comment => comment.author_id);
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('user_id, first_name, last_name, avatar_url')
-          .in('user_id', authorIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-
-        // Check which comments the user has liked
-        const commentIds = data.map(comment => comment.id);
-        const { data: userLikes } = await supabase
+      const startTime = performance.now();
+      
+      // Optimized query with join to reduce API calls from 3 to 2
+      const [commentsResult, likesResult] = await Promise.all([
+        supabase
+          .from('forum_comments')
+          .select(`
+            id,
+            content,
+            author_id,
+            post_id,
+            created_at,
+            likes_count,
+            profiles!forum_comments_author_id_fkey (
+              user_id,
+              first_name,
+              last_name,
+              avatar_url
+            )
+          `)
+          .eq('post_id', postId)
+          .eq('moderation_status', 'approved')
+          .order('created_at', { ascending: true }),
+        user ? supabase
           .from('forum_comment_likes')
           .select('comment_id')
-          .eq('user_id', user.id)
-          .in('comment_id', commentIds);
+          .eq('user_id', user.id) : { data: [] }
+      ]);
 
-        const likedCommentIds = new Set(userLikes?.map(like => like.comment_id) || []);
-        
-        commentsWithLikes = data.map(comment => {
-          const author = profileMap.get(comment.author_id);
-          return {
-            ...comment,
-            author: {
-              first_name: author?.first_name || 'Unknown',
-              last_name: author?.last_name || 'User',
-              avatar_url: author?.avatar_url || null,
-            },
-            user_has_liked: likedCommentIds.has(comment.id)
-          };
-        });
-      }
+      if (commentsResult.error) throw commentsResult.error;
+
+      const likedCommentIds = new Set(likesResult.data?.map(like => like.comment_id) || []);
+      
+      const commentsWithLikes: ForumComment[] = (commentsResult.data || []).map(comment => {
+        const profile = Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles;
+        return {
+          ...comment,
+          author: {
+            first_name: profile?.first_name || 'Unknown',
+            last_name: profile?.last_name || 'User',
+            avatar_url: profile?.avatar_url || null,
+          },
+          user_has_liked: likedCommentIds.has(comment.id),
+          profiles: undefined // Clean up response
+        };
+      });
 
       setComments(commentsWithLikes);
+      
+      const loadTime = performance.now() - startTime;
+      console.log(`🚀 Comments loaded in ${loadTime.toFixed(2)}ms`);
     } catch (error) {
       console.error('Error loading comments:', error);
     }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Bell, Heart, Users, MessageCircle, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,19 +10,43 @@ import { useToast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useNotificationOptimization, useNotificationPerformanceMonitor } from "@/hooks/useNotificationOptimization";
+import { OptimizedButton } from "@/components/OptimizedComponents";
 
 const NotificationBell = () => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Use optimized notification hooks
+  const { 
+    subscribe, 
+    markAsReadOptimized, 
+    markAllAsReadOptimized,
+    fetchNotifications 
+  } = useNotificationOptimization();
+  
+  const { startTimer, endTimer } = useNotificationPerformanceMonitor();
+  
   const {
-    notifications,
-    unreadCount,
-    markAsRead,
-    markAllAsRead,
     requestAllPermissions,
     notificationsEnabled
   } = useRealtimeNotifications();
-  const { toast } = useToast();
+
+  // Subscribe to optimized notification updates
+  useEffect(() => {
+    const unsubscribe = subscribe((cache) => {
+      setNotifications(cache.data);
+      setUnreadCount(cache.unreadCount);
+    });
+
+    // Initial fetch
+    fetchNotifications().catch(console.error);
+
+    return unsubscribe;
+  }, [subscribe, fetchNotifications]);
 
   // Detect iOS/iPhone - browser notifications don't work properly on iOS
   const isIOS = () => {
@@ -80,15 +104,17 @@ const NotificationBell = () => {
         return <Bell className="w-4 h-4 text-gray-500" />;
     }
   };
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = useCallback(async (notification: any) => {
+    startTimer();
+    
     if (!notification.is_read) {
-      markAsRead(notification.id);
+      await markAsReadOptimized(notification.id);
     }
     
     // Navigate to appropriate tab based on notification type
     switch (notification.type) {
       case 'like':
-        navigate('/dashboard?tab=likes');
+        navigate('/dashboard?tab=matches');
         break;
       case 'match':
         navigate('/dashboard?tab=matches');
@@ -103,7 +129,14 @@ const NotificationBell = () => {
     
     // Close the notifications panel
     setShowNotifications(false);
-  };
+    endTimer('notification_click');
+  }, [navigate, markAsReadOptimized, startTimer, endTimer]);
+
+  const handleMarkAllAsRead = useCallback(async () => {
+    startTimer();
+    await markAllAsReadOptimized();
+    endTimer('mark_all_read');
+  }, [markAllAsReadOptimized, startTimer, endTimer]);
   return (
     <>
       {/* Modern notification bell button */}
@@ -133,14 +166,15 @@ const NotificationBell = () => {
                 <CardTitle className="text-lg font-bold text-gray-900">Notifications</CardTitle>
                 <div className="flex items-center gap-2">
                   {notifications.length > 0 && (
-                    <Button 
+                    <OptimizedButton 
                       variant="ghost" 
                       size="sm" 
-                      onClick={markAllAsRead}
+                      onClick={handleMarkAllAsRead}
                       className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 px-2 rounded-lg font-medium"
+                      debounceMs={1000}
                     >
                       Mark all read
-                    </Button>
+                    </OptimizedButton>
                   )}
                   <Button 
                     variant="ghost" 

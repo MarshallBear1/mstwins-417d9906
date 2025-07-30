@@ -183,52 +183,53 @@ const Dashboard = () => {
     if (!user) return;
     setLikesLoading(true);
     try {
-      // Get people who liked the current user
-      const {
-        data: likeData,
-        error
-      } = await supabase.from('likes').select('liker_id, created_at').eq('liked_id', user.id).order('created_at', {
-        ascending: false
-      });
+      const startTime = performance.now();
       
-      if (error) {
-        console.error('Error fetching likes:', error);
+      // Optimized parallel queries to reduce loading time
+      const [likesResult, matchesResult] = await Promise.all([
+        supabase
+          .from('likes')
+          .select('liker_id, created_at')
+          .eq('liked_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('matches')
+          .select('user1_id, user2_id')
+          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+      ]);
+      
+      if (likesResult.error) {
+        console.error('Error fetching likes:', likesResult.error);
         return;
       }
       
-      if (!likeData || likeData.length === 0) {
+      if (!likesResult.data || likesResult.data.length === 0) {
         setLikes([]);
         return;
       }
 
-      // Get existing matches to exclude them from likes
-      const {
-        data: existingMatches,
-        error: matchesError
-      } = await supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-      
-      if (matchesError) {
-        console.error('Error fetching matches:', matchesError);
-      }
-      
-      const matchedIds = existingMatches?.map(match => match.user1_id === user.id ? match.user2_id : match.user1_id) || [];
+      const matchedIds = matchesResult.data?.map(match => 
+        match.user1_id === user.id ? match.user2_id : match.user1_id
+      ) || [];
 
-      // Filter out users who are already matched
-      const unmatchedLikers = likeData.filter(like => !matchedIds.includes(like.liker_id));
+      // Filter out matched users
+      const unmatchedLikers = likesResult.data.filter(like => 
+        !matchedIds.includes(like.liker_id)
+      );
       
       if (unmatchedLikers.length === 0) {
         setLikes([]);
         return;
       }
 
-      // Get the profiles of people who liked the user (excluding matches)
+      // Get profiles with optimized field selection
       const likerIds = unmatchedLikers.map(like => like.liker_id);
-      
       const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts';
-      const {
-        data: profiles,
-        error: profilesError
-      } = await supabase.from('profiles').select(selectFields).in('user_id', likerIds);
+      
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select(selectFields)
+        .in('user_id', likerIds);
       
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
@@ -237,13 +238,18 @@ const Dashboard = () => {
       
       const formattedProfiles = (profiles || []).map(profile => ({
         ...profile,
-        selected_prompts: Array.isArray(profile.selected_prompts) ? profile.selected_prompts as {
-          question: string;
-          answer: string;
-        }[] : []
+        selected_prompts: Array.isArray(profile.selected_prompts) ? 
+          profile.selected_prompts as { question: string; answer: string; }[] : []
       }));
       
       setLikes(formattedProfiles);
+      
+      const loadTime = performance.now() - startTime;
+      console.log(`🚀 Likes loaded in ${loadTime.toFixed(2)}ms`);
+      
+      if (loadTime > 1000) {
+        console.warn(`⚠️ Slow likes query: ${loadTime.toFixed(2)}ms`);
+      }
     } catch (error) {
       console.error('Error fetching likes:', error);
     } finally {
