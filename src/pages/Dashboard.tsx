@@ -287,30 +287,14 @@ const Dashboard = () => {
         return <ForumPage />;
       case "profile":
         return profile ? (
-          <div className="space-y-6">
-            <ProfileCard 
-              profile={profile as any} 
-               onProfileUpdate={(updatedProfile: any) => {
-                 setProfile(updatedProfile);
-                 dashboardCache.set(user.id, 'profile', updatedProfile);
-               }}
-              onSignOut={handleSignOut} 
-            />
-            
-            {process.env.NODE_ENV === 'development' && (
-              <div className="p-4">
-                <h3 className="text-lg font-medium mb-4">Developer Tools</h3>
-                <Button
-                  onClick={() => setShowAnalyticsDebug(!showAnalyticsDebug)}
-                  variant="outline"
-                  className="mb-4"
-                >
-                  {showAnalyticsDebug ? 'Hide' : 'Show'} Analytics Debug
-                </Button>
-                {showAnalyticsDebug && <AnalyticsDebugPanel />}
-              </div>
-            )}
-          </div>
+          <ProfileCard 
+            profile={profile as any} 
+            onProfileUpdate={(updatedProfile: any) => {
+              setProfile(updatedProfile);
+              dashboardCache.set(user.id, 'profile', updatedProfile);
+            }} 
+            onSignOut={handleSignOut} 
+          />
         ) : null;
       default:
         return null;
