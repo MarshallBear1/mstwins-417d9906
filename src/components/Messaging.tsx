@@ -212,11 +212,10 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           id,
           user1_id,
           user2_id,
-          created_at,
-          messages!inner(id, content, created_at, sender_id)
+          created_at
         `)
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .order('messages.created_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching matches:', error);

@@ -237,6 +237,14 @@ const Dashboard = () => {
       </div>;
   }
   const renderContent = () => {
+    console.log('🔍 Dashboard renderContent called with activeTab:', activeTab);
+    console.log('🔍 Discover profiles data:', { 
+      profilesCount: discoverProfiles.length, 
+      discoverLoading,
+      hasUser: !!user,
+      hasProfile: !!profile
+    });
+    
     switch (activeTab) {
       case "discover":
         return <div className="pt-6">
