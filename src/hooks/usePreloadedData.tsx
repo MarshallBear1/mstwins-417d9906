@@ -72,21 +72,27 @@ export const usePreloadedData = ({ user, activeTab }: UsePreloadedDataProps) => 
   // Optimized profile fetching
   const fetchProfile = useCallback(async () => {
     if (!user) {
+      console.log('❌ No user provided to fetchProfile');
       setProfileLoading(false);
       return;
     }
 
     console.log('🔄 Fetching profile with preloading optimization for user:', user?.id);
+    console.log('🔍 User object details:', user);
     setProfileLoading(true);
 
     try {
       const selectFields = 'id, user_id, first_name, last_name, date_of_birth, location, gender, ms_subtype, diagnosis_year, symptoms, medications, hobbies, avatar_url, about_me, last_seen, additional_photos, selected_prompts, extended_profile_completed';
 
+      console.log('🔍 About to query profiles table with user_id:', user.id);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select(selectFields)
         .eq('user_id', user.id)
         .maybeSingle();
+
+      console.log('🔍 Raw Supabase response:', { data, error, userIdQueried: user.id });
 
       if (error) {
         console.error('❌ Error fetching profile:', error);
@@ -94,13 +100,26 @@ export const usePreloadedData = ({ user, activeTab }: UsePreloadedDataProps) => 
         return;
       }
 
-      console.log('📊 Profile fetch result:', { hasData: !!data, data });
+      console.log('📊 Profile fetch result:', { 
+        hasData: !!data, 
+        data,
+        dataKeys: data ? Object.keys(data) : 'no data',
+        firstName: data?.first_name,
+        extendedProfileCompleted: data?.extended_profile_completed
+      });
 
-      setProfile(data ? {
-        ...data,
-        selected_prompts: Array.isArray(data.selected_prompts) ? 
-          data.selected_prompts as { question: string; answer: string; }[] : []
-      } : null);
+      if (data) {
+        const profileData = {
+          ...data,
+          selected_prompts: Array.isArray(data.selected_prompts) ? 
+            data.selected_prompts as { question: string; answer: string; }[] : []
+        };
+        console.log('✅ Setting profile data:', profileData);
+        setProfile(profileData);
+      } else {
+        console.log('❌ No profile data found, setting profile to null');
+        setProfile(null);
+      }
 
       // Update last_seen in background
       if (data) {
