@@ -188,12 +188,9 @@ const Auth = () => {
           description: "Your password has been updated. You can now sign in with your new password.",
         });
         
-        // Clear the URL parameters and reset state
-        window.history.replaceState({}, document.title, "/auth");
-        setIsPasswordReset(false);
-        setNewPassword("");
-        setConfirmPassword("");
-        setIsSignUp(false);
+        // Clear URL and redirect to dashboard
+        window.history.replaceState({}, document.title, "/dashboard");
+        navigate("/dashboard");
       }
     } catch (error: any) {
       toast({

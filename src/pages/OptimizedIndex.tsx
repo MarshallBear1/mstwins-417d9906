@@ -52,23 +52,10 @@ const OptimizedIndex = () => {
       if (type === 'recovery') {
         console.log('🔑 Password reset detected on landing page, redirecting to auth...');
         
-        // Preserve all parameters when redirecting to auth
-        const currentHash = window.location.hash;
-        const currentSearch = window.location.search;
-        
-        if (currentHash) {
-          // If parameters are in hash, redirect with hash preserved
-          console.log('📍 Redirecting with hash:', `/auth${currentSearch}${currentHash}`);
-          navigate(`/auth${currentSearch}${currentHash}`, { replace: true });
-        } else if (currentSearch) {
-          // If parameters are in search, redirect with search preserved  
-          console.log('📍 Redirecting with search:', `/auth${currentSearch}`);
-          navigate(`/auth${currentSearch}`, { replace: true });
-        } else {
-          // Fallback redirect
-          console.log('📍 Fallback redirect to:', '/auth?type=recovery');
-          navigate('/auth?type=recovery', { replace: true });
-        }
+        // Preserve ALL parameters when redirecting
+        const fullUrl = `${window.location.search}${window.location.hash}`;
+        console.log('📍 Redirecting with all params:', `/auth${fullUrl}`);
+        navigate(`/auth${fullUrl}`, { replace: true });
         return;
       } else {
         console.log('ℹ️ No password reset detected - normal landing page load');

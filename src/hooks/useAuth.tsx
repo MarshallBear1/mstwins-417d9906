@@ -71,7 +71,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Track authentication events
         if (event === 'SIGNED_IN' && session?.user) {
           // Check if this is a password reset flow to prevent automatic redirect
-          const isPasswordReset = window.location.search.includes('type=recovery');
+    const isPasswordReset = window.location.search.includes('type=recovery') || 
+                         window.location.hash.includes('type=recovery');
           
           console.log('✅ User signed in successfully:', {
             userId: session.user.id,
