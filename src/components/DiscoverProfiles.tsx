@@ -1,5 +1,4 @@
 import { useState, useEffect, memo, useCallback, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, RefreshCw, MapPin, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,7 @@ import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import LikeLimitWarning from "@/components/LikeLimitWarning";
+import MobileProfileCard from "@/components/ui/mobile-profile-card";
 import { useHaptics } from "@/hooks/useHaptics";
 
 // Memoize the calculate age function to prevent recalculation
@@ -423,7 +423,7 @@ const DiscoverProfiles = memo(() => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
       {/* Remaining likes warning */}
       <LikeLimitWarning 
         open={remainingLikes <= 2 && remainingLikes > 0} 
@@ -431,83 +431,30 @@ const DiscoverProfiles = memo(() => {
         remainingLikes={remainingLikes} 
       />
       
-      {/* Profile Card */}
+      {/* Mobile Profile Card */}
       {currentProfile && (
-        <Card className="mx-auto max-w-md overflow-hidden shadow-lg">
-          <CardContent className="p-0">
-            {/* Profile Image */}
-            <div 
-              className="relative h-96 bg-gradient-to-br from-blue-400/20 via-purple-300/20 to-pink-300/20 cursor-pointer"
-              onClick={handleImageClick}
-            >
-              {currentProfile.avatar_url ? (
-                <img
-                  src={currentProfile.avatar_url}
-                  alt={`${currentProfile.first_name}'s profile`}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <User className="w-24 h-24 text-gray-400" />
-                </div>
-              )}
-              
-              {/* Online status */}
-              {isUserOnline(currentProfile.user_id) && (
-                <div className="absolute top-4 left-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs">
-                  Online
-                </div>
-              )}
-            </div>
-            
-            {/* Profile Info */}
-            <div className="p-4 space-y-3">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {currentProfile.first_name} {currentProfile.last_name}
-                </h2>
-                {currentProfile.date_of_birth && (
-                  <p className="text-gray-600">Age {calculateAge(currentProfile.date_of_birth)}</p>
-                )}
-              </div>
-              
-              <div className="flex items-center text-gray-600">
-                <MapPin className="w-4 h-4 mr-1" />
-                <span>{currentProfile.location}</span>
-              </div>
-              
-              {currentProfile.ms_subtype && (
-                <div className="bg-blue-50 px-3 py-2 rounded-lg">
-                  <span className="text-blue-700 font-medium">{currentProfile.ms_subtype}</span>
-                </div>
-              )}
-              
-              {currentProfile.about_me && (
-                <p className="text-gray-700 text-sm">{currentProfile.about_me}</p>
-              )}
-              
-              {/* Action Buttons */}
-              <div className="flex space-x-3 pt-4">
-                <Button
-                  onClick={() => passProfile(currentProfile.user_id)}
-                  variant="outline"
-                  className="flex-1"
-                  disabled={actionCooldown}
-                >
-                  Pass
-                </Button>
-                <Button
-                  onClick={() => likeProfile(currentProfile.user_id)}
-                  className="flex-1 bg-gradient-primary text-white"
-                  disabled={actionCooldown || remainingLikes <= 0}
-                >
-                  <Heart className="w-4 h-4 mr-2" />
-                  Like ({remainingLikes})
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="w-full max-w-sm mx-auto">
+          <MobileProfileCard
+            profile={{
+              ...currentProfile,
+              date_of_birth: currentProfile.date_of_birth || "",
+              photos: currentProfile.additional_photos ? 
+                [{ url: currentProfile.avatar_url || "" }, ...currentProfile.additional_photos.map(url => ({ url }))] : 
+                currentProfile.avatar_url ? [{ url: currentProfile.avatar_url }] : []
+            }}
+            onImageClick={handleImageClick}
+            onLike={() => likeProfile(currentProfile.user_id)}
+            onPass={() => passProfile(currentProfile.user_id)}
+            isUserOnline={isUserOnline}
+          />
+          
+          {/* Like count indicator */}
+          <div className="text-center mt-2">
+            <span className="text-sm text-muted-foreground">
+              {remainingLikes} likes remaining today
+            </span>
+          </div>
+        </div>
       )}
 
       {/* Image viewer */}
