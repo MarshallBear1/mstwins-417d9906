@@ -711,6 +711,7 @@ export type Database = {
           extended_profile_completed: boolean | null
           first_name: string
           gender: string | null
+          hide_from_discover: boolean | null
           hobbies: string[] | null
           id: string
           last_name: string
@@ -735,6 +736,7 @@ export type Database = {
           extended_profile_completed?: boolean | null
           first_name: string
           gender?: string | null
+          hide_from_discover?: boolean | null
           hobbies?: string[] | null
           id?: string
           last_name: string
@@ -759,6 +761,7 @@ export type Database = {
           extended_profile_completed?: boolean | null
           first_name?: string
           gender?: string | null
+          hide_from_discover?: boolean | null
           hobbies?: string[] | null
           id?: string
           last_name?: string
