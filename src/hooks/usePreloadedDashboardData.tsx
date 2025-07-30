@@ -105,6 +105,19 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
 
     if (!background) setLikesLoading(true);
     try {
+      // First get all the user's matches to exclude them from likes
+      const { data: matchesData } = await supabase
+        .from('matches')
+        .select('user1_id, user2_id')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      
+      // Get the IDs of users we've already matched with
+      const matchedUserIds = matchesData
+        ? matchesData.map(match => 
+            match.user1_id === user.id ? match.user2_id : match.user1_id
+          )
+        : [];
+
       const { data, error } = await supabase
         .from('likes')
         .select(`
@@ -114,6 +127,7 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
           liked_id
         `)
         .eq('liked_id', user.id)
+        .not('liker_id', 'in', `(${matchedUserIds.length > 0 ? matchedUserIds.join(',') : 'null'})`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
