@@ -18,6 +18,8 @@ interface Profile {
   ms_subtype?: string;
   diagnosis_year?: number;
   hobbies?: string[];
+  symptoms?: string[];
+  medications?: string[];
   about_me?: string;
   photos?: { url: string; caption?: string }[];
   selected_prompts?: { question: string; answer: string }[];
@@ -48,6 +50,9 @@ const MobileProfileCard = ({
 }: MobileProfileCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showAllAbout, setShowAllAbout] = useState(false);
+  const [showAllHobbies, setShowAllHobbies] = useState(false);
+  const [showAllSymptoms, setShowAllSymptoms] = useState(false);
+  const [showAllMedications, setShowAllMedications] = useState(false);
   
   // Use the hook for realtime presence if not provided as props
   const { isUserOnline: hookIsUserOnline, getLastSeenText: hookGetLastSeenText } = useRealtimePresence();
@@ -65,11 +70,20 @@ const MobileProfileCard = ({
     return age;
   };
 
+  // Helper function to capitalize text properly
+  const capitalizeText = (text: string) => {
+    return text.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
   const hasExtendedContent = Boolean(
     (profile.photos && profile.photos.length > 1) ||
     (profile.selected_prompts && profile.selected_prompts.length > 0) ||
     (profile.about_me && profile.about_me.length > 80) ||
     profile.hobbies?.length ||
+    profile.symptoms?.length ||
+    profile.medications?.length ||
     profile.ms_subtype ||
     profile.diagnosis_year
   );
@@ -162,11 +176,11 @@ const MobileProfileCard = ({
               </div>
             )}
 
-            {/* MS Info - more compact */}
+            {/* MS Info - more compact with proper capitalization */}
             {profile.ms_subtype && (
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs px-2 py-1">
-                  {profile.ms_subtype}
+                  {capitalizeText(profile.ms_subtype)}
                 </Badge>
                 {profile.diagnosis_year && (
                   <span className="text-xs text-gray-500">
@@ -181,7 +195,7 @@ const MobileProfileCard = ({
               <div className="flex flex-wrap gap-1">
                 {profile.hobbies.slice(0, 3).map((hobby, index) => (
                   <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
-                    {hobby}
+                    {capitalizeText(hobby)}
                   </Badge>
                 ))}
                 {profile.hobbies.length > 3 && (
@@ -271,6 +285,72 @@ const MobileProfileCard = ({
             </div>
 
             <CardContent className="p-4 space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 8rem)' }}>
+              {/* Symptoms */}
+              {profile.symptoms && profile.symptoms.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Symptoms</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {(showAllSymptoms ? profile.symptoms : profile.symptoms.slice(0, 4)).map((symptom, index) => (
+                      <Badge key={index} variant="outline" className="text-xs px-2 py-1 bg-red-50 text-red-700 border-red-200">
+                        {capitalizeText(symptom)}
+                      </Badge>
+                    ))}
+                    {profile.symptoms.length > 4 && (
+                      <button
+                        onClick={() => setShowAllSymptoms(!showAllSymptoms)}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium ml-1"
+                      >
+                        {showAllSymptoms ? 'Show Less' : `+${profile.symptoms.length - 4} more`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Medications */}
+              {profile.medications && profile.medications.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Medications</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {(showAllMedications ? profile.medications : profile.medications.slice(0, 3)).map((medication, index) => (
+                      <Badge key={index} variant="outline" className="text-xs px-2 py-1 bg-blue-50 text-blue-700 border-blue-200">
+                        {capitalizeText(medication)}
+                      </Badge>
+                    ))}
+                    {profile.medications.length > 3 && (
+                      <button
+                        onClick={() => setShowAllMedications(!showAllMedications)}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium ml-1"
+                      >
+                        {showAllMedications ? 'Show Less' : `+${profile.medications.length - 3} more`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* All Hobbies */}
+              {profile.hobbies && profile.hobbies.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Hobbies & Interests</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 6)).map((hobby, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
+                        {capitalizeText(hobby)}
+                      </Badge>
+                    ))}
+                    {profile.hobbies.length > 6 && (
+                      <button
+                        onClick={() => setShowAllHobbies(!showAllHobbies)}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium ml-1"
+                      >
+                        {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 6} more`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Additional Photos */}
               {profile.photos && profile.photos.length > 1 && (
                 <div>
@@ -304,6 +384,16 @@ const MobileProfileCard = ({
                         <p className="text-sm text-gray-900">{prompt.answer}</p>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Full About Section if long */}
+              {profile.about_me && profile.about_me.length > 80 && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">More About Me</h4>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-sm text-gray-900 leading-relaxed">{profile.about_me}</p>
                   </div>
                 </div>
               )}
