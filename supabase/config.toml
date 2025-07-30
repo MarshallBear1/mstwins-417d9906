@@ -14,10 +14,10 @@ site_url = "https://mstwins.com"
 additional_redirect_urls = [
   "https://mstwins.com", 
   "https://mstwins.com/auth",
-  "https://mstwins.com/auth?type=recovery",
+  "https://mstwins.com/password-reset",
   "https://7940c4cb-942f-48c4-aaf2-3eeabcbd074e.lovableproject.com",
   "https://7940c4cb-942f-48c4-aaf2-3eeabcbd074e.lovableproject.com/auth",
-  "https://7940c4cb-942f-48c4-aaf2-3eeabcbd074e.lovableproject.com/auth?type=recovery"
+  "https://7940c4cb-942f-48c4-aaf2-3eeabcbd074e.lovableproject.com/password-reset"
 ]
 jwt_expiry = 3600
 refresh_token_rotation_enabled = true

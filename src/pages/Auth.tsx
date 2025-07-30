@@ -25,15 +25,6 @@ const Auth = () => {
   const [rateLimitMessage, setRateLimitMessage] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  
-  // Immediate check for password reset parameters (before any other effects)
-  const initialUrlParams = new URLSearchParams(window.location.search);
-  const initialHashParams = new URLSearchParams(window.location.hash.substring(1));
-  const initialType = initialUrlParams.get('type') || initialHashParams.get('type');
-  
-  const [isPasswordReset, setIsPasswordReset] = useState(initialType === 'recovery');
   
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
@@ -42,169 +33,19 @@ const Auth = () => {
   // Use security monitoring
   useSecurityMonitoring();
 
-  // Check for password reset parameters
+  // Redirect if already authenticated
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    
-    const type = urlParams.get('type') || hashParams.get('type');
-    const code = urlParams.get('code') || hashParams.get('code');
-    const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
-    
-    console.log('🔑 Auth page password reset check:', {
-      url: window.location.href,
-      type,
-      hasCode: !!code,
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      urlParams: Object.fromEntries(urlParams.entries()),
-      hashParams: Object.fromEntries(hashParams.entries())
-    });
-    
-    if (type === 'recovery') {
-      console.log('🔑 Recovery type detected');
-      
-      // Set password reset mode immediately
-      setIsPasswordReset(true);
-      setIsSignUp(false);
-      
-      if (accessToken && refreshToken) {
-        console.log('✅ Access and refresh tokens found, setting up token-based password reset flow');
-        // Handle token-based recovery (current flow)
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        
-        toast({
-          title: "Reset Your Password",
-          description: "Please enter your new password below.",
-        });
-      } else if (code) {
-        console.log('✅ Code found, setting up code-based password reset flow');
-        // Handle code-based recovery (alternative flow)
-        toast({
-          title: "Reset Your Password", 
-          description: "Please enter your new password below.",
-        });
-      } else {
-        console.log('⚠️ Recovery type found but missing tokens/code, checking auth state...');
-        // Type is recovery but no tokens/code - let's check if Supabase auth state has them
-        supabase.auth.getSession().then(({ data: { session }, error }) => {
-          console.log('🔍 Current auth session:', { session: !!session, error });
-          
-          if (session?.access_token) {
-            console.log('✅ Found session with tokens, setting up password reset flow');
-            toast({
-              title: "Reset Your Password",
-              description: "Please enter your new password below.",
-            });
-          } else {
-            console.log('❌ No session found, user may need to click reset link again');
-            toast({
-              title: "Password Reset Link Issue",
-              description: "Please click the password reset link in your email again, or request a new one.",
-              variant: "destructive",
-            });
-          }
-        });
-      }
-    }
-  }, [toast]);
-
-  // Listen for auth state changes to handle password reset flow
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth state change:', { event, session: !!session });
-      
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && window.location.search.includes('type=recovery'))) {
-        console.log('🔑 Password recovery detected via auth state change');
-        setIsPasswordReset(true);
-        setIsSignUp(false);
-        
-        toast({
-          title: "Reset Your Password",
-          description: "Please enter your new password below.",
-        });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [toast]);
-
-  // Redirect if already authenticated (but NOT during password reset)
-  useEffect(() => {
-    if (user && !isPasswordReset) {
-      console.log('👤 User authenticated and not in password reset mode, redirecting to dashboard');
+    if (user) {
+      console.log('👤 User authenticated, redirecting to dashboard');
       navigate("/dashboard");
-    } else if (user && isPasswordReset) {
-      console.log('🔑 User authenticated but in password reset mode, staying on auth page');
     }
-  }, [user, navigate, isPasswordReset]);
+  }, [user, navigate]);
 
   const handlePasswordValidation = (isValid: boolean, errors: string[]) => {
     setPasswordValid(isValid);
     setPasswordErrors(errors);
   };
 
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: "Passwords Don't Match",
-        description: "Please make sure both password fields match.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      toast({
-        title: "Password Too Short",
-        description: "Password must be at least 8 characters long.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (error) {
-        toast({
-          title: "Password Reset Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Password Reset Successful! ✅",
-          description: "Your password has been updated. You can now sign in with your new password.",
-        });
-        
-        // Clear the URL parameters and reset state
-        window.history.replaceState({}, document.title, "/auth");
-        setIsPasswordReset(false);
-        setNewPassword("");
-        setConfirmPassword("");
-        setIsSignUp(false);
-      }
-    } catch (error: any) {
-      toast({
-        title: "Password Reset Failed",
-        description: "Failed to update password. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,7 +65,7 @@ const Auth = () => {
       console.log('Sending password reset email to:', forgotPasswordEmail);
       
       // Dynamic redirect URL based on current environment
-      const redirectUrl = `${window.location.origin}/auth?type=recovery`;
+      const redirectUrl = `${window.location.origin}/password-reset`;
       console.log('🔗 Using redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
@@ -423,12 +264,10 @@ const Auth = () => {
               
               <CardTitle className="text-2xl font-bold mb-2">
                 {showForgotPassword ? "Reset Password" : 
-                 isPasswordReset ? "Set New Password" :
                  isSignUp ? "Join MSTwins" : "Welcome Back"}
               </CardTitle>
               <CardDescription className="text-blue-100 text-base">
                 {showForgotPassword ? "Enter your email to reset your password" :
-                 isPasswordReset ? "Choose a strong new password" :
                  isSignUp ? "Connect with others who understand your MS journey" : 
                  "Sign in to your support community"}
               </CardDescription>
@@ -479,60 +318,6 @@ const Auth = () => {
                   className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
                 >
                   Back to Sign In
-                </Button>
-              </form>
-            ) : isPasswordReset ? (
-              // Password Reset Form
-              <form onSubmit={handlePasswordReset} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword" className="text-sm font-semibold text-gray-700">
-                    New Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      placeholder="Enter new password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">
-                    Confirm Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirm new password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <Button 
-                  type="submit" 
-                  disabled={loading || !passwordValid}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Setting Password...
-                    </div>
-                  ) : (
-                    'Set New Password'
-                  )}
                 </Button>
               </form>
             ) : (
@@ -642,7 +427,7 @@ const Auth = () => {
               </form>
             )}
 
-            {!showForgotPassword && !isPasswordReset && (
+            {!showForgotPassword && (
               <div className="mt-8 pt-6 border-t border-gray-100">
                 <p className="text-center text-gray-600">
                   {isSignUp ? "Already have an account?" : "New to MSTwins?"}

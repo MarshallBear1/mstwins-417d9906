@@ -27,6 +27,10 @@ const Auth = lazy(() => import("./pages/Auth").catch(err => {
   console.error('Failed to load Auth page:', err);
   return { default: () => <div>Failed to load page. Please refresh.</div> };
 }));
+const PasswordReset = lazy(() => import("./pages/PasswordReset").catch(err => {
+  console.error('Failed to load PasswordReset page:', err);
+  return { default: () => <div>Failed to load page. Please refresh.</div> };
+}));
 const Dashboard = lazy(() => import("./pages/Dashboard").catch(err => {
   console.error('Failed to load Dashboard page:', err);
   return { default: memo(() => <div>Failed to load page. Please refresh.</div>) };
@@ -173,6 +177,11 @@ const App = () => (
             <Route path="/auth" element={
               <Suspense fallback={<LoadingSpinner />}>
                 <Auth />
+              </Suspense>
+            } />
+            <Route path="/password-reset" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <PasswordReset />
               </Suspense>
             } />
             <Route path="/dashboard" element={
