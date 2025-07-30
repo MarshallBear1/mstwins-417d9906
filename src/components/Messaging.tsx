@@ -172,6 +172,33 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     }
   }, [matchId, matches.length]); // Removed selectedMatch from dependencies to prevent infinite loop
 
+  // Load messages when a match is selected
+  useEffect(() => {
+    if (selectedMatch && !matchId) {
+      console.log('🔄 Match selected, checking for cached messages:', selectedMatch.id);
+      
+      // Check if we have cached messages for this match
+      const cachedMessages = messageHistory.get(selectedMatch.id);
+      if (cachedMessages && cachedMessages.length > 0) {
+        console.log('📋 Using cached messages:', cachedMessages.length, 'messages');
+        setMessages(cachedMessages);
+        
+        // Scroll to bottom after setting cached messages
+        setTimeout(() => {
+          if (scrollAreaRef.current) {
+            const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+            if (scrollContainer) {
+              scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            }
+          }
+        }, 100);
+      } else {
+        console.log('🔄 No cached messages, fetching fresh messages');
+        fetchMessages(selectedMatch.id);
+      }
+    }
+  }, [selectedMatch]);
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (messages.length > 0) {
