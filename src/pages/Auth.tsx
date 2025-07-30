@@ -40,24 +40,45 @@ const Auth = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const type = urlParams.get('type');
+    const code = urlParams.get('code');
     const accessToken = urlParams.get('access_token');
     const refreshToken = urlParams.get('refresh_token');
     
-    if (type === 'recovery' && accessToken && refreshToken) {
+    if (type === 'recovery') {
       // User clicked password reset link
       setIsPasswordReset(true);
       setIsSignUp(false);
       
-      // Set the session from the URL parameters
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-      
-      toast({
-        title: "Reset Your Password",
-        description: "Please enter your new password below.",
-      });
+      if (code) {
+        // Handle code-based recovery (newer Supabase flow)
+        supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+          if (error) {
+            console.error('Code exchange error:', error);
+            toast({
+              title: "Invalid Reset Link",
+              description: "This password reset link is invalid or has expired. Please request a new one.",
+              variant: "destructive",
+            });
+            setIsPasswordReset(false);
+          } else {
+            toast({
+              title: "Reset Your Password",
+              description: "Please enter your new password below.",
+            });
+          }
+        });
+      } else if (accessToken && refreshToken) {
+        // Handle token-based recovery (older flow)
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        
+        toast({
+          title: "Reset Your Password",
+          description: "Please enter your new password below.",
+        });
+      }
     }
   }, [toast]);
 
