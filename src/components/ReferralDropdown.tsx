@@ -81,8 +81,8 @@ const ReferralDropdown = () => {
             onClick={() => setIsOpen(false)}
           />
           
-          {/* Dropdown Card - Improved positioning */}
-          <div className="fixed top-16 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] max-w-sm sm:absolute sm:top-14 sm:right-0 sm:left-auto sm:translate-x-0 sm:w-80 z-[101] mx-auto">
+          {/* Dropdown Card - Perfect mobile centering */}
+          <div className="fixed top-16 left-1/2 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-sm sm:absolute sm:top-14 sm:right-0 sm:left-auto sm:translate-x-0 sm:w-80 z-[101]">
             <Card className="border-0 shadow-2xl bg-white backdrop-blur-xl rounded-2xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
               {/* Modern Header */}
               <div className="bg-blue-600 p-4 text-white relative overflow-hidden">
