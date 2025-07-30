@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Heart, Users, MessageCircle, User, Edit } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Tab {
   id: string;
@@ -24,6 +25,67 @@ const PersistentBottomNavigation = () => {
   const location = useLocation();
   const { isMobile, safeAreaInsets } = useMobileOptimizations();
   const [activeTab, setActiveTab] = useState('discover');
+  const [unreadCounts, setUnreadCounts] = useState<{[key: string]: number}>({});
+
+  // Fetch unread message counts
+  useEffect(() => {
+    const fetchUnreadCounts = async () => {
+      if (!user) return;
+
+      try {
+        // Get unread message count
+        const { data: unreadMessages } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('receiver_id', user.id)
+          .eq('is_read', false);
+
+        // Get unread notification counts by type
+        const { data: unreadNotifications } = await supabase
+          .from('notifications')
+          .select('type')
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+
+        const likesCount = unreadNotifications?.filter(n => n.type === 'like').length || 0;
+        const messagesCount = unreadMessages?.length || 0;
+
+        setUnreadCounts({
+          likes: likesCount,
+          messages: messagesCount
+        });
+      } catch (error) {
+        console.error('Error fetching unread counts:', error);
+      }
+    };
+
+    fetchUnreadCounts();
+
+    // Set up real-time subscription for unread counts
+    const channel = supabase
+      .channel('unread-counts')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_id=eq.${user?.id}`
+      }, () => {
+        fetchUnreadCounts();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public', 
+        table: 'notifications',
+        filter: `user_id=eq.${user?.id}`
+      }, () => {
+        fetchUnreadCounts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   // Determine if we should show the navigation
   const shouldShowNavigation = user && ![
@@ -76,14 +138,20 @@ const PersistentBottomNavigation = () => {
             <button 
               key={tab.id} 
               onClick={() => handleTabClick(tab)} 
-              className={`flex flex-col items-center space-y-1 py-2 px-2 transition-all duration-300 ease-out mobile-touch-target min-w-[60px] ${
+              className={`flex flex-col items-center space-y-1 py-2 px-2 transition-all duration-300 ease-out mobile-touch-target min-w-[60px] relative ${
                 isActive 
                   ? "text-black transform scale-105" 
                   : "text-gray-400 hover:text-gray-600 active:scale-95"
               }`}
             >
-              <div className={`transition-all duration-300 ${isActive ? 'transform scale-110' : ''}`}>
+              <div className={`transition-all duration-300 relative ${isActive ? 'transform scale-110' : ''}`}>
                 <Icon className={`${isActive ? 'w-5 h-5' : 'w-4 h-4'} stroke-[1.5]`} />
+                {/* Unread count badge */}
+                {unreadCounts[tab.id] > 0 && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold shadow-lg animate-pulse">
+                    {unreadCounts[tab.id] > 9 ? '9+' : unreadCounts[tab.id]}
+                  </div>
+                )}
               </div>
               <span className={`text-[10px] font-medium transition-all duration-300 text-center leading-tight ${
                 isActive ? 'text-black font-semibold' : 'text-gray-400'
