@@ -55,6 +55,7 @@ const DiscoverProfiles = memo(() => {
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [actionCooldown, setActionCooldown] = useState(false);
+  const [showSkippedProfiles, setShowSkippedProfiles] = useState(false);
   const { remainingLikes, refreshRemainingLikes } = useDailyLikes();
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
@@ -63,6 +64,81 @@ const DiscoverProfiles = memo(() => {
   const isAuthenticated = user && user.id && !authLoading;
 
   // Optimized profile fetching with authentication guard
+  // Function to fetch skipped profiles
+  const fetchSkippedProfiles = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    console.log('🔄 Fetching skipped profiles for user:', user.id);
+    setLoading(true);
+    
+    try {
+      const [passedResult] = await Promise.all([
+        supabase
+          .from('passes')
+          .select('passed_id')
+          .eq('passer_id', user.id)
+      ]);
+
+      if (passedResult.error) throw passedResult.error;
+
+      const passedIds = passedResult.data?.map(pass => pass.passed_id) || [];
+      
+      if (passedIds.length === 0) {
+        toast({
+          title: "No skipped profiles",
+          description: "You haven't skipped any profiles yet.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const profilesResult = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          user_id,
+          first_name,
+          last_name,
+          date_of_birth,
+          location,
+          gender,
+          ms_subtype,
+          diagnosis_year,
+          symptoms,
+          medications,
+          hobbies,
+          avatar_url,
+          about_me,
+          last_seen,
+          additional_photos,
+          selected_prompts
+        `)
+        .in('user_id', passedIds)
+        .eq('moderation_status', 'approved')
+        .order('last_seen', { ascending: false });
+
+      if (profilesResult.error) throw profilesResult.error;
+
+      setProfiles(profilesResult.data as Profile[]);
+      setCurrentIndex(0);
+      setShowSkippedProfiles(true);
+      
+      toast({
+        title: "Skipped profiles loaded",
+        description: `Found ${profilesResult.data?.length || 0} previously skipped profiles.`,
+      });
+    } catch (error: any) {
+      console.error('❌ Error fetching skipped profiles:', error);
+      toast({
+        title: "Error loading skipped profiles",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, user, toast]);
+
   const fetchProfiles = useCallback(async () => {
     // Authentication guard - don't proceed if user is not authenticated
     if (!isAuthenticated) {
@@ -72,6 +148,7 @@ const DiscoverProfiles = memo(() => {
 
     console.log('🔄 Fetching discover profiles for authenticated user:', user.id);
     setLoading(true);
+    setShowSkippedProfiles(false);
     
     try {
       const [profilesResult, likedResult, passedResult] = await Promise.all([
@@ -99,7 +176,7 @@ const DiscoverProfiles = memo(() => {
           .neq('user_id', user.id)
           .eq('moderation_status', 'approved')
           .order('last_seen', { ascending: false })
-          .limit(50), // Increased limit to ensure we get enough profiles
+          .limit(200), // Increased limit significantly
         
         supabase
           .from('likes')
@@ -321,15 +398,25 @@ const DiscoverProfiles = memo(() => {
         <div className="text-center">
           <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No more profiles to discover
+            {showSkippedProfiles ? "No more skipped profiles" : "No more profiles to discover"}
           </h3>
           <p className="text-gray-600 mb-4">
-            Check back later for new profiles or adjust your preferences.
+            {showSkippedProfiles 
+              ? "You've viewed all your skipped profiles."
+              : "Check back later for new profiles or view your skipped ones."
+            }
           </p>
-          <Button onClick={fetchProfiles} className="bg-gradient-primary text-white">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={fetchProfiles} className="bg-gradient-primary text-white">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              {showSkippedProfiles ? "Back to New Profiles" : "Refresh"}
+            </Button>
+            {!showSkippedProfiles && (
+              <Button onClick={fetchSkippedProfiles} variant="outline">
+                See Skipped Profiles
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     );

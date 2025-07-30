@@ -37,8 +37,13 @@ const RobotAnnouncementPopup = ({ announcement, onDismiss }: RobotAnnouncementPo
           <Button
             variant="ghost"
             size="sm"
-            onClick={onDismiss}
-            className="flex-shrink-0 p-1 h-auto"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDismiss();
+            }}
+            className="flex-shrink-0 p-1 h-auto hover:bg-muted/50"
+            aria-label="Close announcement"
           >
             <X className="w-4 h-4" />
           </Button>
