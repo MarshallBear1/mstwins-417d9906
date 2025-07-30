@@ -31,7 +31,9 @@ const PersistentBottomNavigation = () => {
     '/auth', 
     '/privacy-policy', 
     '/terms-of-service',
-    '/admin/feedback'
+    '/admin/feedback',
+    '/profile-setup',
+    '/extended-profile'
   ].includes(location.pathname);
 
   // Update active tab based on current location
