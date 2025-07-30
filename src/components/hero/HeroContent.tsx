@@ -3,13 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, ArrowRight, Star, Users, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 const HeroContent = () => {
-  return (
-    <div className="text-center space-y-8 animate-fade-in">
+  return <div className="text-center space-y-8 animate-fade-in">
       {/* Clean Trust Badge */}
       <div className="flex items-center justify-center gap-2 mb-6">
-        <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-full">
-          <span className="text-sm font-semibold text-blue-700">🏆 #1 MS Support Community</span>
-        </div>
+        
       </div>
       
       {/* Clean Headline */}
@@ -65,11 +62,7 @@ const HeroContent = () => {
 
       {/* Clean CTA Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-        <Button 
-          size="lg" 
-          className="h-14 px-8 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300" 
-          asChild
-        >
+        <Button size="lg" className="h-14 px-8 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300" asChild>
           <Link to="/auth">
             <div className="flex items-center gap-3">
               Join Free Today
@@ -78,12 +71,7 @@ const HeroContent = () => {
           </Link>
         </Button>
         
-        <Button 
-          variant="outline" 
-          size="lg" 
-          className="h-14 px-8 text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 rounded-2xl transition-all duration-300" 
-          asChild
-        >
+        <Button variant="outline" size="lg" className="h-14 px-8 text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 rounded-2xl transition-all duration-300" asChild>
           <a href="#testimonials">
             Success Stories
           </a>
@@ -105,7 +93,6 @@ const HeroContent = () => {
           <span className="text-sm font-medium text-gray-600">Join in 60 Seconds</span>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
 export default HeroContent;
