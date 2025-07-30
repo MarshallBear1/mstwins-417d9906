@@ -65,13 +65,10 @@ const DiscoverProfiles = memo(() => {
   const fetchProfiles = useCallback(async () => {
     if (!user) return;
 
-    console.log('🔍 Starting fetchProfiles...');
     setLoading(true);
     
     try {
-      // Enhanced discover algorithm: Mix of recent and older profiles
-      const [recentProfilesResult, olderProfilesResult, likedResult, passedResult] = await Promise.all([
-        // Get recently active profiles (last 7 days)
+      const [profilesResult, likedResult, passedResult] = await Promise.all([
         supabase
           .from('profiles')
           .select(`
@@ -98,40 +95,8 @@ const DiscoverProfiles = memo(() => {
           .neq('user_id', user.id)
           .eq('moderation_status', 'approved')
           .neq('hide_from_discover', true)
-          .gte('last_seen', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
           .order('last_seen', { ascending: false })
-          .limit(35),
-        
-        // Get older profiles to encourage re-engagement (more than 7 days ago)
-        supabase
-          .from('profiles')
-          .select(`
-            id,
-            user_id,
-            first_name,
-            last_name,
-            date_of_birth,
-            location,
-            gender,
-            ms_subtype,
-            diagnosis_year,
-            symptoms,
-            medications,
-            hobbies,
-            avatar_url,
-            about_me,
-            last_seen,
-            additional_photos,
-            selected_prompts,
-            moderation_status,
-            hide_from_discover
-          `)
-          .neq('user_id', user.id)
-          .eq('moderation_status', 'approved')
-          .neq('hide_from_discover', true)
-          .lt('last_seen', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-          .order('user_id', { ascending: false }) // Order older profiles by user_id to give variety
-          .limit(15),
+          .limit(50), // Increased limit for better preloading
         
         supabase
           .from('likes')
@@ -144,72 +109,27 @@ const DiscoverProfiles = memo(() => {
           .eq('passer_id', user.id)
       ]);
 
-      if (recentProfilesResult.error) throw recentProfilesResult.error;
-      if (olderProfilesResult.error) throw olderProfilesResult.error;
+      if (profilesResult.error) throw profilesResult.error;
 
       const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
       const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
 
-      // Combine recent and older profiles with strategic mixing
-      const recentProfiles = recentProfilesResult.data || [];
-      const olderProfiles = olderProfilesResult.data || [];
-      
-      // Create a balanced mix: 70% recent, 30% older profiles interspersed
-      const combinedProfiles = [];
-      const recentFiltered = recentProfiles.filter(
+      // Filter out already liked/passed profiles
+      const filteredProfiles = profilesResult.data?.filter(
         profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
-      );
-      const olderFiltered = olderProfiles.filter(
-        profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
-      );
-      
-      // Interleave profiles: show 2-3 recent, then 1 older, repeat
-      let recentIndex = 0;
-      let olderIndex = 0;
-      let recentCount = 0;
-      
-      while (recentIndex < recentFiltered.length || olderIndex < olderFiltered.length) {
-        // Add 2-3 recent profiles
-        if (recentIndex < recentFiltered.length && recentCount < 3) {
-          combinedProfiles.push(recentFiltered[recentIndex]);
-          recentIndex++;
-          recentCount++;
-        }
-        
-        // Add 1 older profile to encourage re-engagement
-        if (olderIndex < olderFiltered.length && recentCount >= 2) {
-          combinedProfiles.push(olderFiltered[olderIndex]);
-          olderIndex++;
-          recentCount = 0; // Reset counter
-        }
-        
-        // If we run out of older profiles, just add remaining recent ones
-        if (olderIndex >= olderFiltered.length && recentIndex < recentFiltered.length) {
-          combinedProfiles.push(recentFiltered[recentIndex]);
-          recentIndex++;
-        }
-        
-        // Prevent infinite loops
-        if (recentIndex >= recentFiltered.length && olderIndex >= olderFiltered.length) {
-          break;
-        }
-      }
-
-      const filteredProfiles = combinedProfiles;
+      ) || [];
 
       setProfiles(filteredProfiles as Profile[]);
       setCurrentIndex(0);
-      console.log(`✅ Profiles loaded: ${filteredProfiles.length} profiles found`);
       
     } catch (error: any) {
-      console.error('❌ Error fetching profiles:', error);
+      console.error('Error fetching profiles:', error);
       toast({
         title: "Error loading profiles",
         description: error.message || "Please try again later.",
         variant: "destructive"
       });
     } finally {
-      console.log('🏁 Finished fetchProfiles, setting loading to false');
       setLoading(false);
     }
   }, [user, toast]);
