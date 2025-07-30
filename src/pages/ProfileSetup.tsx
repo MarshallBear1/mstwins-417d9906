@@ -84,6 +84,9 @@ const ProfileSetup = () => {
   useEffect(() => {
     if (user) {
       fetchExistingProfile();
+      // Check if this is edit mode (user coming from dashboard with existing profile)
+      const params = new URLSearchParams(window.location.search);
+      setIsEditMode(params.get('edit') === 'true');
     }
     // Set default avatar if none exists
     if (!profileData.avatarUrl) {
@@ -116,6 +119,7 @@ const ProfileSetup = () => {
 
       if (data) {
         setExistingProfile(data);
+        setIsEditMode(true);
         // Keep notification visible for existing profiles but hide the main welcome
         // They might still benefit from tips in specific steps
         setProfileData({
@@ -241,12 +245,12 @@ const ProfileSetup = () => {
       }
 
       toast({
-        title: existingProfile ? "Profile Updated! ✨" : "Profile Completed! 🎉",
-        description: existingProfile ? "Your profile has been updated successfully." : "Welcome to the MSTwins community!",
+        title: isEditMode ? "Profile Updated! ✨" : "Profile Completed! 🎉",
+        description: isEditMode ? "Your profile has been updated successfully." : "Welcome to the MSTwins community!",
       });
       
       // For new profiles, redirect to extended profile setup
-      if (!existingProfile) {
+      if (!isEditMode && !existingProfile) {
         navigate("/extended-profile");
       } else {
         navigate("/dashboard");

@@ -91,7 +91,9 @@ const ForumPage = () => {
 
     try {
       const currentOffset = reset ? 0 : offset;
-      const { data, error } = await supabase
+      
+      // Get posts first
+      const { data: postsData, error: postsError } = await supabase
         .from('forum_posts')
         .select(`
           id,
@@ -107,44 +109,50 @@ const ForumPage = () => {
         .order('created_at', { ascending: false })
         .range(currentOffset, currentOffset + 9);
 
-      if (error) throw error;
+      if (postsError) throw postsError;
 
-      // Get author profiles separately
-      let postsWithLikes: ForumPost[] = [];
-      if (data && data.length > 0) {
-        const authorIds = data.map(post => post.author_id);
-        const { data: profiles } = await supabase
+      if (!postsData || postsData.length === 0) {
+        if (reset) {
+          setPosts([]);
+          setOffset(0);
+        }
+        setHasMore(false);
+        return;
+      }
+
+      // Get author profiles and user likes in parallel
+      const authorIds = postsData.map(post => post.author_id);
+      const postIds = postsData.map(post => post.id);
+      
+      const [profilesResult, likesResult] = await Promise.all([
+        supabase
           .from('profiles')
           .select('user_id, first_name, last_name, avatar_url, ms_subtype, location')
-          .in('user_id', authorIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-
-        // Check which posts the user has liked
-        const postIds = data.map(post => post.id);
-        const { data: userLikes } = await supabase
+          .in('user_id', authorIds),
+        supabase
           .from('forum_likes')
           .select('post_id')
           .eq('user_id', user.id)
-          .in('post_id', postIds);
+          .in('post_id', postIds)
+      ]);
 
-        const likedPostIds = new Set(userLikes?.map(like => like.post_id) || []);
-        
-        postsWithLikes = data.map(post => {
-          const author = profileMap.get(post.author_id);
-          return {
-            ...post,
-            author: {
-              first_name: author?.first_name || 'Unknown',
-              last_name: author?.last_name || 'User',
-              avatar_url: author?.avatar_url || null,
-              ms_subtype: author?.ms_subtype || null,
-              location: author?.location || null,
-            },
-            user_has_liked: likedPostIds.has(post.id)
-          };
-        });
-      }
+      const profileMap = new Map(profilesResult.data?.map(p => [p.user_id, p]) || []);
+      const likedPostIds = new Set(likesResult.data?.map(like => like.post_id) || []);
+      
+      const postsWithLikes = postsData.map(post => {
+        const author = profileMap.get(post.author_id);
+        return {
+          ...post,
+          author: {
+            first_name: author?.first_name || 'Unknown',
+            last_name: author?.last_name || 'User',
+            avatar_url: author?.avatar_url || null,
+            ms_subtype: author?.ms_subtype || null,
+            location: author?.location || null,
+          },
+          user_has_liked: likedPostIds.has(post.id)
+        };
+      });
 
       if (reset) {
         setPosts(postsWithLikes);
@@ -154,7 +162,7 @@ const ForumPage = () => {
         setOffset(prev => prev + 10);
       }
 
-      setHasMore(data?.length === 10);
+      setHasMore(postsData.length === 10);
     } catch (error) {
       console.error('Error loading posts:', error);
       toast({
@@ -583,7 +591,7 @@ const ForumPage = () => {
                 return (
                   <Card 
                     key={post.id} 
-                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary/20 border-2 border-transparent"
                     ref={isLast ? lastPostElementRef : null}
                     onClick={() => openPostDetail(post)}
                   >
@@ -613,6 +621,18 @@ const ForumPage = () => {
                               >
                                 {post.author.first_name} {post.author.last_name}
                               </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewProfile(post.author_id);
+                                }}
+                              >
+                                <User className="w-3 h-3 mr-1" />
+                                View Profile
+                              </Button>
                               <Badge className={`text-xs ${flair.color}`}>
                                 {flair.label}
                               </Badge>
@@ -631,8 +651,9 @@ const ForumPage = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
+                      <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors">{post.title}</h3>
                       <p className="text-gray-700 mb-4 line-clamp-3">{post.content}</p>
+                      <div className="text-xs text-primary/60 mb-2">Click to view full post and comments →</div>
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -712,6 +733,15 @@ const ForumPage = () => {
                           >
                             {selectedPost.author.first_name} {selectedPost.author.last_name}
                           </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => viewProfile(selectedPost.author_id)}
+                          >
+                            <User className="w-3 h-3 mr-1" />
+                            View Profile
+                          </Button>
                           <Badge className={`text-xs ${getFlairInfo(selectedPost.flair).color}`}>
                             {getFlairInfo(selectedPost.flair).label}
                           </Badge>
@@ -802,6 +832,15 @@ const ForumPage = () => {
                             >
                               {comment.author.first_name} {comment.author.last_name}
                             </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-5 px-1.5 text-xs ml-2"
+                              onClick={() => viewProfile(comment.author_id)}
+                            >
+                              <User className="w-2.5 h-2.5 mr-1" />
+                              View
+                            </Button>
                             <span className="text-xs text-gray-500">
                               {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                             </span>
