@@ -815,9 +815,9 @@ const ForumPage = () => {
                                  {flair.label}
                                </Badge>
                              </div>
-                             <div className="bg-gray-100 rounded px-2 py-1 mt-2 text-xs text-gray-500">
-                               Additional details available in profile
-                             </div>
+                              <div className="mt-2 text-xs text-gray-500 italic">
+                                sent {formatDistanceToNow(new Date(post.created_at))} ago
+                              </div>
                            </div>
                         </div>
                       </div>
