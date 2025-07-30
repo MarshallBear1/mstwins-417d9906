@@ -745,7 +745,7 @@ const ForumPage = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex items-center gap-3">
                               <span 
                                 className="font-medium cursor-pointer hover:text-blue-600"
                                 onClick={(e) => {
@@ -755,37 +755,23 @@ const ForumPage = () => {
                               >
                                 {post.author.first_name} {post.author.last_name}
                               </span>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-6 px-2 text-xs"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    viewProfile(post.author_id);
-                                  }}
-                                >
-                                  View Profile
-                                </Button>
-                                <Badge className={`text-xs ${flair.color}`}>
-                                  {flair.label}
-                                </Badge>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap">
-                              {post.author.ms_subtype && (
-                                <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-0.5">
-                                  {post.author.ms_subtype}
-                                </Badge>
-                              )}
-                              {post.author.location && (
-                                <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs px-2 py-0.5">
-                                  📍 {post.author.location}
-                                </Badge>
-                              )}
-                              <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 text-xs px-2 py-0.5">
-                                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewProfile(post.author_id);
+                                }}
+                              >
+                                View Profile
+                              </Button>
+                              <Badge className={`text-xs ${flair.color}`}>
+                                {flair.label}
                               </Badge>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                             </div>
                           </div>
                         </div>
