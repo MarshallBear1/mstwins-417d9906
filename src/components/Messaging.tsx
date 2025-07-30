@@ -729,41 +729,39 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Dialog open={showProfileView} onOpenChange={setShowProfileView}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-10 w-10 p-0 rounded-full hover:bg-gray-100"
-                  >
-                    <User className="w-5 h-5" />
-                  </Button>
-                </DialogTrigger>
-                <ProfileViewDialog 
-                  profile={{
-                    id: selectedMatch.other_user.id || selectedMatch.other_user.user_id || '',
-                    user_id: selectedMatch.other_user.user_id || selectedMatch.other_user.id || '',
-                    first_name: selectedMatch.other_user.first_name,
-                    last_name: selectedMatch.other_user.last_name,
-                    date_of_birth: selectedMatch.other_user.date_of_birth || null,
-                    location: selectedMatch.other_user.location || '',
-                    gender: selectedMatch.other_user.gender || null,
-                    ms_subtype: selectedMatch.other_user.ms_subtype || null,
-                    diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
-                    symptoms: selectedMatch.other_user.symptoms || [],
-                    medications: selectedMatch.other_user.medications || [],
-                    hobbies: selectedMatch.other_user.hobbies || [],
-                    avatar_url: selectedMatch.other_user.avatar_url,
-                    about_me: selectedMatch.other_user.about_me || null,
-                    last_seen: selectedMatch.other_user.last_seen || null,
-                    additional_photos: selectedMatch.other_user.additional_photos || [],
-                    selected_prompts: selectedMatch.other_user.selected_prompts || [],
-                    extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
-                  }}
-                  open={showProfileView}
-                  onOpenChange={setShowProfileView}
-                />
-              </Dialog>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-10 w-10 p-0 rounded-full hover:bg-gray-100"
+                onClick={() => setShowProfileView(true)}
+              >
+                <User className="w-5 h-5" />
+              </Button>
+
+              <ProfileViewDialog 
+                profile={{
+                  id: selectedMatch.other_user.id || selectedMatch.other_user.user_id || '',
+                  user_id: selectedMatch.other_user.user_id || selectedMatch.other_user.id || '',
+                  first_name: selectedMatch.other_user.first_name,
+                  last_name: selectedMatch.other_user.last_name,
+                  date_of_birth: selectedMatch.other_user.date_of_birth || null,
+                  location: selectedMatch.other_user.location || '',
+                  gender: selectedMatch.other_user.gender || null,
+                  ms_subtype: selectedMatch.other_user.ms_subtype || null,
+                  diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
+                  symptoms: selectedMatch.other_user.symptoms || [],
+                  medications: selectedMatch.other_user.medications || [],
+                  hobbies: selectedMatch.other_user.hobbies || [],
+                  avatar_url: selectedMatch.other_user.avatar_url,
+                  about_me: selectedMatch.other_user.about_me || null,
+                  last_seen: selectedMatch.other_user.last_seen || null,
+                  additional_photos: selectedMatch.other_user.additional_photos || [],
+                  selected_prompts: selectedMatch.other_user.selected_prompts || [],
+                  extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
+                }}
+                open={showProfileView}
+                onOpenChange={setShowProfileView}
+              />
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
