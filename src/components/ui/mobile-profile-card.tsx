@@ -300,13 +300,7 @@ const MobileProfileCard = ({
                 </div>
               )}
 
-              {/* Extended About */}
-              {profile.about_me && profile.about_me.length > 100 && (
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">More About Me</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">{profile.about_me}</p>
-                </div>
-              )}
+
             </CardContent>
 
             {/* Action Buttons on Back */}
