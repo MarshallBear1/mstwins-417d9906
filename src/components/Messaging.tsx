@@ -104,7 +104,9 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                 // Check if message already exists to prevent duplicates
                 const messageExists = existingMessages.some(msg => msg.id === newMessage.id);
                 if (!messageExists) {
-                  const updatedMessages = [...existingMessages, newMessage];
+                  const updatedMessages = [...existingMessages, newMessage].sort((a, b) => 
+                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                  );
                   return new Map(prev.set(newMessage.match_id, updatedMessages));
                 }
                 return prev;
@@ -116,7 +118,10 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                   // Check if message already exists to prevent duplicates
                   const messageExists = prev.some(msg => msg.id === newMessage.id);
                   if (!messageExists) {
-                    return [...prev, newMessage];
+                    const updatedMessages = [...prev, newMessage].sort((a, b) => 
+                      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                    );
+                    return updatedMessages;
                   }
                   return prev;
                 });
@@ -154,15 +159,9 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         console.log('🔄 Setting selected match from URL:', match.id);
         setSelectedMatch(match);
         
-        // Check if we have cached messages for this match
-        const cachedMessages = messageHistory.get(matchId);
-        if (cachedMessages) {
-          console.log('📄 Loading cached messages for match:', matchId);
-          setMessages(cachedMessages);
-        } else {
-          console.log('🔄 Fetching fresh messages for match:', matchId);
-          fetchMessages(matchId);
-        }
+        // Always fetch fresh messages to ensure we have the latest
+        console.log('🔄 Fetching fresh messages for match:', matchId);
+        fetchMessages(matchId);
       }
     } else if (!matchId && selectedMatch) {
       // Going back to match list - cache current messages
@@ -172,6 +171,20 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       setMessages([]);
     }
   }, [matchId, matches.length]); // Removed selectedMatch from dependencies to prevent infinite loop
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => {
+        if (scrollAreaRef.current) {
+          const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+          if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          }
+        }
+      }, 100);
+    }
+  }, [messages.length]);
 
   const fetchMatches = async () => {
     if (!user) return;
@@ -271,6 +284,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     if (!user) return;
 
     try {
+      console.log('🔄 Fetching messages for match:', matchId);
+      
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -278,28 +293,42 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('Error fetching messages:', error);
+        console.error('❌ Error fetching messages:', error);
         return;
       }
 
+      console.log('✅ Messages fetched:', data?.length || 0, 'messages');
       setMessages(data || []);
       
       // Cache the messages for this match
       setMessageHistory(prev => new Map(prev.set(matchId, data || [])));
       
       // Mark messages as read
-      await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .eq('match_id', matchId)
-        .eq('receiver_id', user.id);
+      if (data && data.length > 0) {
+        await supabase
+          .from('messages')
+          .update({ is_read: true })
+          .eq('match_id', matchId)
+          .eq('receiver_id', user.id)
+          .eq('is_read', false);
+      }
 
       // Update unread count for this match
       setMatches(prev => prev.map(match => 
         match.id === matchId ? { ...match, unread_count: 0 } : match
       ));
+      
+      // Scroll to bottom after loading messages
+      setTimeout(() => {
+        if (scrollAreaRef.current) {
+          const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+          if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          }
+        }
+      }, 100);
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error('❌ Exception fetching messages:', error);
     }
   };
 
@@ -432,6 +461,16 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       // Update cached messages for this match
       setMessageHistory(prev => new Map(prev.set(selectedMatch.id, updatedMessages)));
       setNewMessage("");
+      
+      // Auto-scroll to bottom after sending message
+      setTimeout(() => {
+        if (scrollAreaRef.current) {
+          const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+          if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          }
+        }
+      }, 100);
       
       // Track message sent (use original length for analytics)
       analytics.messageSent(user.id, receiverId, newMessage.trim().length);
@@ -784,43 +823,82 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
             </div>
           ) : (
             <ScrollArea className="flex-1">
-              <div className="space-y-1 p-4">
-                {matches.map((match) => (
-                  <div
-                    key={match.id}
-                    onClick={() => setSelectedMatch(match)}
-                    className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 cursor-pointer transition-colors"
-                  >
-                    <div className="relative">
-                      <Avatar className="h-12 w-12 border-2 border-white shadow-md">
-                        <AvatarImage 
-                          src={match.other_user.avatar_url || undefined} 
-                          alt={match.other_user.first_name}
-                        />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-                          {match.other_user.first_name[0]}{match.other_user.last_name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
-                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {match.other_user.first_name} {match.other_user.last_name}
-                        </h3>
-                        {match.unread_count > 0 && (
-                          <Badge className="bg-blue-500 text-white rounded-full h-5 min-w-[20px] text-xs">
-                            {match.unread_count}
-                          </Badge>
+              <div className="p-4">
+                {matches.map((match, index) => (
+                  <div key={match.id}>
+                    <div
+                      onClick={() => setSelectedMatch(match)}
+                      className="flex items-start gap-4 p-4 rounded-2xl hover:bg-gray-50 cursor-pointer transition-all duration-200 hover:shadow-md border border-transparent hover:border-gray-200"
+                    >
+                      <div className="relative flex-shrink-0">
+                        <Avatar className="h-14 w-14 border-2 border-white shadow-lg">
+                          <AvatarImage 
+                            src={match.other_user.avatar_url || undefined} 
+                            alt={match.other_user.first_name}
+                          />
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-sm">
+                            {match.other_user.first_name[0]}{match.other_user.last_name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 truncate">
-                        {getLastMessage(match.id) || "Start the conversation!"}
-                      </p>
+                      
+                      <div className="flex-1 min-w-0 space-y-2">
+                        {/* Header with name and unread count */}
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold text-gray-900 text-lg truncate">
+                            {match.other_user.first_name} {match.other_user.last_name}
+                          </h3>
+                          {match.unread_count > 0 && (
+                            <Badge className="bg-blue-500 text-white rounded-full h-6 min-w-[24px] text-xs font-medium shadow-md">
+                              {match.unread_count}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {/* Profile details */}
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          {match.other_user.ms_subtype && (
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-1">
+                              {match.other_user.ms_subtype.toUpperCase()}
+                            </Badge>
+                          )}
+                          {match.other_user.gender && (
+                            <Badge variant="outline" className="border-gray-300 text-gray-600 rounded-full px-2 py-1">
+                              {match.other_user.gender}
+                            </Badge>
+                          )}
+                          {match.other_user.location && (
+                            <Badge variant="outline" className="border-purple-300 text-purple-700 bg-purple-50 rounded-full px-2 py-1">
+                              📍 {match.other_user.location}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {/* Last message */}
+                        <p className="text-sm text-gray-500 truncate font-medium">
+                          {getLastMessage(match.id) || "Start the conversation!"}
+                        </p>
+                        
+                        {/* Match date */}
+                        <p className="text-xs text-gray-400">
+                          Matched {new Date(match.created_at).toLocaleDateString([], { 
+                            month: 'short', 
+                            day: 'numeric',
+                            year: new Date(match.created_at).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                          })}
+                        </p>
+                      </div>
                     </div>
+                    
+                    {/* Separator between matches */}
+                    {index < matches.length - 1 && (
+                      <div className="mx-4 my-2">
+                        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
