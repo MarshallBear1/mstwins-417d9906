@@ -491,35 +491,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
     setSending(true);
 
     try {
-      // Enhanced content filtering with scam detection and AI moderation
-      const contentResult = await filterContent(sanitizedContent);
-      
-      // Handle high severity content (block completely)
-      if (contentResult.flagged && contentResult.severity === 'high') {
-        alert(`Message blocked: ${contentResult.reasons.join(', ')}. Please review our community guidelines.`);
-        setSending(false);
-        return;
-      }
-      
-      // Handle medium severity content (warn and modify)
-      if (contentResult.flagged && contentResult.severity === 'medium') {
-        const proceed = confirm(`Your message contains potentially inappropriate content (${contentResult.reasons.join(', ')}). Continue sending modified message?`);
-        if (!proceed) {
-          setSending(false);
-          return;
-        }
-      }
-
-      // Log security warning for flagged content
-      if (contentResult.flagged) {
-        console.warn('Message content flagged during moderation:', {
-          original: sanitizedContent,
-          filtered: contentResult.filtered,
-          reasons: contentResult.reasons,
-          severity: contentResult.severity
-        });
-      }
-
+      // Simple direct message sending without content filtering
       const receiverId = selectedMatch.user1_id === user.id 
         ? selectedMatch.user2_id 
         : selectedMatch.user1_id;
@@ -528,7 +500,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         match_id: selectedMatch.id,
         sender_id: user.id,
         receiver_id: receiverId,
-        content: contentResult.filtered
+        content: sanitizedContent
       });
 
       const { data, error } = await supabase
@@ -537,8 +509,8 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           match_id: selectedMatch.id,
           sender_id: user.id,
           receiver_id: receiverId,
-          content: contentResult.filtered,
-          moderation_status: 'approved' // Explicitly approve messages that pass client-side filtering
+          content: sanitizedContent,
+          moderation_status: 'approved' // Messages are automatically approved
         })
         .select()
         .single();
@@ -569,7 +541,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         }
       }, 100);
       
-      // Track message sent (use original length for analytics)
+      // Track message sent
       analytics.messageSent(user.id, receiverId, newMessage.trim().length);
       
       // Update unread count for this match
@@ -577,9 +549,6 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         match.id === selectedMatch.id ? { ...match, unread_count: 0 } : match
       ));
 
-      // Email notification is now handled by the database trigger (create_message_notification_trigger)
-      // which automatically queues the email when a message is inserted
-      // No need to manually call the email service here
     } catch (error) {
       console.error('Error sending message:', error);
       alert('Failed to send message. Please try again.');
