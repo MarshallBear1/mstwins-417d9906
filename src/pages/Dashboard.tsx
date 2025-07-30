@@ -348,7 +348,7 @@ const Dashboard = () => {
               </div>}
             <DiscoverProfiles />
           </div>;
-      case "likes":
+      case "matches":
         return <div className="p-3 sm:p-6">
             <div className="text-center mb-6">
               <Users className="w-12 sm:w-16 h-12 sm:h-16 mx-auto text-muted-foreground mb-4" />
@@ -460,9 +460,16 @@ const Dashboard = () => {
                   <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">No likes yet. Keep swiping!</p>
                 </div>}
-          </div>;
-      case "matches":
-        return <Messaging />;
+        return <MatchesPage 
+          likes={likes}
+          likesLoading={likesLoading}
+          fetchLikes={fetchLikes}
+          selectedProfileForView={selectedProfileForView}
+          setSelectedProfileForView={setSelectedProfileForView}
+          setShowProfileView={setShowProfileView}
+        />;
+      case "forum":
+        return <ForumPage />;
       case "profile":
         return <ProfileCard profile={profile} onProfileUpdate={updatedProfile => setProfile({
           ...updatedProfile,
