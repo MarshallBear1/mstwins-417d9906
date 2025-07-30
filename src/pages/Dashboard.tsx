@@ -182,10 +182,21 @@ const Dashboard = () => {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>;
   }
-  if (!user) return null;
+  if (!user) {
+    console.log('❌ No user found, redirecting to auth');
+    return null;
+  }
+
+  console.log('🔍 Dashboard state:', { 
+    hasUser: !!user, 
+    hasProfile: !!profile, 
+    profileLoading,
+    userId: user?.id 
+  });
 
   // Profile enforcement - redirect to profile setup if no profile exists
   if (!profile) {
+    console.log('❌ No profile found, showing completion screen');
     return <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
         <Card className="w-full max-w-md border-2 border-primary/20 shadow-xl animate-pulse">
           <CardContent className="p-8 text-center">

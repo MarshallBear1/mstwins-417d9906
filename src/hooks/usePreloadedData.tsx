@@ -76,7 +76,7 @@ export const usePreloadedData = ({ user, activeTab }: UsePreloadedDataProps) => 
       return;
     }
 
-    console.log('🔄 Fetching profile with preloading optimization');
+    console.log('🔄 Fetching profile with preloading optimization for user:', user?.id);
     setProfileLoading(true);
 
     try {
@@ -93,6 +93,8 @@ export const usePreloadedData = ({ user, activeTab }: UsePreloadedDataProps) => 
         setProfile(null);
         return;
       }
+
+      console.log('📊 Profile fetch result:', { hasData: !!data, data });
 
       setProfile(data ? {
         ...data,
