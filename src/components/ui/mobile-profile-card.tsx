@@ -180,7 +180,7 @@ const MobileProfileCard = ({
             {profile.ms_subtype && (
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs px-2 py-1">
-                  {capitalizeText(profile.ms_subtype)}
+                  {profile.ms_subtype.toUpperCase()}
                 </Badge>
                 {profile.diagnosis_year && (
                   <span className="text-xs text-gray-500">
