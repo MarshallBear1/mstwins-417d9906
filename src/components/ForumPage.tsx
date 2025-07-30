@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, MessageCircle, Heart, Eye, User, Flag, ChevronDown, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, MessageCircle, Heart, Eye, User, Flag, ChevronDown, Trash2, ArrowLeft, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -75,7 +75,7 @@ const ForumPage = () => {
   const [newComment, setNewComment] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [showProfileView, setShowProfileView] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list'); // New view mode state
+  const [viewMode, setViewMode] = useState<'list' | 'detail' | 'profile'>('list'); // Add 'profile' mode
   const observerRef = useRef<IntersectionObserver>();
   const lastPostRef = useRef<HTMLDivElement>();
 
@@ -400,9 +400,14 @@ const ForumPage = () => {
       if (error) throw error;
 
       setSelectedProfile(data);
-      setShowProfileView(true);
+      setViewMode('profile'); // Use card-based profile view
     } catch (error) {
       console.error('Error loading profile:', error);
+      toast({
+        title: "Error loading profile",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -521,8 +526,57 @@ const ForumPage = () => {
     setNewComment("");
   };
 
+  const closeProfileView = () => {
+    setSelectedProfile(null);
+    setViewMode('list');
+  };
+
   const getFlairInfo = (flairValue: string) => {
     return FORUM_FLAIRS.find(f => f.value === flairValue) || FORUM_FLAIRS[0];
+  };
+
+  const likeUserProfile = async (profileUserId: string) => {
+    if (!user) return;
+
+    try {
+      // Check if we already liked this profile
+      const { data: existingLike } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('liker_id', user.id)
+        .eq('liked_id', profileUserId)
+        .single();
+
+      if (existingLike) {
+        toast({
+          title: "Already liked",
+          description: "You've already liked this profile.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('likes')
+        .insert({
+          liker_id: user.id,
+          liked_id: profileUserId
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile liked!",
+        description: "Your like has been sent."
+      });
+    } catch (error) {
+      console.error('Error liking profile:', error);
+      toast({
+        title: "Error liking profile",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -530,21 +584,25 @@ const ForumPage = () => {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-4">
         <div className="flex items-center justify-between">
-          {viewMode === 'detail' && selectedPost ? (
-            // Detail view header with back button
+          {(viewMode === 'detail' && selectedPost) || (viewMode === 'profile' && selectedProfile) ? (
+            // Detail/Profile view header with back button
             <div className="flex items-center gap-3">
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={closePostDetail}
+                onClick={viewMode === 'detail' ? closePostDetail : closeProfileView}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Forum
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Post Details</h1>
-                <p className="text-gray-600 text-sm">{selectedPost.title}</p>
+                <h1 className="text-xl font-bold text-gray-900">
+                  {viewMode === 'detail' ? 'Post Details' : 'Profile'}
+                </h1>
+                <p className="text-gray-600 text-sm">
+                  {viewMode === 'detail' ? selectedPost?.title : `${selectedProfile?.first_name} ${selectedProfile?.last_name}`}
+                </p>
               </div>
             </div>
           ) : (
@@ -639,49 +697,64 @@ const ForumPage = () => {
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
-                            <span 
-                              className="font-medium cursor-pointer hover:text-blue-600"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                viewProfile(post.author_id);
-                              }}
-                            >
-                              {post.author.first_name} {post.author.last_name}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-6 px-2 text-xs"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                viewProfile(post.author_id);
-                              }}
-                            >
-                              <User className="w-3 h-3 mr-1" />
-                              View Profile
-                            </Button>
-                            <Badge className={`text-xs ${flair.color}`}>
-                              {flair.label}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-                            {post.author.ms_subtype && (
-                              <span>{post.author.ms_subtype}</span>
-                            )}
-                            {post.author.location && (
-                              <span>• {post.author.location}</span>
-                            )}
-                            <span>• {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+                        <div className="flex items-center gap-3">
+                          <Avatar 
+                            className="w-10 h-10 cursor-pointer" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              viewProfile(post.author_id);
+                            }}
+                          >
+                            <AvatarImage src={post.author.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {post.author.first_name[0]}{post.author.last_name[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span 
+                                className="font-medium cursor-pointer hover:text-blue-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewProfile(post.author_id);
+                                }}
+                              >
+                                {post.author.first_name} {post.author.last_name}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-6 px-2 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    viewProfile(post.author_id);
+                                  }}
+                                >
+                                  View Profile
+                                </Button>
+                                <Badge className={`text-xs ${flair.color}`}>
+                                  {flair.label}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              {post.author.ms_subtype && (
+                                <span>{post.author.ms_subtype}</span>
+                              )}
+                              {post.author.location && (
+                                <span>• {post.author.location}</span>
+                              )}
+                              <span>• {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors text-center">{post.title}</h3>
-                      <p className="text-gray-700 mb-4 line-clamp-3 text-center">{post.content}</p>
-                      <div className="text-xs text-primary/60 mb-2 text-center">Click to view full post and comments →</div>
+                      <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors">{post.title}</h3>
+                      <p className="text-gray-700 mb-4 line-clamp-3">{post.content}</p>
+                      <div className="text-xs text-primary/60 mb-2">Click to view full post and comments →</div>
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -734,36 +807,143 @@ const ForumPage = () => {
               )}
             </div>
           )
-        ) : (
+        ) : viewMode === 'profile' && selectedProfile ? (
+          // Profile View (like matches page)
+          <div className="max-w-2xl mx-auto p-4">
+            <div className="text-center mb-6">
+              <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-2xl font-bold mb-2">User Profile</h2>
+              <p className="text-muted-foreground">Connect with community members</p>
+            </div>
+            
+            <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-6">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">
+                    {selectedProfile.avatar_url ? (
+                      <img
+                        src={selectedProfile.avatar_url}
+                        alt={`${selectedProfile.first_name}'s avatar`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                        <Users className="w-12 h-12 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                      {selectedProfile.first_name} {selectedProfile.last_name}
+                    </h3>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {selectedProfile.ms_subtype && (
+                        <Badge className="bg-blue-100 text-blue-700">
+                          {selectedProfile.ms_subtype}
+                        </Badge>
+                      )}
+                      {selectedProfile.location && (
+                        <Badge variant="outline" className="bg-gray-100 text-gray-600">
+                          📍 {selectedProfile.location}
+                        </Badge>
+                      )}
+                      {selectedProfile.diagnosis_year && (
+                        <Badge variant="outline" className="bg-purple-100 text-purple-700">
+                          Diagnosed {selectedProfile.diagnosis_year}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {selectedProfile.about_me && (
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-gray-900 mb-2">About</h4>
+                        <p className="text-gray-700 leading-relaxed">{selectedProfile.about_me}</p>
+                      </div>
+                    )}
+
+                    {selectedProfile.hobbies && selectedProfile.hobbies.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-gray-900 mb-2">Interests</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedProfile.hobbies.slice(0, 8).map((hobby, index) => (
+                            <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700 text-xs">
+                              {hobby}
+                            </Badge>
+                          ))}
+                          {selectedProfile.hobbies.length > 8 && (
+                            <Badge variant="secondary" className="bg-gray-50 text-gray-600 text-xs">
+                              +{selectedProfile.hobbies.length - 8} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 mt-6">
+                      <Button 
+                        className="flex-1 bg-gradient-primary hover:opacity-90 text-white" 
+                        onClick={() => likeUserProfile(selectedProfile.user_id)}
+                      >
+                        <Heart className="w-4 h-4 mr-2" />
+                        Like Profile
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={closeProfileView}
+                        className="flex-1"
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Forum
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : viewMode === 'detail' && selectedPost ? (
           // Post Detail View with Scrollable Comments
-          selectedPost && (
-            <div className="max-w-4xl mx-auto p-4">
-              {/* Original Post */}
-              <Card className="mb-6">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
+          <div className="max-w-4xl mx-auto p-4">
+            {/* Original Post */}
+            <Card className="mb-6">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar 
+                      className="w-10 h-10 cursor-pointer" 
+                      onClick={() => viewProfile(selectedPost.author_id)}
+                    >
+                      <AvatarImage src={selectedPost.author.avatar_url || undefined} />
+                      <AvatarFallback>
+                        {selectedPost.author.first_name[0]}{selectedPost.author.last_name[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span 
                           className="font-medium cursor-pointer hover:text-blue-600"
                           onClick={() => viewProfile(selectedPost.author_id)}
                         >
                           {selectedPost.author.first_name} {selectedPost.author.last_name}
                         </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-6 px-2 text-xs"
-                          onClick={() => viewProfile(selectedPost.author_id)}
-                        >
-                          <User className="w-3 h-3 mr-1" />
-                          View Profile
-                        </Button>
-                        <Badge className={`text-xs ${getFlairInfo(selectedPost.flair).color}`}>
-                          {getFlairInfo(selectedPost.flair).label}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => viewProfile(selectedPost.author_id)}
+                          >
+                            View Profile
+                          </Button>
+                          <Badge className={`text-xs ${getFlairInfo(selectedPost.flair).color}`}>
+                            {getFlairInfo(selectedPost.flair).label}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
                         {selectedPost.author.ms_subtype && (
                           <span>{selectedPost.author.ms_subtype}</span>
                         )}
@@ -773,117 +953,121 @@ const ForumPage = () => {
                         <span>• {formatDistanceToNow(new Date(selectedPost.created_at), { addSuffix: true })}</span>
                       </div>
                     </div>
-                    {selectedPost.author_id === user?.id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deletePost(selectedPost.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
                   </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <h1 className="font-bold text-2xl mb-4 text-center">{selectedPost.title}</h1>
-                  <p className="text-gray-700 mb-4 whitespace-pre-wrap text-center">{selectedPost.content}</p>
-                  
-                  <div className="flex items-center gap-4">
+                  {selectedPost.author_id === user?.id && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => likePost(selectedPost.id)}
-                      className={`gap-2 ${selectedPost.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
+                      onClick={() => deletePost(selectedPost.id)}
+                      className="text-red-500 hover:text-red-700"
                     >
-                      <Heart className={`w-4 h-4 ${selectedPost.user_has_liked ? 'fill-current' : ''}`} />
-                      {selectedPost.likes_count}
+                      <Trash2 className="w-4 h-4" />
                     </Button>
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <MessageCircle className="w-4 h-4" />
-                      {selectedPost.comments_count} comments
-                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <h1 className="font-bold text-2xl mb-4">{selectedPost.title}</h1>
+                <p className="text-gray-700 mb-4 whitespace-pre-wrap">{selectedPost.content}</p>
+                
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => likePost(selectedPost.id)}
+                    className={`gap-2 ${selectedPost.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
+                  >
+                    <Heart className={`w-4 h-4 ${selectedPost.user_has_liked ? 'fill-current' : ''}`} />
+                    {selectedPost.likes_count}
+                  </Button>
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <MessageCircle className="w-4 h-4" />
+                    {selectedPost.comments_count} comments
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Comments Section */}
-              <Card>
-                <CardHeader>
-                  <h3 className="font-semibold text-lg">Comments</h3>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Add Comment Form */}
-                  <div className="flex gap-2">
-                    <Input
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Write a comment..."
-                      className="flex-1"
-                    />
-                    <Button onClick={addComment} disabled={!newComment.trim()}>
-                      Post
-                    </Button>
-                  </div>
+            {/* Comments Section */}
+            <Card>
+              <CardHeader>
+                <h3 className="font-semibold text-lg">Comments</h3>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Add Comment Form */}
+                <div className="flex gap-2">
+                  <Input
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Write a comment..."
+                    className="flex-1"
+                  />
+                  <Button onClick={addComment} disabled={!newComment.trim()}>
+                    Post
+                  </Button>
+                </div>
 
-                  {/* Scrollable Comments List */}
-                  <ScrollArea className="h-96">
-                    <div className="space-y-3 pr-4">
-                      {comments.map(comment => (
-                        <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Avatar 
-                              className="w-6 h-6 cursor-pointer"
-                              onClick={() => viewProfile(comment.author_id)}
-                            >
-                              <AvatarImage src={comment.author.avatar_url || undefined} />
-                              <AvatarFallback>
-                                {comment.author.first_name[0]}{comment.author.last_name[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span 
-                              className="font-medium text-sm cursor-pointer hover:text-blue-600"
-                              onClick={() => viewProfile(comment.author_id)}
-                            >
-                              {comment.author.first_name} {comment.author.last_name}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-5 px-1.5 text-xs ml-2"
-                              onClick={() => viewProfile(comment.author_id)}
-                            >
-                              <User className="w-2.5 h-2.5 mr-1" />
-                              View
-                            </Button>
-                            <span className="text-xs text-gray-500">
-                              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => likeComment(comment.id)}
-                            disabled={comment.user_has_liked}
-                            className={`gap-1 text-xs ${comment.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
+                {/* Scrollable Comments List */}
+                <ScrollArea className="h-96">
+                  <div className="space-y-3 pr-4">
+                    {comments.map(comment => (
+                      <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Avatar 
+                            className="w-6 h-6 cursor-pointer"
+                            onClick={() => viewProfile(comment.author_id)}
                           >
-                            <Heart className={`w-3 h-3 ${comment.user_has_liked ? 'fill-current' : ''}`} />
-                            {comment.likes_count}
+                            <AvatarImage src={comment.author.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {comment.author.first_name[0]}{comment.author.last_name[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span 
+                            className="font-medium text-sm cursor-pointer hover:text-blue-600"
+                            onClick={() => viewProfile(comment.author_id)}
+                          >
+                            {comment.author.first_name} {comment.author.last_name}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-5 px-1.5 text-xs ml-2"
+                            onClick={() => viewProfile(comment.author_id)}
+                          >
+                            View
                           </Button>
+                          <span className="text-xs text-gray-500">
+                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                          </span>
                         </div>
-                      ))}
-                      {comments.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <p>No comments yet. Be the first to comment!</p>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
-          )
+                        <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => likeComment(comment.id)}
+                          disabled={comment.user_has_liked}
+                          className={`gap-1 text-xs ${comment.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
+                        >
+                          <Heart className={`w-3 h-3 ${comment.user_has_liked ? 'fill-current' : ''}`} />
+                          {comment.likes_count}
+                        </Button>
+                      </div>
+                    ))}
+                    {comments.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No comments yet. Be the first to comment!</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          // Fallback for unknown view modes
+          <div className="flex justify-center py-8">
+            <p>Invalid view mode</p>
+          </div>
         )}
       </div>
 
