@@ -32,12 +32,16 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
 
   // Optimized fetch with server-side filtering
   const fetchProfiles = useCallback(async (isRefresh = false) => {
-    if (!user) return;
+    if (!user) {
+      console.log('❌ No user provided to fetchProfiles');
+      return;
+    }
 
-    console.log('🔄 Fetching optimized discover profiles');
+    console.log('🔄 Fetching optimized discover profiles for user:', user.id);
     setLoading(true);
     
     if (isRefresh) {
+      console.log('🔄 Refreshing profiles');
       offsetRef.current = 0;
       hasMoreRef.current = true;
       likedIdsRef.current.clear();
@@ -94,7 +98,22 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
         .order('last_seen', { ascending: false })
         .range(offsetRef.current, offsetRef.current + 49);
 
-      if (error) throw error;
+      console.log('🔍 Profile query details:', {
+        excludeIds,
+        excludeCount: excludeIds.length,
+        offset: offsetRef.current,
+        limit: 49
+      });
+
+      if (error) {
+        console.error('❌ Supabase query error:', error);
+        throw error;
+      }
+
+      console.log('🔍 Raw profile query result:', {
+        dataCount: data?.length || 0,
+        data: data?.slice(0, 3) // Log first 3 for debugging
+      });
 
       const formattedProfiles = (data || []).map(profile => ({
         ...profile,
