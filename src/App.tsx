@@ -91,40 +91,32 @@ const PostHogInitializer = () => {
           return;
         }
 
-        // Check cache first
-        const cachedKey = sessionStorage.getItem('posthog_key');
-        if (cachedKey) {
-          analytics.init(cachedKey);
-          return;
-        }
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 Fetching PostHog API key from secrets...');
-        }
-        
-        const { data: secrets } = await supabase.functions.invoke('secrets', {
-          body: { name: 'POSTHOG_API_KEY' }
-        });
-        
-        if (secrets?.value) {
-          // Cache the key for the session
-          sessionStorage.setItem('posthog_key', secrets.value);
-          analytics.init(secrets.value);
+        // Try to get PostHog key (works for both authenticated and anonymous users)
+        try {
+          const { data: secrets } = await supabase.functions.invoke('secrets', {
+            body: { name: 'POSTHOG_API_KEY' }
+          });
           
-          if (process.env.NODE_ENV === 'development') {
-            console.log('✅ PostHog initialized');
-            // Test event only in development
-            setTimeout(() => {
-              analytics.track('app_loaded', { timestamp: Date.now() });
-            }, 1000);
+          if (secrets?.value) {
+            analytics.init(secrets.value);
+            console.log('✅ PostHog initialized for all users');
+            
+            if (process.env.NODE_ENV === 'development') {
+              // Test event only in development
+              setTimeout(() => {
+                analytics.track('app_loaded', { 
+                  timestamp: Date.now(),
+                  user_type: 'visitor'
+                });
+              }, 1000);
+            }
           }
-        } else if (process.env.NODE_ENV === 'development') {
-          console.warn('⚠️ PostHog API key not found');
+        } catch (error) {
+          // PostHog is optional - don't break the app if it fails
+          console.log('📊 PostHog initialization skipped (key not available)');
         }
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('❌ Failed to initialize PostHog:', error);
-        }
+        console.log('📊 PostHog initialization failed gracefully');
       }
     };
 

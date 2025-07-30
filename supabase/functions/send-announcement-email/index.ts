@@ -21,21 +21,21 @@ const supabase = createClient(
 );
 
 const getEmailTemplate = (firstName: string = "there") => ({
-  subject: "🐛 Bug Fixes + 💬 New Forum Feature - MST wins Updates!",
+  subject: "🐛 Bug Fixes + 💬 New Forum Feature - MSTwins Updates!",
   html: `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>MST wins - Latest Updates</title>
+      <title>MSTwins - Latest Updates</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc;">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">MST wins</h1>
+          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">MSTwins</h1>
           <p style="color: #e2e8f0; margin: 10px 0 0 0; font-size: 16px;">Connecting the MS Community</p>
         </div>
 
@@ -44,7 +44,7 @@ const getEmailTemplate = (firstName: string = "there") => ({
           <h2 style="color: #1a202c; margin: 0 0 20px 0; font-size: 24px;">Hey ${firstName}! 🎉</h2>
           
           <p style="color: #4a5568; line-height: 1.6; margin: 0 0 20px 0; font-size: 16px;">
-            We've been hard at work improving your MST wins experience! Here's what's new and fixed in our latest update.
+            We've been hard at work improving your MSTwins experience! Here's what's new and fixed in our latest update.
           </p>
 
           <!-- Bug Fixes Section -->
@@ -80,7 +80,7 @@ const getEmailTemplate = (firstName: string = "there") => ({
 
           <!-- Call to Action Buttons -->
           <div style="text-align: center; margin: 35px 0;">
-            <a href="https://mstwins.com/dashboard?tab=forum" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
+            <a href="https://mstwins.com/forum" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
               💬 Try the Forum
             </a>
             <a href="https://mstwins.com/dashboard" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 0 10px 15px 0; font-size: 16px;">
@@ -104,14 +104,14 @@ const getEmailTemplate = (firstName: string = "there") => ({
 
           <p style="color: #4a5568; line-height: 1.6; margin: 15px 0 0 0; font-size: 16px;">
             With love and support,<br>
-            <strong>The MST wins Team</strong>
+            <strong>The MSTwins Team</strong>
           </p>
         </div>
 
         <!-- Footer -->
         <div style="background-color: #f7fafc; padding: 20px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
           <p style="color: #718096; margin: 0; font-size: 12px;">
-            You're receiving this because you're part of the MST wins community.<br>
+            You're receiving this because you're part of the MSTwins community.<br>
             If you have any questions, feel free to reach out to us anytime.
           </p>
         </div>
@@ -136,7 +136,7 @@ const handler = async (req: Request): Promise<Response> => {
       const emailTemplate = getEmailTemplate("Preview User");
       
       const emailResponse = await resend.emails.send({
-        from: "MST wins Team <team@sharedgenes.org>",
+        from: "MSTwins Team <team@sharedgenes.org>",
         to: [preview_email],
         subject: `[PREVIEW] ${emailTemplate.subject}`,
         html: emailTemplate.html,
@@ -232,7 +232,7 @@ const handler = async (req: Request): Promise<Response> => {
           const personalizedTemplate = getEmailTemplate(firstName);
           
           const result = await resend.emails.send({
-            from: "MST wins Team <team@sharedgenes.org>",
+            from: "MSTwins Team <team@sharedgenes.org>",
             to: [email!],
             subject: personalizedTemplate.subject,
             html: personalizedTemplate.html,
