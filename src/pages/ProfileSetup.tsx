@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { CameraSource } from "@capacitor/camera";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -289,19 +290,43 @@ const ProfileSetup = () => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 10MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
+      // Upload to avatars bucket
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         throw uploadError;
       }
 
+      // Get public URL
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
@@ -317,7 +342,7 @@ const ProfileSetup = () => {
       toast({
         variant: "destructive",
         title: "Upload failed",
-        description: error.message,
+        description: error.message || "Could not upload image. Please try again.",
       });
     } finally {
       setUploading(false);
@@ -335,49 +360,51 @@ const ProfileSetup = () => {
   };
 
   const handleCameraChoice = async () => {
-    if (!camera.isSupported) {
-      toast({
-        title: "Camera Not Available",
-        description: "Camera is only available on mobile devices.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setUploading(true);
       setShowPhotoChoiceDialog(false);
       
-      // Take photo using native camera
-      const photo = await camera.takePhoto({
-        quality: 80,
-        saveToGallery: false,
-        width: 800,
-        height: 800,
-      });
-
-      if (photo && photo.webPath) {
-        // Convert photo to file for upload
-        const response = await fetch(photo.webPath);
-        const blob = await response.blob();
-        const file = new File([blob], `camera-photo-${Date.now()}.jpg`, { 
-          type: 'image/jpeg' 
+      if (camera.isSupported) {
+        // Use native camera on mobile
+        const photo = await camera.takePhoto({
+          quality: 80,
+          source: CameraSource.Camera,
+          saveToGallery: false,
+          width: 800,
+          height: 800,
         });
 
-        // Create a mock file event to reuse existing upload logic
-        const mockEvent = {
-          target: {
-            files: [file]
-          }
-        } as any;
+        if (photo && photo.webPath) {
+          // Convert photo to file for upload
+          const response = await fetch(photo.webPath);
+          const blob = await response.blob();
+          const file = new File([blob], `camera-photo-${Date.now()}.jpg`, { 
+            type: 'image/jpeg' 
+          });
 
-        await handleFileUpload(mockEvent);
+          // Create a mock file event to reuse existing upload logic
+          const mockEvent = {
+            target: {
+              files: [file]
+            }
+          } as any;
+
+          setUploading(false); // Reset before calling handleFileUpload
+          await handleFileUpload(mockEvent);
+          return;
+        }
+      }
+      
+      // Fallback for web - trigger camera input
+      const cameraInput = document.getElementById('camera-upload') as HTMLInputElement;
+      if (cameraInput) {
+        cameraInput.click();
       }
     } catch (error) {
       console.error('Error taking photo:', error);
       toast({
         title: "Camera Error",
-        description: "Could not take photo. Please try again.",
+        description: "Could not access camera. Please try selecting from gallery.",
         variant: "destructive",
       });
       setUploading(false);
