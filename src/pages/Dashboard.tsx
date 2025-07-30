@@ -251,11 +251,22 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch likes when the likes tab is opened
+  // Fetch likes when the likes tab is opened and on initial load
   useEffect(() => {
-    if (activeTab === 'likes' && user) {
+    if (activeTab === 'matches' && user) {
       fetchLikes();
     }
+  }, [activeTab, user]);
+
+  // Auto-refresh likes every 30 seconds when on matches tab
+  useEffect(() => {
+    if (activeTab !== 'matches' || !user) return;
+    
+    const interval = setInterval(() => {
+      fetchLikes();
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
   }, [activeTab, user]);
 
   // Set up real-time subscription to refresh likes when there are new notifications
@@ -267,24 +278,20 @@ const Dashboard = () => {
       table: 'likes',
       filter: `liked_id=eq.${user.id}`
     }, () => {
-      // Refresh likes when someone likes the current user
-      if (activeTab === 'likes') {
-        fetchLikes();
-      }
+      // Always refresh likes when someone likes the current user
+      fetchLikes();
     }).on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
       table: 'matches'
     }, () => {
-      // Refresh likes when a new match is created (to remove them from likes)
-      if (activeTab === 'likes') {
-        fetchLikes();
-      }
+      // Always refresh likes when a new match is created (to remove them from likes)
+      fetchLikes();
     }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, activeTab]);
+  }, [user]);
   const handleSignOut = async () => {
     await signOut();
     navigate("/");

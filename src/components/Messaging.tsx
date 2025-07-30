@@ -175,27 +175,9 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   // Load messages when a match is selected
   useEffect(() => {
     if (selectedMatch && !matchId) {
-      console.log('🔄 Match selected, checking for cached messages:', selectedMatch.id);
-      
-      // Check if we have cached messages for this match
-      const cachedMessages = messageHistory.get(selectedMatch.id);
-      if (cachedMessages && cachedMessages.length > 0) {
-        console.log('📋 Using cached messages:', cachedMessages.length, 'messages');
-        setMessages(cachedMessages);
-        
-        // Scroll to bottom after setting cached messages
-        setTimeout(() => {
-          if (scrollAreaRef.current) {
-            const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-            if (scrollContainer) {
-              scrollContainer.scrollTop = scrollContainer.scrollHeight;
-            }
-          }
-        }, 100);
-      } else {
-        console.log('🔄 No cached messages, fetching fresh messages');
-        fetchMessages(selectedMatch.id);
-      }
+      console.log('🔄 Match selected, immediately fetching messages:', selectedMatch.id);
+      // Always fetch fresh messages to ensure we have the latest data
+      fetchMessages(selectedMatch.id);
     }
   }, [selectedMatch]);
 
@@ -218,13 +200,24 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
     setLoading(true);
     try {
+      // Optimized query with join to reduce database round trips
       const { data, error } = await supabase
         .from('matches')
         .select(`
           id,
           user1_id,
           user2_id,
-          created_at
+          created_at,
+          profiles!matches_user1_id_fkey(
+            id, user_id, first_name, last_name, avatar_url, location, about_me, 
+            ms_subtype, diagnosis_year, date_of_birth, hobbies, symptoms, medications, 
+            gender, last_seen, additional_photos, selected_prompts, extended_profile_completed
+          ),
+          profiles2:profiles!matches_user2_id_fkey(
+            id, user_id, first_name, last_name, avatar_url, location, about_me, 
+            ms_subtype, diagnosis_year, date_of_birth, hobbies, symptoms, medications, 
+            gender, last_seen, additional_photos, selected_prompts, extended_profile_completed
+          )
         `)
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
@@ -234,70 +227,75 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         return;
       }
 
-      // Fetch user profiles and unread message counts for each match
-      const matchesWithProfiles = await Promise.all(
-        (data || []).map(async (match) => {
-          const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
-          
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', otherUserId)
-            .single();
+      // Get unread message counts for all matches in one query
+      const matchIds = (data || []).map(match => match.id);
+      const { data: unreadCounts, error: unreadError } = await supabase
+        .from('messages')
+        .select('match_id')
+        .in('match_id', matchIds)
+        .eq('receiver_id', user.id)
+        .eq('is_read', false);
 
-          // Get unread message count
-          const { count: unreadCount } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('match_id', match.id)
-            .eq('receiver_id', user.id)
-            .eq('is_read', false);
+      if (unreadError) {
+        console.error('Error fetching unread counts:', unreadError);
+      }
 
-          return {
-            ...match,
-            other_user: profileData ? {
-              id: profileData.id,
-              user_id: profileData.user_id,
-              first_name: profileData.first_name,
-              last_name: profileData.last_name,
-              avatar_url: profileData.avatar_url,
-              location: profileData.location,
-              about_me: profileData.about_me,
-              ms_subtype: profileData.ms_subtype,
-              diagnosis_year: profileData.diagnosis_year,
-              date_of_birth: profileData.date_of_birth,
-              hobbies: profileData.hobbies || [],
-              symptoms: profileData.symptoms || [],
-              medications: profileData.medications || [],
-              gender: profileData.gender,
-              last_seen: profileData.last_seen,
-              additional_photos: profileData.additional_photos || [],
-              selected_prompts: Array.isArray(profileData.selected_prompts) 
-                ? profileData.selected_prompts as { question: string; answer: string; }[]
-                : [],
-              extended_profile_completed: profileData.extended_profile_completed || false
-            } : {
-              first_name: 'Unknown',
-              last_name: 'User',
-              avatar_url: null,
-              location: '',
-              about_me: '',
-              ms_subtype: '',
-              diagnosis_year: null,
-              date_of_birth: '',
-              hobbies: [],
-              symptoms: [],
-              medications: [],
-              gender: null,
-              last_seen: null,
-              additional_photos: [],
-              selected_prompts: [],
-              extended_profile_completed: false
-            },
-            unread_count: unreadCount || 0
-          };
-        })
-      );
+      // Count unread messages per match
+      const unreadCountMap = (unreadCounts || []).reduce((acc, msg) => {
+        acc[msg.match_id] = (acc[msg.match_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Process matches with optimized data structure
+      const matchesWithProfiles = (data || []).map(match => {
+        const otherUserProfile = match.user1_id === user.id 
+          ? (match as any).profiles2 
+          : (match as any).profiles;
+
+        return {
+          ...match,
+          other_user: otherUserProfile ? {
+            id: otherUserProfile.id,
+            user_id: otherUserProfile.user_id,
+            first_name: otherUserProfile.first_name,
+            last_name: otherUserProfile.last_name,
+            avatar_url: otherUserProfile.avatar_url,
+            location: otherUserProfile.location,
+            about_me: otherUserProfile.about_me,
+            ms_subtype: otherUserProfile.ms_subtype,
+            diagnosis_year: otherUserProfile.diagnosis_year,
+            date_of_birth: otherUserProfile.date_of_birth,
+            hobbies: otherUserProfile.hobbies || [],
+            symptoms: otherUserProfile.symptoms || [],
+            medications: otherUserProfile.medications || [],
+            gender: otherUserProfile.gender,
+            last_seen: otherUserProfile.last_seen,
+            additional_photos: otherUserProfile.additional_photos || [],
+            selected_prompts: Array.isArray(otherUserProfile.selected_prompts) 
+              ? otherUserProfile.selected_prompts as { question: string; answer: string; }[]
+              : [],
+            extended_profile_completed: otherUserProfile.extended_profile_completed || false
+          } : {
+            first_name: 'Unknown',
+            last_name: 'User',
+            avatar_url: null,
+            location: '',
+            about_me: '',
+            ms_subtype: '',
+            diagnosis_year: null,
+            date_of_birth: '',
+            hobbies: [],
+            symptoms: [],
+            medications: [],
+            gender: null,
+            last_seen: null,
+            additional_photos: [],
+            selected_prompts: [],
+            extended_profile_completed: false
+          },
+          unread_count: unreadCountMap[match.id] || 0
+        };
+      });
 
       setMatches(matchesWithProfiles);
     } catch (error) {
