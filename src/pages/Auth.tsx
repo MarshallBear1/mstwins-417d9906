@@ -131,7 +131,7 @@ const Auth = () => {
   // Enhanced auth state change listener for password recovery
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔑 Auth state change:', { event, hasSession: !!session });
+      console.log('🔑 Auth state change:', { event, hasSession: !!session, isPasswordReset });
       
       // Handle PASSWORD_RECOVERY events or SIGNED_IN during recovery flow
       if (event === 'PASSWORD_RECOVERY' || 
@@ -150,7 +150,7 @@ const Auth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, [toast, isPasswordReset]);
 
   // Redirect if already authenticated (but not during password reset)
   useEffect(() => {

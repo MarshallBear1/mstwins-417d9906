@@ -70,17 +70,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Track authentication events
         if (event === 'SIGNED_IN' && session?.user) {
+          // Check if this is a password reset flow to prevent automatic redirect
+          const isPasswordReset = window.location.search.includes('type=recovery');
+          
           console.log('✅ User signed in successfully:', {
             userId: session.user.id,
             email: session.user.email,
-            platform: Capacitor.isNativePlatform() ? Capacitor.getPlatform() : 'web'
+            platform: Capacitor.isNativePlatform() ? Capacitor.getPlatform() : 'web',
+            isPasswordReset
           });
           
           analytics.identify(session.user.id, {
             email: session.user.email,
             created_at: session.user.created_at
           });
-          analytics.userSignedIn(session.user.id);
+          
+          // Only track sign in and redirect if NOT during password reset
+          if (!isPasswordReset) {
+            analytics.userSignedIn(session.user.id);
+            
+            // Navigate to dashboard after signin (only if not password reset)
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 200);
+          }
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
           analytics.reset();
@@ -214,10 +227,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "You have been signed in successfully.",
       });
 
-      // Navigate to dashboard after signin
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 200); // Reduced delay for snappier UX
+      // Only redirect to dashboard if not during password reset
+      const isPasswordReset = window.location.search.includes('type=recovery');
+      if (!isPasswordReset) {
+        // Navigate to dashboard after signin
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 200); // Reduced delay for snappier UX
+      }
 
       return { error: null };
     } catch (error: any) {
