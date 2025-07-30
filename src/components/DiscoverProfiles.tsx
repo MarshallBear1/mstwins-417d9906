@@ -88,10 +88,12 @@ const DiscoverProfiles = memo(() => {
             last_seen,
             additional_photos,
             selected_prompts,
-            moderation_status
+            moderation_status,
+            hide_from_discover
           `)
           .neq('user_id', user.id)
           .eq('moderation_status', 'approved')
+          .neq('hide_from_discover', true)
           .order('last_seen', { ascending: false })
           .limit(50), // Increased limit for better preloading
         
