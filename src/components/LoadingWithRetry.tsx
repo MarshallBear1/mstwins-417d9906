@@ -1,27 +1,29 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { RefreshCcw, Wifi, WifiOff } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { RefreshCw, Wifi, WifiOff, AlertTriangle } from "lucide-react";
 
 interface LoadingWithRetryProps {
   isLoading: boolean;
   error?: string | null;
   onRetry: () => void;
-  retryText?: string;
   loadingText?: string;
-  errorText?: string;
+  errorTitle?: string;
+  retryText?: string;
   showConnectionStatus?: boolean;
+  connectionStatus?: 'connected' | 'disconnected' | 'error';
 }
 
-export function LoadingWithRetry({ 
-  isLoading, 
-  error, 
-  onRetry, 
-  retryText = "Try Again",
+const LoadingWithRetry = ({
+  isLoading,
+  error = null,
+  onRetry,
   loadingText = "Loading...",
-  errorText,
-  showConnectionStatus = false
-}: LoadingWithRetryProps) {
+  errorTitle = "Something went wrong",
+  retryText = "Try Again",
+  showConnectionStatus = false,
+  connectionStatus = 'connected'
+}: LoadingWithRetryProps) => {
   const [retryCount, setRetryCount] = useState(0);
   const isOnline = navigator?.onLine ?? true;
 
@@ -32,55 +34,84 @@ export function LoadingWithRetry({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-center space-y-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-sm text-muted-foreground">{loadingText}</p>
-          {retryCount > 0 && (
-            <p className="text-xs text-muted-foreground">Attempt {retryCount + 1}</p>
-          )}
-        </div>
+      <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-6"></div>
+        <h3 className="text-xl font-semibold text-foreground mb-2">{loadingText}</h3>
+        {showConnectionStatus && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-4">
+            {connectionStatus === 'connected' ? (
+              <>
+                <Wifi className="w-4 h-4 text-green-500" />
+                <span>Connected</span>
+              </>
+            ) : connectionStatus === 'error' ? (
+              <>
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <span>Connection issues</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-4 h-4 text-gray-500" />
+                <span>Disconnected</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
     );
   }
 
   if (error) {
+    const isNetworkError = !isOnline || error.includes('fetch') || error.includes('network');
+    
     return (
-      <Card className="mx-auto max-w-sm border-destructive/20">
-        <CardContent className="text-center py-6 space-y-4">
-          <div className="text-destructive">
-            {!isOnline ? <WifiOff className="w-8 h-8 mx-auto" /> : <RefreshCcw className="w-8 h-8 mx-auto" />}
-          </div>
+      <Card className="mx-auto max-w-md mt-8">
+        <CardContent className="p-6 text-center">
+          {isNetworkError ? (
+            <WifiOff className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+          ) : (
+            <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-destructive" />
+          )}
           
-          <div className="space-y-2">
-            <p className="font-medium text-destructive">
-              {!isOnline ? 'No Internet Connection' : 'Loading Failed'}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {errorText || error || (!isOnline ? 'Please check your internet connection' : 'Something went wrong')}
-            </p>
-          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            {isNetworkError ? "Connection Problem" : errorTitle}
+          </h3>
+          
+          <p className="text-sm text-muted-foreground mb-4">
+            {isNetworkError 
+              ? "Please check your internet connection and try again."
+              : error
+            }
+          </p>
 
           {showConnectionStatus && (
-            <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground">
-              {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-              <span>{isOnline ? 'Online' : 'Offline'}</span>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-4">
+              {isOnline ? (
+                <>
+                  <Wifi className="w-4 h-4 text-green-500" />
+                  <span>Online</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-4 h-4 text-red-500" />
+                  <span>Offline</span>
+                </>
+              )}
             </div>
           )}
 
           <Button 
             onClick={handleRetry} 
-            size="sm" 
-            variant="outline"
             disabled={!isOnline}
+            className="w-full"
           >
-            <RefreshCcw className="w-4 h-4 mr-2" />
+            <RefreshCw className="w-4 h-4 mr-2" />
             {retryText}
           </Button>
 
           {retryCount > 2 && (
-            <p className="text-xs text-muted-foreground">
-              Still having issues? Try refreshing the page.
+            <p className="text-xs text-muted-foreground mt-4">
+              Still having trouble? Try refreshing the page.
             </p>
           )}
         </CardContent>
@@ -89,4 +120,6 @@ export function LoadingWithRetry({
   }
 
   return null;
-}
+};
+
+export default LoadingWithRetry;

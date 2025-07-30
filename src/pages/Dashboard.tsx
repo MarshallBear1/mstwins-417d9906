@@ -28,7 +28,7 @@ import PersistentBottomNavigation from "@/components/PersistentBottomNavigation"
 import MatchesPage from "@/components/MatchesPage";
 import ForumPage from "@/components/ForumPage";
 import { AuthErrorBoundary } from "@/components/AuthErrorBoundary";
-import { LoadingWithRetry } from "@/components/LoadingWithRetry";
+import LoadingWithRetry from "@/components/LoadingWithRetry";
 interface Profile {
   id: string;
   user_id: string;
@@ -82,8 +82,11 @@ const Dashboard = () => {
   const {
     profiles: discoverProfiles,
     loading: discoverLoading,
+    error: discoverError,
+    connectionStatus: discoverConnectionStatus,
     refetch: refetchProfiles,
-    preloadMore
+    preloadMore,
+    retry: retryProfiles
   } = useOptimizedDiscoverProfiles(user);
 
   const [isReturningUser, setIsReturningUser] = useState(false);
@@ -278,8 +281,11 @@ const Dashboard = () => {
             <OptimizedDiscoverProfiles 
               profiles={discoverProfiles}
               isLoading={discoverLoading}
+              error={discoverError}
+              connectionStatus={discoverConnectionStatus}
               onRefresh={refetchProfiles}
               onPreloadMore={preloadMore}
+              onRetry={retryProfiles}
               hasMore={true}
             />
           </div>;

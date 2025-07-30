@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import LikeLimitWarning from "@/components/LikeLimitWarning";
 import MobileProfileCard from "@/components/ui/mobile-profile-card";
+import LoadingWithRetry from "@/components/LoadingWithRetry";
 import { useHaptics } from "@/hooks/useHaptics";
 
 interface Profile {
@@ -35,16 +36,22 @@ interface Profile {
 interface OptimizedDiscoverProfilesProps {
   profiles: Profile[];
   isLoading: boolean;
+  error: string | null;
+  connectionStatus: 'connected' | 'disconnected' | 'error';
   onRefresh: () => void;
   onPreloadMore: () => void;
+  onRetry: () => void;
   hasMore: boolean;
 }
 
 const OptimizedDiscoverProfiles = ({ 
   profiles, 
   isLoading, 
+  error,
+  connectionStatus,
   onRefresh, 
   onPreloadMore, 
+  onRetry,
   hasMore 
 }: OptimizedDiscoverProfilesProps) => {
   const { user } = useAuth();
@@ -199,24 +206,19 @@ const OptimizedDiscoverProfiles = ({
     }
   }, [currentProfile]);
 
-  if (isLoading && profiles.length === 0) {
+  // Show loading or error states using the new LoadingWithRetry component
+  if ((isLoading && profiles.length === 0) || error) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-6"></div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Finding amazing connections...</h3>
-        <p className="text-gray-600 max-w-sm">We're searching for people in your area who share your interests and MS journey.</p>
-        
-        {/* Add retry option after 5 seconds */}
-        <button 
-          onClick={() => {
-            console.log('🔄 User requested manual refresh');
-            onRefresh();
-          }}
-          className="mt-4 text-sm text-blue-600 hover:text-blue-800 underline"
-        >
-          Taking too long? Try refreshing
-        </button>
-      </div>
+      <LoadingWithRetry
+        isLoading={isLoading && profiles.length === 0}
+        error={error}
+        onRetry={onRetry}
+        loadingText="Finding amazing connections..."
+        errorTitle="Failed to load profiles"
+        retryText="Try Again"
+        showConnectionStatus={true}
+        connectionStatus={connectionStatus}
+      />
     );
   }
 
