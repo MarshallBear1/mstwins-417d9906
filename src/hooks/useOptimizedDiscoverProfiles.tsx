@@ -30,8 +30,20 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
   const likedIdsRef = useRef<Set<string>>(new Set());
   const passedIdsRef = useRef<Set<string>>(new Set());
 
+  // Debug user authentication
+  console.log('🔍 useOptimizedDiscoverProfiles - User state:', {
+    hasUser: !!user,
+    userId: user?.id,
+    userEmail: user?.email
+  });
+
   // Optimized fetch with server-side filtering
   const fetchProfiles = useCallback(async (isRefresh = false) => {
+    if (!user?.id) {
+      console.warn('🚨 Cannot fetch profiles: No user ID available', { user, hasUser: !!user });
+      return;
+    }
+
     if (loading && !isRefresh) return;
     
     if (isRefresh) {
@@ -106,6 +118,7 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
         `)
         .not('user_id', 'in', allExcludedIds)
         .neq('user_id', user.id)
+        .eq('moderation_status', 'approved')
         .order('last_seen', { ascending: false })
         .range(offsetRef.current, offsetRef.current + BATCH_SIZE - 1);
 
@@ -212,11 +225,20 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
 
   // Initial load with proper guards
   useEffect(() => {
-    if (user && !loadingRef.current) {
+    console.log('🔍 useOptimizedDiscoverProfiles useEffect triggered:', {
+      hasUser: !!user,
+      userId: user?.id,
+      loadingRefCurrent: loadingRef.current
+    });
+    
+    if (user?.id && !loadingRef.current) {
+      console.log('🚀 Starting profile fetch...');
       loadingRef.current = true;
       fetchProfiles(true).finally(() => {
         loadingRef.current = false;
       });
+    } else if (!user?.id) {
+      console.warn('🚨 No user ID available for profile fetching');
     }
   }, [user?.id, fetchProfiles]);
 
@@ -226,11 +248,14 @@ export const useOptimizedDiscoverProfiles = (user: any) => {
     isPreloading,
     hasMore: hasMoreRef.current,
     refetch: () => {
-      if (!loadingRef.current) {
+      console.log('🔄 Manual refetch requested');
+      if (!loadingRef.current && user?.id) {
         loadingRef.current = true;
         fetchProfiles(true).finally(() => {
           loadingRef.current = false;
         });
+      } else {
+        console.warn('🚨 Cannot refetch: loading in progress or no user ID');
       }
     },
     preloadMore
