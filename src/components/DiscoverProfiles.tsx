@@ -338,11 +338,6 @@ const DiscoverProfiles = memo(() => {
       
       // Move to next profile immediately
       setCurrentIndex(prev => prev + 1);
-
-      toast({
-        title: "Profile passed",
-        description: "Moved to the next profile."
-      });
     } catch (error) {
       console.error('Error passing profile:', error);
       toast({

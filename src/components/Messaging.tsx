@@ -703,8 +703,11 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                       {selectedMatch.other_user.first_name[0]}{selectedMatch.other_user.last_name[0]}
                     </AvatarFallback>
                   </Avatar>
-                  {isUserOnline(selectedMatch.other_user.user_id || selectedMatch.other_user.id || '') && (
+                  {/* Online/Offline indicator */}
+                  {isUserOnline(selectedMatch.other_user.user_id || selectedMatch.other_user.id || '') ? (
                     <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                  ) : (
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border-2 border-white" />
                   )}
                 </div>
                 
@@ -924,10 +927,13 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                             <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
                               <User className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                             </div>
-                          )}
-                          {isUserOnline(match.other_user.user_id || match.other_user.id || '') && (
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-                          )}
+                           )}
+                           {/* Online/Offline indicator */}
+                           {isUserOnline(match.other_user.user_id || match.other_user.id || '') ? (
+                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+                           ) : (
+                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white" />
+                           )}
                           {match.unread_count > 0 && (
                             <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg animate-pulse">
                               {match.unread_count > 9 ? '9+' : match.unread_count}
