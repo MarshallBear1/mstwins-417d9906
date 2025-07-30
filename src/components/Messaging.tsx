@@ -374,15 +374,17 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
           }, {})
         );
         
-        // Filter out any blocked messages for display
+        // Show ALL approved messages - remove any filtering that might hide older messages
         const visibleMessages = data.filter(msg => 
           !msg.moderation_status || 
           msg.moderation_status === 'approved' || 
           msg.moderation_status === 'pending'
         );
         
+        console.log(`📊 Showing ${visibleMessages.length} of ${data.length} total messages`);
         if (visibleMessages.length !== data.length) {
-          console.log(`📊 Showing ${visibleMessages.length} of ${data.length} messages (filtered out blocked messages)`);
+          console.warn(`⚠️ Some messages filtered out - check moderation status`);
+          console.log('Filtered messages status:', data.filter(msg => !visibleMessages.includes(msg)).map(msg => msg.moderation_status));
         }
         
         setMessages(visibleMessages);
