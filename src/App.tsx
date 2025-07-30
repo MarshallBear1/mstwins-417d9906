@@ -138,9 +138,40 @@ const RouteTracker = () => {
   const location = useLocation();
   
   useEffect(() => {
-    analytics.pageView(location.pathname + location.search);
+    // Track page views
+    analytics.pageView(location.pathname);
   }, [location]);
-  
+
+  // Handle password reset hash parameters
+  useEffect(() => {
+    const handlePasswordResetHash = () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      // If we're on the root path and have password reset parameters in hash
+      if (window.location.pathname === '/' && type === 'recovery' && accessToken && refreshToken) {
+        console.log('🔑 Password reset hash detected on root path, redirecting to auth...');
+        
+        // Redirect to auth page with hash parameters preserved
+        const currentHash = window.location.hash;
+        window.location.href = `/auth${currentHash}`;
+      }
+    };
+
+    // Check immediately
+    handlePasswordResetHash();
+    
+    // Also listen for hash changes
+    const handleHashChange = () => {
+      handlePasswordResetHash();
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   return null;
 };
 

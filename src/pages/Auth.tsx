@@ -25,6 +25,9 @@ const Auth = () => {
   const [rateLimitMessage, setRateLimitMessage] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
@@ -32,6 +35,108 @@ const Auth = () => {
 
   // Use security monitoring
   useSecurityMonitoring();
+
+  // Check for password reset parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    
+    const type = urlParams.get('type') || hashParams.get('type');
+    const code = urlParams.get('code') || hashParams.get('code');
+    const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
+    
+    console.log('🔑 Auth page password reset check:', {
+      url: window.location.href,
+      type,
+      hasCode: !!code,
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+      urlParams: Object.fromEntries(urlParams.entries()),
+      hashParams: Object.fromEntries(hashParams.entries()),
+      pathname: window.location.pathname,
+      hash: window.location.hash,
+      search: window.location.search
+    });
+    
+    if (type === 'recovery') {
+      console.log('🔑 Recovery type detected');
+      
+      // Set password reset mode immediately
+      setIsPasswordReset(true);
+      setIsSignUp(false);
+      
+      if (accessToken && refreshToken) {
+        console.log('✅ Access and refresh tokens found, setting up token-based password reset flow');
+        // Handle token-based recovery (current flow)
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        
+        toast({
+          title: "Reset Your Password",
+          description: "Please enter your new password below.",
+        });
+      } else if (code) {
+        console.log('✅ Code found, setting up code-based password reset flow');
+        // Handle code-based recovery (alternative flow)
+        toast({
+          title: "Reset Your Password", 
+          description: "Please enter your new password below.",
+        });
+      } else {
+        console.log('⚠️ Recovery type found but missing tokens/code, checking auth state...');
+        // Type is recovery but no tokens/code - let's check if Supabase auth state has them
+        supabase.auth.getSession().then(({ data: { session }, error }) => {
+          console.log('🔍 Current auth session:', { session: !!session, error });
+          
+          if (session?.access_token) {
+            console.log('✅ Found session with tokens, setting up password reset flow');
+            toast({
+              title: "Reset Your Password",
+              description: "Please enter your new password below.",
+            });
+          } else {
+            console.log('❌ No session found, user may need to click reset link again');
+            toast({
+              title: "Password Reset Link Issue",
+              description: "Please click the password reset link in your email again, or request a new one.",
+              variant: "destructive",
+            });
+          }
+        });
+      }
+    } else {
+      // Not a password reset flow, ensure we're in the right mode
+      setIsPasswordReset(false);
+    }
+  }, [toast]);
+
+  // Listen for auth state changes to handle password reset flow
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Auth state change:', { event, session: !!session });
+      
+      // Check both search and hash parameters for recovery type
+      const urlParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = urlParams.get('type') || hashParams.get('type');
+      
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && type === 'recovery')) {
+        console.log('🔑 Password recovery detected via auth state change');
+        setIsPasswordReset(true);
+        setIsSignUp(false);
+        
+        toast({
+          title: "Reset Your Password",
+          description: "Please enter your new password below.",
+        });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [toast]);
 
   // Redirect if already authenticated
   useEffect(() => {
