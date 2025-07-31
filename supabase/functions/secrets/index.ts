@@ -12,7 +12,8 @@ const ALLOWED_SECRETS = [
   'RESEND_API_KEY',
   'SUPABASE_URL',
   'SUPABASE_ANON_KEY',
-  'POSTHOG_API_KEY'
+  'POSTHOG_API_KEY',
+  'ADMIN_PASSWORD'
 ]
 
 serve(async (req) => {
@@ -67,6 +68,36 @@ serve(async (req) => {
       await supabase.rpc('log_security_event', {
         user_id_param: userData.user.id,
         event_type_param: 'posthog_secret_accessed',
+        event_details_param: {
+          ip_address: req.headers.get('cf-connecting-ip') || 'unknown',
+          user_agent: req.headers.get('user-agent') || 'unknown',
+          timestamp: new Date().toISOString()
+        }
+      })
+
+      return new Response(
+        JSON.stringify({ value: secretValue }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Allow ADMIN_PASSWORD access for all authenticated users (for login purposes)
+    if (name === 'ADMIN_PASSWORD') {
+      const secretValue = Deno.env.get(name)
+      
+      if (!secretValue) {
+        console.warn(`User ${userData.user.id} requested non-existent admin password secret`)
+        return new Response(
+          JSON.stringify({ error: `Secret ${name} not found` }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Log admin password access attempt
+      console.log(`User ${userData.user.id} attempted admin login`)
+      await supabase.rpc('log_security_event', {
+        user_id_param: userData.user.id,
+        event_type_param: 'admin_password_accessed',
         event_details_param: {
           ip_address: req.headers.get('cf-connecting-ip') || 'unknown',
           user_agent: req.headers.get('user-agent') || 'unknown',

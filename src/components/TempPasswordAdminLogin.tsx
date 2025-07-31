@@ -6,9 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Shield, Eye, EyeOff, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
-
-// Temporary admin password - CHANGE THIS!
-const TEMP_ADMIN_PASSWORD = 'admin123';
+import { supabase } from '@/integrations/supabase/client';
 
 export const TempPasswordAdminLogin = () => {
   const { toast } = useToast();
@@ -31,9 +29,26 @@ export const TempPasswordAdminLogin = () => {
 
     setIsLoading(true);
 
-    // Simulate a small delay for security
-    setTimeout(() => {
-      if (password === TEMP_ADMIN_PASSWORD) {
+    try {
+      // Get the admin password from Supabase secrets
+      const { data: secretData, error } = await supabase.functions.invoke('secrets', {
+        body: { name: 'ADMIN_PASSWORD' }
+      });
+
+      if (error) {
+        console.error('Error fetching admin password:', error);
+        toast({
+          title: "Configuration Error",
+          description: "Admin password not configured. Please contact administrator.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const adminPassword = secretData?.value;
+      
+      if (password === adminPassword) {
         // Set temporary admin authentication flag
         sessionStorage.setItem('temp_admin_authenticated', 'true');
         toast({
@@ -48,8 +63,16 @@ export const TempPasswordAdminLogin = () => {
           variant: "destructive",
         });
       }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      toast({
+        title: "Authentication Error",
+        description: "Unable to verify credentials. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (
