@@ -95,7 +95,7 @@ const DiscoverProfiles = memo(() => {
           .neq('user_id', user.id)
           .eq('moderation_status', 'approved')
           .neq('hide_from_discover', true)
-          .limit(100), // Increased limit to get more variety
+          .limit(1000), // Much higher limit to ensure all profiles are available
         
         supabase
           .from('likes')
@@ -164,11 +164,14 @@ const DiscoverProfiles = memo(() => {
 
       // Create mixed array: 60% recent, 25% moderate, 15% less active
       const mixedProfiles: Profile[] = [];
-      const maxProfiles = 50; // Limit final output
+      
+      // Calculate total available profiles
+      const totalAvailable = shuffledRecent.length + shuffledModerate.length + shuffledLess.length;
       
       let recentIndex = 0, moderateIndex = 0, lessIndex = 0;
       
-      for (let i = 0; i < maxProfiles && (recentIndex < shuffledRecent.length || moderateIndex < shuffledModerate.length || lessIndex < shuffledLess.length); i++) {
+      // Include ALL available profiles, not just a limited subset
+      for (let i = 0; i < totalAvailable; i++) {
         // Determine which category to pick from based on weighted distribution
         const rand = Math.random();
         
