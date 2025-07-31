@@ -75,7 +75,8 @@ const PasswordReset = () => {
           try {
             const { data, error } = await supabase.auth.verifyOtp({
               token: code,
-              type: 'recovery'
+              type: 'recovery',
+              email: '' // Will be ignored for recovery type
             });
             
             if (error) {

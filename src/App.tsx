@@ -144,11 +144,11 @@ const RouteTracker = () => {
       
       // If we're on the root path and have password reset parameters in hash
       if (window.location.pathname === '/' && type === 'recovery' && accessToken && refreshToken) {
-        console.log('🔑 Password reset hash detected on root path, redirecting to auth...');
+        console.log('🔑 Password reset hash detected on root path, redirecting to password-reset...');
         
-        // Redirect to auth page with hash parameters preserved
+        // Redirect to password-reset page with hash parameters preserved
         const currentHash = window.location.hash;
-        window.location.href = `/auth${currentHash}`;
+        window.location.href = `/password-reset${currentHash}`;
       }
     };
 
