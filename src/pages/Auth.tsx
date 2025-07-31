@@ -28,6 +28,8 @@ const Auth = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [passwordResetValid, setPasswordResetValid] = useState(false);
+  const [passwordResetErrors, setPasswordResetErrors] = useState<string[]>([]);
   
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
@@ -74,6 +76,8 @@ const Auth = () => {
           refresh_token: refreshToken,
         });
         
+        setIsPasswordReset(true);
+        setIsSignUp(false);
         toast({
           title: "Reset Your Password",
           description: "Please enter your new password below.",
@@ -81,9 +85,26 @@ const Auth = () => {
       } else if (code) {
         console.log('✅ Code found, setting up code-based password reset flow');
         // Handle code-based recovery (alternative flow)
-        toast({
-          title: "Reset Your Password", 
-          description: "Please enter your new password below.",
+        supabase.auth.verifyOtp({
+          token: code,
+          type: 'recovery'
+        }).then(({ data, error }) => {
+          if (error) {
+            console.log('❌ Error verifying recovery code:', error);
+            toast({
+              title: "Invalid Reset Link",
+              description: "This password reset link is invalid or has expired. Please request a new one.",
+              variant: "destructive",
+            });
+          } else {
+            console.log('✅ Recovery code verified successfully');
+            setIsPasswordReset(true);
+            setIsSignUp(false);
+            toast({
+              title: "Reset Your Password", 
+              description: "Please enter your new password below.",
+            });
+          }
         });
       } else {
         console.log('⚠️ Recovery type found but missing tokens/code, checking auth state...');
@@ -93,6 +114,8 @@ const Auth = () => {
           
           if (session?.access_token) {
             console.log('✅ Found session with tokens, setting up password reset flow');
+            setIsPasswordReset(true);
+            setIsSignUp(false);
             toast({
               title: "Reset Your Password",
               description: "Please enter your new password below.",
@@ -151,6 +174,75 @@ const Auth = () => {
     setPasswordErrors(errors);
   };
 
+  const handlePasswordResetValidation = (isValid: boolean, errors: string[]) => {
+    setPasswordResetValid(isValid);
+    setPasswordResetErrors(errors);
+  };
+
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!passwordResetValid) {
+      toast({
+        title: "Invalid Password",
+        description: "Please fix the password requirements before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Passwords Don't Match",
+        description: "Please make sure both passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) {
+        console.error('❌ Password reset error:', error);
+        toast({
+          title: "Password Reset Failed",
+          description: error.message || "Failed to reset password. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        console.log('✅ Password reset successful');
+        toast({
+          title: "Password Reset Successful!",
+          description: "Your password has been updated. You can now sign in with your new password.",
+        });
+        
+        // Sign out the user after successful password reset
+        await supabase.auth.signOut();
+        
+        // Reset the form
+        setIsPasswordReset(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        setPasswordResetValid(false);
+        setPasswordResetErrors([]);
+      }
+    } catch (error) {
+      console.error('❌ Unexpected error during password reset:', error);
+      toast({
+        title: "Password Reset Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,8 +265,10 @@ const Auth = () => {
       const redirectUrl = `${window.location.origin}/password-reset`;
       console.log('🔗 Using redirect URL:', redirectUrl);
       
+      // Use recovery flow instead of magic link
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
         redirectTo: redirectUrl,
+        // This will send a recovery email instead of a magic link
       });
       
       if (error) {
@@ -369,10 +463,12 @@ const Auth = () => {
               
               <CardTitle className="text-2xl font-bold mb-2">
                 {showForgotPassword ? "Reset Password" : 
+                 isPasswordReset ? "Set New Password" :
                  isSignUp ? "Join MSTwins" : "Welcome Back"}
               </CardTitle>
               <CardDescription className="text-blue-100 text-base">
                 {showForgotPassword ? "Enter your email to reset your password" :
+                 isPasswordReset ? "Enter your new password below" :
                  isSignUp ? "Connect with others who understand your MS journey" : 
                  "Sign in to your support community"}
               </CardDescription>
@@ -423,6 +519,60 @@ const Auth = () => {
                   className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
                 >
                   Back to Sign In
+                </Button>
+              </form>
+            ) : isPasswordReset ? (
+              // Password Reset Form
+              <form onSubmit={handlePasswordReset} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword" className="text-sm font-semibold text-gray-700">
+                    New Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      placeholder="Enter your new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                      required
+                    />
+                  </div>
+                  <PasswordStrengthIndicator 
+                    password={newPassword} 
+                    onValidationChange={handlePasswordResetValidation}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">
+                    Confirm New Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Confirm your new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                      required
+                    />
+                  </div>
+                  {confirmPassword && newPassword !== confirmPassword && (
+                    <p className="text-sm text-red-600">Passwords don't match</p>
+                  )}
+                </div>
+
+                <Button 
+                  type="submit" 
+                  disabled={loading || !passwordResetValid || newPassword !== confirmPassword}
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {loading ? "Resetting Password..." : "Reset Password"}
                 </Button>
               </form>
             ) : (

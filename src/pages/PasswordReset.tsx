@@ -42,8 +42,8 @@ const PasswordReset = () => {
       });
       
       if (type === 'recovery') {
+        // For recovery flow, we need to set the session first to enable password update
         if (accessToken && refreshToken) {
-          // Token-based recovery flow
           try {
             const { error } = await supabase.auth.setSession({
               access_token: accessToken,
@@ -59,7 +59,7 @@ const PasswordReset = () => {
                 variant: "destructive",
               });
             } else {
-              console.log('✅ Session set successfully');
+              console.log('✅ Session set successfully for password reset');
               setIsTokenValid(true);
               toast({
                 title: "Reset Your Password",
@@ -67,33 +67,45 @@ const PasswordReset = () => {
               });
             }
           } catch (error) {
-            console.error('❌ Error during token validation:', error);
+            console.error('❌ Error during session setup:', error);
             setIsTokenValid(false);
           }
         } else if (code) {
-          // Code-based recovery flow
-          setIsTokenValid(true);
-          toast({
-            title: "Reset Your Password",
-            description: "Please enter your new password below.",
-          });
-        } else {
-          // Check if there's an existing session
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.access_token) {
-            setIsTokenValid(true);
-            toast({
-              title: "Reset Your Password",
-              description: "Please enter your new password below.",
+          // For code-based recovery, we need to exchange the code for a session
+          try {
+            const { data, error } = await supabase.auth.verifyOtp({
+              token: code,
+              type: 'recovery'
             });
-          } else {
+            
+            if (error) {
+              console.error('❌ Error verifying recovery code:', error);
+              setIsTokenValid(false);
+              toast({
+                title: "Invalid Reset Link",
+                description: "This password reset link is invalid or has expired. Please request a new one.",
+                variant: "destructive",
+              });
+            } else {
+              console.log('✅ Recovery code verified successfully');
+              setIsTokenValid(true);
+              toast({
+                title: "Reset Your Password",
+                description: "Please enter your new password below.",
+              });
+            }
+          } catch (error) {
+            console.error('❌ Error during code validation:', error);
             setIsTokenValid(false);
-            toast({
-              title: "Invalid Reset Link",
-              description: "This password reset link is invalid or has expired. Please request a new one.",
-              variant: "destructive",
-            });
           }
+        } else {
+          // No valid tokens found
+          setIsTokenValid(false);
+          toast({
+            title: "Invalid Reset Link",
+            description: "This password reset link is invalid or has expired. Please request a new one.",
+            variant: "destructive",
+          });
         }
       } else {
         // No recovery type found
@@ -133,6 +145,7 @@ const PasswordReset = () => {
     setLoading(true);
     
     try {
+      // Since we have a valid session from the recovery flow, we can update the password
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -151,6 +164,9 @@ const PasswordReset = () => {
           title: "Password Reset Successful!",
           description: "Your password has been updated. You can now sign in with your new password.",
         });
+        
+        // Sign out the user after successful password reset
+        await supabase.auth.signOut();
         
         // Redirect to auth page after a short delay
         setTimeout(() => {

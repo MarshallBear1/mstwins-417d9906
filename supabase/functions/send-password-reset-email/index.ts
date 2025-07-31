@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
               You requested to reset your password for your MSTwins account. Click the button below to set a new password.
             </p>
             <p style="color: #666; line-height: 1.6;">
-              <strong>This is NOT a magic link</strong> - you'll need to enter a new password on the secure reset page.
+              <strong>This is a password reset link</strong> - you'll be taken to a secure page where you can enter your new password.
             </p>
             <p style="color: #666; line-height: 1.6;">
               If you didn't request this password reset, you can safely ignore this email.
@@ -62,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
               • This link will take you to a secure password reset page<br/>
               • You'll be asked to enter a new password<br/>
               • The link expires in 24 hours for your security<br/>
-              • Your current password remains active until you complete the reset
+              • You'll be signed out after completing the password reset for security
             </p>
           </div>
 
