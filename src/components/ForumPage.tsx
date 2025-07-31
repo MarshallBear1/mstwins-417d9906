@@ -224,6 +224,45 @@ const ForumPage = () => {
 
       if (error) throw error;
 
+      // Create notifications for other users about the new forum post
+      try {
+        // Get all other users to notify (excluding the post author)
+        const { data: users, error: usersError } = await supabase
+          .from('profiles')
+          .select('user_id')
+          .neq('user_id', user.id)
+          .limit(100); // Limit to prevent overwhelming the system
+
+        if (!usersError && users && users.length > 0) {
+          // Create notification entries for all users
+          const notifications = users.map(userProfile => ({
+            user_id: userProfile.user_id,
+            type: 'forum_post',
+            title: '📝 New Forum Post',
+            message: `New post in ${FORUM_FLAIRS.find(f => f.value === newPost.flair)?.label || 'General'}: "${newPost.title.substring(0, 50)}${newPost.title.length > 50 ? '...' : ''}"`,
+            from_user_id: user.id
+          }));
+
+          // Insert notifications in batches to avoid overwhelming the database
+          const batchSize = 50;
+          for (let i = 0; i < notifications.length; i += batchSize) {
+            const batch = notifications.slice(i, i + batchSize);
+            const { error: notificationError } = await supabase
+              .from('notifications')
+              .insert(batch);
+
+            if (notificationError) {
+              console.error('Error creating forum post notifications batch:', notificationError);
+            }
+          }
+
+          console.log(`📝 Created forum post notifications for ${notifications.length} users`);
+        }
+      } catch (notificationError) {
+        console.error('Error creating forum post notifications:', notificationError);
+        // Don't fail the post creation if notifications fail
+      }
+
       toast({
         title: "Post created!",
         description: "Your post has been shared with the community."

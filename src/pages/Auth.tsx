@@ -189,7 +189,7 @@ const Auth = () => {
           });
         } else if (error.message.includes('rate limit')) {
           toast({
-            title: "Too Many Requests",
+            title: "Too Many Requests", 
             description: "You've requested too many password resets. Please wait before trying again.",
             variant: "destructive",
           });
@@ -203,8 +203,8 @@ const Auth = () => {
       } else {
         console.log('Password reset email sent successfully');
         toast({
-          title: "Reset Link Sent! ✅",
-          description: "Check your email for a password reset link. The link will redirect you back here to set a new password.",
+          title: "Password Reset Email Sent! 📧",
+          description: "Check your email for a password reset link. Click the link to set a new password securely.",
         });
         setShowForgotPassword(false);
         setForgotPasswordEmail("");
