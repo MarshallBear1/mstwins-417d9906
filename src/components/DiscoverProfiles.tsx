@@ -61,7 +61,7 @@ const DiscoverProfiles = memo(() => {
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
 
-  // Optimized profile fetching with parallel queries and increased limit for preloading
+  // Optimized profile fetching with improved mixed algorithm
   const fetchProfiles = useCallback(async () => {
     if (!user) return;
 
@@ -95,8 +95,7 @@ const DiscoverProfiles = memo(() => {
           .neq('user_id', user.id)
           .eq('moderation_status', 'approved')
           .neq('hide_from_discover', true)
-          .order('last_seen', { ascending: false })
-          .limit(50), // Increased limit for better preloading
+          .limit(100), // Increased limit to get more variety
         
         supabase
           .from('likes')
@@ -129,7 +128,72 @@ const DiscoverProfiles = memo(() => {
         return !isLiked && !isPassed && !isMstwins;
       }) || [];
 
-      setProfiles(filteredProfiles as Profile[]);
+      // Improved algorithm: Mix recently active and less active users
+      const now = new Date();
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+
+      // Categorize profiles by activity
+      const recentlyActive = filteredProfiles.filter(profile => 
+        profile.last_seen && new Date(profile.last_seen) > oneDayAgo
+      );
+      
+      const moderatelyActive = filteredProfiles.filter(profile => 
+        profile.last_seen && 
+        new Date(profile.last_seen) <= oneDayAgo && 
+        new Date(profile.last_seen) > threeDaysAgo
+      );
+      
+      const lessActive = filteredProfiles.filter(profile => 
+        !profile.last_seen || new Date(profile.last_seen) <= threeDaysAgo
+      );
+
+      // Shuffle each category to add randomness
+      const shuffleArray = (array: Profile[]) => {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      };
+
+      const shuffledRecent = shuffleArray(recentlyActive);
+      const shuffledModerate = shuffleArray(moderatelyActive);
+      const shuffledLess = shuffleArray(lessActive);
+
+      // Create mixed array: 60% recent, 25% moderate, 15% less active
+      const mixedProfiles: Profile[] = [];
+      const maxProfiles = 50; // Limit final output
+      
+      let recentIndex = 0, moderateIndex = 0, lessIndex = 0;
+      
+      for (let i = 0; i < maxProfiles && (recentIndex < shuffledRecent.length || moderateIndex < shuffledModerate.length || lessIndex < shuffledLess.length); i++) {
+        // Determine which category to pick from based on weighted distribution
+        const rand = Math.random();
+        
+        if (rand < 0.6 && recentIndex < shuffledRecent.length) {
+          // 60% chance for recently active
+          mixedProfiles.push(shuffledRecent[recentIndex++]);
+        } else if (rand < 0.85 && moderateIndex < shuffledModerate.length) {
+          // 25% chance for moderately active  
+          mixedProfiles.push(shuffledModerate[moderateIndex++]);
+        } else if (lessIndex < shuffledLess.length) {
+          // 15% chance for less active
+          mixedProfiles.push(shuffledLess[lessIndex++]);
+        } else {
+          // Fallback: add from any available category
+          if (recentIndex < shuffledRecent.length) {
+            mixedProfiles.push(shuffledRecent[recentIndex++]);
+          } else if (moderateIndex < shuffledModerate.length) {
+            mixedProfiles.push(shuffledModerate[moderateIndex++]);
+          } else if (lessIndex < shuffledLess.length) {
+            mixedProfiles.push(shuffledLess[lessIndex++]);
+          }
+        }
+      }
+
+      setProfiles(mixedProfiles);
       setCurrentIndex(0);
       
     } catch (error: any) {
