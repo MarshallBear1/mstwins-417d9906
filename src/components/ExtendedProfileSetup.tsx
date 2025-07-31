@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { CameraSource, CameraResultType } from "@capacitor/camera";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -199,6 +200,8 @@ const ExtendedProfileSetup = () => {
       // Take photo using native camera
       const photo = await camera.takePhoto({
         quality: 80,
+        source: CameraSource.Camera,
+        resultType: CameraResultType.Uri,
         saveToGallery: false,
         width: 800,
         height: 800,
@@ -233,9 +236,47 @@ const ExtendedProfileSetup = () => {
     }
   };
 
-  const handleGalleryChoice = () => {
-    const input = document.getElementById('additional-photo-upload') as HTMLInputElement;
-    input?.click();
+  const handleGalleryChoice = async () => {
+    try {
+      setUploading(true);
+      setShowPhotoChoiceDialog(false);
+      
+      const photo = await camera.pickFromGallery({
+        quality: 90,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Photos,
+        width: 800,
+        height: 800
+      });
+      
+      if (photo && photo.webPath) {
+        // Convert webPath to File for upload
+        const response = await fetch(photo.webPath);
+        const blob = await response.blob();
+        const file = new File([blob], `gallery-photo.jpg`, { 
+          type: 'image/jpeg' 
+        });
+
+        // Create a mock file event to reuse existing upload logic
+        const mockEvent = {
+          target: {
+            files: [file]
+          }
+        } as any;
+
+        await handlePhotoUpload(mockEvent);
+        return;
+      }
+    } catch (error) {
+      console.error('Gallery error:', error);
+      toast({
+        title: "Gallery Error",
+        description: "Could not access gallery. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removePhoto = (index: number) => {

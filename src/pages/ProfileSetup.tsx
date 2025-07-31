@@ -373,6 +373,7 @@ const ProfileSetup = () => {
         const photo = await camera.takePhoto({
           quality: 80,
           source: CameraSource.Camera,
+          resultType: CameraResultType.Uri,
           saveToGallery: false,
           width: 800,
           height: 800,
@@ -424,6 +425,7 @@ const ProfileSetup = () => {
       const photo = await camera.pickFromGallery({
         quality: 90,
         resultType: CameraResultType.Uri,
+        source: CameraSource.Photos,
         width: 800,
         height: 800
       });
