@@ -23,7 +23,8 @@ export const useDailyLikes = () => {
           setRemainingLikes(999); // Default to unlimited on error
         } else {
           console.log('✅ Remaining likes fetched:', data);
-          setRemainingLikes(data || 0);
+          const likesInfo = data as any;
+          setRemainingLikes(likesInfo?.remaining || 0);
         }
       } catch (error) {
         console.error('Error in fetchRemainingLikes:', error);
@@ -71,7 +72,8 @@ export const useDailyLikes = () => {
     try {
       const { data, error } = await supabase.rpc('get_remaining_likes_today');
       if (!error) {
-        setRemainingLikes(data || 0);
+        const likesInfo = data as any;
+        setRemainingLikes(likesInfo?.remaining || 0);
       }
     } catch (error) {
       console.error('Error refreshing remaining likes:', error);

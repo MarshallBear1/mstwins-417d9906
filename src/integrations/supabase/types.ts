@@ -192,6 +192,39 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_referrals: {
+        Row: {
+          bonus_claimed: boolean
+          bonus_claimed_at: string | null
+          created_at: string
+          id: string
+          referral_code: string
+          referral_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bonus_claimed?: boolean
+          bonus_claimed_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code: string
+          referral_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bonus_claimed?: boolean
+          bonus_claimed_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referral_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_processing_log: {
         Row: {
           created_at: string
@@ -1058,6 +1091,10 @@ export type Database = {
         Args: { email_input: string; ip_input?: unknown }
         Returns: Json
       }
+      claim_referral_bonus: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       clear_failed_login_attempts: {
         Args: { email_input: string }
         Returns: undefined
@@ -1113,7 +1150,7 @@ export type Database = {
       }
       get_remaining_likes_today: {
         Args: Record<PropertyKey, never>
-        Returns: number
+        Returns: Json
       }
       get_security_setting: {
         Args: { setting_key: string }

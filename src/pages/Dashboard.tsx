@@ -16,6 +16,7 @@ import ReferralDropdown from "@/components/ReferralDropdown";
 
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { LikesStatusBanner } from "@/components/LikesStatusBanner";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
 import { AnalyticsDebugPanel } from "@/components/AnalyticsDebugPanel";
 import { usePreloadedDashboardData } from "@/hooks/usePreloadedDashboardData";
@@ -222,6 +223,8 @@ const Dashboard = () => {
           return <DiscoverSkeletonGrid />;
         }
         return <div className="pt-6">
+            <LikesStatusBanner />
+            
             {/* Extended Profile Prompt */}
             {profile && !profile.extended_profile_completed && !extendedPromptDismissed && <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mx-4 mb-4">
                 <div className="flex items-start space-x-3">

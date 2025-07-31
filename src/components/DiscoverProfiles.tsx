@@ -5,7 +5,7 @@ import { Heart, RefreshCw, MapPin, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
-import { useDailyLikes } from "@/hooks/useDailyLikes";
+import { useDailyLikesReferral } from "@/hooks/useDailyLikesReferral";
 import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
@@ -57,7 +57,7 @@ const DiscoverProfiles = memo(() => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [actionCooldown, setActionCooldown] = useState(false);
   const [isCardFlipped, setIsCardFlipped] = useState(false); // Add flip state here
-  const { remainingLikes, refreshRemainingLikes } = useDailyLikes();
+  const { remainingLikes, fetchLikesData, canGetBonus } = useDailyLikesReferral();
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
 
@@ -279,7 +279,7 @@ const DiscoverProfiles = memo(() => {
 
       vibrate();
       analytics.track('profile_liked', { liked_user_id: profileUserId });
-      refreshRemainingLikes();
+      fetchLikesData();
 
       toast({
         title: "Profile liked!",
@@ -300,7 +300,7 @@ const DiscoverProfiles = memo(() => {
     } finally {
       setTimeout(() => setActionCooldown(false), 500); // Reduced cooldown
     }
-  }, [user, actionCooldown, remainingLikes, vibrate, refreshRemainingLikes, toast, currentIndex]);
+  }, [user, actionCooldown, remainingLikes, vibrate, fetchLikesData, toast, currentIndex]);
 
   // Optimized pass function with cooldown and immediate UI update
   const passProfile = useCallback(async (profileUserId: string) => {
