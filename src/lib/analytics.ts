@@ -12,11 +12,20 @@ class AnalyticsService {
     
     try {
       posthog.init(apiKey, {
-        api_host: 'https://us.i.posthog.com',
+        api_host: 'https://us.posthog.com',
         person_profiles: 'identified_only',
-        capture_pageview: false, // We'll manually capture pageviews
+        capture_pageview: false,
         capture_pageleave: true,
         debug: process.env.NODE_ENV === 'development',
+        disable_session_recording: false,
+        disable_compression: false,
+        secure_cookie: true,
+        cross_subdomain_cookie: false,
+        respect_dnt: true,
+        opt_out_capturing_by_default: false,
+        loaded: (posthog) => {
+          console.log('📊 PostHog loaded successfully');
+        },
         ...config
       });
       
@@ -24,13 +33,20 @@ class AnalyticsService {
       console.log('📊 PostHog analytics initialized successfully', {
         apiKey: apiKey.substring(0, 8) + '...',
         environment: process.env.NODE_ENV,
+        host: 'https://us.posthog.com',
         timestamp: new Date().toISOString()
       });
 
-      // Test connection
-      this.track('analytics_initialized', { timestamp: Date.now() });
+      // Test connection with delay to ensure initialization is complete
+      setTimeout(() => {
+        this.track('analytics_initialized', { 
+          timestamp: Date.now(),
+          initialization_type: 'auto'
+        });
+      }, 500);
     } catch (error) {
       console.error('❌ Failed to initialize PostHog:', error);
+      this.initialized = false;
     }
   }
 
