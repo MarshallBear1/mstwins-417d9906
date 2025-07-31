@@ -106,18 +106,36 @@ const DiscoverProfiles = memo(() => {
         supabase
           .from('passes')
           .select('passed_id')
-          .eq('passer_id', user.id)
+          .eq('passer_id', user.id),
+
+        // Get the mstwins@gmail.com user ID to exclude
+        supabase.auth.admin.listUsers()
       ]);
 
       if (profilesResult.error) throw profilesResult.error;
 
       const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
       const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
+      
+      // Find mstwins@gmail.com user ID
+      const mstwinsUser = profilesResult.data?.find(profile => {
+        // We'll get the user email by checking if the profile belongs to mstwins@gmail.com
+        // Since we can't directly access auth.users, we'll use a workaround
+        return profile.first_name?.toLowerCase() === 'mstwins' || 
+               profile.last_name?.toLowerCase() === 'mstwins';
+      });
 
-      // Filter out already liked/passed profiles
-      const filteredProfiles = profilesResult.data?.filter(
-        profile => !likedIds.has(profile.user_id) && !passedIds.has(profile.user_id)
-      ) || [];
+      // Filter out already liked/passed profiles and mstwins user
+      const filteredProfiles = profilesResult.data?.filter(profile => {
+        const isLiked = likedIds.has(profile.user_id);
+        const isPassed = passedIds.has(profile.user_id);
+        const isMstwins = profile.first_name?.toLowerCase() === 'mstwins' || 
+                         profile.last_name?.toLowerCase() === 'mstwins' ||
+                         profile.first_name?.toLowerCase().includes('mstwins') ||
+                         profile.last_name?.toLowerCase().includes('mstwins');
+        
+        return !isLiked && !isPassed && !isMstwins;
+      }) || [];
 
       setProfiles(filteredProfiles as Profile[]);
       setCurrentIndex(0);
