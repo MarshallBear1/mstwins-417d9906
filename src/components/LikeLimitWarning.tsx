@@ -34,53 +34,29 @@ const LikeLimitWarning = ({ open, onOpenChange, remainingLikes }: LikeLimitWarni
             <DialogDescription className="text-left space-y-4">
               <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-orange-600" />
+                  <Heart className="w-4 h-4 text-orange-600" />
                   <span className="font-medium text-orange-800 dark:text-orange-200">
-                    {remainingLikes} likes remaining today
+                    1 like remaining today
                   </span>
                 </div>
-                <p className="text-sm text-orange-700 dark:text-orange-300">
-                  You have a daily limit of 5 likes to encourage meaningful connections.
-                </p>
               </div>
               
-              {remainingLikes === 0 && canGetBonus && (
+              {canGetBonus && (
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
                   <div className="flex items-center gap-2 mb-2">
                     <Gift className="w-5 h-5 text-primary" />
-                    <span className="font-semibold text-gray-900">Want 5 More Likes?</span>
+                    <span className="font-semibold text-gray-900">Want 5 more likes for today?</span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Share our community with someone and unlock 5 bonus likes for today!
+                  <p className="text-sm text-gray-600">
+                    Share the link to someone, check back and you will have 5 more likes. 
+                    (Likes work when someone clicks the referral link - they don't have to sign up!)
                   </p>
                 </div>
               )}
               
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <Target className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm">Why do we have like limits?</p>
-                    <p className="text-sm text-muted-foreground">
-                      Daily limits encourage thoughtful connections and help you focus on quality relationships within our MS support community.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Heart className="w-5 h-5 text-pink-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm">Make each like count</p>
-                    <p className="text-sm text-muted-foreground">
-                      Take time to read profiles carefully and connect with people who share your MS journey.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
               <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  💡 <strong>Tip:</strong> Your likes reset every day at midnight, so come back tomorrow for 5 fresh likes!
+                  💡 Come back tomorrow for fresh likes!
                 </p>
               </div>
             </DialogDescription>
@@ -97,7 +73,7 @@ const LikeLimitWarning = ({ open, onOpenChange, remainingLikes }: LikeLimitWarni
             >
               Got it!
             </Button>
-            {remainingLikes === 0 && canGetBonus && (
+            {canGetBonus && (
               <Button onClick={handleGetMoreLikes}>
                 <Gift className="w-4 h-4 mr-2" />
                 Get More Likes

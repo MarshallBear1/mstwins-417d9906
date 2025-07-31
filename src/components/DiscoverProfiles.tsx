@@ -219,9 +219,9 @@ const DiscoverProfiles = memo(() => {
     fetchProfiles();
   }, [fetchProfiles]);
 
-  // Show like limit warning when likes are low
+  // Show like limit warning when you have 1 like remaining
   useEffect(() => {
-    if (remainingLikes <= 2 && remainingLikes > 0) {
+    if (remainingLikes === 1) {
       setShowLikeLimitWarning(true);
     }
   }, [remainingLikes]);
