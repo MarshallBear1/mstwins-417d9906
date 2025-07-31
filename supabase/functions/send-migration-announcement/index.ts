@@ -116,7 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('📧 Sending test migration announcement email to:', test_email);
       
       const emailResponse = await resend.emails.send({
-        from: "MStwins Team <noreply@mstwins.com>",
+        from: "MSTwins Team <team@sharedgenes.org>",
         to: [test_email],
         subject: `[TEST] ${emailSubject}`,
         html: emailContent,
@@ -215,7 +215,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log(`📧 Sending batch ${Math.floor(i / batchSize) + 1}: ${batchEmails.length} emails`);
         
         const emailResponse = await resend.emails.send({
-          from: "MStwins Team <noreply@mstwins.com>",
+          from: "MSTwins Team <team@sharedgenes.org>",
           to: batchEmails,
           subject: emailSubject,
           html: emailContent,
@@ -235,7 +235,7 @@ const handler = async (req: Request): Promise<Response> => {
           for (const email of batchEmails) {
             try {
               await resend.emails.send({
-                from: "MStwins Team <noreply@mstwins.com>",
+                from: "MSTwins Team <team@sharedgenes.org>",
                 to: [email],
                 subject: emailSubject,
                 html: emailContent,
