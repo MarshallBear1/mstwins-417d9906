@@ -3,13 +3,15 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, Gift, Users } from 'lucide-react';
 import { ReferralBonusPopup } from '@/components/ReferralBonusPopup';
+import { useDailyLikes } from '@/hooks/useDailyLikes';
 import { useDailyLikesReferral } from '@/hooks/useDailyLikesReferral';
 
 export const LikesStatusBanner = () => {
   const [showReferralPopup, setShowReferralPopup] = useState(false);
-  const { likesData, claimReferralBonus, canGetBonus } = useDailyLikesReferral();
+  const { likesData, isLimitEnforced } = useDailyLikes();
+  const { claimReferralBonus } = useDailyLikesReferral();
 
-  if (!likesData || likesData.remaining === 999) {
+  if (!likesData || !isLimitEnforced()) {
     return null; // Don't show banner before enforcement date
   }
 

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { OptimizedButton } from "@/components/OptimizedComponents";
+import { useToast } from "@/hooks/use-toast";
 
 interface MatchesPageProps {
   likes: any[];
@@ -23,6 +24,7 @@ const MatchesPage = ({
   setShowProfileView
 }: MatchesPageProps) => {
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const renderLikesContent = () => {
     if (likesLoading) {
@@ -118,6 +120,32 @@ const MatchesPage = ({
                           return;
                         }
 
+                        // Check daily likes limit before creating like
+                        const { data: canLike, error: limitError } = await supabase.rpc(
+                          'check_and_increment_daily_likes',
+                          { target_user_id: likedProfile.user_id }
+                        );
+
+                        if (limitError) {
+                          console.error('❌ Error checking like limit:', limitError);
+                          toast({
+                            title: "Error",
+                            description: "Failed to check like limit. Please try again.",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+
+                        if (!canLike) {
+                          console.log('❌ Daily like limit reached');
+                          toast({
+                            title: "Daily Limit Reached",
+                            description: "You've reached your daily like limit. Try again tomorrow or get bonus likes!",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+
                         // Create a like back
                         const { error } = await supabase
                           .from('likes')
@@ -128,13 +156,27 @@ const MatchesPage = ({
 
                         if (error) {
                           console.error('❌ Error liking back:', error);
+                          toast({
+                            title: "Error",
+                            description: "Failed to like back. Please try again.",
+                            variant: "destructive"
+                          });
                           return;
                         }
 
                         console.log('✅ Liked back successfully!');
+                        toast({
+                          title: "Success!",
+                          description: "You liked them back!"
+                        });
                         fetchLikes();
                       } catch (error) {
                         console.error('❌ Exception during like back:', error);
+                        toast({
+                          title: "Error",
+                          description: "An unexpected error occurred. Please try again.",
+                          variant: "destructive"
+                        });
                       }
                     }}
                     debounceMs={2000}

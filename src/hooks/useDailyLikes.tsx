@@ -2,10 +2,20 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+interface DailyLikesData {
+  remaining: number;
+  total_limit: number;
+  base_limit: number;
+  has_bonus: boolean;
+  can_get_bonus: boolean;
+  used_likes: number;
+}
+
 export const useDailyLikes = () => {
   const { user } = useAuth();
   const [remainingLikes, setRemainingLikes] = useState<number>(999); // Default to unlimited
   const [loading, setLoading] = useState(true);
+  const [likesData, setLikesData] = useState<DailyLikesData | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -21,14 +31,18 @@ export const useDailyLikes = () => {
         if (error) {
           console.error('Error fetching remaining likes:', error);
           setRemainingLikes(999); // Default to unlimited on error
+          setLikesData(null);
         } else {
           console.log('✅ Remaining likes fetched:', data);
-          const likesInfo = data as any;
-          setRemainingLikes(likesInfo?.remaining || 0);
+          // Parse the JSONB response correctly
+          const likesInfo = data as unknown as DailyLikesData;
+          setRemainingLikes(likesInfo.remaining || 0);
+          setLikesData(likesInfo);
         }
       } catch (error) {
         console.error('Error in fetchRemainingLikes:', error);
         setRemainingLikes(999);
+        setLikesData(null);
       } finally {
         setLoading(false);
       }
@@ -72,8 +86,9 @@ export const useDailyLikes = () => {
     try {
       const { data, error } = await supabase.rpc('get_remaining_likes_today');
       if (!error) {
-        const likesInfo = data as any;
-        setRemainingLikes(likesInfo?.remaining || 0);
+        const likesInfo = data as unknown as DailyLikesData;
+        setRemainingLikes(likesInfo.remaining || 0);
+        setLikesData(likesInfo);
       }
     } catch (error) {
       console.error('Error refreshing remaining likes:', error);
@@ -81,13 +96,12 @@ export const useDailyLikes = () => {
   };
 
   const isLimitEnforced = () => {
-    const enforcementDate = new Date('2025-07-24');
-    const today = new Date();
-    return today >= enforcementDate;
+    // Check if likes data indicates enforcement is active (not unlimited)
+    return likesData ? likesData.total_limit !== 999 : false;
   };
 
   const shouldShowWarning = () => {
-    return isLimitEnforced() && remainingLikes === 4;
+    return isLimitEnforced() && remainingLikes === 1;
   };
 
   return {
@@ -97,6 +111,7 @@ export const useDailyLikes = () => {
     refreshRemainingLikes,
     isLimitEnforced,
     shouldShowWarning,
-    hasUnlimitedLikes: remainingLikes === 999
+    hasUnlimitedLikes: remainingLikes === 999,
+    likesData
   };
 };
