@@ -268,6 +268,25 @@ const DiscoverProfiles = memo(() => {
     setIsCardFlipped(false); // Reset flip state for next profile
     
     try {
+      // First check and increment daily like count (this enforces the limit)
+      const { data: canLike, error: limitError } = await supabase.rpc('check_and_increment_daily_likes', {
+        target_user_id: profileUserId
+      });
+
+      if (limitError) throw limitError;
+
+      if (!canLike) {
+        toast({
+          title: "Daily limit reached",
+          description: "You've reached your daily like limit. Try tomorrow or share to get bonus likes!",
+          variant: "destructive"
+        });
+        // Revert optimistic update
+        setCurrentIndex(currentIndex);
+        return;
+      }
+
+      // Now insert the actual like record
       const { error } = await supabase
         .from('likes')
         .insert({
