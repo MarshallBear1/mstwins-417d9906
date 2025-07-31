@@ -328,7 +328,7 @@ const DiscoverProfiles = memo(() => {
               }}
               className="bg-gradient-primary text-white"
             >
-              Reset Pass History
+              See Skipped Profiles
             </Button>
           </div>
         </div>
