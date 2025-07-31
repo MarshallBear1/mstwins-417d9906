@@ -24,6 +24,7 @@ export const useDailyLikesReferral = () => {
 
     try {
       setLoading(true);
+      console.log('🔄 Fetching likes data for user:', user?.id);
       const { data, error } = await supabase.rpc('get_remaining_likes_today');
       
       if (error) {
@@ -36,6 +37,7 @@ export const useDailyLikesReferral = () => {
         return;
       }
 
+      console.log('✅ Likes data fetched:', data);
       setLikesData(data as unknown as DailyLikesData);
     } catch (error) {
       console.error('Exception fetching likes data:', error);
