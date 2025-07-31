@@ -90,13 +90,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             analytics.userSignedIn(session.user.id);
             
             // Only redirect if user is not already on dashboard and this is a new sign-in (not session restoration)
-            if (window.location.pathname !== '/dashboard' && event === 'SIGNED_IN') {
+            // Also don't redirect if we're on the password reset page (to prevent interference with reset flow)
+            if (window.location.pathname !== '/dashboard' && 
+                window.location.pathname !== '/password-reset' && 
+                event === 'SIGNED_IN') {
               setTimeout(() => {
                 // Use proper navigation instead of hard reload
-        if (window.location.pathname !== '/dashboard') {
-          window.history.pushState({}, '', '/dashboard');
-          window.dispatchEvent(new PopStateEvent('popstate'));
-        }
+                if (window.location.pathname !== '/dashboard' && 
+                    window.location.pathname !== '/password-reset') {
+                  window.history.pushState({}, '', '/dashboard');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }
               }, 200);
             }
           }

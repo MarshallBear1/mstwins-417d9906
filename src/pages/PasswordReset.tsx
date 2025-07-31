@@ -160,19 +160,18 @@ const PasswordReset = () => {
         });
       } else {
         console.log('✅ Password reset successful');
-        setPasswordResetComplete(true);
-        toast({
-          title: "Password Reset Successful!",
-          description: "Your password has been updated. You can now sign in with your new password.",
-        });
         
-        // Sign out the user after successful password reset
+        // Sign out the user immediately to prevent auth redirects
         await supabase.auth.signOut();
         
-        // Redirect to auth page after a short delay
-        setTimeout(() => {
-          navigate('/auth');
-        }, 2000);
+        // Show success message
+        toast({
+          title: "Password Reset Successful!",
+          description: "Your password has been updated. Redirecting to sign in...",
+        });
+        
+        // Navigate immediately to prevent auth redirect race condition
+        navigate('/auth', { replace: true });
       }
     } catch (error) {
       console.error('❌ Unexpected error during password reset:', error);
