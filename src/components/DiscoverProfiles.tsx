@@ -106,10 +106,7 @@ const DiscoverProfiles = memo(() => {
         supabase
           .from('passes')
           .select('passed_id')
-          .eq('passer_id', user.id),
-
-        // Get the mstwins@gmail.com user ID to exclude
-        supabase.auth.admin.listUsers()
+          .eq('passer_id', user.id)
       ]);
 
       if (profilesResult.error) throw profilesResult.error;
@@ -117,22 +114,17 @@ const DiscoverProfiles = memo(() => {
       const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
       const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
       
-      // Find mstwins@gmail.com user ID
-      const mstwinsUser = profilesResult.data?.find(profile => {
-        // We'll get the user email by checking if the profile belongs to mstwins@gmail.com
-        // Since we can't directly access auth.users, we'll use a workaround
-        return profile.first_name?.toLowerCase() === 'mstwins' || 
-               profile.last_name?.toLowerCase() === 'mstwins';
-      });
-
-      // Filter out already liked/passed profiles and mstwins user
+      // Filter out already liked/passed profiles and exclude MStwins related profiles
       const filteredProfiles = profilesResult.data?.filter(profile => {
         const isLiked = likedIds.has(profile.user_id);
         const isPassed = passedIds.has(profile.user_id);
-        const isMstwins = profile.first_name?.toLowerCase() === 'mstwins' || 
+        
+        // Filter out MStwins related profiles by checking name patterns
+        const isMstwins = profile.first_name?.toLowerCase().includes('mstwins') || 
+                         profile.last_name?.toLowerCase().includes('mstwins') ||
+                         profile.first_name?.toLowerCase() === 'mstwins' || 
                          profile.last_name?.toLowerCase() === 'mstwins' ||
-                         profile.first_name?.toLowerCase().includes('mstwins') ||
-                         profile.last_name?.toLowerCase().includes('mstwins');
+                         (profile.first_name?.toLowerCase() === 'ms' && profile.last_name?.toLowerCase() === 'twins');
         
         return !isLiked && !isPassed && !isMstwins;
       }) || [];

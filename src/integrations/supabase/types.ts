@@ -1123,6 +1123,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      get_user_email_by_id: {
+        Args: { user_id_param: string }
+        Returns: string
+      }
       get_users_needing_like_refresh_emails: {
         Args: Record<PropertyKey, never>
         Returns: {
