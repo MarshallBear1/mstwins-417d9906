@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock, XCircle, Mail, LogOut, Shield, Megaphone } from "lucide-react";
 import { EmailManagement } from "@/components/EmailManagement";
 import { AnnouncementManager } from "@/components/AnnouncementManager";
+import AnnouncementEmailSender from "@/components/AnnouncementEmailSender";
 import { useTempAdminAuth } from "@/hooks/useTempAdminAuth";
 import { formatDistanceToNow } from "date-fns";
 import { Link, useNavigate } from "react-router-dom";
@@ -357,11 +358,7 @@ export default function AdminFeedback() {
 
           <TabsContent value="emails" className="mt-6">
             <div className="space-y-6">
-              <Card>
-                
-                
-              </Card>
-
+              <AnnouncementEmailSender />
               <EmailManagement />
             </div>
           </TabsContent>
