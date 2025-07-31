@@ -57,7 +57,8 @@ const DiscoverProfiles = memo(() => {
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [actionCooldown, setActionCooldown] = useState(false);
-  const [isCardFlipped, setIsCardFlipped] = useState(false); // Add flip state here
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [showLikeLimitWarning, setShowLikeLimitWarning] = useState(false);
   const { remainingLikes, refreshRemainingLikes, likesData } = useDailyLikes();
   const { canGetBonus } = useDailyLikesReferral();
   const { vibrate } = useHaptics();
@@ -217,6 +218,13 @@ const DiscoverProfiles = memo(() => {
   useEffect(() => {
     fetchProfiles();
   }, [fetchProfiles]);
+
+  // Show like limit warning when likes are low
+  useEffect(() => {
+    if (remainingLikes <= 2 && remainingLikes > 0) {
+      setShowLikeLimitWarning(true);
+    }
+  }, [remainingLikes]);
 
   // Preload images for better UX
   useEffect(() => {
@@ -444,8 +452,8 @@ const DiscoverProfiles = memo(() => {
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 px-4">
       {/* Remaining likes warning */}
       <LikeLimitWarning 
-        open={remainingLikes <= 2 && remainingLikes > 0} 
-        onOpenChange={() => {}} 
+        open={showLikeLimitWarning} 
+        onOpenChange={setShowLikeLimitWarning} 
         remainingLikes={remainingLikes} 
       />
       
