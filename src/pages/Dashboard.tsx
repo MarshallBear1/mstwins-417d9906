@@ -13,7 +13,7 @@ import DiscoverProfiles from "@/components/DiscoverProfiles";
 import Messaging from "@/components/Messaging";
 import ProfileCard from "@/components/ProfileCard";
 import ReferralDropdown from "@/components/ReferralDropdown";
-import FeedbackDialog from "@/components/FeedbackDialog";
+
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
@@ -336,7 +336,7 @@ const Dashboard = () => {
           {/* Right side - Clean action buttons with better mobile spacing */}
           <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             <ReferralDropdown />
-            <FeedbackDialog />
+            
             <NotificationBell />
             <Button
               variant="ghost"
