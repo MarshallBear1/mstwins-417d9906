@@ -984,7 +984,7 @@ const ForumPage = () => {
                     }}
                   >
                     <Heart className="w-4 h-4 mr-2" />
-                    <span className="truncate">Like Profile</span>
+                    <span className="truncate">Like</span>
                   </Button>
                   <Button 
                     variant="outline" 
