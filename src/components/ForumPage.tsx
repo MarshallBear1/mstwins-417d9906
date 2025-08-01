@@ -34,6 +34,12 @@ interface ForumPost {
   likes_count: number;
   comments_count: number;
   user_has_liked: boolean;
+  top_comment?: {
+    id: string;
+    content: string;
+    author_name: string;
+    likes_count: number;
+  } | null;
 }
 
 interface ForumComment {
@@ -312,15 +318,62 @@ const ForumPage = () => {
       const profilesMap = new Map(
         profilesData?.map(profile => [profile.user_id, profile]) || []
       );
-      // Only fetch user likes separately (reduced from 3 queries to 2)
+      // Get post IDs for additional queries
       const postIds = postsData.map(post => post.id);
-      const { data: likesData } = await supabase
-        .from('forum_likes')
-        .select('post_id')
-        .eq('user_id', user.id)
-        .in('post_id', postIds);
+      
+      // Fetch user likes and top comments for each post
+      const [likesResult, topCommentsResult] = await Promise.all([
+        supabase
+          .from('forum_likes')
+          .select('post_id')
+          .eq('user_id', user.id)
+          .in('post_id', postIds),
+        supabase
+          .from('forum_comments')
+          .select(`
+            id,
+            content,
+            post_id,
+            likes_count,
+            author_id
+          `)
+          .eq('moderation_status', 'approved')
+          .is('parent_comment_id', null)
+          .in('post_id', postIds)
+          .order('likes_count', { ascending: false })
+          .order('created_at', { ascending: true })
+      ]);
 
-      const likedPostIds = new Set(likesData?.map(like => like.post_id) || []);
+      const likedPostIds = new Set(likesResult.data?.map(like => like.post_id) || []);
+      
+      // Get author IDs for the top comments to fetch their names
+      const commentAuthorIds = [...new Set((topCommentsResult.data || []).map(comment => comment.author_id))];
+      
+      // Fetch comment author profiles
+      const { data: commentAuthorsData } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name')
+        .in('user_id', commentAuthorIds);
+
+      const commentAuthorsMap = new Map(
+        commentAuthorsData?.map(profile => [profile.user_id, profile]) || []
+      );
+      
+      // Create a map of post_id to top comment
+      const topCommentsMap = new Map();
+      if (topCommentsResult.data) {
+        topCommentsResult.data.forEach(comment => {
+          if (!topCommentsMap.has(comment.post_id)) {
+            const author = commentAuthorsMap.get(comment.author_id);
+            topCommentsMap.set(comment.post_id, {
+              id: comment.id,
+              content: comment.content,
+              author_name: author ? `${author.first_name} ${author.last_name}` : 'Unknown User',
+              likes_count: comment.likes_count
+            });
+          }
+        });
+      }
       
       const postsWithLikes = postsData.map(post => {
         const profile = profilesMap.get(post.author_id);
@@ -334,6 +387,7 @@ const ForumPage = () => {
             location: profile?.location || null,
           },
           user_has_liked: likedPostIds.has(post.id),
+          top_comment: topCommentsMap.get(post.id) || null,
         };
       });
 
@@ -1032,6 +1086,25 @@ const ForumPage = () => {
                     <CardContent className="pt-0">
                       <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors">{post.title}</h3>
                       <p className="text-gray-700 mb-4 line-clamp-3">{post.content}</p>
+                      
+                      {/* Top Comment Preview */}
+                      {post.top_comment && (
+                        <div className="bg-gray-50 border-l-4 border-blue-200 p-3 mb-4 rounded-r-lg">
+                          <div className="flex items-center gap-2 mb-1">
+                            <MessageCircle className="w-3 h-3 text-blue-600" />
+                            <span className="text-xs font-medium text-blue-600">Top Comment</span>
+                            <span className="text-xs text-gray-500">by {post.top_comment.author_name}</span>
+                            {post.top_comment.likes_count > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-gray-500">
+                                <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+                                {post.top_comment.likes_count}
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-700 line-clamp-2">"{post.top_comment.content}"</p>
+                        </div>
+                      )}
+                      
                       <div className="text-xs text-primary/60 mb-2">Click to view full post and comments →</div>
                       
                       <div className="flex items-center justify-between">
