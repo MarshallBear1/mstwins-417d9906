@@ -1085,7 +1085,7 @@ const ForumPage = () => {
                     </CardHeader>
                     <CardContent className="pt-0">
                       <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors">{post.title}</h3>
-                      <p className="text-gray-700 mb-4 line-clamp-3">{post.content}</p>
+                      <p className="text-gray-700 mb-4 line-clamp-3 md:line-clamp-3 sm:line-clamp-6">{post.content}</p>
                       
                       {/* Top Comment Preview */}
                       {post.top_comment && (
