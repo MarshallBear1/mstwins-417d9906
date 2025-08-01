@@ -307,7 +307,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
                 title="Edit your profile picture and details"
               >
                 <Edit className="w-3 h-3 mr-1" />
-                <span className="text-xs">Edit Pic</span>
+                <span className="text-xs">Edit Profile</span>
               </Button>
             )}
 
