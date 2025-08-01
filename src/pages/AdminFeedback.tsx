@@ -11,6 +11,7 @@ import { Loader2, MessageSquare, User, Calendar, AlertCircle, CheckCircle, Clock
 import { EmailManagement } from "@/components/EmailManagement";
 import { AnnouncementManager } from "@/components/AnnouncementManager";
 import AnnouncementEmailSender from "@/components/AnnouncementEmailSender";
+import LikingBugFixEmailSender from "@/components/LikingBugFixEmailSender";
 import { useTempAdminAuth } from "@/hooks/useTempAdminAuth";
 import { formatDistanceToNow } from "date-fns";
 import { Link, useNavigate } from "react-router-dom";
@@ -358,6 +359,7 @@ export default function AdminFeedback() {
 
           <TabsContent value="emails" className="mt-6">
             <div className="space-y-6">
+              <LikingBugFixEmailSender />
               <AnnouncementEmailSender />
               <EmailManagement />
             </div>
