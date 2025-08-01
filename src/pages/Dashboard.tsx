@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, Eye, ArrowLeft } from "lucide-react";
+import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, Eye, ArrowLeft, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
@@ -341,6 +341,15 @@ const Dashboard = () => {
             <ReferralDropdown />
             
             <NotificationBell />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/admin-login')}
+              className="p-2 transition-colors text-gray-600 hover:text-orange-600 hover:bg-orange-50"
+              title="Admin Access"
+            >
+              <Shield className="w-5 h-5" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"

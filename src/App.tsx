@@ -232,7 +232,7 @@ const App = () => (
                 <TermsOfService />
               </Suspense>
             } />
-            <Route path="/feedback" element={
+            <Route path="/admin-login" element={
               <Suspense fallback={<LoadingSpinner />}>
                 <TempPasswordAdminLogin />
               </Suspense>
