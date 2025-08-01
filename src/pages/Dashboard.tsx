@@ -344,15 +344,6 @@ const Dashboard = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/admin-login')}
-              className="p-2 transition-colors text-gray-600 hover:text-orange-600 hover:bg-orange-50"
-              title="Admin Access"
-            >
-              <Shield className="w-5 h-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
               onClick={() => navigate('/dashboard?tab=profile')}
               className={`p-2 transition-colors ${
                 activeTab === 'profile' 
