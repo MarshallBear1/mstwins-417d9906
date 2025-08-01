@@ -297,7 +297,7 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
           }}
           >
           <div className="relative h-32 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
-            {/* Edit Profile Picture Button - Top Left */}
+            {/* Edit Profile Button - Top Left (when not editing) */}
             {!isEditing && (
               <Button 
                 variant="outline" 
@@ -308,6 +308,20 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               >
                 <Edit className="w-3 h-3 mr-1" />
                 <span className="text-xs">Edit Profile</span>
+              </Button>
+            )}
+
+            {/* Cancel Button - Top Left (when editing) */}
+            {isEditing && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleCancel}
+                className="absolute top-3 left-3 bg-white/80 hover:bg-white text-red-600 border-white/50"
+                disabled={saving}
+              >
+                <X className="w-3 h-3 mr-1" />
+                <span className="text-xs">Cancel</span>
               </Button>
             )}
 
@@ -377,28 +391,16 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
 
             <div className="absolute top-4 right-4 flex space-x-2">
               {isEditing ? (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleCancel}
-                    className="bg-white/80 hover:bg-white"
-                    disabled={saving}
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Cancel
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleSave}
-                    className="bg-white/80 hover:bg-white text-green-600"
-                    disabled={saving}
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    {saving ? 'Saving...' : 'Save'}
-                  </Button>
-                </>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSave}
+                  className="bg-white/80 hover:bg-white text-green-600"
+                  disabled={saving}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving...' : 'Save'}
+                </Button>
               ) : (
                 <Button 
                   variant="outline" 
