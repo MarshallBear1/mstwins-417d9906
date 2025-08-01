@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, MessageCircle, Heart, Eye, User, Flag, ChevronDown, Trash2, ArrowLeft, Users } from "lucide-react";
+import { Plus, MessageCircle, Heart, Eye, User, Flag, ChevronDown, ChevronUp, Trash2, ArrowLeft, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +64,177 @@ const FORUM_FLAIRS = [
   { value: "relationships", label: "❤️ Relationships & Dating", color: "bg-pink-100 text-pink-700" },
 ];
 
+// Helper function to find a comment by ID recursively
+const findCommentById = (comments: ForumComment[], commentId: string): ForumComment | null => {
+  for (const comment of comments) {
+    if (comment.id === commentId) {
+      return comment;
+    }
+    if (comment.replies) {
+      const found = findCommentById(comment.replies, commentId);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+// Comment Thread Component for recursive rendering
+interface CommentThreadProps {
+  comment: ForumComment;
+  depth: number;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+  onViewProfile: (userId: string) => void;
+  onLikeComment: (commentId: string) => void;
+  onReply: (commentId: string) => void;
+  replyToComment: string | null;
+  replyContent: string;
+  onReplyContentChange: (content: string) => void;
+  onSubmitReply: (parentId: string) => void;
+  onCancelReply: () => void;
+}
+
+const CommentThread: React.FC<CommentThreadProps> = ({
+  comment,
+  depth,
+  isCollapsed,
+  onToggleCollapse,
+  onViewProfile,
+  onLikeComment,
+  onReply,
+  replyToComment,
+  replyContent,
+  onReplyContentChange,
+  onSubmitReply,
+  onCancelReply,
+}) => {
+  const maxDepth = 5; // Limit nesting depth
+  const hasReplies = comment.replies && comment.replies.length > 0;
+  const bgColor = depth === 0 ? "bg-gray-50" : depth === 1 ? "bg-blue-50" : "bg-purple-50";
+  const borderColor = depth === 0 ? "border-gray-200" : depth === 1 ? "border-blue-200" : "border-purple-200";
+  
+  return (
+    <div className={`${depth > 0 ? `ml-${Math.min(depth * 4, 16)}` : ''}`}>
+      <div className={`p-3 ${bgColor} rounded-lg border-l-2 ${borderColor}`}>
+        <div className="flex items-center gap-2 mb-2">
+          <Avatar 
+            className={`${depth === 0 ? 'w-6 h-6' : 'w-5 h-5'} cursor-pointer`}
+            onClick={() => onViewProfile(comment.author_id)}
+          >
+            <AvatarImage src={comment.author.avatar_url || undefined} />
+            <AvatarFallback className={depth === 0 ? "text-xs" : "text-xs"}>
+              {comment.author.first_name[0]}{comment.author.last_name[0]}
+            </AvatarFallback>
+          </Avatar>
+          <span 
+            className={`font-medium ${depth === 0 ? 'text-sm' : 'text-xs'} cursor-pointer hover:text-blue-600`}
+            onClick={() => onViewProfile(comment.author_id)}
+          >
+            {comment.author.first_name}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            className={`${depth === 0 ? 'h-5 px-1.5 text-xs ml-2' : 'h-4 px-1 text-xs ml-1'}`}
+            onClick={() => onViewProfile(comment.author_id)}
+          >
+            View
+          </Button>
+          {hasReplies && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleCollapse}
+              className="h-5 px-1 text-xs text-gray-500"
+            >
+              {isCollapsed ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
+              {comment.replies?.length}
+            </Button>
+          )}
+        </div>
+        
+        <p className={`${depth === 0 ? 'text-sm' : 'text-xs'} text-gray-700 mb-3`}>
+          {comment.content}
+        </p>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onLikeComment(comment.id)}
+            disabled={comment.user_has_liked}
+            className={`gap-1 ${depth === 0 ? 'text-xs' : 'text-xs'} ${comment.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
+          >
+            <Heart className={`${depth === 0 ? 'w-3 h-3' : 'w-2 h-2'} ${comment.user_has_liked ? 'fill-current' : ''}`} />
+            {comment.likes_count}
+          </Button>
+          {depth < maxDepth && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onReply(comment.id)}
+              className={`${depth === 0 ? 'text-xs' : 'text-xs'} text-blue-600 hover:text-blue-700`}
+            >
+              Reply
+            </Button>
+          )}
+        </div>
+        
+        {/* Reply Form */}
+        {replyToComment === comment.id && (
+          <div className="mt-3 flex gap-2">
+            <Input
+              value={replyContent}
+              onChange={(e) => onReplyContentChange(e.target.value)}
+              placeholder={`Reply to ${comment.author.first_name}...`}
+              className={`flex-1 ${depth === 0 ? 'text-sm' : 'text-xs'}`}
+            />
+            <Button 
+              size="sm"
+              onClick={() => onSubmitReply(comment.id)} 
+              disabled={!replyContent.trim()}
+              className="text-xs px-3"
+            >
+              Reply
+            </Button>
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={onCancelReply}
+              className="text-xs px-2"
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+      </div>
+      
+      {/* Nested Replies */}
+      {hasReplies && !isCollapsed && (
+        <div className="mt-2 space-y-2">
+          {comment.replies!.map(reply => (
+            <CommentThread 
+              key={reply.id}
+              comment={reply}
+              depth={depth + 1}
+              isCollapsed={false} // Individual replies don't have their own collapse state for simplicity
+              onToggleCollapse={() => {}} // No-op for nested replies
+              onViewProfile={onViewProfile}
+              onLikeComment={onLikeComment}
+              onReply={onReply}
+              replyToComment={replyToComment}
+              replyContent={replyContent}
+              onReplyContentChange={onReplyContentChange}
+              onSubmitReply={onSubmitReply}
+              onCancelReply={onCancelReply}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ForumPage = () => {
   const { user } = useAuth();
   const { remainingLikes, refreshRemainingLikes } = useDailyLikes();
@@ -82,6 +253,7 @@ const ForumPage = () => {
   const [replyToComment, setReplyToComment] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [showLikeLimitPopup, setShowLikeLimitPopup] = useState(false);
+  const [collapsedComments, setCollapsedComments] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver>();
   const lastPostRef = useRef<HTMLDivElement>();
 
@@ -544,6 +716,9 @@ const ForumPage = () => {
   const likeComment = async (commentId: string) => {
     if (!user) return;
 
+    const comment = findCommentById(comments, commentId);
+    if (!comment || comment.user_has_liked) return;
+
     try {
       const { error } = await supabase
         .from('forum_comment_likes')
@@ -554,12 +729,8 @@ const ForumPage = () => {
 
       if (error) throw error;
 
-      // Update local state
-      setComments(prev => prev.map(comment => 
-        comment.id === commentId 
-          ? { ...comment, likes_count: comment.likes_count + 1, user_has_liked: true }
-          : comment
-      ));
+      // Update local state using the recursive helper function
+      updateCommentLikes(commentId, comment.likes_count + 1, true);
 
       toast({
         title: "Comment liked!",
@@ -567,6 +738,11 @@ const ForumPage = () => {
       });
     } catch (error) {
       console.error('Error liking comment:', error);
+      toast({
+        title: "Error liking comment",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -590,6 +766,34 @@ const ForumPage = () => {
 
   const getFlairInfo = (flairValue: string) => {
     return FORUM_FLAIRS.find(f => f.value === flairValue) || FORUM_FLAIRS[0];
+  };
+
+  const toggleCommentCollapse = (commentId: string) => {
+    setCollapsedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
+  };
+
+  const updateCommentLikes = (commentId: string, likesCount: number, userHasLiked: boolean) => {
+    const updateCommentRecursively = (comments: ForumComment[]): ForumComment[] => {
+      return comments.map(comment => {
+        if (comment.id === commentId) {
+          return { ...comment, likes_count: likesCount, user_has_liked: userHasLiked };
+        }
+        if (comment.replies) {
+          return { ...comment, replies: updateCommentRecursively(comment.replies) };
+        }
+        return comment;
+      });
+    };
+    
+    setComments(prev => updateCommentRecursively(prev));
   };
 
   const likeUserProfile = async (profileUserId: string) => {
@@ -1099,134 +1303,29 @@ const ForumPage = () => {
                 <ScrollArea className="h-96">
                   <div className="space-y-3 pr-4">
                     {comments.map(comment => (
-                      <div key={comment.id}>
-                        {/* Main Comment */}
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Avatar 
-                              className="w-6 h-6 cursor-pointer"
-                              onClick={() => viewProfile(comment.author_id)}
-                            >
-                              <AvatarImage src={comment.author.avatar_url || undefined} />
-                              <AvatarFallback>
-                                {comment.author.first_name[0]}{comment.author.last_name[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                             <span 
-                               className="font-medium text-sm cursor-pointer hover:text-blue-600"
-                               onClick={() => viewProfile(comment.author_id)}
-                             >
-                               {comment.author.first_name}
-                             </span>
-                             <Button
-                               variant="outline"
-                               size="sm"
-                               className="h-5 px-1.5 text-xs ml-2"
-                               onClick={() => viewProfile(comment.author_id)}
-                             >
-                               View
-                             </Button>
-                          </div>
-                          <p className="text-sm text-gray-700 mb-3">{comment.content}</p>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => likeComment(comment.id)}
-                              disabled={comment.user_has_liked}
-                              className={`gap-1 text-xs ${comment.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
-                            >
-                              <Heart className={`w-3 h-3 ${comment.user_has_liked ? 'fill-current' : ''}`} />
-                              {comment.likes_count}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setReplyToComment(comment.id)}
-                              className="text-xs text-blue-600 hover:text-blue-700"
-                            >
-                              Reply
-                            </Button>
-                          </div>
-                          
-                          {/* Reply Form */}
-                          {replyToComment === comment.id && (
-                            <div className="mt-3 flex gap-2">
-                              <Input
-                                value={replyContent}
-                                onChange={(e) => setReplyContent(e.target.value)}
-                                placeholder={`Reply to ${comment.author.first_name}...`}
-                                className="flex-1 text-sm"
-                              />
-                              <Button 
-                                size="sm"
-                                onClick={() => addComment(comment.id)} 
-                                disabled={!replyContent.trim()}
-                                className="text-xs px-3"
-                              >
-                                Reply
-                              </Button>
-                              <Button 
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setReplyToComment(null);
-                                  setReplyContent("");
-                                }}
-                                className="text-xs px-2"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Replies */}
-                        {comment.replies && comment.replies.length > 0 && (
-                          <div className="ml-6 mt-2 space-y-2">
-                            {comment.replies.map(reply => (
-                              <div key={reply.id} className="p-3 bg-blue-50 rounded-lg border-l-2 border-blue-200">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Avatar 
-                                    className="w-5 h-5 cursor-pointer"
-                                    onClick={() => viewProfile(reply.author_id)}
-                                  >
-                                    <AvatarImage src={reply.author.avatar_url || undefined} />
-                                    <AvatarFallback className="text-xs">
-                                      {reply.author.first_name[0]}{reply.author.last_name[0]}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span 
-                                    className="font-medium text-xs cursor-pointer hover:text-blue-600"
-                                    onClick={() => viewProfile(reply.author_id)}
-                                  >
-                                    {reply.author.first_name}
-                                  </span>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-4 px-1 text-xs ml-1"
-                                    onClick={() => viewProfile(reply.author_id)}
-                                  >
-                                    View
-                                  </Button>
-                                </div>
-                                <p className="text-xs text-gray-700 mb-2">{reply.content}</p>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => likeComment(reply.id)}
-                                  disabled={reply.user_has_liked}
-                                  className={`gap-1 text-xs ${reply.user_has_liked ? 'text-red-500' : 'text-gray-500'}`}
-                                >
-                                  <Heart className={`w-2 h-2 ${reply.user_has_liked ? 'fill-current' : ''}`} />
-                                  {reply.likes_count}
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      <CommentThread 
+                        key={comment.id} 
+                        comment={comment} 
+                        depth={0}
+                        isCollapsed={collapsedComments.has(comment.id)}
+                        onToggleCollapse={() => toggleCommentCollapse(comment.id)}
+                        onViewProfile={viewProfile}
+                        onLikeComment={(commentId) => {
+                          const comment = findCommentById(comments, commentId);
+                          if (comment && !comment.user_has_liked) {
+                            likeComment(commentId);
+                          }
+                        }}
+                        onReply={(commentId) => setReplyToComment(commentId)}
+                        replyToComment={replyToComment}
+                        replyContent={replyContent}
+                        onReplyContentChange={(content) => setReplyContent(content)}
+                        onSubmitReply={(parentId) => addComment(parentId)}
+                        onCancelReply={() => {
+                          setReplyToComment(null);
+                          setReplyContent("");
+                        }}
+                      />
                     ))}
                     {comments.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
