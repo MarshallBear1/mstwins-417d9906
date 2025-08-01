@@ -119,6 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('Sending preview email to:', preview_email);
       const template = getEmailTemplate('Preview User');
       
+      console.log('Email template generated, sending via Resend...');
       const emailResponse = await resend.emails.send({
         from: "MSTwins <team@sharedgenes.org.uk>",
         to: [preview_email],
@@ -126,7 +127,14 @@ const handler = async (req: Request): Promise<Response> => {
         html: template.html,
       });
 
-      console.log('Preview email sent:', emailResponse);
+      console.log('Resend response:', emailResponse);
+      
+      if (emailResponse.error) {
+        console.error('Resend error:', emailResponse.error);
+        throw new Error(`Email send failed: ${emailResponse.error.message}`);
+      }
+
+      console.log('Preview email sent successfully:', emailResponse.data?.id);
 
       return new Response(
         JSON.stringify({ 
