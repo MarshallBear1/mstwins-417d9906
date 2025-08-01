@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { validateProfileData, sanitizeInput, sanitizeErrorMessage } from "@/lib/security";

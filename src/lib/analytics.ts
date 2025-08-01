@@ -2,19 +2,27 @@ import posthog from 'posthog-js';
 
 class AnalyticsService {
   private initialized = false;
+  private anonymousMode = false;
+  private sessionStartTime = Date.now();
+  private pageViewCount = 0;
+  private lastActivityTime = Date.now();
 
   isInitialized(): boolean {
     return this.initialized;
   }
 
-  init(apiKey: string, config?: any) {
+  // Initialize immediately for anonymous tracking
+  initAnonymous() {
     if (this.initialized) return;
     
     try {
-      posthog.init(apiKey, {
+      // Use a fallback key for immediate anonymous tracking
+      const fallbackKey = 'phc_anonymous_fallback';
+      
+      posthog.init(fallbackKey, {
         api_host: 'https://us.posthog.com',
-        person_profiles: 'identified_only',
-        capture_pageview: false,
+        person_profiles: 'never', // Anonymous only
+        capture_pageview: true,
         capture_pageleave: true,
         debug: process.env.NODE_ENV === 'development',
         disable_session_recording: false,
@@ -23,27 +31,95 @@ class AnalyticsService {
         cross_subdomain_cookie: false,
         respect_dnt: true,
         opt_out_capturing_by_default: false,
-        loaded: (posthog) => {
-          console.log('📊 PostHog loaded successfully');
+        bootstrap: {
+          distinctID: 'anonymous_' + Math.random().toString(36).substring(7)
         },
-        ...config
+        loaded: (posthog) => {
+          console.log('📊 PostHog anonymous mode loaded');
+        }
       });
       
       this.initialized = true;
-      console.log('📊 PostHog analytics initialized successfully', {
-        apiKey: apiKey.substring(0, 8) + '...',
-        environment: process.env.NODE_ENV,
-        host: 'https://us.posthog.com',
-        timestamp: new Date().toISOString()
-      });
+      this.anonymousMode = true;
+      console.log('📊 PostHog anonymous analytics initialized');
 
-      // Test connection with delay to ensure initialization is complete
-      setTimeout(() => {
+      // Track session start
+      this.track('session_started', { 
+        timestamp: Date.now(),
+        initialization_type: 'anonymous',
+        user_agent: navigator.userAgent,
+        referrer: document.referrer,
+        landing_page: window.location.pathname
+      });
+    } catch (error) {
+      console.error('❌ Failed to initialize PostHog anonymous mode:', error);
+      this.initialized = false;
+    }
+  }
+
+  // Upgrade to authenticated mode
+  init(apiKey: string, config?: any) {
+    try {
+      if (this.anonymousMode && apiKey !== 'phc_anonymous_fallback') {
+        // Reinitialize with proper key
+        posthog.init(apiKey, {
+          api_host: 'https://us.posthog.com',
+          person_profiles: 'identified_only',
+          capture_pageview: false,
+          capture_pageleave: true,
+          debug: process.env.NODE_ENV === 'development',
+          disable_session_recording: false,
+          disable_compression: false,
+          secure_cookie: true,
+          cross_subdomain_cookie: false,
+          respect_dnt: true,
+          opt_out_capturing_by_default: false,
+          loaded: (posthog) => {
+            console.log('📊 PostHog upgraded to authenticated mode');
+          },
+          ...config
+        });
+        
+        this.anonymousMode = false;
+        console.log('📊 PostHog upgraded to authenticated mode with API key');
+        
+        this.track('analytics_upgraded', { 
+          timestamp: Date.now(),
+          initialization_type: 'authenticated'
+        });
+      } else if (!this.initialized) {
+        // First time initialization with proper key
+        posthog.init(apiKey, {
+          api_host: 'https://us.posthog.com',
+          person_profiles: 'identified_only',
+          capture_pageview: false,
+          capture_pageleave: true,
+          debug: process.env.NODE_ENV === 'development',
+          disable_session_recording: false,
+          disable_compression: false,
+          secure_cookie: true,
+          cross_subdomain_cookie: false,
+          respect_dnt: true,
+          opt_out_capturing_by_default: false,
+          loaded: (posthog) => {
+            console.log('📊 PostHog loaded successfully');
+          },
+          ...config
+        });
+        
+        this.initialized = true;
+        console.log('📊 PostHog analytics initialized successfully', {
+          apiKey: apiKey.substring(0, 8) + '...',
+          environment: process.env.NODE_ENV,
+          host: 'https://us.posthog.com',
+          timestamp: new Date().toISOString()
+        });
+
         this.track('analytics_initialized', { 
           timestamp: Date.now(),
-          initialization_type: 'auto'
+          initialization_type: 'direct'
         });
-      }, 500);
+      }
     } catch (error) {
       console.error('❌ Failed to initialize PostHog:', error);
       this.initialized = false;
@@ -225,10 +301,138 @@ class AnalyticsService {
     posthog.setPersonProperties(properties);
   }
 
+  // Journey tracking for churn analysis
+  landingPageViewed(source?: string, campaign?: string) {
+    this.updateActivity();
+    this.pageViewCount++;
+    this.track('landing_page_viewed', {
+      source,
+      campaign,
+      referrer: document.referrer,
+      user_agent: navigator.userAgent,
+      page_view_count: this.pageViewCount,
+      session_duration: Date.now() - this.sessionStartTime
+    });
+  }
+
+  authPageEntered(action: 'signup' | 'signin') {
+    this.updateActivity();
+    this.track('auth_page_entered', {
+      action,
+      session_duration: Date.now() - this.sessionStartTime,
+      page_view_count: this.pageViewCount
+    });
+  }
+
+  authAttempted(action: 'signup' | 'signin', success: boolean, error?: string) {
+    this.updateActivity();
+    this.track('auth_attempted', {
+      action,
+      success,
+      error,
+      session_duration: Date.now() - this.sessionStartTime
+    });
+  }
+
+  profileSetupStarted(userId: string) {
+    this.updateActivity();
+    this.track('profile_setup_started', {
+      user_id: userId,
+      session_duration: Date.now() - this.sessionStartTime
+    });
+  }
+
+  profileSetupAbandoned(userId: string, step: string) {
+    this.updateActivity();
+    this.track('profile_setup_abandoned', {
+      user_id: userId,
+      step,
+      session_duration: Date.now() - this.sessionStartTime
+    });
+  }
+
+  profileSetupCompleted(userId: string, timeToComplete: number) {
+    this.updateActivity();
+    this.track('profile_setup_completed', {
+      user_id: userId,
+      time_to_complete: timeToComplete,
+      session_duration: Date.now() - this.sessionStartTime
+    });
+  }
+
+  dashboardFirstVisit(userId: string) {
+    this.updateActivity();
+    this.track('dashboard_first_visit', {
+      user_id: userId,
+      session_duration: Date.now() - this.sessionStartTime
+    });
+  }
+
+  featureEngagement(feature: string, userId?: string, engagementLevel: 'low' | 'medium' | 'high' = 'medium') {
+    this.updateActivity();
+    this.track('feature_engagement', {
+      feature,
+      user_id: userId,
+      engagement_level: engagementLevel,
+      session_duration: Date.now() - this.sessionStartTime
+    });
+  }
+
+  // Session quality metrics
+  private updateActivity() {
+    this.lastActivityTime = Date.now();
+  }
+
+  getSessionQuality() {
+    const sessionDuration = Date.now() - this.sessionStartTime;
+    const timeSinceLastActivity = Date.now() - this.lastActivityTime;
+    
+    let quality: 'high' | 'medium' | 'low' = 'low';
+    
+    if (sessionDuration > 300000 && this.pageViewCount > 3) { // 5+ minutes, 3+ pages
+      quality = 'high';
+    } else if (sessionDuration > 60000 && this.pageViewCount > 1) { // 1+ minute, 1+ pages
+      quality = 'medium';
+    }
+
+    return {
+      quality,
+      duration: sessionDuration,
+      pageViews: this.pageViewCount,
+      timeSinceLastActivity,
+      isActive: timeSinceLastActivity < 30000 // Active within last 30 seconds
+    };
+  }
+
+  trackSessionEnd() {
+    const sessionQuality = this.getSessionQuality();
+    this.track('session_ended', {
+      ...sessionQuality,
+      total_duration: Date.now() - this.sessionStartTime,
+      final_page: window.location.pathname
+    });
+  }
+
+  // Abandonment tracking
+  trackPageAbandon(page: string, timeOnPage: number) {
+    this.track('page_abandoned', {
+      page,
+      time_on_page: timeOnPage,
+      session_duration: Date.now() - this.sessionStartTime,
+      session_quality: this.getSessionQuality().quality
+    });
+  }
+
   // Reset analytics (for logout)
   reset() {
     if (!this.initialized) return;
+    this.trackSessionEnd();
     posthog.reset();
+    
+    // Reset session tracking
+    this.sessionStartTime = Date.now();
+    this.pageViewCount = 0;
+    this.lastActivityTime = Date.now();
   }
 }
 

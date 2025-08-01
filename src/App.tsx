@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, lazy, Suspense, memo } from "react";
 import { AuthProvider } from "./hooks/useAuth";
 import { analytics } from "./lib/analytics";
+import { usePageAbandonTracker } from "./hooks/usePageAbandonTracker";
 import { supabase } from "@/integrations/supabase/client";
 import OptimizedIndex from "./pages/OptimizedIndex";
 import MobileStatusBar from "./components/MobileStatusBar";
@@ -84,43 +85,30 @@ const LoadingSpinner = () => (
 
 const PostHogInitializer = () => {
   useEffect(() => {
+    // Initialize anonymous tracking immediately for ALL visitors
+    analytics.initAnonymous();
+
     const initializePostHog = async () => {
       try {
-        // Check if PostHog is already initialized
-        if (analytics.isInitialized()) {
-          return;
-        }
-
-        // Try to get PostHog key (works for both authenticated and anonymous users)
-        try {
-          const { data: secrets } = await supabase.functions.invoke('secrets', {
-            body: { name: 'POSTHOG_API_KEY' }
-          });
-          
-          if (secrets?.value) {
-            analytics.init(secrets.value);
-            console.log('✅ PostHog initialized for all users');
-            
-            if (process.env.NODE_ENV === 'development') {
-              // Test event only in development
-              setTimeout(() => {
-                analytics.track('app_loaded', { 
-                  timestamp: Date.now(),
-                  user_type: 'visitor'
-                });
-              }, 1000);
-            }
-          }
-        } catch (error) {
-          // PostHog is optional - don't break the app if it fails
-          console.log('📊 PostHog initialization skipped (key not available)');
+        // Try to upgrade to authenticated mode with real API key
+        const { data: secrets } = await supabase.functions.invoke('secrets', {
+          body: { name: 'POSTHOG_API_KEY' }
+        });
+        
+        if (secrets?.value) {
+          // Upgrade to authenticated mode
+          analytics.init(secrets.value);
+          console.log('✅ PostHog upgraded to authenticated mode');
+        } else {
+          console.log('📊 PostHog continuing in anonymous mode (key not available)');
         }
       } catch (error) {
-        console.log('📊 PostHog initialization failed gracefully');
+        console.log('📊 PostHog API key fetch failed, continuing in anonymous mode');
       }
     };
 
-    initializePostHog();
+    // Delay authenticated initialization slightly to ensure anonymous tracking starts immediately
+    setTimeout(initializePostHog, 100);
   }, []);
 
   return null;
@@ -129,9 +117,21 @@ const PostHogInitializer = () => {
 const RouteTracker = () => {
   const location = useLocation();
   
+  // Add page abandonment tracking
+  usePageAbandonTracker();
+  
   useEffect(() => {
-    // Track page views
+    // Enhanced page view tracking with journey context
     analytics.pageView(location.pathname);
+    
+    // Track specific journey events
+    if (location.pathname === '/') {
+      const urlParams = new URLSearchParams(location.search);
+      analytics.landingPageViewed(
+        urlParams.get('utm_source') || document.referrer || 'direct',
+        urlParams.get('utm_campaign') || undefined
+      );
+    }
   }, [location]);
 
   // Handle password reset hash parameters

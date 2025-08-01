@@ -12,6 +12,7 @@ import { SecurityEnhancements, useSecurityMonitoring } from "@/components/Securi
 import { checkLoginRateLimit, logFailedLogin, clearFailedLogins } from "@/lib/security";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(true); // Default to sign up
@@ -29,9 +30,15 @@ const Auth = () => {
   const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { trackAuthPageEntered, trackAuthAttempted } = useAnalytics();
 
   // Use security monitoring
   useSecurityMonitoring();
+
+  // Track auth page entry
+  useEffect(() => {
+    trackAuthPageEntered(isSignUp ? 'signup' : 'signin');
+  }, [isSignUp, trackAuthPageEntered]);
 
   // Check for password reset parameters
   useEffect(() => {
@@ -181,6 +188,9 @@ const Auth = () => {
       try {
         if (isSignUp) {
           await signUp(email, password, firstName, lastName);
+          // Track successful signup
+          trackAuthAttempted('signup', true);
+          
           toast({
             title: "Account Created!",
             description: "Please check your email to verify your account.",
@@ -188,9 +198,15 @@ const Auth = () => {
         } else {
           const result = await signIn(email, password);
           if (!result.error) {
+            // Track successful signin
+            trackAuthAttempted('signin', true);
+            
             // Clear failed login attempts on successful login
             await clearFailedLogins(email);
           } else {
+            // Track failed signin
+            trackAuthAttempted('signin', false, result.error?.message);
+            
             // Handle sign-in error
             console.error('Sign-in error:', result.error);
             
@@ -220,6 +236,9 @@ const Auth = () => {
         }
       } catch (authError: any) {
         console.error('Authentication error:', authError);
+        
+        // Track failed auth attempt
+        trackAuthAttempted(isSignUp ? 'signup' : 'signin', false, authError?.message);
         
         // Log failed login attempt for sign in
         if (!isSignUp) {
