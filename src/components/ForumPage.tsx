@@ -506,6 +506,7 @@ const ForumPage = () => {
           `)
           .eq('post_id', postId)
           .eq('moderation_status', 'approved')
+          .order('likes_count', { ascending: false })
           .order('created_at', { ascending: true }),
         user ? supabase
           .from('forum_comment_likes')
