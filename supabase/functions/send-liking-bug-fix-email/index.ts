@@ -121,7 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
       
       console.log('Email template generated, sending via Resend...');
       const emailResponse = await resend.emails.send({
-        from: "MSTwins <team@sharedgenes.org.uk>",
+        from: "MSTwins <team@sharedgenes.org>",
         to: [preview_email],
         subject: template.subject,
         html: template.html,
@@ -216,7 +216,7 @@ const handler = async (req: Request): Promise<Response> => {
             const template = getEmailTemplate(profile.first_name || 'Friend');
             
             const result = await resend.emails.send({
-              from: "MSTwins <team@sharedgenes.org.uk>",
+              from: "MSTwins <team@sharedgenes.org>",
               to: [email],
               subject: template.subject,
               html: template.html,

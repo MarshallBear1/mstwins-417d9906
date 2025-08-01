@@ -103,7 +103,7 @@ const LikingBugFixEmailSender = () => {
           <div>
             <h3 className="text-lg font-semibold mb-2">📧 Email Preview</h3>
             <div className="bg-muted/50 p-4 rounded-lg">
-              <p><strong>From:</strong> MSTwins &lt;team@sharedgenes.org.uk&gt;</p>
+              <p><strong>From:</strong> MSTwins &lt;team@sharedgenes.org&gt;</p>
               <p><strong>Subject:</strong> 🎉 Bug Fixed! Come Back & Like People - Amazing Community Growth!</p>
               <div className="text-sm text-muted-foreground mt-2 space-y-2">
                 <p>• Professional email from MSTwins Robot mascot</p>
