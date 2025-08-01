@@ -22,7 +22,30 @@ serve(async (req) => {
   }
 
   try {
-    // Extract JWT token from Authorization header
+    const { name } = await req.json()
+    
+    // Special case: Allow ADMIN_PASSWORD access without authentication (for login purposes)
+    if (name === 'ADMIN_PASSWORD') {
+      const secretValue = Deno.env.get(name)
+      
+      if (!secretValue) {
+        console.warn('Admin password secret not configured')
+        return new Response(
+          JSON.stringify({ error: 'Admin password not configured' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Log admin password access attempt (without user ID since unauthenticated)
+      console.log('Admin password accessed for login attempt')
+      
+      return new Response(
+        JSON.stringify({ value: secretValue }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Extract JWT token from Authorization header for all other secrets
     const authHeader = req.headers.get('authorization')
     if (!authHeader) {
       console.warn('Unauthorized secrets access attempt - no auth header')
@@ -48,8 +71,6 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    const { name } = await req.json()
     
     // Allow PostHog API key access for all authenticated users
     if (name === 'POSTHOG_API_KEY') {
@@ -81,35 +102,6 @@ serve(async (req) => {
       )
     }
 
-    // Allow ADMIN_PASSWORD access for all authenticated users (for login purposes)
-    if (name === 'ADMIN_PASSWORD') {
-      const secretValue = Deno.env.get(name)
-      
-      if (!secretValue) {
-        console.warn(`User ${userData.user.id} requested non-existent admin password secret`)
-        return new Response(
-          JSON.stringify({ error: `Secret ${name} not found` }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      // Log admin password access attempt
-      console.log(`User ${userData.user.id} attempted admin login`)
-      await supabase.rpc('log_security_event', {
-        user_id_param: userData.user.id,
-        event_type_param: 'admin_password_accessed',
-        event_details_param: {
-          ip_address: req.headers.get('cf-connecting-ip') || 'unknown',
-          user_agent: req.headers.get('user-agent') || 'unknown',
-          timestamp: new Date().toISOString()
-        }
-      })
-
-      return new Response(
-        JSON.stringify({ value: secretValue }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
 
     // Check if user has admin role for other secrets
     const { data: roleData, error: roleError } = await supabase
