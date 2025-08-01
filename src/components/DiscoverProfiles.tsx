@@ -465,6 +465,8 @@ const DiscoverProfiles = memo(() => {
               profile={currentProfile} 
               isFlipped={isCardFlipped}
               onFlipChange={setIsCardFlipped}
+              isLikeDisabled={remainingLikes <= 0}
+              remainingLikes={remainingLikes}
             />
           </div>
           
@@ -482,9 +484,10 @@ const DiscoverProfiles = memo(() => {
               onClick={() => likeProfile(currentProfile.user_id)}
               className="flex-1 bg-gradient-primary text-white"
               disabled={actionCooldown || remainingLikes <= 0}
+              title={remainingLikes <= 0 ? "You have used all your likes today" : ""}
             >
               <Heart className="w-4 h-4 mr-2" />
-              Like
+              {remainingLikes <= 0 ? "You have used all your likes today" : "Like"}
             </Button>
           </div>
         </div>
