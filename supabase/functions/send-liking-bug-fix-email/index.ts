@@ -25,7 +25,7 @@ const getEmailTemplate = (firstName: string) => ({
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #2563eb; margin-bottom: 10px;">🤖 MSTwins Robot Here!</h1>
+            <h1 style="color: #2563eb; margin-bottom: 10px;">🤖 MSTwins Here!</h1>
             <p style="color: #666; font-size: 16px;">Great news from your friendly neighborhood dating app!</p>
         </div>
         
@@ -83,7 +83,7 @@ const getEmailTemplate = (firstName: string) => ({
         <div style="text-align: center; padding: 20px 0; border-top: 1px solid #e5e7eb; margin-top: 30px;">
             <p style="color: #6b7280; margin-bottom: 10px;">
                 Keep being awesome! 🌟<br>
-                <strong>The MSTwins Robot 🤖</strong>
+                <strong>The MSTwins Team 🤖</strong>
             </p>
             <p style="color: #9ca3af; font-size: 14px; margin-bottom: 0;">
                 MSTwins - Where Understanding Meets Love ❤️<br>
@@ -120,7 +120,7 @@ const handler = async (req: Request): Promise<Response> => {
       const template = getEmailTemplate('Preview User');
       
       const emailResponse = await resend.emails.send({
-        from: "MSTwins Robot 🤖 <team@sharedgenes.org.uk>",
+        from: "MSTwins <team@sharedgenes.org.uk>",
         to: [preview_email],
         subject: template.subject,
         html: template.html,
@@ -208,7 +208,7 @@ const handler = async (req: Request): Promise<Response> => {
             const template = getEmailTemplate(profile.first_name || 'Friend');
             
             const result = await resend.emails.send({
-              from: "MSTwins Robot 🤖 <team@sharedgenes.org.uk>",
+              from: "MSTwins <team@sharedgenes.org.uk>",
               to: [email],
               subject: template.subject,
               html: template.html,
