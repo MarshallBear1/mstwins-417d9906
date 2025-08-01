@@ -11,6 +11,7 @@ import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import LikeLimitWarning from "@/components/LikeLimitWarning";
+import LikeLimitPopup from "@/components/LikeLimitPopup";
 import { useHaptics } from "@/hooks/useHaptics";
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 
@@ -59,6 +60,7 @@ const DiscoverProfiles = memo(() => {
   const [actionCooldown, setActionCooldown] = useState(false);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [showLikeLimitWarning, setShowLikeLimitWarning] = useState(false);
+  const [showLikeLimitPopup, setShowLikeLimitPopup] = useState(false);
   const { remainingLikes, refreshRemainingLikes, likesData } = useDailyLikes();
   const { canGetBonus } = useDailyLikesReferral();
   const { vibrate } = useHaptics();
@@ -457,6 +459,12 @@ const DiscoverProfiles = memo(() => {
         remainingLikes={remainingLikes} 
       />
       
+      {/* Like limit popup */}
+      <LikeLimitPopup 
+        open={showLikeLimitPopup} 
+        onOpenChange={setShowLikeLimitPopup} 
+      />
+      
       {/* Compact Profile Card */}
       {currentProfile && (
         <div className="flex flex-col items-center space-y-4">
@@ -465,8 +473,6 @@ const DiscoverProfiles = memo(() => {
               profile={currentProfile} 
               isFlipped={isCardFlipped}
               onFlipChange={setIsCardFlipped}
-              isLikeDisabled={remainingLikes <= 0}
-              remainingLikes={remainingLikes}
             />
           </div>
           
@@ -481,13 +487,18 @@ const DiscoverProfiles = memo(() => {
               Pass
             </Button>
             <Button
-              onClick={() => likeProfile(currentProfile.user_id)}
+              onClick={() => {
+                if (remainingLikes <= 0) {
+                  setShowLikeLimitPopup(true);
+                } else {
+                  likeProfile(currentProfile.user_id);
+                }
+              }}
               className="flex-1 bg-gradient-primary text-white"
-              disabled={actionCooldown || remainingLikes <= 0}
-              title={remainingLikes <= 0 ? "You have used all your likes today" : ""}
+              disabled={actionCooldown}
             >
               <Heart className="w-4 h-4 mr-2" />
-              {remainingLikes <= 0 ? "You have used all your likes today" : "Like"}
+              Like
             </Button>
           </div>
         </div>

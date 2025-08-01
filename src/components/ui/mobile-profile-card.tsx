@@ -31,8 +31,6 @@ interface MobileProfileCardProps {
   onImageClick?: (index: number) => void;
   onLike?: () => void;
   onPass?: () => void;
-  isLikeDisabled?: boolean;
-  remainingLikes?: number;
   className?: string;
   style?: React.CSSProperties;
   isUserOnline?: (userId: string) => boolean;
@@ -52,8 +50,6 @@ const MobileProfileCard = ({
   getLastSeenText: propGetLastSeenText,
   isFlipped: propIsFlipped,
   onFlipChange,
-  isLikeDisabled,
-  remainingLikes,
   ...props
 }: MobileProfileCardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -265,12 +261,10 @@ const MobileProfileCard = ({
               {onLike && (
                 <Button
                   onClick={onLike}
-                  disabled={isLikeDisabled}
-                  className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  title={isLikeDisabled && remainingLikes === 0 ? "You have used all your likes today" : ""}
+                  className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group"
                 >
                   <Heart className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
-                  {isLikeDisabled && remainingLikes === 0 ? "You have used all your likes today" : "Like"}
+                  Like
                 </Button>
               )}
             </div>
@@ -382,12 +376,10 @@ const MobileProfileCard = ({
                   {onLike && (
                     <Button
                       onClick={onLike}
-                      disabled={isLikeDisabled}
-                      className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                      title={isLikeDisabled && remainingLikes === 0 ? "You have used all your likes today" : ""}
+                      className="flex-1 h-10 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group"
                     >
                       <Heart className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" />
-                      {isLikeDisabled && remainingLikes === 0 ? "You have used all your likes today" : "Like"}
+                      Like
                     </Button>
                   )}
                 </div>

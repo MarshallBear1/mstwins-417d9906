@@ -383,9 +383,10 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
                     size="sm" 
                     onClick={() => setIsEditing(true)}
                     className="bg-white/80 hover:bg-white"
+                    title="Edit your profile picture, bio, and other details"
                   >
                     <Edit className="w-4 h-4 mr-2" />
-                    Edit
+                    Edit Profile
                   </Button>
                   <Button 
                     variant="outline" 
