@@ -297,6 +297,20 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
           }}
           >
           <div className="relative h-32 bg-gradient-to-br from-blue-400 via-blue-300 to-teal-300 flex items-center justify-center">
+            {/* Edit Profile Picture Button - Top Left */}
+            {!isEditing && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsEditing(true)}
+                className="absolute top-3 left-3 bg-white/80 hover:bg-white text-blue-600 border-white/50"
+                title="Edit your profile picture and details"
+              >
+                <Edit className="w-3 h-3 mr-1" />
+                <span className="text-xs">Edit Pic</span>
+              </Button>
+            )}
+
             <div 
               className={`relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg ${!isEditing ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
               onClick={!isEditing ? () => setShowImageViewer(true) : undefined}
@@ -340,13 +354,22 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
               )}
             </div>
 
+            {/* Subtext under profile picture */}
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+              <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+                <span className="text-xs text-gray-600">
+                  {isEditing ? "Tap image to change" : "Tap to view"}
+                </span>
+              </div>
+            </div>
+
             {/* Flip button */}
             {!isEditing && hasExtendedContent && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsFlipped(!isFlipped)}
-                className="absolute top-3 left-3 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg animate-pulse"
+                className="absolute top-3 right-12 h-8 w-8 p-0 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 shadow-lg animate-pulse"
               >
                 <ArrowLeftRight className="w-4 h-4 text-white drop-shadow-sm" />
               </Button>
@@ -377,27 +400,15 @@ const ProfileCard = ({ profile, onProfileUpdate, onSignOut }: ProfileCardProps) 
                   </Button>
                 </>
               ) : (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setIsEditing(true)}
-                    className="bg-white/80 hover:bg-white"
-                    title="Edit your profile picture, bio, and other details"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Profile
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={onSignOut}
-                    className="bg-white/80 hover:bg-white text-red-600"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={onSignOut}
+                  className="bg-white/80 hover:bg-white text-red-600"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
               )}
             </div>
           </div>
