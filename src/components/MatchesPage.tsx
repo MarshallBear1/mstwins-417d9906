@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { OptimizedButton } from "@/components/OptimizedComponents";
 import { useToast } from "@/hooks/use-toast";
-import { LikesDebugPanel } from "@/components/LikesDebugPanel";
 
 interface MatchesPageProps {
   likes: any[];
@@ -207,7 +206,6 @@ const MatchesPage = ({
       {/* Content - Only Likes */}
       <div className="flex-1 overflow-y-auto p-4">
         {renderLikesContent()}
-        <LikesDebugPanel />
       </div>
     </div>
   );
