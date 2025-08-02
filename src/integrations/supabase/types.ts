@@ -521,7 +521,22 @@ export type Database = {
           liked_id?: string
           liker_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_likes_liked_profile"
+            columns: ["liked_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_likes_liker_profile"
+            columns: ["liker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       matches: {
         Row: {
@@ -542,7 +557,22 @@ export type Database = {
           user1_id?: string
           user2_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_matches_user1_profile"
+            columns: ["user1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_matches_user2_profile"
+            columns: ["user2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -579,6 +609,20 @@ export type Database = {
           sender_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_messages_receiver_profile"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_messages_sender_profile"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "messages_match_id_fkey"
             columns: ["match_id"]
@@ -1100,6 +1144,10 @@ export type Database = {
         Returns: undefined
       }
       create_admin_session: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      debug_likes_info: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
