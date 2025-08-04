@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import LikeLimitPopup from "@/components/LikeLimitPopup";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
@@ -258,7 +258,6 @@ const ForumPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'detail' | 'profile'>('list'); // Add 'profile' mode
   const [replyToComment, setReplyToComment] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
-  const [showLikeLimitPopup, setShowLikeLimitPopup] = useState(false);
   const [collapsedComments, setCollapsedComments] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver>();
   const lastPostRef = useRef<HTMLDivElement>();
@@ -1253,13 +1252,7 @@ const ForumPage = () => {
                 <div className="flex gap-3 justify-center">
                   <Button 
                     className="flex-1 max-w-36 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm h-10"
-                    onClick={() => {
-                      if (remainingLikes <= 0) {
-                        setShowLikeLimitPopup(true);
-                      } else {
-                        likeUserProfile(selectedProfile.user_id);
-                      }
-                    }}
+                     onClick={() => likeUserProfile(selectedProfile.user_id)}
                   >
                     <Heart className="w-4 h-4 mr-2" />
                     <span className="truncate">Like</span>
@@ -1431,21 +1424,10 @@ const ForumPage = () => {
             }
           }}
           showActions={true}
-          onLike={() => {
-            if (remainingLikes <= 0) {
-              setShowLikeLimitPopup(true);
-            } else {
-              likeProfile(selectedProfile.user_id);
-            }
-          }}
+           onLike={() => likeProfile(selectedProfile.user_id)}
         />
       )}
       
-      {/* Like limit popup */}
-      <LikeLimitPopup 
-        open={showLikeLimitPopup} 
-        onOpenChange={setShowLikeLimitPopup} 
-      />
     </div>
   );
 };

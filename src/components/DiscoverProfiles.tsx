@@ -5,13 +5,11 @@ import { Heart, RefreshCw, MapPin, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
-import { useDailyLikesReferral } from "@/hooks/useDailyLikesReferral";
+
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
-import LikeLimitWarning from "@/components/LikeLimitWarning";
-import LikeLimitPopup from "@/components/LikeLimitPopup";
 import { useHaptics } from "@/hooks/useHaptics";
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 
@@ -59,10 +57,8 @@ const DiscoverProfiles = memo(() => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [actionCooldown, setActionCooldown] = useState(false);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
-  const [showLikeLimitWarning, setShowLikeLimitWarning] = useState(false);
-  const [showLikeLimitPopup, setShowLikeLimitPopup] = useState(false);
-  const { remainingLikes, refreshRemainingLikes, likesData } = useDailyLikes();
-  const { canGetBonus } = useDailyLikesReferral();
+  const { checkCanLike } = useDailyLikes();
+  
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
 
@@ -221,12 +217,6 @@ const DiscoverProfiles = memo(() => {
     fetchProfiles();
   }, [fetchProfiles]);
 
-  // Show like limit warning when you have 1 like remaining
-  useEffect(() => {
-    if (remainingLikes === 1) {
-      setShowLikeLimitWarning(true);
-    }
-  }, [remainingLikes]);
 
   // Preload images for better UX
   useEffect(() => {
@@ -263,14 +253,6 @@ const DiscoverProfiles = memo(() => {
       return;
     }
 
-    if (remainingLikes <= 0) {
-      toast({
-        title: "No likes remaining",
-        description: "You've used all your likes for today. Come back tomorrow!",
-        variant: "destructive"
-      });
-      return;
-    }
 
     setActionCooldown(true);
     
@@ -281,22 +263,14 @@ const DiscoverProfiles = memo(() => {
     
     try {
       console.log('🔄 Attempting to like profile:', profileUserId);
-      console.log('🔢 Current remaining likes (frontend):', remainingLikes);
       
-      // First check and increment daily like count (this enforces the limit)
-      const { data: canLike, error: limitError } = await supabase.rpc('check_and_increment_daily_likes', {
-        target_user_id: profileUserId
-      });
-
-      console.log('✅ Like limit check result:', { canLike, limitError });
-
-      if (limitError) throw limitError;
-
+      // Check if we can like this user
+      const canLike = await checkCanLike(profileUserId);
       if (!canLike) {
-        console.log('❌ Like limit reached - blocking like');
+        console.log('❌ Like failed');
         toast({
-          title: "Daily limit reached",
-          description: "You've reached your daily like limit. Try tomorrow or share to get bonus likes!",
+          title: "Like failed",
+          description: "Unable to like this profile. Please try again.",
           variant: "destructive"
         });
         // Revert optimistic update
@@ -316,7 +290,6 @@ const DiscoverProfiles = memo(() => {
 
       vibrate();
       analytics.track('profile_liked', { liked_user_id: profileUserId });
-      refreshRemainingLikes();
 
       toast({
         title: "Profile liked!",
@@ -337,7 +310,7 @@ const DiscoverProfiles = memo(() => {
     } finally {
       setTimeout(() => setActionCooldown(false), 500); // Reduced cooldown
     }
-  }, [user, actionCooldown, remainingLikes, vibrate, refreshRemainingLikes, toast, currentIndex]);
+  }, [user, actionCooldown, vibrate, toast, currentIndex]);
 
   // Optimized pass function with cooldown and immediate UI update
   const passProfile = useCallback(async (profileUserId: string) => {
@@ -452,18 +425,6 @@ const DiscoverProfiles = memo(() => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 px-4">
-      {/* Remaining likes warning */}
-      <LikeLimitWarning 
-        open={showLikeLimitWarning} 
-        onOpenChange={setShowLikeLimitWarning} 
-        remainingLikes={remainingLikes} 
-      />
-      
-      {/* Like limit popup */}
-      <LikeLimitPopup 
-        open={showLikeLimitPopup} 
-        onOpenChange={setShowLikeLimitPopup} 
-      />
       
       {/* Compact Profile Card */}
       {currentProfile && (
@@ -487,13 +448,7 @@ const DiscoverProfiles = memo(() => {
               Pass
             </Button>
             <Button
-              onClick={() => {
-                if (remainingLikes <= 0) {
-                  setShowLikeLimitPopup(true);
-                } else {
-                  likeProfile(currentProfile.user_id);
-                }
-              }}
+              onClick={() => likeProfile(currentProfile.user_id)}
               className="flex-1 bg-gradient-primary text-white"
               disabled={actionCooldown}
             >

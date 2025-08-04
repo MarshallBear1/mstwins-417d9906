@@ -7,7 +7,7 @@ import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import UserReportDialog from "@/components/UserReportDialog";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
-import LikeLimitPopup from "@/components/LikeLimitPopup";
+
 
 interface Profile {
   id: string;
@@ -53,13 +53,13 @@ const ProfileViewDialog = ({
   isLiking = false 
 }: ProfileViewDialogProps) => {
   const { isUserOnline, getLastSeenText } = useRealtimePresence();
-  const { remainingLikes } = useDailyLikes();
+  const { } = useDailyLikes();
   const [isFlipped, setIsFlipped] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [showAllHobbies, setShowAllHobbies] = useState(false);
   const [showAllSymptoms, setShowAllSymptoms] = useState(false);
   const [showAllMedications, setShowAllMedications] = useState(false);
-  const [showLikeLimitPopup, setShowLikeLimitPopup] = useState(false);
+  
 
   // Reset all expanded states when dialog opens/closes or profile changes
   React.useEffect(() => {
@@ -295,13 +295,7 @@ const ProfileViewDialog = ({
                         Pass
                       </Button>
                       <Button
-                        onClick={() => {
-                          if (remainingLikes <= 0) {
-                            setShowLikeLimitPopup(true);
-                          } else {
-                            onLike?.();
-                          }
-                        }}
+                        onClick={() => onLike?.()}
                         className="flex-1 bg-gradient-primary hover:opacity-90 text-white"
                       >
                         <Heart className="w-4 h-4 mr-2" />
@@ -509,13 +503,7 @@ const ProfileViewDialog = ({
                           Pass
                         </Button>
                         <Button
-                          onClick={() => {
-                            if (remainingLikes <= 0) {
-                              setShowLikeLimitPopup(true);
-                            } else {
-                              onLike?.();
-                            }
-                          }}
+                          onClick={() => onLike?.()}
                           className="flex-1 bg-gradient-primary hover:opacity-90 text-white"
                         >
                           <Heart className="w-4 h-4 mr-2" />
@@ -564,11 +552,6 @@ const ProfileViewDialog = ({
           </div>
         </DialogContent>
       
-      {/* Like limit popup */}
-      <LikeLimitPopup 
-        open={showLikeLimitPopup} 
-        onOpenChange={setShowLikeLimitPopup} 
-      />
     </Dialog>
 
       {/* Profile Image Viewer */}
