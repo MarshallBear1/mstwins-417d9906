@@ -105,6 +105,9 @@ export const useOptimizedDashboardData = ({ user, activeTab }: UseOptimizedDashb
       const likesData = likesResponse.data || [];
       const matchesData = matchesResponse.data || [];
 
+      console.log('🔍 Debug - Raw likes data:', likesData.length, 'likes');
+      console.log('🔍 Debug - Raw matches data:', matchesData.length, 'matches');
+
       // Filter out matched users efficiently
       const matchedUserIds = new Set(
         matchesData.map(match => 
@@ -112,9 +115,13 @@ export const useOptimizedDashboardData = ({ user, activeTab }: UseOptimizedDashb
         )
       );
 
+      console.log('🔍 Debug - Matched user IDs:', Array.from(matchedUserIds));
+
       const unmatchedLikers = likesData.filter(
         like => !matchedUserIds.has(like.liker_id)
       );
+
+      console.log('🔍 Debug - Unmatched likers:', unmatchedLikers.map(l => l.liker_id));
 
       if (unmatchedLikers.length === 0) {
         setLikes([]);
