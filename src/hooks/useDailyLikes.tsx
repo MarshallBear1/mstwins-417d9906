@@ -36,7 +36,7 @@ export const useDailyLikes = () => {
           console.log('✅ Remaining likes fetched:', data);
           // Parse the JSONB response correctly
           const likesInfo = data as unknown as DailyLikesData;
-          setRemainingLikes(likesInfo.remaining || 0);
+          setRemainingLikes(likesInfo.remaining ?? 0);
           setLikesData(likesInfo);
         }
       } catch (error) {
@@ -87,7 +87,7 @@ export const useDailyLikes = () => {
       const { data, error } = await supabase.rpc('get_remaining_likes_today');
       if (!error) {
         const likesInfo = data as unknown as DailyLikesData;
-        setRemainingLikes(likesInfo.remaining || 0);
+        setRemainingLikes(likesInfo.remaining ?? 0);
         setLikesData(likesInfo);
       }
     } catch (error) {
