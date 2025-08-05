@@ -76,12 +76,8 @@ export const useOptimizedDashboardData = ({ user, activeTab }: UseOptimizedDashb
 
   // Ultra-optimized likes fetching with parallel queries
   const fetchLikes = useCallback(async () => {
-    if (!user) {
-      console.log('❌ fetchLikes: No user found');
-      return;
-    }
+    if (!user) return;
 
-    console.log('🚀 Fetching likes with parallel optimization for user:', user.id);
     const startTime = performance.now();
     setLikesLoading(true);
 
@@ -100,21 +96,13 @@ export const useOptimizedDashboardData = ({ user, activeTab }: UseOptimizedDashb
           .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
       ]);
 
-      console.log('🔍 Debug - Likes response:', likesResponse);
-      console.log('🔍 Debug - Matches response:', matchesResponse);
-
       if (likesResponse.error || matchesResponse.error) {
-        console.error('❌ Error in parallel fetch:', likesResponse.error || matchesResponse.error);
+        console.error('Error in parallel fetch:', likesResponse.error || matchesResponse.error);
         return;
       }
 
       const likesData = likesResponse.data || [];
       const matchesData = matchesResponse.data || [];
-
-      console.log('🔍 Debug - Raw likes data:', likesData.length, 'likes for user', user.id);
-      console.log('🔍 Debug - Raw likes data details:', likesData);
-      console.log('🔍 Debug - Raw matches data:', matchesData.length, 'matches');
-      console.log('🔍 Debug - Raw matches data details:', matchesData);
 
       // Filter out matched users efficiently
       const matchedUserIds = new Set(
@@ -123,18 +111,13 @@ export const useOptimizedDashboardData = ({ user, activeTab }: UseOptimizedDashb
         )
       );
 
-      console.log('🔍 Debug - Matched user IDs:', Array.from(matchedUserIds));
-
       const unmatchedLikers = likesData.filter(
         like => !matchedUserIds.has(like.liker_id)
       );
 
-      console.log('🔍 Debug - Unmatched likers:', unmatchedLikers.map(l => l.liker_id));
-
       if (unmatchedLikers.length === 0) {
         setLikes([]);
         const loadTime = performance.now() - startTime;
-        console.log(`🚀 No likes to display - completed in ${loadTime.toFixed(2)}ms`);
         return;
       }
 
@@ -160,9 +143,6 @@ export const useOptimizedDashboardData = ({ user, activeTab }: UseOptimizedDashb
       }));
 
       setLikes(formattedProfiles);
-
-      const loadTime = performance.now() - startTime;
-      console.log(`🚀 Optimized likes loaded in ${loadTime.toFixed(2)}ms - ${formattedProfiles.length} profiles`);
 
     } catch (error) {
       console.error('Error in optimized fetchLikes:', error);

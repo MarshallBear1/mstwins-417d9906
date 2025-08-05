@@ -313,18 +313,23 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
         break;
 
       case 'likes':
+        // Force fresh likes fetch when viewing likes tab
+        preloadTimeouts.current.likes = setTimeout(() => {
+          fetchLikes(false, false); // No cache, foreground fetch
+        }, preloadDelay);
+        
         // Preload discover and messages
         preloadTimeouts.current.discover = setTimeout(() => {
           if (!dashboardCache.has(user.id, 'discover')) {
             fetchDiscoverProfiles(false, true);
           }
-        }, preloadDelay);
+        }, preloadDelay * 1.5);
         
         preloadTimeouts.current.messages = setTimeout(() => {
           if (!dashboardCache.has(user.id, 'messages')) {
             fetchMessages(false, true);
           }
-        }, preloadDelay * 1.5);
+        }, preloadDelay * 2);
         break;
 
       case 'messages':
