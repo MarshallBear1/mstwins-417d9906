@@ -23,6 +23,7 @@ import { usePreloadedDashboardData } from "@/hooks/usePreloadedDashboardData";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useRealtimeLikesSync } from "@/hooks/useRealtimeLikesSync";
 import { 
   DiscoverSkeletonGrid, 
   LikesSkeletonList, 
@@ -33,7 +34,7 @@ import SEO from "@/components/SEO";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
 import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
-import MatchesPage from "@/components/MatchesPage";
+import EnhancedMatchesPage from "@/components/EnhancedMatchesPage";
 import ForumPage from "@/components/ForumPage";
 interface Profile {
   id: string;
@@ -69,6 +70,9 @@ const Dashboard = () => {
   const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
   const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
   const { requestAllPermissions } = useRealtimeNotifications();
+  
+  // Set up global real-time likes synchronization
+  useRealtimeLikesSync();
   
 
   const [searchParams] = useSearchParams();
@@ -151,29 +155,7 @@ const Dashboard = () => {
     return () => clearTimeout(timer);
   }, [user, profile, requestAllPermissions]);
 
-  // Set up real-time subscription to refresh likes when there are new notifications
-  useEffect(() => {
-    if (!user) return;
-    const channel = supabase.channel(`likes-updates-${user.id}`).on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'likes',
-      filter: `liked_id=eq.${user.id}`
-    }, () => {
-      // Always refresh likes when someone likes the current user
-      fetchLikes(false); // Force fresh fetch, skip cache
-    }).on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'matches'
-    }, () => {
-      // Always refresh likes when a new match is created (to remove them from likes)
-      fetchLikes(false); // Force fresh fetch, skip cache
-    }).subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, fetchLikes]);
+  // Real-time likes sync is now handled by useRealtimeLikesSync hook
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -257,13 +239,7 @@ const Dashboard = () => {
             <DiscoverProfiles />
           </div>;
       case "likes":
-        if (likesLoading && likes.length === 0) {
-          return <LikesSkeletonList />;
-        }
-        return <MatchesPage 
-          likes={likes}
-          likesLoading={likesLoading}
-          fetchLikes={() => fetchLikes(false)} // Force fresh fetch for manual refresh
+        return <EnhancedMatchesPage 
           selectedProfileForView={selectedProfileForView}
           setSelectedProfileForView={setSelectedProfileForView}
           setShowProfileView={setShowProfileView}
