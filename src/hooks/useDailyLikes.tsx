@@ -20,6 +20,21 @@ export const useDailyLikes = () => {
     
     try {
       console.log('🔍 Checking like permissions for user:', targetUserId);
+      
+      // Check for existing like first
+      const { data: existingLike } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('liker_id', user.id)
+        .eq('liked_id', targetUserId)
+        .single();
+
+      if (existingLike) {
+        console.log('❌ User already liked this profile');
+        return false;
+      }
+
+      // Check daily limits using the RPC function
       const { data, error } = await supabase.rpc('check_and_increment_daily_likes', {
         target_user_id: targetUserId
       });

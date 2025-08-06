@@ -264,16 +264,16 @@ const DiscoverProfiles = memo(() => {
     try {
       console.log('🔄 Attempting to like profile:', profileUserId);
       
-      // Check if we can like this user
+      // Check if we can like this user and insert the like in one step
       console.log('🎯 Attempting to like user:', profileUserId);
       const canLike = await checkCanLike(profileUserId);
       console.log('🎯 Can like result:', canLike);
       
       if (!canLike) {
-        console.log('❌ Like failed - permissions denied');
+        console.log('❌ Like failed - permissions denied or already liked');
         toast({
           title: "Like failed",
-          description: "Unable to like this profile. Please try again.",
+          description: "You've already liked this profile or reached your daily limit.",
           variant: "destructive"
         });
         // Revert optimistic update
@@ -281,7 +281,7 @@ const DiscoverProfiles = memo(() => {
         return;
       }
 
-      // Now insert the actual like record
+      // Insert the like record (the RPC function already validated and incremented counters)
       console.log('💾 Inserting like record into database...');
       const { error } = await supabase
         .from('likes')
