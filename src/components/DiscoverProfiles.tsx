@@ -265,9 +265,12 @@ const DiscoverProfiles = memo(() => {
       console.log('🔄 Attempting to like profile:', profileUserId);
       
       // Check if we can like this user
+      console.log('🎯 Attempting to like user:', profileUserId);
       const canLike = await checkCanLike(profileUserId);
+      console.log('🎯 Can like result:', canLike);
+      
       if (!canLike) {
-        console.log('❌ Like failed');
+        console.log('❌ Like failed - permissions denied');
         toast({
           title: "Like failed",
           description: "Unable to like this profile. Please try again.",
@@ -279,6 +282,7 @@ const DiscoverProfiles = memo(() => {
       }
 
       // Now insert the actual like record
+      console.log('💾 Inserting like record into database...');
       const { error } = await supabase
         .from('likes')
         .insert({
@@ -286,7 +290,12 @@ const DiscoverProfiles = memo(() => {
           liked_id: profileUserId
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database insert error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Like record inserted successfully');
 
       vibrate();
       analytics.track('profile_liked', { liked_user_id: profileUserId });

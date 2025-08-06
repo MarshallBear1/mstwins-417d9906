@@ -19,15 +19,23 @@ export const useDailyLikes = () => {
     if (!user) return false;
     
     try {
+      console.log('🔍 Checking like permissions for user:', targetUserId);
       const { data, error } = await supabase.rpc('check_and_increment_daily_likes', {
         target_user_id: targetUserId
       });
       
       if (error) {
-        console.error('Error checking like limit:', error);
+        console.error('❌ Error checking like limit:', error);
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          hint: error.hint,
+          details: error.details
+        });
         return false;
       }
       
+      console.log('✅ Like permission check result:', data);
       return data === true;
     } catch (error) {
       console.error('Error in checkCanLike:', error);
