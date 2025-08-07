@@ -1025,6 +1025,24 @@ export type Database = {
         }
         Relationships: []
       }
+      system_flags: {
+        Row: {
+          enabled: boolean | null
+          flag_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          enabled?: boolean | null
+          flag_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          enabled?: boolean | null
+          flag_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_reports: {
         Row: {
           admin_notes: string | null

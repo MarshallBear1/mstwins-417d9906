@@ -36,6 +36,29 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log('🔄 Starting comprehensive email processing...');
 
+    // Check if email processing is disabled
+    const { data: flagData } = await supabase
+      .from('system_flags')
+      .select('enabled')
+      .eq('flag_name', 'email_processing_enabled')
+      .single();
+
+    if (flagData && !flagData.enabled) {
+      console.log('🚫 Email processing is disabled by system flag');
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Email processing is currently disabled',
+          processed: 0,
+          errors: 0 
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     let processedCount = 0;
     let errorCount = 0;
 
