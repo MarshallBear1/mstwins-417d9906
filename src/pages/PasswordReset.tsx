@@ -18,6 +18,11 @@ const PasswordReset = () => {
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
   const [passwordResetComplete, setPasswordResetComplete] = useState(false);
+  const [resetTokens, setResetTokens] = useState<{
+    accessToken?: string;
+    refreshToken?: string;
+    code?: string;
+  } | null>(null);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -42,63 +47,23 @@ const PasswordReset = () => {
       });
       
       if (type === 'recovery') {
-        // For recovery flow, we need to set the session first to enable password update
+        // Store tokens for later use without creating a session yet
         if (accessToken && refreshToken) {
-          try {
-            const { error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-            
-            if (error) {
-              console.error('❌ Error setting session:', error);
-              setIsTokenValid(false);
-              toast({
-                title: "Invalid Reset Link",
-                description: "This password reset link is invalid or has expired. Please request a new one.",
-                variant: "destructive",
-              });
-            } else {
-              console.log('✅ Session set successfully for password reset');
-              setIsTokenValid(true);
-              toast({
-                title: "Reset Your Password",
-                description: "Please enter your new password below.",
-              });
-            }
-          } catch (error) {
-            console.error('❌ Error during session setup:', error);
-            setIsTokenValid(false);
-          }
+          console.log('✅ Found valid access and refresh tokens');
+          setResetTokens({ accessToken, refreshToken });
+          setIsTokenValid(true);
+          toast({
+            title: "Reset Your Password",
+            description: "Please enter your new password below.",
+          });
         } else if (code) {
-          // For code-based recovery, we need to exchange the code for a session
-          try {
-            const { data, error } = await supabase.auth.verifyOtp({
-              token: code,
-              type: 'recovery',
-              email: '' // Will be ignored for recovery type
-            });
-            
-            if (error) {
-              console.error('❌ Error verifying recovery code:', error);
-              setIsTokenValid(false);
-              toast({
-                title: "Invalid Reset Link",
-                description: "This password reset link is invalid or has expired. Please request a new one.",
-                variant: "destructive",
-              });
-            } else {
-              console.log('✅ Recovery code verified successfully');
-              setIsTokenValid(true);
-              toast({
-                title: "Reset Your Password",
-                description: "Please enter your new password below.",
-              });
-            }
-          } catch (error) {
-            console.error('❌ Error during code validation:', error);
-            setIsTokenValid(false);
-          }
+          console.log('✅ Found valid recovery code');
+          setResetTokens({ code });
+          setIsTokenValid(true);
+          toast({
+            title: "Reset Your Password",
+            description: "Please enter your new password below.",
+          });
         } else {
           // No valid tokens found
           setIsTokenValid(false);
@@ -146,16 +111,52 @@ const PasswordReset = () => {
     setLoading(true);
     
     try {
-      // Since we have a valid session from the recovery flow, we can update the password
-      const { error } = await supabase.auth.updateUser({
+      if (!resetTokens) {
+        throw new Error('No reset tokens available');
+      }
+
+      // First, create a session using the stored tokens
+      let sessionError = null;
+      
+      if (resetTokens.accessToken && resetTokens.refreshToken) {
+        console.log('🔑 Creating session with access/refresh tokens');
+        const { error } = await supabase.auth.setSession({
+          access_token: resetTokens.accessToken,
+          refresh_token: resetTokens.refreshToken,
+        });
+        sessionError = error;
+      } else if (resetTokens.code) {
+        console.log('🔑 Creating session with recovery code');
+        const { error } = await supabase.auth.verifyOtp({
+          token: resetTokens.code,
+          type: 'recovery',
+          email: '' // Will be ignored for recovery type
+        });
+        sessionError = error;
+      }
+
+      if (sessionError) {
+        console.error('❌ Error creating session for password reset:', sessionError);
+        toast({
+          title: "Password Reset Failed",
+          description: "This reset link has expired. Please request a new one.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('✅ Session created successfully, updating password');
+
+      // Now update the password
+      const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       });
       
-      if (error) {
-        console.error('❌ Password reset error:', error);
+      if (updateError) {
+        console.error('❌ Password update error:', updateError);
         toast({
           title: "Password Reset Failed",
-          description: error.message || "Failed to reset password. Please try again.",
+          description: updateError.message || "Failed to reset password. Please try again.",
           variant: "destructive",
         });
       } else {
@@ -164,14 +165,13 @@ const PasswordReset = () => {
         // Sign out the user immediately to prevent auth redirects
         await supabase.auth.signOut();
         
-        // Show success message
+        // Show success state instead of navigating immediately
+        setPasswordResetComplete(true);
+        
         toast({
           title: "Password Reset Successful!",
-          description: "Your password has been updated. Redirecting to sign in...",
+          description: "Your password has been updated successfully.",
         });
-        
-        // Navigate immediately to prevent auth redirect race condition
-        navigate('/auth', { replace: true });
       }
     } catch (error) {
       console.error('❌ Unexpected error during password reset:', error);
