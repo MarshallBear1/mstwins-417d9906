@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -1138,10 +1138,10 @@ export type Database = {
       }
       check_admin_rate_limit: {
         Args: {
-          admin_user_id: string
           action_type: string
-          time_window?: unknown
+          admin_user_id: string
           max_actions?: number
+          time_window?: unknown
         }
         Returns: Json
       }
@@ -1175,18 +1175,18 @@ export type Database = {
       }
       enhanced_log_admin_action: {
         Args: {
-          action_type: string
           action_details?: Json
+          action_type: string
           security_level?: string
         }
         Returns: undefined
       }
       enhanced_rate_limit_check: {
         Args: {
-          user_id_param: string
           action_type: string
           max_actions: number
           time_window: unknown
+          user_id_param: string
         }
         Returns: boolean
       }
@@ -1201,17 +1201,17 @@ export type Database = {
       get_feedback_admin: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          user_id: string
-          type: string
-          subject: string
-          message: string
-          email: string
-          priority: string
-          status: string
           admin_notes: string
           created_at: string
+          email: string
+          id: string
+          message: string
+          priority: string
+          status: string
+          subject: string
+          type: string
           updated_at: string
+          user_id: string
         }[]
       }
       get_remaining_likes_today: {
@@ -1233,27 +1233,27 @@ export type Database = {
       get_users_needing_like_refresh_emails: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_id: string
           email: string
           first_name: string
           last_like_date: string
+          user_id: string
         }[]
       }
       get_users_needing_re_engagement: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_id: string
           email: string
-          first_name: string
-          last_seen: string
-          hours_offline: number
           email_type: string
+          first_name: string
+          hours_offline: number
+          last_seen: string
+          user_id: string
         }[]
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -1262,7 +1262,7 @@ export type Database = {
         Returns: boolean
       }
       log_admin_action: {
-        Args: { action_type: string; action_details?: Json }
+        Args: { action_details?: Json; action_type: string }
         Returns: undefined
       }
       log_failed_login_attempt: {
@@ -1275,9 +1275,9 @@ export type Database = {
       }
       log_security_event: {
         Args: {
-          user_id_param: string
-          event_type_param: string
           event_details_param?: Json
+          event_type_param: string
+          user_id_param: string
         }
         Returns: undefined
       }
@@ -1292,8 +1292,8 @@ export type Database = {
       send_announcement_email: {
         Args: {
           campaign_name: string
-          email_subject: string
           email_content: string
+          email_subject: string
           list_name: string
         }
         Returns: Json
@@ -1305,13 +1305,13 @@ export type Database = {
       update_feedback_admin: {
         Args: {
           feedback_id: string
-          new_status: string
           new_admin_notes?: string
+          new_status: string
         }
         Returns: boolean
       }
       update_security_config: {
-        Args: { setting_key: string; setting_value: Json; description?: string }
+        Args: { description?: string; setting_key: string; setting_value: Json }
         Returns: undefined
       }
       update_user_last_seen: {
