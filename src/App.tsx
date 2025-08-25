@@ -11,6 +11,8 @@ import { analytics } from "./lib/analytics";
 import { usePageAbandonTracker } from "./hooks/usePageAbandonTracker";
 import { supabase } from "@/integrations/supabase/client";
 import OptimizedIndex from "./pages/OptimizedIndex";
+import MobileHome from "./components/MobileHome";
+import { useIsNativeApp } from "./hooks/useIsNativeApp";
 import MobileStatusBar from "./components/MobileStatusBar";
 import MobileOptimizationsProvider from "./components/MobileOptimizationsProvider";
 import IOSEnhancements from "./components/IOSEnhancements";
@@ -176,6 +178,19 @@ const queryClient = new QueryClient({
   },
 });
 
+// Component to conditionally render home screen based on platform
+const ConditionalHome = () => {
+  const { isNativeApp, isLoading } = useIsNativeApp();
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>;
+  }
+  
+  return isNativeApp ? <MobileHome /> : <OptimizedIndex />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -196,7 +211,7 @@ const App = () => (
             <PostHogInitializer />
             <RouteTracker />
             <Routes>
-            <Route path="/" element={<OptimizedIndex />} />
+            <Route path="/" element={<ConditionalHome />} />
             <Route path="/auth" element={
               <Suspense fallback={<LoadingSpinner />}>
                 <Auth />
