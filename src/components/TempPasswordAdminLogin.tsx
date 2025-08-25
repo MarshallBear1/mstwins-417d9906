@@ -29,18 +29,19 @@ export const TempPasswordAdminLogin = () => {
         return;
       }
 
-      // Check admin role via database
-      const { data, error } = await supabase.rpc('authenticate_admin_user');
+      // Create secure admin session via database
+      const { data, error } = await supabase.rpc('create_admin_session');
       
       if (error) {
-        console.error('Admin authentication error:', error);
+        console.error('Admin session creation error:', error);
         toast({
           title: "Authentication Error",
-          description: "Unable to verify admin credentials. Please try again.",
+          description: "Unable to create admin session. Please try again.",
           variant: "destructive",
         });
-      } else if ((data as any)?.authenticated) {
-        sessionStorage.setItem('temp_admin_authenticated', 'true');
+      } else if (data?.success) {
+        // Store only the session token, not a simple boolean
+        sessionStorage.setItem('admin_session_token', data.session_token);
         toast({
           title: "Access Granted",
           description: "Welcome to the admin portal.",
@@ -49,7 +50,7 @@ export const TempPasswordAdminLogin = () => {
       } else {
         toast({
           title: "Access Denied",
-          description: "Admin role required. Please contact administrator.",
+          description: data?.reason === 'not_admin' ? "Admin role required. Please contact administrator." : "Authentication failed.",
           variant: "destructive",
         });
       }
