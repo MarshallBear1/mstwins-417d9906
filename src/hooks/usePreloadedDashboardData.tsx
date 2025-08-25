@@ -72,7 +72,7 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Use maybeSingle() instead of single() to handle no results gracefully
 
       if (error) throw error;
 
@@ -105,7 +105,11 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
 
     if (!background) setLikesLoading(true);
     try {
-      // First get all the user's matches to exclude them from likes
+      // First get all the user's matches to exclude them from likes - with proper UUID validation
+      if (!user.id || typeof user.id !== 'string') {
+        throw new Error('Invalid user ID format');
+      }
+      
       const { data: matchesData } = await supabase
         .from('matches')
         .select('user1_id, user2_id')
@@ -127,7 +131,7 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
           liked_id
         `)
         .eq('liked_id', user.id)
-        .not('liker_id', 'in', `(${matchedUserIds.length > 0 ? matchedUserIds.join(',') : 'null'})`)
+        .not('liker_id', 'in', `(${matchedUserIds.length > 0 ? matchedUserIds.join(',') : '00000000-0000-0000-0000-000000000000'})`))
         .order('created_at', { ascending: false });
 
       if (error) throw error;
