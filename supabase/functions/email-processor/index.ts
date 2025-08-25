@@ -71,7 +71,7 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('processed', false)
       .lt('attempts', 3)
       .order('created_at', { ascending: true })
-      .limit(20);
+      .limit(10); // Reduced batch size to prevent rate limiting
 
     if (queueError) {
       console.error('❌ Error fetching queue items:', queueError);
@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
           const likerName = likerProfile.data?.first_name;
           const likedName = likedProfile.data?.first_name;
 
-          // Send emails based on type
+          // Send emails based on type with rate limiting (max 2/second for Resend)
           let emailResult;
           
           if (item.type === 'like' && likedEmail) {
@@ -119,26 +119,31 @@ const handler = async (req: Request): Promise<Response> => {
                 fromUser: likerName
               }
             });
+            // Rate limiting: wait 600ms between requests (max 2/second)
+            await new Promise(resolve => setTimeout(resolve, 600));
           } 
           else if (item.type === 'match' && likerEmail && likedEmail) {
-            const [result1, result2] = await Promise.all([
-              supabase.functions.invoke('send-notification-email', {
-                body: {
-                  email: likerEmail,
-                  firstName: likerName,
-                  type: 'match',
-                  fromUser: likedName
-                }
-              }),
-              supabase.functions.invoke('send-notification-email', {
-                body: {
-                  email: likedEmail,
-                  firstName: likedName,
-                  type: 'match',
-                  fromUser: likerName
-                }
-              })
-            ]);
+            // For matches, send sequentially with rate limiting instead of parallel
+            const result1 = await supabase.functions.invoke('send-notification-email', {
+              body: {
+                email: likerEmail,
+                firstName: likerName,
+                type: 'match',
+                fromUser: likedName
+              }
+            });
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            const result2 = await supabase.functions.invoke('send-notification-email', {
+              body: {
+                email: likedEmail,
+                firstName: likedName,
+                type: 'match',
+                fromUser: likerName
+              }
+            });
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
             emailResult = { data: [result1.data, result2.data], error: result1.error || result2.error };
           }
           else if (item.type === 'message' && likedEmail) {
@@ -151,10 +156,24 @@ const handler = async (req: Request): Promise<Response> => {
                 message: item.message_content
               }
             });
+            await new Promise(resolve => setTimeout(resolve, 600));
           }
 
           if (emailResult?.error) {
-            throw new Error(`Email service error: ${JSON.stringify(emailResult.error)}`);
+            // Check if it's a rate limit error and retry later
+            const errorMessage = JSON.stringify(emailResult.error);
+            if (errorMessage.includes('rate_limit_exceeded') || errorMessage.includes('429')) {
+              console.log(`⏳ Rate limit hit for ${item.id}, will retry later`);
+              await supabase
+                .from('email_queue')
+                .update({ 
+                  attempts: Math.max(0, item.attempts), // Don't increment attempts for rate limits
+                  error_message: 'Rate limit exceeded, will retry'
+                })
+                .eq('id', item.id);
+              continue;
+            }
+            throw new Error(`Email service error: ${errorMessage}`);
           }
 
           // Mark as processed
