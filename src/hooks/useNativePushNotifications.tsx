@@ -17,7 +17,7 @@ export const useNativePushNotifications = () => {
     setIsSupported(nativeSupported);
     
     if (!nativeSupported) {
-      console.log('Push notifications only available on native platforms');
+      // Silently handle non-native platforms to reduce console noise
       return;
     }
 

@@ -36,6 +36,9 @@ import MobileKeyboardHandler from "@/components/MobileKeyboardHandler";
 import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
 import EnhancedMatchesPage from "@/components/EnhancedMatchesPage";
 import ForumPage from "@/components/ForumPage";
+import MobileSwipeNavigation from "@/components/mobile/MobileSwipeNavigation";
+import MobilePersistentNav from "@/components/mobile/MobilePersistentNav";
+import { MobileDiscoverSkeleton, MobileMessagesSkeleton, MobileLikesSkeleton, MobileTabLoadingIndicator } from "@/components/mobile/MobileLoadingStates";
 interface Profile {
   id: string;
   user_id: string;
@@ -75,8 +78,20 @@ const Dashboard = () => {
   useRealtimeLikesSync();
   
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'discover';
+
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab });
+  };
+
+  const navTabs = [
+    { id: 'discover', name: 'Discover' },
+    { id: 'likes', name: 'Matches' },
+    { id: 'messages', name: 'Messages' },
+    { id: 'forum', name: 'Forum' },
+    { id: 'profile', name: 'Profile' }
+  ];
 
   // Use preloaded data fetching hook for better performance
   const { 
@@ -202,7 +217,7 @@ const Dashboard = () => {
     switch (activeTab) {
       case "discover":
         if (discoverLoading && discoverProfiles.length === 0) {
-          return <DiscoverSkeletonGrid />;
+          return isMobile ? <MobileDiscoverSkeleton /> : <DiscoverSkeletonGrid />;
         }
         return <div className="pt-6">
             {/* Extended Profile Prompt */}
@@ -246,7 +261,7 @@ const Dashboard = () => {
         />;
       case "messages":
         if (messagesLoading && messages.length === 0) {
-          return <MessagesSkeletonList />;
+          return isMobile ? <MobileMessagesSkeleton /> : <MessagesSkeletonList />;
         }
         const urlParams = new URLSearchParams(window.location.search);
         const matchId = urlParams.get('match');
@@ -329,14 +344,35 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main content with padding for persistent bottom nav */}
+      {/* Main content with enhanced mobile navigation */}
       <div className="flex-1 mobile-scroll bg-gray-50" style={{
         paddingBottom: isMobile ? `max(8rem, ${safeAreaInsets.bottom + 100}px)` : '6rem'
       }}>
-        <div className="transition-all duration-300 ease-in-out">
-          {renderContent()}
-        </div>
+        {isMobile ? (
+          <MobileSwipeNavigation 
+            activeTab={activeTab} 
+            onTabChange={handleTabChange} 
+            tabs={navTabs}
+          >
+            <div className="transition-all duration-300 ease-in-out">
+              {renderContent()}
+            </div>
+          </MobileSwipeNavigation>
+        ) : (
+          <div className="transition-all duration-300 ease-in-out">
+            {renderContent()}
+          </div>
+        )}
       </div>
+
+      {/* Mobile Persistent Navigation */}
+      {isMobile && (
+        <MobilePersistentNav 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange} 
+          safeAreaBottom={safeAreaInsets.bottom} 
+        />
+      )}
 
       {/* Profile View Dialog */}
       <Dialog open={showProfileView} onOpenChange={(open) => {
