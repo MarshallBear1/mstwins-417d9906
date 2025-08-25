@@ -84,26 +84,34 @@ export const AdminAuthProvider = ({ children }: AdminAuthProviderProps) => {
       return false;
     }
 
-    // Simple password-based authentication
-    const adminPassword = prompt('Enter admin password:');
-    if (!adminPassword) {
-      return false;
-    }
+    try {
+      // Check if user has admin role in database
+      const { data, error } = await supabase.rpc('authenticate_admin_user');
+      
+      if (error) {
+        console.error('Admin authentication error:', error);
+        toast.error('Authentication failed');
+        return false;
+      }
 
-    // Simple hardcoded password check (can be made more secure later)
-    if (adminPassword === 'admin2024!' || adminPassword === 'temppass123') {
-      const token = crypto.randomUUID();
-      setAdminSessionToken(token);
-      setIsAdminAuthenticated(true);
-      
-      // Store token and timestamp in sessionStorage
-      sessionStorage.setItem('admin_session_token', token);
-      sessionStorage.setItem('admin_session_timestamp', Date.now().toString());
-      
-      toast.success('Admin access granted');
-      return true;
-    } else {
-      toast.error('Invalid admin password');
+      if ((data as any)?.authenticated) {
+        const token = crypto.randomUUID();
+        setAdminSessionToken(token);
+        setIsAdminAuthenticated(true);
+        
+        // Store token and timestamp in sessionStorage
+        sessionStorage.setItem('admin_session_token', token);
+        sessionStorage.setItem('admin_session_timestamp', Date.now().toString());
+        
+        toast.success('Admin access granted');
+        return true;
+      } else {
+        toast.error('Access denied: Admin role required');
+        return false;
+      }
+    } catch (error) {
+      console.error('Admin authentication error:', error);
+      toast.error('Authentication failed');
       return false;
     }
   };
