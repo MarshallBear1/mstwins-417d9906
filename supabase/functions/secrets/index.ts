@@ -12,8 +12,7 @@ const ALLOWED_SECRETS = [
   'RESEND_API_KEY',
   'SUPABASE_URL',
   'SUPABASE_ANON_KEY',
-  'POSTHOG_API_KEY',
-  'ADMIN_PASSWORD'
+  'POSTHOG_API_KEY'
 ]
 
 serve(async (req) => {
@@ -24,26 +23,6 @@ serve(async (req) => {
   try {
     const { name } = await req.json()
     
-    // Special case: Allow ADMIN_PASSWORD access without authentication (for login purposes)
-    if (name === 'ADMIN_PASSWORD') {
-      const secretValue = Deno.env.get(name)
-      
-      if (!secretValue) {
-        console.warn('Admin password secret not configured')
-        return new Response(
-          JSON.stringify({ error: 'Admin password not configured' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      // Log admin password access attempt (without user ID since unauthenticated)
-      console.log('Admin password accessed for login attempt')
-      
-      return new Response(
-        JSON.stringify({ value: secretValue }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
 
     // Extract JWT token from Authorization header for all other secrets
     const authHeader = req.headers.get('authorization')
