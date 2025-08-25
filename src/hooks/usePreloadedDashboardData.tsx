@@ -53,63 +53,117 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
     };
   }, []);
 
-  // Fetch profile data
-  const fetchProfile = useCallback(async (useCache = true) => {
-    if (!user) return;
+  // Fetch profile data with caching
+  const fetchProfile = useCallback(async (useCache = true, background = false) => {
+    if (!user?.id) {
+      console.warn('⚠️ No valid user ID for profile fetch');
+      if (!background) setProfileLoading(false);
+      return null;
+    }
 
     // Check cache first
     if (useCache) {
-      const cachedProfile = dashboardCache.get<Profile>(user.id, 'profile');
-      if (cachedProfile) {
-        setProfile(cachedProfile);
-        return cachedProfile;
+      const cached = dashboardCache.get(user.id, 'profile');
+      if (cached && !background) {
+        console.log('🎯 Cache hit for profile');
+        setProfile(cached as Profile);
+        return cached;
       }
     }
 
-    setProfileLoading(true);
+    if (!background) setProfileLoading(true);
+
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle(); // Use maybeSingle() instead of single() to handle no results gracefully
-
-      if (error) throw error;
-
-      if (data) {
-        const profileData = data as any; // Type assertion to handle Supabase JSON types
-        setProfile(profileData);
-        dashboardCache.set(user.id, 'profile', profileData);
-        console.log('✅ Profile fetched and cached');
-        return profileData;
-      }
-    } catch (error) {
-      console.error('❌ Error fetching profile:', error);
-    } finally {
-      setProfileLoading(false);
-    }
-  }, [user]);
-
-  // Fetch likes data
-  const fetchLikes = useCallback(async (useCache = true, background = false) => {
-    if (!user) return;
-
-    // Check cache first
-    if (useCache) {
-      const cachedLikes = dashboardCache.get<any[]>(user.id, 'likes');
-      if (cachedLikes) {
-        setLikes(cachedLikes);
-        if (!background) return cachedLikes;
-      }
-    }
-
-    if (!background) setLikesLoading(true);
-    try {
-      // First get all the user's matches to exclude them from likes - with proper UUID validation
+      console.log(`👤 Fetching profile (${background ? 'background' : 'foreground'})...`);
+      
+      // Validate user ID before query
       if (!user.id || typeof user.id !== 'string') {
         throw new Error('Invalid user ID format');
       }
       
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          user_id,
+          first_name,
+          last_name,
+          date_of_birth,
+          location,
+          gender,
+          ms_subtype,
+          diagnosis_year,
+          symptoms,
+          medications,
+          hobbies,
+          avatar_url,
+          about_me,
+          last_seen,
+          additional_photos,
+          selected_prompts,
+          extended_profile_completed
+        `)
+        .eq('user_id', user.id)
+        .maybeSingle(); // Use maybeSingle() instead of single() to handle no results gracefully
+
+      if (error) {
+        console.error('❌ Error fetching profile:', error);
+        setProfile(null);
+        return null;
+      }
+
+      const profileData = data ? {
+        ...data,
+        selected_prompts: Array.isArray(data.selected_prompts) ? 
+          data.selected_prompts as { question: string; answer: string; }[] : []
+      } : null;
+
+      setProfile(profileData);
+      if (profileData) {
+        dashboardCache.set(user.id, 'profile', profileData);
+        console.log(`✅ Profile fetched and cached (${background ? 'background' : 'foreground'})`);
+      }
+      return profileData;
+    } catch (error) {
+      console.error('❌ Error fetching profile:', error);
+      setProfile(null);
+      return null;
+    } finally {
+      if (!background) setProfileLoading(false);
+    }
+  }, [user]);
+
+  // Fetch likes data with enhanced error handling and caching
+  const fetchLikes = useCallback(async (useCache = true, background = false) => {
+    if (!user?.id) {
+      console.warn('⚠️ No valid user ID for likes fetch');
+      if (!background) setLikesLoading(false);
+      return [];
+    }
+
+    const cacheKey = `likes_${user.id}`;
+    
+    // Check cache first
+    if (useCache) {
+      const cached = dashboardCache.get(user.id, 'likes');
+      if (cached && !background) {
+        console.log('🎯 Cache hit for likes');
+        setLikes(cached as any[]);
+        return cached;
+      }
+    }
+
+    if (!background) setLikesLoading(true);
+
+    try {
+      console.log(`📥 Fetching likes (${background ? 'background' : 'foreground'})...`);
+      
+      // Validate user ID before query
+      if (!user.id || typeof user.id !== 'string') {
+        throw new Error('Invalid user ID format');
+      }
+      
+      // First get all the user's matches to exclude them from likes - with proper UUID validation
       const { data: matchesData } = await supabase
         .from('matches')
         .select('user1_id, user2_id')
@@ -131,57 +185,59 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
           liked_id
         `)
         .eq('liked_id', user.id)
-        .not('liker_id', 'in', `(${matchedUserIds.length > 0 ? matchedUserIds.join(',') : '00000000-0000-0000-0000-000000000000'})`))
+        .not('liker_id', 'in', `(${matchedUserIds.length > 0 ? matchedUserIds.join(',') : '00000000-0000-0000-0000-000000000000'})`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      if (data) {
+      if (data && data.length > 0) {
         // Fetch liker profiles separately
         const likerIds = data.map(like => like.liker_id);
-        
-        if (likerIds.length > 0) {
-          const { data: profiles, error: profilesError } = await supabase
-            .from('profiles')
-            .select(`
-              id,
-              user_id,
-              first_name,
-              last_name,
-              avatar_url,
-              location,
-              ms_subtype,
-              hobbies
-            `)
-            .in('user_id', likerIds);
 
-          if (profilesError) throw profilesError;
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select(`
+            id,
+            user_id,
+            first_name,
+            last_name,
+            avatar_url,
+            location,  
+            ms_subtype,
+            hobbies
+          `)
+          .in('user_id', likerIds);
 
-          // Combine likes with profile data - flatten the structure for MatchesPage
-          const likesWithProfiles = data.map(like => {
-            const likerProfile = profiles?.find(profile => profile.user_id === like.liker_id);
-            return {
-              ...like,
-              // Flatten the liker profile data to the top level for MatchesPage compatibility
-              ...likerProfile,
-              liker: likerProfile // Keep the nested structure for backwards compatibility if needed
-            };
-          });
+        if (profilesError) throw profilesError;
 
-          setLikes(likesWithProfiles);
-          dashboardCache.set(user.id, 'likes', likesWithProfiles);
-          console.log(`✅ Likes fetched and cached (${background ? 'background' : 'foreground'})`);
-          return likesWithProfiles;
-        } else {
-          // No likes data
-          setLikes([]);
-          dashboardCache.set(user.id, 'likes', []);
-          console.log(`✅ No likes found (${background ? 'background' : 'foreground'})`);
-          return [];
-        }
+        // Combine likes with profile data - flatten the structure for MatchesPage
+        const likesWithProfiles = data.map(like => {
+          const likerProfile = profiles?.find(profile => profile.user_id === like.liker_id);
+          return {
+            ...like,
+            // Flatten the liker profile data to the top level for MatchesPage compatibility
+            ...likerProfile,
+            liker: likerProfile // Keep the nested structure for backwards compatibility if needed
+          };
+        });
+
+        setLikes(likesWithProfiles);
+        dashboardCache.set(user.id, 'likes', likesWithProfiles);
+        console.log(`✅ Likes fetched and cached (${background ? 'background' : 'foreground'})`);
+        return likesWithProfiles;
+      } else {
+        // No likes data
+        setLikes([]);
+        dashboardCache.set(user.id, 'likes', []);
+        console.log(`✅ No likes found (${background ? 'background' : 'foreground'})`);
+        return [];
       }
     } catch (error) {
       console.error('❌ Error fetching likes:', error);
+      if (!background) {
+        setLikes([]);
+      }
+      return [];
     } finally {
       if (!background) setLikesLoading(false);
     }
