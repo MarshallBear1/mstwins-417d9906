@@ -1,82 +1,142 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Heart, Users, MessageCircle } from "lucide-react";
+import { ArrowRight, Heart, Users, MessageCircle, Sparkles, Shield, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
+import { useEffect, useState } from "react";
 
 const MobileHome = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-subtle flex flex-col">
+    <div className="min-h-screen relative overflow-hidden">
       <SEO 
         title="Join MSTwins - MS Support Community"
         description="Connect with others living with Multiple Sclerosis. Find friendship, support, and understanding in our community."
         canonical="https://mstwins.com/"
       />
       
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        {/* Floating orbs */}
+        <div className="absolute top-20 left-4 w-32 h-32 bg-primary/10 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute top-40 right-8 w-24 h-24 bg-accent/10 rounded-full blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-32 left-8 w-40 h-40 bg-success/8 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute bottom-60 right-4 w-28 h-28 bg-primary/8 rounded-full blur-2xl animate-pulse delay-500"></div>
+      </div>
+
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 mobile-safe-top mobile-safe-bottom">
-        <div className="text-center space-y-8">
-          {/* App Logo/Title */}
+      <div className="relative z-10 flex-1 flex flex-col justify-center px-6 py-12 mobile-safe-top mobile-safe-bottom">
+        <div className="text-center space-y-10 max-w-sm mx-auto">
+          
+          {/* App Logo/Title with enhanced styling */}
+          <div className={`space-y-6 transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <div className="relative">
+              <div className="w-24 h-24 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto shadow-xl-modern rotate-3 hover:rotate-0 transition-transform duration-500">
+                <Heart className="w-12 h-12 text-white drop-shadow-lg" />
+                <div className="absolute -top-1 -right-1 w-6 h-6 bg-success rounded-full flex items-center justify-center">
+                  <Sparkles className="w-3 h-3 text-white" />
+                </div>
+              </div>
+              {/* Floating sparkles */}
+              <Star className="absolute -top-2 -left-3 w-4 h-4 text-accent animate-pulse" />
+              <Star className="absolute -bottom-1 -right-4 w-3 h-3 text-primary animate-pulse delay-700" />
+            </div>
+            
+            <div className="space-y-3">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-pulse">
+                MSTwins
+              </h1>
+              <div className="mx-auto w-16 h-1 bg-gradient-to-r from-primary to-accent rounded-full"></div>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Your supportive community for <br />
+                <span className="font-semibold text-foreground">Multiple Sclerosis</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Enhanced Feature Cards */}
           <div className="space-y-4">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-              <Heart className="w-10 h-10 text-primary" />
-            </div>
-            <h1 className="text-4xl font-bold text-foreground">
-              MSTwins
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              The supportive community for people living with Multiple Sclerosis
-            </p>
+            {[
+              {
+                icon: Users,
+                title: "Connect with Others",
+                description: "Find people who truly understand your MS journey",
+                gradient: "from-blue-500/10 to-blue-600/5",
+                iconColor: "text-blue-600",
+                delay: "delay-200"
+              },
+              {
+                icon: MessageCircle,
+                title: "Share & Support",
+                description: "Exchange experiences and daily encouragement",
+                gradient: "from-green-500/10 to-green-600/5",
+                iconColor: "text-green-600",
+                delay: "delay-400"
+              },
+              {
+                icon: Shield,
+                title: "Safe Space",
+                description: "Build meaningful, lasting friendships here",
+                gradient: "from-purple-500/10 to-purple-600/5",
+                iconColor: "text-purple-600",
+                delay: "delay-600"
+              }
+            ].map((feature, index) => (
+              <div 
+                key={index}
+                className={`
+                  bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/50 
+                  shadow-soft hover:shadow-medium transition-all duration-500 hover:scale-105
+                  ${feature.delay} ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
+                `}
+                style={{ transitionDelay: isVisible ? `${200 + index * 200}ms` : '0ms' }}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className={`w-14 h-14 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner`}>
+                    <feature.icon className={`w-7 h-7 ${feature.iconColor}`} />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-foreground text-lg">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">{feature.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Key Features */}
-          <div className="space-y-6">
-            <div className="flex items-center space-x-4 text-left">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                <Users className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Connect with Others</h3>
-                <p className="text-sm text-muted-foreground">Find people who understand your MS journey</p>
-              </div>
+          {/* Enhanced CTA Section */}
+          <div className={`space-y-6 pt-6 transition-all duration-1000 delay-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <div className="relative">
+              <Button 
+                size="lg" 
+                className="w-full text-lg py-7 bg-gradient-to-r from-primary to-accent hover:from-primary-dark hover:to-accent-light shadow-strong hover:shadow-xl-modern transition-all duration-300 transform hover:scale-105 font-bold rounded-2xl" 
+                asChild
+              >
+                <Link to="/auth" className="relative overflow-hidden">
+                  <span className="relative z-10">Join Free Today</span>
+                  <ArrowRight className="ml-3 h-6 w-6 relative z-10 transition-transform group-hover:translate-x-1" />
+                  {/* Shimmer effect */}
+                  <div className="absolute inset-0 -top-full bg-gradient-to-b from-transparent via-white/20 to-transparent transform rotate-12 group-hover:animate-pulse"></div>
+                </Link>
+              </Button>
+              
+              {/* Floating elements around button */}
+              <Heart className="absolute -top-3 -left-2 w-5 h-5 text-accent animate-bounce" />
+              <Sparkles className="absolute -top-2 -right-3 w-4 h-4 text-primary animate-bounce delay-300" />
             </div>
             
-            <div className="flex items-center space-x-4 text-left">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Share & Support</h3>
-                <p className="text-sm text-muted-foreground">Exchange experiences and encouragement</p>
-              </div>
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+              <p className="text-sm font-medium text-foreground mb-1">
+                🎉 Join <span className="font-bold text-primary">500+</span> amazing members
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Free forever • No ads • Your privacy matters
+              </p>
             </div>
-            
-            <div className="flex items-center space-x-4 text-left">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                <Heart className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Find Friendship</h3>
-                <p className="text-sm text-muted-foreground">Build meaningful connections and friendships</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Join CTA */}
-          <div className="space-y-4 pt-8">
-            <Button 
-              size="lg" 
-              className="w-full text-lg py-6 shadow-strong" 
-              asChild
-            >
-              <Link to="/auth">
-                Join Free Today
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            
-            <p className="text-sm text-muted-foreground">
-              Join 500+ members in our supportive community
-            </p>
           </div>
         </div>
       </div>
