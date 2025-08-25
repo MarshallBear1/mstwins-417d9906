@@ -22,8 +22,10 @@ export const useTempAdminAuth = () => {
           session_token: sessionToken
         });
 
-        if (error || !data?.valid) {
-          console.warn('Admin session validation failed:', error?.message || data?.reason);
+        const result = data as { valid?: boolean; reason?: string };
+        
+        if (error || !result?.valid) {
+          console.warn('Admin session validation failed:', error?.message || result?.reason);
           sessionStorage.removeItem('admin_session_token');
           setIsAuthenticated(false);
         } else {
