@@ -176,7 +176,7 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
           )
         : [];
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('likes')
         .select(`
           id,
@@ -184,9 +184,14 @@ export const usePreloadedDashboardData = ({ user, activeTab }: UsePreloadedDashb
           liker_id,
           liked_id
         `)
-        .eq('liked_id', user.id)
-        .not('liker_id', 'in', `(${matchedUserIds.length > 0 ? matchedUserIds.join(',') : '00000000-0000-0000-0000-000000000000'})`)
-        .order('created_at', { ascending: false });
+        .eq('liked_id', user.id);
+
+      // Only filter out matched users if we have any
+      if (matchedUserIds.length > 0) {
+        query = query.not('liker_id', 'in', `(${matchedUserIds.join(',')})`);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
