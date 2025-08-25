@@ -1273,6 +1273,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_push_notification_result: {
+        Args: {
+          body_param: string
+          notification_type: string
+          result_data?: Json
+          title_param: string
+          user_id_param: string
+        }
+        Returns: undefined
+      }
       log_security_event: {
         Args: {
           event_details_param?: Json
@@ -1280,6 +1290,10 @@ export type Database = {
           user_id_param: string
         }
         Returns: undefined
+      }
+      process_stuck_email_queue: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       reset_daily_likes_for_user: {
         Args: Record<PropertyKey, never>
