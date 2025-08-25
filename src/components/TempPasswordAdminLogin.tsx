@@ -39,20 +39,24 @@ export const TempPasswordAdminLogin = () => {
           description: "Unable to create admin session. Please try again.",
           variant: "destructive",
         });
-      } else if (data?.success) {
-        // Store only the session token, not a simple boolean
-        sessionStorage.setItem('admin_session_token', data.session_token);
-        toast({
-          title: "Access Granted",
-          description: "Welcome to the admin portal.",
-        });
-        navigate('/dashboard/admin/feedback');
       } else {
-        toast({
-          title: "Access Denied",
-          description: data?.reason === 'not_admin' ? "Admin role required. Please contact administrator." : "Authentication failed.",
-          variant: "destructive",
-        });
+        const result = data as { success?: boolean; session_token?: string; reason?: string };
+        
+        if (result?.success) {
+          // Store only the session token, not a simple boolean
+          sessionStorage.setItem('admin_session_token', result.session_token || '');
+          toast({
+            title: "Access Granted",
+            description: "Welcome to the admin portal.",
+          });
+          navigate('/dashboard/admin/feedback');
+        } else {
+          toast({
+            title: "Access Denied",
+            description: result?.reason === 'not_admin' ? "Admin role required. Please contact administrator." : "Authentication failed.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error('Admin authentication error:', error);
