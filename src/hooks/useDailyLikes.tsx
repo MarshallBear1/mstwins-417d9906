@@ -27,7 +27,7 @@ export const useDailyLikes = () => {
         .select('id')
         .eq('liker_id', user.id)
         .eq('liked_id', targetUserId)
-        .single();
+        .maybeSingle();
 
       if (existingLike) {
         console.log('❌ User already liked this profile');
