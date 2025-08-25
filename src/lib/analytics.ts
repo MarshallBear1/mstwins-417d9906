@@ -13,15 +13,18 @@ class AnalyticsService {
 
   // Initialize immediately for anonymous tracking
   initAnonymous() {
+    // This method is now deprecated - use init() directly
+    console.log('📊 initAnonymous() called - using init() instead');
+  }
+
+  // Initialize PostHog with proper key
+  init(apiKey: string, config?: any) {
     if (this.initialized) return;
     
     try {
-      // Use a fallback key for immediate anonymous tracking
-      const fallbackKey = 'phc_anonymous_fallback';
-      
-      posthog.init(fallbackKey, {
+      posthog.init(apiKey, {
         api_host: 'https://us.posthog.com',
-        person_profiles: 'never', // Anonymous only
+        person_profiles: 'always',
         capture_pageview: true,
         capture_pageleave: true,
         debug: process.env.NODE_ENV === 'development',
@@ -31,95 +34,28 @@ class AnalyticsService {
         cross_subdomain_cookie: false,
         respect_dnt: true,
         opt_out_capturing_by_default: false,
-        bootstrap: {
-          distinctID: 'anonymous_' + Math.random().toString(36).substring(7)
-        },
         loaded: (posthog) => {
-          console.log('📊 PostHog anonymous mode loaded');
-        }
+          console.log('📊 PostHog loaded successfully');
+        },
+        ...config
       });
       
       this.initialized = true;
-      this.anonymousMode = true;
-      console.log('📊 PostHog anonymous analytics initialized');
+      console.log('📊 PostHog analytics initialized successfully', {
+        apiKey: apiKey.substring(0, 8) + '...',
+        environment: process.env.NODE_ENV,
+        host: 'https://us.posthog.com',
+        timestamp: new Date().toISOString()
+      });
 
       // Track session start
       this.track('session_started', { 
         timestamp: Date.now(),
-        initialization_type: 'anonymous',
+        initialization_type: 'direct',
         user_agent: navigator.userAgent,
         referrer: document.referrer,
         landing_page: window.location.pathname
       });
-    } catch (error) {
-      console.error('❌ Failed to initialize PostHog anonymous mode:', error);
-      this.initialized = false;
-    }
-  }
-
-  // Upgrade to authenticated mode
-  init(apiKey: string, config?: any) {
-    try {
-      if (this.anonymousMode && apiKey !== 'phc_anonymous_fallback') {
-        // Reinitialize with proper key
-        posthog.init(apiKey, {
-          api_host: 'https://us.posthog.com',
-          person_profiles: 'identified_only',
-          capture_pageview: false,
-          capture_pageleave: true,
-          debug: process.env.NODE_ENV === 'development',
-          disable_session_recording: false,
-          disable_compression: false,
-          secure_cookie: true,
-          cross_subdomain_cookie: false,
-          respect_dnt: true,
-          opt_out_capturing_by_default: false,
-          loaded: (posthog) => {
-            console.log('📊 PostHog upgraded to authenticated mode');
-          },
-          ...config
-        });
-        
-        this.anonymousMode = false;
-        console.log('📊 PostHog upgraded to authenticated mode with API key');
-        
-        this.track('analytics_upgraded', { 
-          timestamp: Date.now(),
-          initialization_type: 'authenticated'
-        });
-      } else if (!this.initialized) {
-        // First time initialization with proper key
-        posthog.init(apiKey, {
-          api_host: 'https://us.posthog.com',
-          person_profiles: 'identified_only',
-          capture_pageview: false,
-          capture_pageleave: true,
-          debug: process.env.NODE_ENV === 'development',
-          disable_session_recording: false,
-          disable_compression: false,
-          secure_cookie: true,
-          cross_subdomain_cookie: false,
-          respect_dnt: true,
-          opt_out_capturing_by_default: false,
-          loaded: (posthog) => {
-            console.log('📊 PostHog loaded successfully');
-          },
-          ...config
-        });
-        
-        this.initialized = true;
-        console.log('📊 PostHog analytics initialized successfully', {
-          apiKey: apiKey.substring(0, 8) + '...',
-          environment: process.env.NODE_ENV,
-          host: 'https://us.posthog.com',
-          timestamp: new Date().toISOString()
-        });
-
-        this.track('analytics_initialized', { 
-          timestamp: Date.now(),
-          initialization_type: 'direct'
-        });
-      }
     } catch (error) {
       console.error('❌ Failed to initialize PostHog:', error);
       this.initialized = false;

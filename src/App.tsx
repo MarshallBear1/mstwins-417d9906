@@ -26,6 +26,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import IOSNotificationManager from "./components/IOSNotificationManager";
 import PersistentBottomNavigation from "./components/PersistentBottomNavigation";
 import { PerformanceMonitor } from "./components/PerformanceOptimizer";
+import { NotificationPermissionPrompt } from "./components/NotificationPermissionPrompt";
 
 // Import required icons for FAB
 import { Heart, MessageCircle } from "lucide-react";
@@ -92,30 +93,11 @@ const LoadingSpinner = () => (
 
 const PostHogInitializer = () => {
   useEffect(() => {
-    // Initialize anonymous tracking immediately for ALL visitors
-    analytics.initAnonymous();
-
-    const initializePostHog = async () => {
-      try {
-        // Try to upgrade to authenticated mode with real API key
-        const { data: secrets } = await supabase.functions.invoke('secrets', {
-          body: { name: 'POSTHOG_API_KEY' }
-        });
-        
-        if (secrets?.value) {
-          // Upgrade to authenticated mode
-          analytics.init(secrets.value);
-          console.log('✅ PostHog upgraded to authenticated mode');
-        } else {
-          console.log('📊 PostHog continuing in anonymous mode (key not available)');
-        }
-      } catch (error) {
-        console.log('📊 PostHog API key fetch failed, continuing in anonymous mode');
-      }
-    };
-
-    // Delay authenticated initialization slightly to ensure anonymous tracking starts immediately
-    setTimeout(initializePostHog, 100);
+    // Initialize with a real PostHog public key for anonymous tracking
+    // This public key is safe to expose in client-side code
+    const publicPostHogKey = 'phc_CcVjxuBE09RJ87MsfpqCN8Q2IEfgqeZtEn0tKlRhwgP';
+    analytics.init(publicPostHogKey);
+    console.log('✅ PostHog initialized with public key');
   }, []);
 
   return null;
@@ -243,6 +225,7 @@ const App = () => (
               <Sonner />
               <NativeCapabilities />
               <IOSNotificationManager />
+              <NotificationPermissionPrompt />
               <PerformanceMonitor />
           <BrowserRouter>
             <PostHogInitializer />
