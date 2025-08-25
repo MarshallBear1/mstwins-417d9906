@@ -15,6 +15,8 @@ import MobileHome from "./components/MobileHome";
 import { useIsNativeApp } from "./hooks/useIsNativeApp";
 import MobileStatusBar from "./components/MobileStatusBar";
 import MobileOptimizationsProvider from "./components/MobileOptimizationsProvider";
+import MobileKeyboardHandler from "./components/MobileKeyboardHandler";
+import MobileFloatingActionButton from "./components/mobile/MobileFloatingActionButton";
 import IOSEnhancements from "./components/IOSEnhancements";
 import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
 import { SecurityContextProvider } from "./components/SecurityContextProvider";
@@ -24,6 +26,9 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import IOSNotificationManager from "./components/IOSNotificationManager";
 import PersistentBottomNavigation from "./components/PersistentBottomNavigation";
 import { PerformanceMonitor } from "./components/PerformanceOptimizer";
+
+// Import required icons for FAB
+import { Heart, MessageCircle } from "lucide-react";
 
 // Lazy load non-critical pages with error handling
 const Auth = lazy(() => import("./pages/Auth").catch(err => {
@@ -114,6 +119,38 @@ const PostHogInitializer = () => {
   }, []);
 
   return null;
+};
+
+// Mobile FAB component that shows conditionally
+const MobileFAB = () => {
+  const location = useLocation();
+  const { isNativeApp } = useIsNativeApp();
+  
+  // Only show FAB on certain pages and in native app
+  const showFAB = isNativeApp && (
+    location.pathname === '/dashboard' || 
+    location.pathname.startsWith('/discover') ||
+    location.pathname.startsWith('/matches')
+  );
+
+  if (!showFAB) return null;
+
+  const fabActions = [
+    {
+      icon: <Heart className="w-5 h-5" />,
+      label: 'Discover',
+      onClick: () => window.location.href = '/dashboard?tab=discover',
+      color: 'secondary' as const
+    },
+    {
+      icon: <MessageCircle className="w-5 h-5" />,
+      label: 'Messages', 
+      onClick: () => window.location.href = '/dashboard?tab=matches',
+      color: 'primary' as const
+    }
+  ];
+
+  return <MobileFloatingActionButton actions={fabActions} className="z-50" />;
 };
 
 const RouteTracker = () => {
@@ -210,6 +247,9 @@ const App = () => (
           <BrowserRouter>
             <PostHogInitializer />
             <RouteTracker />
+            <MobileFAB />
+            
+            <MobileKeyboardHandler adjustForKeyboard={true}>
             <Routes>
             <Route path="/" element={<ConditionalHome />} />
             <Route path="/auth" element={
@@ -276,9 +316,10 @@ const App = () => (
                 <NotFound />
               </Suspense>
             } />
-          </Routes>
+           </Routes>
               <PersistentBottomNavigation />
               
+            </MobileKeyboardHandler>
             </BrowserRouter>
             </ErrorBoundary>
           </TooltipProvider>

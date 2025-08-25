@@ -5,6 +5,7 @@ import { Heart, RefreshCw, MapPin, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { analytics } from "@/lib/analytics";
@@ -12,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import { useHaptics } from "@/hooks/useHaptics";
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
+import SwipeableProfileCard from "@/components/mobile/SwipeableProfileCard";
+import MobilePullToRefresh from "@/components/mobile/MobilePullToRefresh";
 
 // Memoize the calculate age function to prevent recalculation
 const calculateAge = (birthDate: string | null) => {
@@ -50,6 +53,7 @@ interface Profile {
 const DiscoverProfiles = memo(() => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -362,13 +366,18 @@ const DiscoverProfiles = memo(() => {
   }, [user, actionCooldown, vibrate, toast, currentIndex]);
 
   // Memoized image click handler
-  const handleImageClick = useCallback(() => {
-    if (currentProfile?.additional_photos) {
-      const images = [currentProfile.avatar_url, ...currentProfile.additional_photos].filter(Boolean) as string[];
+  const handleImageClick = useCallback((imageIndex: number = 0) => {
+    if (currentProfile) {
+      const images = [currentProfile.avatar_url, ...(currentProfile.additional_photos || [])].filter(Boolean) as string[];
       setSelectedImages(images);
       setImageViewerOpen(true);
     }
   }, [currentProfile]);
+
+  // Handle refresh for pull-to-refresh
+  const handleRefresh = useCallback(async () => {
+    await fetchProfiles();
+  }, [fetchProfiles]);
 
   // Show loading state
   if (loading && profiles.length === 0) {
@@ -432,42 +441,69 @@ const DiscoverProfiles = memo(() => {
     );
   }
 
-  return (
+  const content = (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 px-4">
-      
-      {/* Compact Profile Card */}
+      {/* Profile Card */}
       {currentProfile && (
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-[300px]"> {/* Fixed width container */}
-            <DiscoverProfileCard 
-              profile={currentProfile} 
-              isFlipped={isCardFlipped}
-              onFlipChange={setIsCardFlipped}
-            />
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex space-x-3 w-full max-w-[300px]">
-            <Button
-              onClick={() => passProfile(currentProfile.user_id)}
-              variant="outline"
-              className="flex-1"
-              disabled={actionCooldown}
-            >
-              Pass
-            </Button>
-            <Button
-              onClick={() => likeProfile(currentProfile.user_id)}
-              className="flex-1 bg-gradient-primary text-white"
-              disabled={actionCooldown}
-            >
-              <Heart className="w-4 h-4 mr-2" />
-              Like
-            </Button>
+          <div className="w-[300px]">
+            {isMobile ? (
+              <SwipeableProfileCard
+                profile={currentProfile}
+                onLike={likeProfile}
+                onPass={passProfile}
+                onImageClick={handleImageClick}
+                className="w-full"
+              />
+            ) : (
+              <>
+                <DiscoverProfileCard 
+                  profile={currentProfile} 
+                  isFlipped={isCardFlipped}
+                  onFlipChange={setIsCardFlipped}
+                />
+                
+                {/* Action Buttons for Desktop */}
+                <div className="flex space-x-3 w-full max-w-[300px] mt-4">
+                  <Button
+                    onClick={() => passProfile(currentProfile.user_id)}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={actionCooldown}
+                  >
+                    Pass
+                  </Button>
+                  <Button
+                    onClick={() => likeProfile(currentProfile.user_id)}
+                    className="flex-1 bg-gradient-primary text-white"
+                    disabled={actionCooldown}
+                  >
+                    <Heart className="w-4 h-4 mr-2" />
+                    Like
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
+
+      {/* Profile Image Viewer */}
+      <ProfileImageViewer
+        images={selectedImages}
+        currentIndex={0}
+        isOpen={imageViewerOpen}
+        onClose={() => setImageViewerOpen(false)}
+      />
     </div>
+  );
+
+  return isMobile ? (
+    <MobilePullToRefresh onRefresh={handleRefresh} disabled={loading}>
+      {content}
+    </MobilePullToRefresh>
+  ) : (
+    content
   );
 });
 
