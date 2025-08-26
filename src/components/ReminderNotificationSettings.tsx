@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, BellOff, Clock, Settings } from 'lucide-react';
 import { useReminderNotifications } from '@/hooks/useReminderNotifications';
+import { useLocalNotifications } from '@/hooks/useLocalNotifications';
 import { useToast } from '@/hooks/use-toast';
 
 export const ReminderNotificationSettings = () => {
   const { toast } = useToast();
+  const { scheduleNotification } = useLocalNotifications();
   const {
     defaultReminders,
     scheduledReminders,
@@ -60,17 +62,13 @@ export const ReminderNotificationSettings = () => {
   const handleTestReminder = async () => {
     try {
       // Schedule a test reminder for 10 seconds from now
-      const testReminder = {
-        id: 'test-reminder',
-        title: '🧪 Test Reminder',
-        message: 'This is a test reminder notification!',
-        delayHours: 0.003, // ~10 seconds
-        enabled: true
-      };
+      const scheduleTime = new Date(Date.now() + 10000); // 10 seconds from now
       
-      // Use the local notifications hook directly for testing
-      const { scheduleNotification } = await import('@/hooks/useLocalNotifications');
-      const { useLocalNotifications } = await import('@/hooks/useLocalNotifications');
+      await scheduleNotification({
+        title: '🧪 Test Reminder',
+        body: 'This is a test reminder notification!',
+        schedule: { at: scheduleTime }
+      });
       
       toast({
         title: "Test reminder scheduled!",

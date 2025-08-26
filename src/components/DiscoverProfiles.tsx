@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import { useHaptics } from "@/hooks/useHaptics";
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
-import SwipeableProfileCard from "@/components/mobile/SwipeableProfileCard";
 import MobilePullToRefresh from "@/components/mobile/MobilePullToRefresh";
 
 // Memoize the calculate age function to prevent recalculation
@@ -417,43 +416,31 @@ const DiscoverProfiles = memo(() => {
       {currentProfile && (
         <div className="flex flex-col items-center space-y-4">
           <div className="w-[300px]">
-            {isMobile ? (
-              <SwipeableProfileCard
-                profile={currentProfile}
-                onLike={likeProfile}
-                onPass={passProfile}
-                onImageClick={handleImageClick}
-                className="w-full"
-              />
-            ) : (
-              <>
-                <DiscoverProfileCard 
-                  profile={currentProfile} 
-                  isFlipped={isCardFlipped}
-                  onFlipChange={setIsCardFlipped}
-                />
-                
-                {/* Action Buttons for Desktop */}
-                <div className="flex space-x-3 w-full max-w-[300px] mt-4">
-                  <Button
-                    onClick={() => passProfile(currentProfile.user_id)}
-                    variant="outline"
-                    className="flex-1"
-                    disabled={actionCooldown}
-                  >
-                    Pass
-                  </Button>
-                  <Button
-                    onClick={() => handleLikeProfile(currentProfile.user_id)}
-                    className="flex-1 bg-gradient-primary text-white"
-                    disabled={actionCooldown}
-                  >
-                    <Heart className="w-4 h-4 mr-2" />
-                    Like
-                  </Button>
-                </div>
-              </>
-            )}
+            <DiscoverProfileCard 
+              profile={currentProfile} 
+              isFlipped={isCardFlipped}
+              onFlipChange={setIsCardFlipped}
+            />
+            
+            {/* Action Buttons */}
+            <div className="flex space-x-3 w-full max-w-[300px] mt-4">
+              <Button
+                onClick={() => passProfile(currentProfile.user_id)}
+                variant="outline"
+                className="flex-1"
+                disabled={actionCooldown}
+              >
+                Pass
+              </Button>
+              <Button
+                onClick={() => handleLikeProfile(currentProfile.user_id)}
+                className="flex-1 bg-gradient-primary text-white"
+                disabled={actionCooldown}
+              >
+                <Heart className="w-4 h-4 mr-2" />
+                Like
+              </Button>
+            </div>
           </div>
         </div>
       )}
