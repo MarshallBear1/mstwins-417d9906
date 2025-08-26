@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { useDailyLikes } from "@/hooks/useDailyLikes";
+import { useSimpleLikes } from "@/hooks/useSimpleLikes";
 import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
@@ -61,7 +61,7 @@ const DiscoverProfiles = memo(() => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [actionCooldown, setActionCooldown] = useState(false);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
-  const { checkCanLike } = useDailyLikes();
+  const { likeProfile, loading: likeLoading } = useSimpleLikes();
   
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
@@ -245,7 +245,7 @@ const DiscoverProfiles = memo(() => {
   }, [profiles, currentIndex]);
 
   // Optimized like function with cooldown and immediate UI update
-  const likeProfile = useCallback(async (profileUserId: string) => {
+  const handleLikeProfile = useCallback(async (profileUserId: string) => {
     if (!user || actionCooldown) return;
 
     if (user.id === profileUserId) {
@@ -257,7 +257,6 @@ const DiscoverProfiles = memo(() => {
       return;
     }
 
-
     setActionCooldown(true);
     
     // Move to next profile immediately for better UX (optimistic update)
@@ -268,62 +267,33 @@ const DiscoverProfiles = memo(() => {
     try {
       console.log('🔄 Attempting to like profile:', profileUserId);
       
-      // Check if we can like this user and insert the like in one step
-      console.log('🎯 Attempting to like user:', profileUserId);
-      const canLike = await checkCanLike(profileUserId);
-      console.log('🎯 Can like result:', canLike);
+      // Use the simple likes hook
+      const success = await likeProfile(profileUserId);
       
-      if (!canLike) {
-        console.log('❌ Like failed - permissions denied or already liked');
-        toast({
-          title: "Like failed",
-          description: "You've already liked this profile or reached your daily limit.",
-          variant: "destructive"
-        });
+      if (success) {
+        console.log('✅ Profile liked successfully');
+        vibrate();
+        analytics.track('profile_liked', { liked_user_id: profileUserId });
+      } else {
+        console.log('❌ Like failed');
         // Revert optimistic update
         setCurrentIndex(currentIndex);
         return;
       }
-
-      // Insert the like record (the RPC function already validated and incremented counters)
-      console.log('💾 Inserting like record into database...');
-      const { error } = await supabase
-        .from('likes')
-        .insert({
-          liker_id: user.id,
-          liked_id: profileUserId
-        });
-
-      if (error) {
-        console.error('❌ Database insert error:', error);
-        throw error;
-      }
       
-      console.log('✅ Like record inserted successfully');
-
-      vibrate();
-      analytics.track('profile_liked', { liked_user_id: profileUserId });
-
-      toast({
-        title: "Profile liked!",
-        description: "Your like has been sent."
-      });
-    } catch (error: any) {
-      console.error('Error liking profile:', error);
-      // Revert optimistic update on error
+    } catch (error) {
+      console.error('❌ Error in handleLikeProfile:', error);
+      // Revert optimistic update
       setCurrentIndex(currentIndex);
-      
       toast({
-        title: "Error liking profile",
-        description: error.message === 'Users cannot like their own profile' 
-          ? "You can't like your own profile!" 
-          : "Please try again later.",
+        title: "Error",
+        description: "Failed to like profile. Please try again.",
         variant: "destructive"
       });
     } finally {
-      setTimeout(() => setActionCooldown(false), 500); // Reduced cooldown
+      setActionCooldown(false);
     }
-  }, [user, actionCooldown, vibrate, toast, currentIndex]);
+  }, [user, actionCooldown, currentIndex, likeProfile, vibrate, analytics, toast]);
 
   // Optimized pass function with cooldown and immediate UI update
   const passProfile = useCallback(async (profileUserId: string) => {
@@ -474,7 +444,7 @@ const DiscoverProfiles = memo(() => {
                     Pass
                   </Button>
                   <Button
-                    onClick={() => likeProfile(currentProfile.user_id)}
+                    onClick={() => handleLikeProfile(currentProfile.user_id)}
                     className="flex-1 bg-gradient-primary text-white"
                     disabled={actionCooldown}
                   >

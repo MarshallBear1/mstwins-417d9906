@@ -7,6 +7,7 @@ interface NotificationPreferences {
   enableSounds: boolean;
   enableHaptics: boolean;
   enableBrowserNotifications: boolean;
+  enableReminderNotifications: boolean;
   quietHours: {
     enabled: boolean;
     start: string; // HH:MM format
@@ -24,6 +25,7 @@ const defaultPreferences: NotificationPreferences = {
   enableSounds: true,
   enableHaptics: true,
   enableBrowserNotifications: false,
+  enableReminderNotifications: true,
   quietHours: {
     enabled: false,
     start: '22:00',

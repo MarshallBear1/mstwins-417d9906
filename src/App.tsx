@@ -27,6 +27,7 @@ import IOSNotificationManager from "./components/IOSNotificationManager";
 import PersistentBottomNavigation from "./components/PersistentBottomNavigation";
 import { PerformanceMonitor } from "./components/PerformanceOptimizer";
 import { NotificationPermissionPrompt } from "./components/NotificationPermissionPrompt";
+import { ReminderNotificationManager } from "./components/ReminderNotificationManager";
 
 // Import required icons for FAB
 import { Heart, MessageCircle } from "lucide-react";
@@ -227,6 +228,7 @@ const App = () => (
               <IOSNotificationManager />
               <NotificationPermissionPrompt />
               <PerformanceMonitor />
+              <ReminderNotificationManager />
           <BrowserRouter>
             <PostHogInitializer />
             <RouteTracker />

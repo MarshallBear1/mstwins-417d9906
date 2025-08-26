@@ -229,6 +229,33 @@ const NotificationSettings = () => {
           </p>
         </div>
 
+        {/* Reminder Notifications */}
+        <Separator />
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="reminder-notifications" className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Reminder Notifications
+            </Label>
+            <Switch
+              id="reminder-notifications"
+              checked={preferences.enableReminderNotifications}
+              onCheckedChange={(checked) => handleToggle('enableReminderNotifications', checked)}
+              disabled={isSaving}
+            />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Get gentle reminders to return to the app and discover new connections
+          </p>
+          {preferences.enableReminderNotifications && (
+            <div className="pl-6 p-3 bg-muted/50 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                💡 Reminders are sent locally and won't use data. They help you stay engaged with potential matches.
+              </p>
+            </div>
+          )}
+        </div>
+
         {isSaving && (
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Saving settings...</p>
