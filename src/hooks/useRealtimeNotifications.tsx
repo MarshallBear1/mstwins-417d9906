@@ -100,9 +100,25 @@ export const useRealtimeNotifications = () => {
             haptics.successFeedback();
           }
 
-          // Handle native notifications only
+          // Only send local notifications, not both local and push
+          // Push notifications are handled by the backend
           if (isNative && localNotifications.isEnabled) {
-            // Send native local notification
+            // Prevent duplicate notifications by checking timestamp
+            const notificationKey = `${newNotification.type}_${newNotification.from_user_id}_${Date.now()}`;
+            const lastNotificationTime = window._lastNotificationTimes?.[notificationKey];
+            const currentTime = Date.now();
+            
+            // Skip if same notification was sent in the last 5 seconds
+            if (lastNotificationTime && (currentTime - lastNotificationTime) < 5000) {
+              console.log('Skipping duplicate notification:', notificationKey);
+              return;
+            }
+            
+            // Store notification time to prevent duplicates
+            if (!window._lastNotificationTimes) window._lastNotificationTimes = {};
+            window._lastNotificationTimes[notificationKey] = currentTime;
+            
+            // Send native local notification with rate limiting
             try {
               if (newNotification.type === 'match') {
                 await localNotifications.scheduleMatchNotification(

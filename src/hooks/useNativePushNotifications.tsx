@@ -25,7 +25,14 @@ export const useNativePushNotifications = () => {
     if (user && nativeSupported) {
       initializePushNotifications();
     }
-  }, [user]);
+
+    // Cleanup function to remove listeners
+    return () => {
+      if (nativeSupported) {
+        PushNotifications.removeAllListeners().catch(console.error);
+      }
+    };
+  }, [user?.id]); // Only depend on user ID to prevent unnecessary re-initializations
 
   const initializePushNotifications = async () => {
     if (!user || !Capacitor.isNativePlatform()) return;
@@ -40,11 +47,14 @@ export const useNativePushNotifications = () => {
       if (permResult.receive === 'granted') {
         console.log('✅ Push notification permissions granted');
         
+        // Remove any existing listeners to prevent duplicates
+        await PushNotifications.removeAllListeners();
+        
         // Register for notifications
         await PushNotifications.register();
         
         // Listen for registration
-        PushNotifications.addListener('registration', async (token: Token) => {
+        await PushNotifications.addListener('registration', async (token: Token) => {
           console.log('✅ Push registration success, token: ' + token.value);
           
           // Store the token in the database
@@ -52,13 +62,20 @@ export const useNativePushNotifications = () => {
         });
 
         // Listen for registration errors
-        PushNotifications.addListener('registrationError', (error: any) => {
+        await PushNotifications.addListener('registrationError', (error: any) => {
           console.error('❌ Error on registration: ' + JSON.stringify(error));
         });
 
         // Handle received notifications (app in foreground)
-        PushNotifications.addListener('pushNotificationReceived', (notification) => {
+        await PushNotifications.addListener('pushNotificationReceived', (notification) => {
           console.log('🔔 Push notification received: ', notification);
+          
+          // Prevent duplicate toasts by checking if this notification was already shown
+          const notificationId = notification.data?.id || notification.title;
+          if (window._lastNotificationId === notificationId) {
+            return; // Skip duplicate
+          }
+          window._lastNotificationId = notificationId;
           
           // Show toast for foreground notifications
           toast({
@@ -68,7 +85,7 @@ export const useNativePushNotifications = () => {
         });
 
         // Handle notification actions (user tapped notification)
-        PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
+        await PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
           console.log('👆 Push notification action performed: ', notification.actionId, notification.inputValue);
           
           // Handle notification tap actions here - navigate to appropriate screen

@@ -40,9 +40,22 @@ export const useLocalNotifications = () => {
   useEffect(() => {
     setIsSupported(Capacitor.isNativePlatform());
     
+    let cleanup: (() => void) | undefined;
+    
     if (Capacitor.isNativePlatform()) {
-      initializeLocalNotifications();
+      initializeLocalNotifications().then((cleanupFn) => {
+        cleanup = cleanupFn;
+      });
     }
+
+    // Cleanup listeners when component unmounts
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+      // Remove all listeners on unmount to prevent memory leaks
+      LocalNotifications.removeAllListeners().catch(console.error);
+    };
   }, []);
 
   const initializeLocalNotifications = async () => {
@@ -51,16 +64,25 @@ export const useLocalNotifications = () => {
       const permissions = await LocalNotifications.checkPermissions();
       setPermissionStatus(permissions.display);
 
+      // Remove any existing listeners to prevent duplicates
+      await LocalNotifications.removeAllListeners();
+
       // Listen for local notification actions
-      LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+      const actionListener = await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
         console.log('Local notification action performed:', notification);
         // Handle notification actions here
       });
 
-      LocalNotifications.addListener('localNotificationReceived', (notification) => {
+      const receivedListener = await LocalNotifications.addListener('localNotificationReceived', (notification) => {
         console.log('Local notification received:', notification);
         // Handle received local notifications
       });
+
+      // Store listeners for cleanup
+      return () => {
+        actionListener?.remove();
+        receivedListener?.remove();
+      };
 
       // Create notification channels for Android
       if (Capacitor.getPlatform() === 'android') {
