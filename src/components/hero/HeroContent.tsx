@@ -34,7 +34,7 @@ const HeroContent = () => {
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
-            <div className="text-lg font-bold text-gray-900">500+</div>
+            <div className="text-lg font-bold text-gray-900">1,000+</div>
             <div className="text-sm text-gray-600">Members</div>
           </div>
         </div>
@@ -44,7 +44,7 @@ const HeroContent = () => {
             <Heart className="w-5 h-5 text-white" fill="currentColor" />
           </div>
           <div>
-            <div className="text-lg font-bold text-gray-900">1,000</div>
+            <div className="text-lg font-bold text-gray-900">5,000</div>
             <div className="text-sm text-gray-600">Connections</div>
           </div>
         </div>

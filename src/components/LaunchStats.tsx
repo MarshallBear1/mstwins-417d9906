@@ -92,21 +92,17 @@ export default function LaunchStats() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 text-2xl font-bold text-primary">
               <Users className="h-6 w-6" />
-              {loading ? (
-                <span className="animate-pulse">...</span>
-              ) : (
-                <span>500+</span>
-              )}
+              <span>1,000+</span>
             </div>
-            <p className="text-sm text-muted-foreground">users</p>
+            <p className="text-sm text-muted-foreground">members</p>
           </div>
           
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 text-2xl font-bold text-primary">
               <Globe className="h-6 w-6" />
-              <span>50+</span>
+              <span>5,000</span>
             </div>
-            <p className="text-sm text-muted-foreground">countries</p>
+            <p className="text-sm text-muted-foreground">connections</p>
           </div>
         </div>
       </div>

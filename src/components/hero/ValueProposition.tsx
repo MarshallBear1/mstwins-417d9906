@@ -27,7 +27,7 @@ const ValueProposition = () => {
 
   const stats = [
     { number: "1,000+", label: "Active Members" },
-    { number: "10,000+", label: "Connections Made" },
+    { number: "5,000+", label: "Connections Made" },
     { number: "4.9/5", label: "Member Rating" },
     { number: "100%", label: "Free Forever" }
   ];

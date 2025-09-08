@@ -129,7 +129,7 @@ export const useRealtimeNotifications = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user, isNative]); // Removed toast, haptics, localNotifications to prevent infinite loops
+  }, [user?.id]); // Only depend on user ID to prevent infinite loops
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
