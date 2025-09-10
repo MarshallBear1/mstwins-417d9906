@@ -29,24 +29,21 @@ const calculateAge = (birthDate: string | null) => {
   return age;
 };
 
+// Updated interface to match the secure discovery view
 interface Profile {
   id: string;
   user_id: string;
   first_name: string;
-  last_name: string;
-  date_of_birth: string | null;
-  location: string;
+  age: number | null;
+  city: string;
   gender: string | null;
   ms_subtype: string | null;
-  diagnosis_year: number | null;
-  symptoms: string[];
-  medications: string[];
-  hobbies: string[];
   avatar_url: string | null;
-  about_me: string | null;
-  last_seen: string | null;
+  about_me_preview: string | null;
+  hobbies: string[];
   additional_photos?: string[];
   selected_prompts?: any;
+  extended_profile_completed?: boolean;
 }
 
 const DiscoverProfiles = memo(() => {
@@ -65,142 +62,30 @@ const DiscoverProfiles = memo(() => {
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
 
-  // Optimized profile fetching with improved mixed algorithm
+  // Fetch profiles using the secure discovery function
   const fetchProfiles = useCallback(async () => {
-    if (!user) return;
+    if (!user?.id) return;
 
-    setLoading(true);
-    
     try {
-      const [profilesResult, likedResult, passedResult] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select(`
-            id,
-            user_id,
-            first_name,
-            last_name,
-            date_of_birth,
-            location,
-            gender,
-            ms_subtype,
-            diagnosis_year,
-            symptoms,
-            medications,
-            hobbies,
-            avatar_url,
-            about_me,
-            last_seen,
-            additional_photos,
-            selected_prompts,
-            moderation_status,
-            hide_from_discover
-          `)
-          .neq('user_id', user.id)
-          .eq('moderation_status', 'approved')
-          .neq('hide_from_discover', true)
-          .limit(1000), // Much higher limit to ensure all profiles are available
-        
-        supabase
-          .from('likes')
-          .select('liked_id')
-          .eq('liker_id', user.id),
-        
-        supabase
-          .from('passes')
-          .select('passed_id')
-          .eq('passer_id', user.id)
-      ]);
+      setLoading(true);
+      console.log('Fetching profiles for user:', user.id);
 
-      if (profilesResult.error) throw profilesResult.error;
+      // Use the new secure profile matching function
+      const { data: discoveryProfiles, error } = await supabase
+        .rpc('get_matching_profiles', {
+          requesting_user_id: user.id,
+          limit_count: 50
+        });
 
-      const likedIds = new Set(likedResult.data?.map(like => like.liked_id) || []);
-      const passedIds = new Set(passedResult.data?.map(pass => pass.passed_id) || []);
-      
-      // Filter out already liked/passed profiles and exclude MStwins related profiles
-      const filteredProfiles = profilesResult.data?.filter(profile => {
-        const isLiked = likedIds.has(profile.user_id);
-        const isPassed = passedIds.has(profile.user_id);
-        
-        // Filter out MStwins related profiles by checking name patterns
-        const isMstwins = profile.first_name?.toLowerCase().includes('mstwins') || 
-                         profile.last_name?.toLowerCase().includes('mstwins') ||
-                         profile.first_name?.toLowerCase() === 'mstwins' || 
-                         profile.last_name?.toLowerCase() === 'mstwins' ||
-                         (profile.first_name?.toLowerCase() === 'ms' && profile.last_name?.toLowerCase() === 'twins');
-        
-        return !isLiked && !isPassed && !isMstwins;
-      }) || [];
-
-      // Improved algorithm: Mix recently active and less active users
-      const now = new Date();
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-
-      // Categorize profiles by activity
-      const recentlyActive = filteredProfiles.filter(profile => 
-        profile.last_seen && new Date(profile.last_seen) > oneDayAgo
-      );
-      
-      const moderatelyActive = filteredProfiles.filter(profile => 
-        profile.last_seen && 
-        new Date(profile.last_seen) <= oneDayAgo && 
-        new Date(profile.last_seen) > threeDaysAgo
-      );
-      
-      const lessActive = filteredProfiles.filter(profile => 
-        !profile.last_seen || new Date(profile.last_seen) <= threeDaysAgo
-      );
-
-      // Shuffle each category to add randomness
-      const shuffleArray = (array: Profile[]) => {
-        const shuffled = [...array];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        return shuffled;
-      };
-
-      const shuffledRecent = shuffleArray(recentlyActive);
-      const shuffledModerate = shuffleArray(moderatelyActive);
-      const shuffledLess = shuffleArray(lessActive);
-
-      // Create mixed array: 60% recent, 25% moderate, 15% less active
-      const mixedProfiles: Profile[] = [];
-      
-      // Calculate total available profiles
-      const totalAvailable = shuffledRecent.length + shuffledModerate.length + shuffledLess.length;
-      
-      let recentIndex = 0, moderateIndex = 0, lessIndex = 0;
-      
-      // Include ALL available profiles, not just a limited subset
-      for (let i = 0; i < totalAvailable; i++) {
-        // Determine which category to pick from based on weighted distribution
-        const rand = Math.random();
-        
-        if (rand < 0.6 && recentIndex < shuffledRecent.length) {
-          // 60% chance for recently active
-          mixedProfiles.push(shuffledRecent[recentIndex++]);
-        } else if (rand < 0.85 && moderateIndex < shuffledModerate.length) {
-          // 25% chance for moderately active  
-          mixedProfiles.push(shuffledModerate[moderateIndex++]);
-        } else if (lessIndex < shuffledLess.length) {
-          // 15% chance for less active
-          mixedProfiles.push(shuffledLess[lessIndex++]);
-        } else {
-          // Fallback: add from any available category
-          if (recentIndex < shuffledRecent.length) {
-            mixedProfiles.push(shuffledRecent[recentIndex++]);
-          } else if (moderateIndex < shuffledModerate.length) {
-            mixedProfiles.push(shuffledModerate[moderateIndex++]);
-          } else if (lessIndex < shuffledLess.length) {
-            mixedProfiles.push(shuffledLess[lessIndex++]);
-          }
-        }
+      if (error) {
+        console.error('Error fetching discovery profiles:', error);
+        throw error;
       }
 
-      setProfiles(mixedProfiles);
+      console.log('Fetched discovery profiles:', discoveryProfiles?.length || 0);
+      
+      // The profiles are already filtered and randomized by the database function
+      setProfiles(discoveryProfiles || []);
       setCurrentIndex(0);
       
     } catch (error: any) {

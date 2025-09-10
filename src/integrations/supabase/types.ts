@@ -526,7 +526,21 @@ export type Database = {
             foreignKeyName: "fk_likes_liked_profile"
             columns: ["liked_id"]
             isOneToOne: false
+            referencedRelation: "profile_discovery"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_likes_liked_profile"
+            columns: ["liked_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_likes_liker_profile"
+            columns: ["liker_id"]
+            isOneToOne: false
+            referencedRelation: "profile_discovery"
             referencedColumns: ["user_id"]
           },
           {
@@ -562,7 +576,21 @@ export type Database = {
             foreignKeyName: "fk_matches_user1_profile"
             columns: ["user1_id"]
             isOneToOne: false
+            referencedRelation: "profile_discovery"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_matches_user1_profile"
+            columns: ["user1_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_matches_user2_profile"
+            columns: ["user2_id"]
+            isOneToOne: false
+            referencedRelation: "profile_discovery"
             referencedColumns: ["user_id"]
           },
           {
@@ -613,7 +641,21 @@ export type Database = {
             foreignKeyName: "fk_messages_receiver_profile"
             columns: ["receiver_id"]
             isOneToOne: false
+            referencedRelation: "profile_discovery"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_messages_receiver_profile"
+            columns: ["receiver_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_messages_sender_profile"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profile_discovery"
             referencedColumns: ["user_id"]
           },
           {
@@ -1129,7 +1171,60 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profile_discovery: {
+        Row: {
+          about_me_preview: string | null
+          additional_photos: string[] | null
+          age: number | null
+          avatar_url: string | null
+          city: string | null
+          extended_profile_completed: boolean | null
+          first_name: string | null
+          gender: string | null
+          hide_from_discover: boolean | null
+          hobbies: string[] | null
+          id: string | null
+          last_seen: string | null
+          ms_subtype: string | null
+          selected_prompts: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          about_me_preview?: never
+          additional_photos?: string[] | null
+          age?: never
+          avatar_url?: string | null
+          city?: never
+          extended_profile_completed?: boolean | null
+          first_name?: string | null
+          gender?: string | null
+          hide_from_discover?: boolean | null
+          hobbies?: string[] | null
+          id?: string | null
+          last_seen?: string | null
+          ms_subtype?: string | null
+          selected_prompts?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          about_me_preview?: never
+          additional_photos?: string[] | null
+          age?: never
+          avatar_url?: string | null
+          city?: never
+          extended_profile_completed?: boolean | null
+          first_name?: string | null
+          gender?: string | null
+          hide_from_discover?: boolean | null
+          hobbies?: string[] | null
+          id?: string | null
+          last_seen?: string | null
+          ms_subtype?: string | null
+          selected_prompts?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       authenticate_admin_user: {
@@ -1211,6 +1306,28 @@ export type Database = {
           subject: string
           type: string
           updated_at: string
+          user_id: string
+        }[]
+      }
+      get_forum_author_display: {
+        Args: { author_id: string }
+        Returns: Json
+      }
+      get_matching_profiles: {
+        Args: { limit_count?: number; requesting_user_id: string }
+        Returns: {
+          about_me_preview: string
+          additional_photos: string[]
+          age: number
+          avatar_url: string
+          city: string
+          extended_profile_completed: boolean
+          first_name: string
+          gender: string
+          hobbies: string[]
+          id: string
+          ms_subtype: string
+          selected_prompts: Json
           user_id: string
         }[]
       }
