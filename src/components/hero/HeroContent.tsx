@@ -71,6 +71,15 @@ const HeroContent = () => {
           </Link>
         </Button>
         
+        <Button variant="outline" size="lg" className="h-14 px-8 text-lg font-semibold border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-2xl transition-all duration-300" asChild>
+          <a href="https://apps.apple.com/gb/app/mstwins/id6749207642" target="_blank" rel="noopener noreferrer">
+            <div className="flex items-center gap-3">
+              Download iOS App
+              <ArrowRight className="w-5 h-5" />
+            </div>
+          </a>
+        </Button>
+        
         <Button variant="outline" size="lg" className="h-14 px-8 text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 rounded-2xl transition-all duration-300" asChild>
           <a href="#testimonials">
             Success Stories
