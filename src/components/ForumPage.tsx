@@ -247,6 +247,7 @@ const ForumPage = () => {
   const { toast } = useToast();
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAppBanner, setShowAppBanner] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [showCreatePost, setShowCreatePost] = useState(false);
@@ -1003,8 +1004,45 @@ const ForumPage = () => {
                     <Button onClick={createPost} disabled={!newPost.title.trim() || !newPost.content.trim()}>
                       Post
                     </Button>
-                  </div>
-                </div>
+        </div>
+      </div>
+
+      {/* App Download Banner */}
+      {showAppBanner && viewMode === 'list' && (
+        <div className="bg-blue-600 text-white px-4 py-3 border-b border-blue-500">
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 p-2 rounded-lg">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Now download our app!</p>
+                <p className="text-xs text-blue-100">Get the full MStwins experience on your mobile device</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs border-white/20 text-white hover:bg-white hover:text-blue-600"
+                asChild
+              >
+                <a href="https://apps.apple.com/gb/app/mstwins/id6749207642" target="_blank" rel="noopener noreferrer">
+                  Download iOS
+                </a>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowAppBanner(false)}
+                className="text-xs text-white/70 hover:text-white hover:bg-white/10"
+              >
+                ×
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
               </DialogContent>
             </Dialog>
           )}

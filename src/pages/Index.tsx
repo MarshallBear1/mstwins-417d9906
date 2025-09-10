@@ -39,19 +39,32 @@ const Index = () => {
                 Ready to Find Your MS Support Network?
               </h2>
               <p className="text-xl text-white/90 mb-8">
-                Join 500+ members who've found friendship, support, and understanding in our community.
+                Join 1,000+ members who've found friendship, support, and understanding in our community.
               </p>
-              <Button 
-                variant="secondary" 
-                size="lg" 
-                className="text-lg px-8 py-4 bg-white text-blue-600 hover:bg-gray-50 shadow-strong" 
-                asChild
-              >
-                <Link to="/auth">
-                  Start Your Journey Today
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Button 
+                  variant="secondary" 
+                  size="lg" 
+                  className="text-lg px-8 py-4 bg-white text-blue-600 hover:bg-gray-50 shadow-strong" 
+                  asChild
+                >
+                  <Link to="/auth">
+                    Start Your Journey Today
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-blue-600 shadow-strong" 
+                  asChild
+                >
+                  <a href="https://apps.apple.com/gb/app/mstwins/id6749207642" target="_blank" rel="noopener noreferrer">
+                    Download iOS App
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </a>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
