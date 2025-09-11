@@ -65,9 +65,12 @@ interface Match {
 interface MessagingProps {
   matchId?: string;
   onBack?: () => void;
+  selectedProfileForView?: any;
+  setSelectedProfileForView?: (profile: any) => void;
+  setShowProfileView?: (show: boolean) => void;
 }
 
-const Messaging = ({ matchId, onBack }: MessagingProps) => {
+const Messaging = ({ matchId, onBack, selectedProfileForView, setSelectedProfileForView, setShowProfileView }: MessagingProps) => {
   const { user } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -78,7 +81,6 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [showProfileView, setShowProfileView] = useState(false);
   const { isUserOnline, setTyping, getTypingUsers } = useRealtimePresence();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -734,36 +736,38 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                 variant="ghost"
                 size="sm"
                 className="h-10 w-10 p-0 rounded-full hover:bg-gray-100"
-                onClick={() => setShowProfileView(true)}
+                onClick={() => {
+                  if (setSelectedProfileForView && setShowProfileView) {
+                    setSelectedProfileForView({
+                      id: selectedMatch.other_user.id || selectedMatch.other_user.user_id || '',
+                      user_id: selectedMatch.other_user.user_id || selectedMatch.other_user.id || '',
+                      first_name: selectedMatch.other_user.first_name,
+                      last_name: selectedMatch.other_user.last_name,
+                      age: (selectedMatch.other_user as any).age || null,
+                      city: (selectedMatch.other_user as any).city || selectedMatch.other_user.location?.split(',')[0] || '',
+                      gender: selectedMatch.other_user.gender,
+                      ms_subtype: selectedMatch.other_user.ms_subtype,
+                      location: selectedMatch.other_user.location,
+                      symptoms: selectedMatch.other_user.symptoms || [],
+                      medications: selectedMatch.other_user.medications || [],
+                      hobbies: selectedMatch.other_user.hobbies || [],
+                      avatar_url: selectedMatch.other_user.avatar_url,
+                      about_me: selectedMatch.other_user.about_me || null,
+                      about_me_preview: (selectedMatch.other_user as any).about_me_preview || selectedMatch.other_user.about_me?.substring(0, 200) || null,
+                      last_seen: selectedMatch.other_user.last_seen || null,
+                      additional_photos: selectedMatch.other_user.additional_photos || [],
+                      selected_prompts: selectedMatch.other_user.selected_prompts || [],
+                      extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false,
+                      date_of_birth: selectedMatch.other_user.date_of_birth || null
+                    });
+                    setShowProfileView(true);
+                  }
+                }}
               >
                 <User className="w-5 h-5" />
               </Button>
 
-              <UnifiedProfileView 
-                profile={{
-                  id: selectedMatch.other_user.id || selectedMatch.other_user.user_id || '',
-                  user_id: selectedMatch.other_user.user_id || selectedMatch.other_user.id || '',
-                  first_name: selectedMatch.other_user.first_name,
-                  last_name: selectedMatch.other_user.last_name,
-                  date_of_birth: selectedMatch.other_user.date_of_birth || null,
-                  location: selectedMatch.other_user.location || '',
-                  city: selectedMatch.other_user.location?.split(',')[0] || '',
-                  gender: selectedMatch.other_user.gender || null,
-                  ms_subtype: selectedMatch.other_user.ms_subtype || null,
-                  symptoms: selectedMatch.other_user.symptoms || [],
-                  medications: selectedMatch.other_user.medications || [],
-                  hobbies: selectedMatch.other_user.hobbies || [],
-                  avatar_url: selectedMatch.other_user.avatar_url,
-                  about_me: selectedMatch.other_user.about_me || null,
-                  last_seen: selectedMatch.other_user.last_seen || null,
-                  additional_photos: selectedMatch.other_user.additional_photos || [],
-                  selected_prompts: selectedMatch.other_user.selected_prompts || [],
-                  extended_profile_completed: selectedMatch.other_user.extended_profile_completed || false
-                }}
-                open={showProfileView}
-                onOpenChange={setShowProfileView}
-                showActions={false}
-              />
+              {/* Profile view is now handled by the parent Dashboard component */}
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
