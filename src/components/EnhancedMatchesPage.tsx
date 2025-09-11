@@ -133,8 +133,8 @@ const EnhancedMatchesPage = ({
     if (hasError) return renderErrorState();
     if (!navigator.onLine) return renderOfflineState();
     if (likes.length === 0) return renderEmptyState();
-    return <div className="space-y-3 sm:space-y-4">
-        {likes.map(likedProfile => <Card key={likedProfile.user_id} className="overflow-hidden hover:shadow-lg transition-shadow">
+    return <div className="divide-y divide-gray-200">
+        {likes.map(likedProfile => <Card key={likedProfile.user_id} className="overflow-hidden hover:shadow-lg transition-shadow border-0 border-b border-gray-100 rounded-none last:border-b-0">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-gradient-primary flex-shrink-0">

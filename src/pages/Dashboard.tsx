@@ -395,7 +395,7 @@ const Dashboard = () => {
                   extended_profile_completed: selectedProfileForView.extended_profile_completed,
                   symptoms: selectedProfileForView.symptoms || []
                 }}
-                onFlipChange={() => {}}
+                
               />
             )}
           </div>

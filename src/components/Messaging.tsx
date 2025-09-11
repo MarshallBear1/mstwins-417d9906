@@ -905,7 +905,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
               <MessageCircle className="w-5 h-5 text-blue-600" />
               <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
             </div>
-            <p className="text-gray-600 text-sm">Your conversations with matches</p>
+            <p className="text-gray-600 text-sm">Your conversations with connections</p>
           </div>
 
           {loading ? (
@@ -1006,7 +1006,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                     {/* Separator between matches */}
                     {index < matches.length - 1 && (
                       <div className="mx-4 my-2">
-                        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+                        <div className="h-px bg-black/10"></div>
                       </div>
                     )}
                   </div>
