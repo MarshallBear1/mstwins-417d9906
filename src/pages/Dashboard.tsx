@@ -13,6 +13,7 @@ import DiscoverProfiles from "@/components/DiscoverProfiles";
 import Messaging from "@/components/Messaging";
 import ModernMessaging from "@/components/ModernMessaging";
 import ModernForumPage from "@/components/ModernForumPage";
+import ModernNotificationSystem from "@/components/ModernNotificationSystem";
 import ProfileCard from "@/components/ProfileCard";
 
 
