@@ -100,7 +100,7 @@ const UnifiedProfileView = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="p-0 max-w-[90vw] w-full max-h-[90vh] overflow-hidden sm:max-w-md border-0 bg-transparent shadow-none">
+        <DialogContent className="p-0 max-w-[90vw] w-full max-h-[90vh] overflow-hidden sm:max-w-md border-0 bg-transparent shadow-none [&>button]:hidden">
           <div className="h-full w-full flex items-center justify-center">
             <div className="w-full max-w-sm">
               <div 
@@ -124,6 +124,15 @@ const UnifiedProfileView = ({
                     position: 'relative',
                     display: 'block'
                   }}>
+                    {/* Custom Close Button */}
+                    <button 
+                      onClick={() => onOpenChange(false)}
+                      className="absolute top-4 right-4 z-50 w-8 h-8 bg-black/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                      title="Close"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    
                     {/* Header with profile picture */}
                     <div className="relative h-80 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
                       {/* Profile Image */}
@@ -144,7 +153,7 @@ const UnifiedProfileView = ({
                       </button>
                       
                       {/* Online Status Badge */}
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-lg">
+                      <div className="absolute top-16 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-lg">
                         <div className="flex items-center gap-2">
                           <div className={`w-3 h-3 rounded-full ${isUserOnline(profile.user_id) ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
                           <span className="text-xs font-medium text-gray-700">

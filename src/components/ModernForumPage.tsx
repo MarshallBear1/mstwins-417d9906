@@ -406,11 +406,12 @@ const ModernForumPage = () => {
               
               <div className="flex items-center gap-6 pt-3 border-t border-gray-100">
                 <button 
-                  className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors ios-bounce p-2"
+                  className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors ios-bounce p-2"
                   onClick={() => handleLikePost(selectedPost.id)}
                 >
-                  <Heart className={`w-5 h-5 ${selectedPost.user_has_liked ? 'fill-red-500 text-red-500' : ''}`} />
+                  <Heart className={`w-5 h-5 ${selectedPost.user_has_liked ? 'fill-blue-500 text-blue-500' : ''}`} />
                   <span className="font-medium">{selectedPost.likes_count}</span>
+                  <span className="text-xs ml-1">{selectedPost.user_has_liked ? 'Connected' : 'Connect'}</span>
                 </button>
                 <div className="flex items-center gap-2 text-gray-500">
                   <MessageCircle className="w-5 h-5" />
@@ -687,14 +688,15 @@ const ModernForumPage = () => {
                       <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                         <div className="flex items-center gap-6">
                           <button 
-                            className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors ios-bounce p-1"
+                            className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors ios-bounce p-1"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleLikePost(post.id);
                             }}
                           >
-                            <Heart className={`w-4 h-4 ${post.user_has_liked ? 'fill-red-500 text-red-500' : ''}`} />
+                            <Heart className={`w-4 h-4 ${post.user_has_liked ? 'fill-blue-500 text-blue-500' : ''}`} />
                             <span className="text-sm font-medium">{post.likes_count}</span>
+                            <span className="text-xs ml-1">{post.user_has_liked ? 'Connected' : 'Connect'}</span>
                           </button>
                           <div className="flex items-center gap-2 text-gray-500">
                             <MessageCircle className="w-4 h-4" />
