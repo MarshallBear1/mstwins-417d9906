@@ -54,6 +54,7 @@ const SWIPE_THRESHOLD = 100;
 const SWIPE_VELOCITY_THRESHOLD = 0.5;
 
 const DiscoverProfiles = memo(() => {
+  // ALL HOOKS MUST BE DECLARED FIRST - BEFORE ANY CONDITIONAL LOGIC
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -66,7 +67,7 @@ const DiscoverProfiles = memo(() => {
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const { likeProfile, loading: likeLoading } = useSimpleLikes();
   
-  // Filter states - declare all hooks first
+  // Filter states
   const [selectedMSSubtype, setSelectedMSSubtype] = useState<string | null>(null);
   const [selectedGender, setSelectedGender] = useState<string | null>(null);  
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
@@ -74,7 +75,7 @@ const DiscoverProfiles = memo(() => {
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
   
-  // Prevent scrolling on discover page when card is not flipped - declare all hooks first
+  // Prevent scrolling on discover page when card is not flipped
   useDiscoverScrollPrevention({ isDiscoverTab: true, isCardFlipped });
   
   // Swipe gesture state
@@ -123,29 +124,6 @@ const DiscoverProfiles = memo(() => {
     }
   }, [user, toast]);
 
-  // Initial load
-  useEffect(() => {
-    fetchProfiles();
-  }, [fetchProfiles]);
-
-
-  // Preload images for better UX
-  useEffect(() => {
-    if (profiles.length > 0) {
-      const preloadImages = profiles.slice(currentIndex, currentIndex + 5).map(profile => {
-        if (profile.avatar_url) {
-          const img = new Image();
-          img.src = profile.avatar_url;
-        }
-        // Preload additional photos
-        profile.additional_photos?.forEach(photo => {
-          const img = new Image();
-          img.src = photo;
-        });
-      });
-    }
-  }, [profiles, currentIndex]);
-
   // Memoized filtered profiles based on selected filters
   const filteredProfiles = useMemo(() => {
     let filtered = profiles;
@@ -171,6 +149,50 @@ const DiscoverProfiles = memo(() => {
   const currentProfile = useMemo(() => {
     return filteredProfiles[currentIndex] || null;
   }, [filteredProfiles, currentIndex]);
+
+  // Get unique filter options from all profiles
+  const msSubtypes = useMemo(() => {
+    const subtypes = profiles.map(p => p.ms_subtype).filter(Boolean);
+    return [...new Set(subtypes)];
+  }, [profiles]);
+
+  const genders = useMemo(() => {
+    const genderList = profiles.map(p => p.gender).filter(Boolean);
+    return [...new Set(genderList)];
+  }, [profiles]);
+
+  const interests = useMemo(() => {
+    const allInterests = profiles.flatMap(p => p.hobbies || []);
+    return [...new Set(allInterests)].sort();
+  }, [profiles]);
+
+  // Initial load
+  useEffect(() => {
+    fetchProfiles();
+  }, [fetchProfiles]);
+
+  // Preload images for better UX
+  useEffect(() => {
+    if (profiles.length > 0) {
+      const preloadImages = profiles.slice(currentIndex, currentIndex + 5).map(profile => {
+        if (profile.avatar_url) {
+          const img = new Image();
+          img.src = profile.avatar_url;
+        }
+        // Preload additional photos
+        profile.additional_photos?.forEach(photo => {
+          const img = new Image();
+          img.src = photo;
+        });
+      });
+    }
+  }, [profiles, currentIndex]);
+
+  // Reset currentIndex when filters change
+  useEffect(() => {
+    setCurrentIndex(0);
+    setIsCardFlipped(false);
+  }, [selectedMSSubtype, selectedGender, selectedInterest]);
 
   // Optimized like function with cooldown and immediate UI update
   const handleLikeProfile = useCallback(async (profileUserId: string) => {
@@ -385,22 +407,6 @@ const DiscoverProfiles = memo(() => {
       </div>
     );
   }
-
-  // Get unique filter options from all profiles
-  const msSubtypes = useMemo(() => {
-    const subtypes = profiles.map(p => p.ms_subtype).filter(Boolean);
-    return [...new Set(subtypes)];
-  }, [profiles]);
-
-  const genders = useMemo(() => {
-    const genderList = profiles.map(p => p.gender).filter(Boolean);
-    return [...new Set(genderList)];
-  }, [profiles]);
-
-  const interests = useMemo(() => {
-    const allInterests = profiles.flatMap(p => p.hobbies || []);
-    return [...new Set(allInterests)].sort();
-  }, [profiles]);
 
   // Reset currentIndex when filters change
   useEffect(() => {
