@@ -482,7 +482,7 @@ const DiscoverProfiles = memo(() => {
   const content = (
     <>
       {/* Single Filter Section */}
-      <div className="fixed top-2 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-2">
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-2">
         <div className="flex items-center justify-center">
           <DropdownMenu open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
             <DropdownMenuTrigger asChild>
