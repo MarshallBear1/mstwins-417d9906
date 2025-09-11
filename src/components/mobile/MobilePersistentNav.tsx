@@ -27,14 +27,14 @@ const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom }: MobileP
 
   return (
     <div 
-      className="mobile-nav-fixed !fixed !bottom-0 !left-0 !right-0 !z-[99999] bg-white/98 backdrop-blur-xl border-t border-gray-200 shadow-[0_-2px_20px_rgba(0,0,0,0.15)] supports-[backdrop-filter]:bg-white/95"
+      className="mobile-nav-fixed !fixed !bottom-0 !left-0 !right-0 !z-[99999] bg-white/95 backdrop-blur-xl border-t border-border/20 shadow-[0_-4px_32px_rgba(0,0,0,0.12)] supports-[backdrop-filter]:bg-white/90 dark:bg-gray-950/95 dark:border-gray-800/30"
       style={{ 
         position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
         zIndex: 999999,
-        paddingBottom: Math.max(safeAreaBottom, 12),
+        paddingBottom: Math.max(safeAreaBottom, 16),
         width: '100vw',
         transform: 'translateZ(0)',
         willChange: 'transform',
@@ -42,7 +42,7 @@ const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom }: MobileP
         contain: 'layout style paint'
       }}
     >
-      <div className="flex items-center justify-around px-2 py-2">
+      <div className="flex items-center justify-around px-3 py-3 md:px-6 md:py-4">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -52,19 +52,22 @@ const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom }: MobileP
               key={item.id}
               onClick={() => handleTabClick(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 min-w-0 flex-1",
+                "flex flex-col items-center justify-center p-3 md:p-4 rounded-xl transition-all duration-300 min-w-0 flex-1 group",
+                "hover:scale-105 active:scale-95",
                 isActive 
-                  ? "bg-primary/10 text-primary scale-105" 
-                  : "text-gray-600 hover:text-primary hover:bg-primary/5 active:scale-95"
+                  ? "bg-primary/15 text-primary shadow-sm" 
+                  : "text-muted-foreground hover:text-primary hover:bg-primary/8"
               )}
             >
               <Icon className={cn(
-                "transition-all duration-200",
-                isActive ? "w-7 h-7" : "w-6 h-6"
+                "transition-all duration-300",
+                "w-6 h-6 md:w-8 md:h-8",
+                isActive ? "scale-110" : "group-hover:scale-105"
               )} />
               <span className={cn(
-                "text-sm font-medium mt-1 transition-all duration-200",
-                isActive ? "opacity-100" : "opacity-70"
+                "font-medium mt-1.5 transition-all duration-300 leading-none",
+                "text-xs md:text-sm",
+                isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"
               )}>
                 {item.label}
               </span>
