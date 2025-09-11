@@ -22,6 +22,7 @@ interface Profile {
   selected_prompts?: any;
   extended_profile_completed?: boolean;
   last_seen?: string | null;
+  symptoms?: string[];
 }
 
 interface MobileProfileCardProps {
@@ -53,6 +54,7 @@ const MobileProfileCard = ({
   const [isFlipped, setIsFlipped] = useState(false);
   const [showAllAbout, setShowAllAbout] = useState(false);
   const [showAllHobbies, setShowAllHobbies] = useState(false);
+  const [showAllSymptoms, setShowAllSymptoms] = useState(false);
   
   // Use external flip state if provided, otherwise use internal state
   const actualIsFlipped = propIsFlipped !== undefined ? propIsFlipped : isFlipped;
@@ -333,9 +335,9 @@ const MobileProfileCard = ({
               {profile.about_me_preview && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
-                  <p className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
+                  <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
                     {profile.about_me_preview}
-                  </p>
+                  </div>
                   {profile.about_me_preview.length > 100 && (
                     <button
                       onClick={() => setShowAllAbout(!showAllAbout)}
@@ -344,6 +346,44 @@ const MobileProfileCard = ({
                       {showAllAbout ? 'Show Less' : 'Read More'}
                     </button>
                   )}
+                </div>
+              )}
+
+              {/* Symptoms */}
+              {profile.symptoms && profile.symptoms.length > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="text-base font-semibold text-gray-800 mb-3">My Symptoms:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {(showAllSymptoms ? profile.symptoms : profile.symptoms.slice(0, 6)).map((symptom, index) => {
+                      const colors = [
+                        'bg-orange-400/80 border-orange-300/50 text-white',
+                        'bg-red-400/80 border-red-300/50 text-white', 
+                        'bg-yellow-400/80 border-yellow-300/50 text-white',
+                        'bg-amber-400/80 border-amber-300/50 text-white',
+                        'bg-rose-400/80 border-rose-300/50 text-white',
+                        'bg-pink-400/80 border-pink-300/50 text-white'
+                      ];
+                      return (
+                        <Badge 
+                          key={index} 
+                          variant="secondary" 
+                          className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
+                        >
+                          {symptom}
+                        </Badge>
+                      );
+                    })}
+                    {profile.symptoms.length > 6 && (
+                      <button
+                        onClick={() => setShowAllSymptoms(!showAllSymptoms)}
+                        className="text-sm text-orange-600 hover:text-orange-700 font-semibold transition-colors"
+                      >
+                        <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-orange-100 cursor-pointer border-orange-400 text-orange-600">
+                          {showAllSymptoms ? 'Show Less' : `+${profile.symptoms.length - 6} more`}
+                        </Badge>
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -358,10 +398,12 @@ const MobileProfileCard = ({
                         onClick={() => onImageClick?.(index + 1)}
                         className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-200"
                       >
-                        <img
+                        <OptimizedAvatar
                           src={photoUrl}
                           alt={`${profile.first_name}'s photo ${index + 2}`}
+                          fallbackSeed={`${profile.first_name}-${index}`}
                           className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                       </button>
                     ))}
