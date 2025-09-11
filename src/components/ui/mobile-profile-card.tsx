@@ -155,8 +155,9 @@ const MobileProfileCard = ({
               </div>
             </div>
 
-            {/* Name, Age, Gender, Location, MS Subtype - at bottom of gradient */}
-            <div className="absolute bottom-20 left-4 right-4 text-white">
+            {/* Name, Age, Gender, Location, MS Subtype, Interests - at bottom of gradient */}
+            <div className="absolute bottom-20 left-4 right-4 text-white space-y-3">
+              {/* Name and basic info */}
               <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
                   <h3 className="text-2xl font-bold text-white">{profile.first_name}</h3>
@@ -190,6 +191,30 @@ const MobileProfileCard = ({
                   )}
                 </div>
               </div>
+
+              {/* Interests */}
+              {profile.hobbies && profile.hobbies.length > 0 && (
+                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
+                  <div className="text-base font-semibold text-white mb-3">Interests:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 4)).map((hobby, index) => (
+                      <Badge key={index} variant="secondary" className="text-sm px-3 py-1.5 bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors">
+                        {hobby}
+                      </Badge>
+                    ))}
+                    {profile.hobbies.length > 4 && (
+                      <button
+                        onClick={() => setShowAllHobbies(!showAllHobbies)}
+                        className="text-sm text-white hover:text-white/80 font-semibold transition-colors"
+                      >
+                        <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-white/20 cursor-pointer border-white/40 text-white">
+                          {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 4} more`}
+                        </Badge>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Pass/Connect Action Buttons - within gradient, below info */}
@@ -218,49 +243,9 @@ const MobileProfileCard = ({
             )}
           </div>
 
-          {/* Content Section */}
-          <CardContent className="p-6 space-y-4">
-            {/* Interests section with different colored box */}
-            {profile.hobbies && profile.hobbies.length > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="text-base font-semibold text-gray-800 mb-3">Interests:</div>
-                <div className="flex flex-wrap gap-2">
-                  {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 4)).map((hobby, index) => (
-                    <Badge key={index} variant="secondary" className="text-sm px-3 py-1.5 bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 transition-colors">
-                      {hobby}
-                    </Badge>
-                  ))}
-                  {profile.hobbies.length > 4 && (
-                    <button
-                      onClick={() => setShowAllHobbies(!showAllHobbies)}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-semibold transition-colors"
-                    >
-                      <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-50 cursor-pointer border-blue-400">
-                        {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 4} more`}
-                      </Badge>
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* About section with different colored box */}
-            {profile.about_me_preview && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
-                <p className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
-                  {profile.about_me_preview}
-                </p>
-                {profile.about_me_preview.length > 100 && (
-                  <button
-                    onClick={() => setShowAllAbout(!showAllAbout)}
-                    className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200"
-                  >
-                    {showAllAbout ? 'Show Less' : 'Read More'}
-                  </button>
-                )}
-              </div>
-            )}
+          {/* Content Section - now empty since interests moved to gradient and about moved to back */}
+          <CardContent className="p-6">
+            {/* Content moved to gradient section and back side */}
           </CardContent>
         </Card>
 
@@ -324,6 +309,24 @@ const MobileProfileCard = ({
             </div>
 
             <CardContent className="p-6 space-y-5 overflow-y-auto" style={{ maxHeight: 'calc(100% - 12rem)' }}>
+              {/* About Me section - moved from front */}
+              {profile.about_me_preview && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
+                  <p className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
+                    {profile.about_me_preview}
+                  </p>
+                  {profile.about_me_preview.length > 100 && (
+                    <button
+                      onClick={() => setShowAllAbout(!showAllAbout)}
+                      className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200"
+                    >
+                      {showAllAbout ? 'Show Less' : 'Read More'}
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Additional Photos */}
               {profile.additional_photos && profile.additional_photos.length > 0 && (
                 <div>
@@ -349,7 +352,7 @@ const MobileProfileCard = ({
               {/* Prompts */}
               {profile.selected_prompts && profile.selected_prompts.length > 0 && (
                 <div>
-                  <h4 className="font-bold text-gray-900 mb-3 text-base">About Me</h4>
+                  <h4 className="font-bold text-gray-900 mb-3 text-base">About Me Prompts</h4>
                   <div className="space-y-3">
                     {profile.selected_prompts.map((prompt, index) => (
                       <div key={index} className="bg-gray-50 rounded-lg p-3">
