@@ -15,6 +15,7 @@ export const useReminderNotifications = () => {
   const { user } = useAuth();
   const { scheduleNotification, cancelNotification, isEnabled } = useLocalNotifications();
   const [scheduledReminders, setScheduledReminders] = useState<Map<string, number>>(new Map());
+  const [lastScheduledAt, setLastScheduledAt] = useState<number>(0);
 
   // Default reminder schedules
   const defaultReminders: ReminderSchedule[] = [
@@ -87,6 +88,15 @@ export const useReminderNotifications = () => {
 
     console.log('🔄 Scheduling all reminder notifications...');
     
+    // Prevent scheduling more than once per day
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const last = Number(localStorage.getItem(`reminders_last_scheduled_${user.id}`) || 0);
+    if (now - last < oneDayMs) {
+      console.log('⏱️ Skipping scheduling reminders (already scheduled within 24h)');
+      return 0;
+    }
+
     const enabledReminders = defaultReminders.filter(r => r.enabled);
     const results = await Promise.all(
       enabledReminders.map(reminder => scheduleReminder(reminder))
@@ -94,6 +104,8 @@ export const useReminderNotifications = () => {
     
     const successCount = results.filter(Boolean).length;
     console.log(`✅ Scheduled ${successCount}/${enabledReminders.length} reminders`);
+    localStorage.setItem(`reminders_last_scheduled_${user.id}`, String(now));
+    setLastScheduledAt(now);
     
     return successCount;
   }, [isEnabled, user, scheduleReminder]);
@@ -131,6 +143,15 @@ export const useReminderNotifications = () => {
   const scheduleInactivityReminder = useCallback(async () => {
     if (!isEnabled || !user) return;
 
+    // Throttle inactivity reminder to at most once every 6 hours
+    const key = `inactivity_last_scheduled_${user.id}`;
+    const last = Number(localStorage.getItem(key) || 0);
+    const now = Date.now();
+    if (now - last < 6 * 60 * 60 * 1000) {
+      console.log('⏱️ Skipping inactivity reminder (recently scheduled)');
+      return false;
+    }
+
     // Schedule a gentle reminder for 2 hours after inactivity
     const reminder: ReminderSchedule = {
       id: 'inactivity-reminder',
@@ -140,7 +161,9 @@ export const useReminderNotifications = () => {
       enabled: true
     };
 
-    return await scheduleReminder(reminder);
+    const ok = await scheduleReminder(reminder);
+    if (ok) localStorage.setItem(key, String(now));
+    return ok;
   }, [isEnabled, user, scheduleReminder]);
 
   // Schedule reminder when user hasn't been active for a while

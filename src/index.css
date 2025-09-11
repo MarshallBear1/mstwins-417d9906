@@ -263,6 +263,85 @@ All colors MUST be HSL.
 .mobile-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* iOS-specific improvements */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input, textarea, select {
+  -webkit-appearance: none;
+  border-radius: 12px;
+}
+
+button {
+  -webkit-appearance: none;
+  border-radius: 12px;
+}
+
+/* iOS safe area handling */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .mobile-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .mobile-safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .mobile-safe-x {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Better touch targets for iOS */
+.ios-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* iOS-style blur effects */
+.ios-blur {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.ios-blur-dark {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* iOS-style shadows */
+.ios-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.ios-shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* iOS-style animations */
+.ios-spring {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ios-bounce:active {
+  transform: scale(0.95);
+}
+
+/* iOS-style cards */
+.ios-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 /* Improved focus styles for mobile */
@@ -559,4 +638,360 @@ select {
   z-index: 9999 !important;
   max-height: 90vh !important;
   max-width: 90vw !important;
+}
+
+/* Flip card animations for modern discover experience */
+.flip-card {
+  background-color: transparent;
+  perspective: 1000px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card-inner.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.flip-card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Swipe gesture styles for Tinder-like experience */
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Touch feedback for mobile */
+.mobile-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+/* Card stack effect for discover page */
+.card-stack {
+  position: relative;
+}
+
+.card-stack .card-behind {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: scale(0.95) translateY(8px);
+  opacity: 0.7;
+  z-index: 1;
+}
+
+.card-stack .card-front {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Swipe animation classes */
+.swipe-left {
+  animation: swipeLeft 0.3s ease-out forwards;
+}
+
+.swipe-right {
+  animation: swipeRight 0.3s ease-out forwards;
+}
+
+@keyframes swipeLeft {
+  to {
+    transform: translateX(-100vw) rotate(-30deg);
+    opacity: 0;
+  }
+}
+
+@keyframes swipeRight {
+  to {
+    transform: translateX(100vw) rotate(30deg);
+    opacity: 0;
+  }
+}
+
+/* Modern card hover effects */
+.discover-card {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.discover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Pulse animation for online status */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Modern social app improvements inspired by Reddit, Facebook, WhatsApp */
+
+/* Reddit-inspired card hover effects */
+.reddit-card {
+  transition: all 0.2s ease;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.reddit-card:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Facebook-inspired notification badges */
+.notification-badge {
+  background: linear-gradient(135deg, #ff3040, #e60012);
+  color: white;
+  font-weight: 600;
+  font-size: 11px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* WhatsApp-inspired message bubbles */
+.whatsapp-message {
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 15px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.whatsapp-message.sent {
+  background: #dcf8c6;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.whatsapp-message.received {
+  background: white;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+}
+
+.whatsapp-timestamp {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+/* Modern button styles inspired by social apps */
+.social-button {
+  border-radius: 20px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.social-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.social-button:active {
+  transform: translateY(0);
+}
+
+.social-button.primary {
+  background: linear-gradient(135deg, #1877f2, #42a5f5);
+  color: white;
+}
+
+.social-button.secondary {
+  background: #f0f2f5;
+  color: #1c1e21;
+}
+
+.social-button.secondary:hover {
+  background: #e4e6ea;
+}
+
+/* Modern input styles */
+.modern-input {
+  border-radius: 20px;
+  border: 1px solid #e4e6ea;
+  padding: 12px 16px;
+  font-size: 15px;
+  background: #f0f2f5;
+  transition: all 0.2s ease;
+}
+
+.modern-input:focus {
+  background: white;
+  border-color: #1877f2;
+  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.1);
+}
+
+/* Status indicators */
+.status-online {
+  background: #42b883;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.status-offline {
+  background: #8e8e93;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* Modern shadows */
+.shadow-modern-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-modern-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-modern-lg {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-modern-xl {
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+}
+
+/* Glass morphism effects */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-effect-dark {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Smooth page transitions */
+.page-transition {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced loading states */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Modern typography */
+.text-modern-title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1c1e21;
+}
+
+.text-modern-body {
+  font-size: 15px;
+  line-height: 1.4;
+  color: #65676b;
+}
+
+.text-modern-caption {
+  font-size: 13px;
+  line-height: 1.3;
+  color: #8a8d91;
+}
+
+/* Enhanced focus states for accessibility */
+.focus-modern:focus-visible {
+  outline: 2px solid #1877f2;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Improved scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }

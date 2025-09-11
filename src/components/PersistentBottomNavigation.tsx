@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Heart, Users, MessageCircle, User, Edit } from "lucide-react";
+import { Heart, Users, MessageCircle, User, Edit, HandHeart } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 
@@ -13,7 +13,7 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'discover', label: 'Discover', icon: Heart, path: '/dashboard' },
-  { id: 'likes', label: 'Likes', icon: Users, path: '/dashboard?tab=likes' },
+  { id: 'likes', label: 'Connections', icon: HandHeart, path: '/dashboard?tab=likes' },
   { id: 'messages', label: 'Messages', icon: MessageCircle, path: '/dashboard?tab=messages' },
   { id: 'forum', label: 'Forum', icon: Edit, path: '/dashboard?tab=forum' },
 ];
@@ -59,6 +59,7 @@ const PersistentBottomNavigation = () => {
     }
   };
 
+  // Always show on mobile for iOS app experience
   if (!shouldShowNavigation) {
     return null;
   }

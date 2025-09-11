@@ -27,6 +27,8 @@ export const useRealtimeNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isNative, setIsNative] = useState(false);
+  const [lastToastAt, setLastToastAt] = useState<number>(0);
+  const [lastNotificationSignature, setLastNotificationSignature] = useState<string>("");
 
   // Check platform on mount
   useEffect(() => {
@@ -83,11 +85,15 @@ export const useRealtimeNotifications = () => {
           // Increment unread count
           setUnreadCount(prev => prev + 1);
           
-          // Show toast notification
-          toast({
-            title: newNotification.title,
-            description: newNotification.message,
-          });
+          // Throttle toast notifications to 1 per 5 seconds
+          const nowTs = Date.now();
+          if (nowTs - lastToastAt > 5000) {
+            toast({
+              title: newNotification.title,
+              description: newNotification.message,
+            });
+            setLastToastAt(nowTs);
+          }
 
           // Trigger haptic feedback
           if (newNotification.type === 'match') {
@@ -103,20 +109,13 @@ export const useRealtimeNotifications = () => {
           // Only send local notifications, not both local and push
           // Push notifications are handled by the backend
           if (isNative && localNotifications.isEnabled) {
-            // Prevent duplicate notifications by checking timestamp
-            const notificationKey = `${newNotification.type}_${newNotification.from_user_id}_${Date.now()}`;
-            const lastNotificationTime = window._lastNotificationTimes?.[notificationKey];
-            const currentTime = Date.now();
-            
-            // Skip if same notification was sent in the last 5 seconds
-            if (lastNotificationTime && (currentTime - lastNotificationTime) < 5000) {
-              console.log('Skipping duplicate notification:', notificationKey);
+            // Prevent duplicates by using a stable signature without Date.now()
+            const signature = `${newNotification.type}_${newNotification.from_user_id}_${newNotification.message}`.slice(0, 200);
+            if (lastNotificationSignature === signature && nowTs - lastToastAt < 5000) {
+              console.log('Skipping duplicate native notification (signature throttle)');
               return;
             }
-            
-            // Store notification time to prevent duplicates
-            if (!window._lastNotificationTimes) window._lastNotificationTimes = {};
-            window._lastNotificationTimes[notificationKey] = currentTime;
+            setLastNotificationSignature(signature);
             
             // Send native local notification with rate limiting
             try {
@@ -145,7 +144,7 @@ export const useRealtimeNotifications = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user?.id]); // Only depend on user ID to prevent infinite loops
+  }, [user?.id, toast, haptics, isNative, localNotifications.isEnabled, pushNotifications]); // include refs used inside
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {

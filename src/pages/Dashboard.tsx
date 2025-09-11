@@ -11,6 +11,8 @@ import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
 import DiscoverProfiles from "@/components/DiscoverProfiles";
 import Messaging from "@/components/Messaging";
+import ModernMessaging from "@/components/ModernMessaging";
+import ModernForumPage from "@/components/ModernForumPage";
 import ProfileCard from "@/components/ProfileCard";
 
 
@@ -80,7 +82,7 @@ const Dashboard = () => {
 
   const navTabs = [
     { id: 'discover', name: 'Discover' },
-    { id: 'likes', name: 'Matches' },
+    { id: 'likes', name: 'Connections' },
     { id: 'messages', name: 'Messages' },
     { id: 'forum', name: 'Forum' },
     { id: 'profile', name: 'Profile' }
@@ -320,7 +322,7 @@ const Dashboard = () => {
           
           {/* Right side - Clean action buttons with better mobile spacing */}
           <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-            <NotificationBell />
+            <ModernNotificationSystem />
             <Button
               variant="ghost"
               size="sm"

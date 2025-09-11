@@ -49,6 +49,27 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Dedupe: Check last push sent to this user with same type/body within last 10 minutes
+    const nowIso = new Date().toISOString();
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const signature = `${type}:${title}:${body}`.slice(0, 256);
+    const { data: recentLogs } = await supabaseClient
+      .from('notification_logs')
+      .select('id, sent_at, title, body, type')
+      .eq('user_id', user_id)
+      .gte('sent_at', tenMinAgo)
+      .order('sent_at', { ascending: false })
+      .limit(20);
+
+    const isDuplicate = (recentLogs || []).some((log) => log.type === type && log.title === title && log.body === body);
+    if (isDuplicate) {
+      console.log('⏭️ Skipping duplicate push within 10 minutes for user', user_id, signature);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Duplicate push suppressed' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // For iOS notifications, we need to send to Apple Push Notification service
     // For Android, we'd use Firebase Cloud Messaging
     

@@ -796,7 +796,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
 
           {/* Messages Area */}
           <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-            <div className="space-y-3">
+            <div className="space-y-4 px-2 py-4 bg-gray-50">
               {messages.map((message, index) => {
                 const isOwnMessage = message.sender_id === user?.id;
                 const showAvatar = index === 0 || messages[index - 1]?.sender_id !== message.sender_id;
@@ -825,18 +825,23 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                     {!isOwnMessage && !showAvatar && <div className="w-8" />}
                     
                     <div
-                      className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+                      className={`max-w-[75%] px-3 py-2 rounded-2xl shadow-sm ${
                         isOwnMessage
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md'
-                          : 'bg-gray-100 text-gray-900 rounded-bl-md'
+                          ? 'bg-blue-500 text-white rounded-br-sm'
+                          : 'bg-white text-gray-900 rounded-bl-sm border border-gray-100'
                       }`}
                     >
                       <p className="text-sm leading-relaxed break-words">{message.content}</p>
-                      <p className={`text-xs mt-1 ${
+                      <div className={`flex items-center justify-end gap-1 mt-1 ${
                         isOwnMessage ? 'text-white/70' : 'text-gray-500'
                       }`}>
-                        {formatTime(message.created_at)}
-                      </p>
+                        <span className="text-xs">{formatTime(message.created_at)}</span>
+                        {isOwnMessage && (
+                          <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

@@ -176,7 +176,7 @@ const FeaturedProfiles = () => {
               {/* About */}
               <div className="flex-1">
                 <h4 className="text-sm font-semibold mb-2">About</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap line-clamp-3">
                   {profile.about_me}
                 </p>
               </div>

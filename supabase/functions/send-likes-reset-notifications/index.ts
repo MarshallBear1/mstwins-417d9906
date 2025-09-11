@@ -44,10 +44,25 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`📬 Sending likes reset notifications to ${usersWithResetLikes.length} users`);
 
+    // Prevent duplicate sends per user per day by checking notification_logs
+    const todayIso = new Date().toISOString().split('T')[0];
+
     // Send notifications to all users
     const notificationPromises = usersWithResetLikes.map(async (userData: any) => {
       try {
         const firstName = userData.profiles?.first_name || 'there';
+        
+        // Has this user already received a likes_reset push today?
+        const { data: existingLogs } = await supabaseClient
+          .from('notification_logs')
+          .select('id, sent_at')
+          .eq('user_id', userData.user_id)
+          .eq('type', 'likes_reset')
+          .gte('sent_at', `${todayIso}T00:00:00.000Z`);
+        if (existingLogs && existingLogs.length > 0) {
+          console.log(`⏭️ Skipping duplicate likes_reset push for user ${userData.user_id} today`);
+          return { user_id: userData.user_id, success: true, skipped: true };
+        }
         
         // Send push notification
         const pushResponse = await supabaseClient.functions.invoke('send-push-notification', {
