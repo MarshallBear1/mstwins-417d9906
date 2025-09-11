@@ -123,12 +123,12 @@ const MobileProfileCard = ({
               )}
             </button>
             
-            {/* Online Status Badge - Remove since we don't have last_seen in discovery */}
+            {/* Online Status Badge */}
             <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <div className={`w-2 h-2 rounded-full ${isUserOnline(profile.user_id) ? 'bg-green-500' : 'bg-gray-400'}`} />
                 <span className="text-xs font-medium text-gray-700">
-                  Member
+                  {isUserOnline(profile.user_id) ? 'Online' : 'Member'}
                 </span>
               </div>
             </div>
