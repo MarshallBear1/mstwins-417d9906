@@ -106,7 +106,7 @@ const MobileProfileCard = ({
           display: 'block'
         }}>
           {/* Gradient header with larger profile picture */}
-          <div className="relative h-80 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center overflow-hidden">
+          <div className="relative h-96 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center overflow-hidden">
             {/* Larger Profile Image with proper aspect ratio */}
             <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-4">
               {profile.avatar_url ? (
@@ -155,7 +155,7 @@ const MobileProfileCard = ({
               </div>
             </div>
 
-            {/* Name, Age, Gender, Location - at bottom of gradient */}
+            {/* Name, Age, Gender, Location, MS Subtype - at bottom of gradient */}
             <div className="absolute bottom-4 left-4 right-4 text-white">
               <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
@@ -170,13 +170,25 @@ const MobileProfileCard = ({
                   </div>
                 </div>
                 
-                {/* Location */}
-                {profile.city && (
-                  <div className="flex items-center gap-2 text-white/90">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span className="text-sm font-medium">{profile.city}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between gap-4">
+                  {/* Location */}
+                  {profile.city && (
+                    <div className="flex items-center gap-2 text-white/90">
+                      <MapPin className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-sm font-medium">{profile.city}</span>
+                    </div>
+                  )}
+                  
+                  {/* MS Subtype */}
+                  {profile.ms_subtype && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white/90">MS:</span>
+                      <span className="text-sm font-semibold text-white bg-white/20 px-2 py-1 rounded-full uppercase">
+                        {profile.ms_subtype}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
