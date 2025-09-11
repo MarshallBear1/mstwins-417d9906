@@ -86,7 +86,7 @@ const MobileProfileCard = ({
       className={cn("flip-card", className)} 
       style={{ 
         ...style, 
-        minHeight: '520px', // Increased height for more modern look
+        minHeight: '620px', // Increased height to prevent overlapping
         width: '340px', // Increased width for bigger cards
         perspective: '1000px',
         position: 'relative'
@@ -105,8 +105,8 @@ const MobileProfileCard = ({
           position: 'relative',
           display: 'block'
         }}>
-          {/* Gradient header with larger profile picture */}
-          <div className="relative h-[28rem] bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center overflow-hidden">
+          {/* Full gradient background covering entire front card */}
+          <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center overflow-hidden">
             {/* Larger Profile Image with proper aspect ratio */}
             <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-4">
               {profile.avatar_url ? (
@@ -155,8 +155,8 @@ const MobileProfileCard = ({
               </div>
             </div>
 
-            {/* Name, Age, Gender, Location, MS Subtype, Interests - at bottom of gradient */}
-            <div className="absolute bottom-20 left-4 right-4 text-white space-y-3">
+            {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned higher up */}
+            <div className="absolute bottom-28 left-4 right-4 text-white space-y-3">
               {/* Name and basic info */}
               <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
@@ -217,7 +217,7 @@ const MobileProfileCard = ({
               )}
             </div>
 
-            {/* Pass/Connect Action Buttons - within gradient, below info */}
+            {/* Pass/Connect Action Buttons - at the very bottom */}
             {(onPass || onLike) && (
               <div className="absolute bottom-4 left-4 right-4 flex gap-3">
                 {onPass && (
@@ -243,10 +243,6 @@ const MobileProfileCard = ({
             )}
           </div>
 
-          {/* Content Section - now empty since interests moved to gradient and about moved to back */}
-          <CardContent className="p-6">
-            {/* Content moved to gradient section and back side */}
-          </CardContent>
         </Card>
 
         {/* Back Side with extended content... */}
