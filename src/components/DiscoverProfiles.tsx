@@ -1,11 +1,12 @@
 import { useState, useEffect, memo, useCallback, useMemo, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, RefreshCw, MapPin, User, X, HandHeart } from "lucide-react";
+import { Heart, RefreshCw, MapPin, User, X, HandHeart, Filter, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 import { useSimpleLikes } from "@/hooks/useSimpleLikes";
 import { analytics } from "@/lib/analytics";
@@ -64,6 +65,11 @@ const DiscoverProfiles = memo(() => {
   const [actionCooldown, setActionCooldown] = useState(false);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const { likeProfile, loading: likeLoading } = useSimpleLikes();
+  
+  // Filter states
+  const [selectedMSSubtype, setSelectedMSSubtype] = useState<string | null>(null);
+  const [selectedGender, setSelectedGender] = useState<string | null>(null);  
+  const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
   
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
@@ -140,10 +146,31 @@ const DiscoverProfiles = memo(() => {
     }
   }, [profiles, currentIndex]);
 
-  // Memoized current profile calculation
+  // Memoized filtered profiles based on selected filters
+  const filteredProfiles = useMemo(() => {
+    let filtered = profiles;
+    
+    if (selectedMSSubtype) {
+      filtered = filtered.filter(profile => profile.ms_subtype === selectedMSSubtype);
+    }
+    
+    if (selectedGender) {
+      filtered = filtered.filter(profile => profile.gender === selectedGender);
+    }
+    
+    if (selectedInterest) {
+      filtered = filtered.filter(profile => 
+        profile.hobbies && profile.hobbies.includes(selectedInterest)
+      );
+    }
+    
+    return filtered;
+  }, [profiles, selectedMSSubtype, selectedGender, selectedInterest]);
+
+  // Memoized current profile calculation using filtered profiles
   const currentProfile = useMemo(() => {
-    return profiles[currentIndex] || null;
-  }, [profiles, currentIndex]);
+    return filteredProfiles[currentIndex] || null;
+  }, [filteredProfiles, currentIndex]);
 
   // Optimized like function with cooldown and immediate UI update
   const handleLikeProfile = useCallback(async (profileUserId: string) => {
@@ -359,17 +386,42 @@ const DiscoverProfiles = memo(() => {
     );
   }
 
-  // Show empty state with detailed information
-  if (profiles.length === 0 || currentIndex >= profiles.length) {
+  // Get unique filter options from all profiles
+  const msSubtypes = useMemo(() => {
+    const subtypes = profiles.map(p => p.ms_subtype).filter(Boolean);
+    return [...new Set(subtypes)];
+  }, [profiles]);
+
+  const genders = useMemo(() => {
+    const genderList = profiles.map(p => p.gender).filter(Boolean);
+    return [...new Set(genderList)];
+  }, [profiles]);
+
+  const interests = useMemo(() => {
+    const allInterests = profiles.flatMap(p => p.hobbies || []);
+    return [...new Set(allInterests)].sort();
+  }, [profiles]);
+
+  // Reset currentIndex when filters change
+  useEffect(() => {
+    setCurrentIndex(0);
+    setIsCardFlipped(false);
+  }, [selectedMSSubtype, selectedGender, selectedInterest]);
+
+  // Show empty state with detailed information - updated for filtered results
+  if (filteredProfiles.length === 0 || currentIndex >= filteredProfiles.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="text-center">
           <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            You've seen everyone!
+            {profiles.length === 0 ? "You've seen everyone!" : "No matches with current filters"}
           </h3>
           <p className="text-gray-600 mb-4">
-            You've viewed all available profiles. Check back later for new members, or try adjusting your preferences.
+            {profiles.length === 0 
+              ? "You've viewed all available profiles. Check back later for new members, or try adjusting your preferences."
+              : "Try adjusting your filters to see more profiles, or clear them to see all available matches."
+            }
           </p>
           
           {/* Show activity summary */}
@@ -380,6 +432,20 @@ const DiscoverProfiles = memo(() => {
           </div>
           
           <div className="flex space-x-3">
+            {(selectedMSSubtype || selectedGender || selectedInterest) && (
+              <Button 
+                onClick={() => {
+                  setSelectedMSSubtype(null);
+                  setSelectedGender(null);
+                  setSelectedInterest(null);
+                }} 
+                variant="outline" 
+                className="text-primary border-primary"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Clear Filters
+              </Button>
+            )}
             <Button onClick={fetchProfiles} variant="outline" className="text-primary border-primary">
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
@@ -412,7 +478,99 @@ const DiscoverProfiles = memo(() => {
   }
 
   const content = (
-    <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-2">
+    <>
+      {/* Filters Section */}
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-center gap-3 max-w-sm mx-auto">
+          <div className="flex items-center gap-1 text-gray-600">
+            <Filter className="w-4 h-4" />
+            <span className="text-sm font-medium">Filters:</span>
+          </div>
+          
+          {/* MS Subtype Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 px-3 text-xs bg-white hover:bg-gray-50">
+                {selectedMSSubtype || "MS Type"}
+                <ChevronDown className="w-3 h-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[120px]">
+              <DropdownMenuItem 
+                onClick={() => setSelectedMSSubtype(null)}
+                className={!selectedMSSubtype ? "bg-blue-50 text-blue-700" : ""}
+              >
+                All Types
+              </DropdownMenuItem>
+              {msSubtypes.map((subtype) => (
+                <DropdownMenuItem 
+                  key={subtype} 
+                  onClick={() => setSelectedMSSubtype(subtype)}
+                  className={selectedMSSubtype === subtype ? "bg-blue-50 text-blue-700" : ""}
+                >
+                  {subtype?.toUpperCase()}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Gender Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 px-3 text-xs bg-white hover:bg-gray-50">
+                {selectedGender || "Gender"}
+                <ChevronDown className="w-3 h-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[120px]">
+              <DropdownMenuItem 
+                onClick={() => setSelectedGender(null)}
+                className={!selectedGender ? "bg-blue-50 text-blue-700" : ""}
+              >
+                All Genders
+              </DropdownMenuItem>
+              {genders.map((gender) => (
+                <DropdownMenuItem 
+                  key={gender} 
+                  onClick={() => setSelectedGender(gender)}
+                  className={selectedGender === gender ? "bg-blue-50 text-blue-700" : ""}
+                >
+                  {gender?.charAt(0).toUpperCase() + gender?.slice(1)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Interest Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 px-3 text-xs bg-white hover:bg-gray-50">
+                {selectedInterest || "Interest"}
+                <ChevronDown className="w-3 h-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[120px] max-h-48 overflow-y-auto">
+              <DropdownMenuItem 
+                onClick={() => setSelectedInterest(null)}
+                className={!selectedInterest ? "bg-blue-50 text-blue-700" : ""}
+              >
+                All Interests
+              </DropdownMenuItem>
+              {interests.map((interest) => (
+                <DropdownMenuItem 
+                  key={interest} 
+                  onClick={() => setSelectedInterest(interest)}
+                  className={selectedInterest === interest ? "bg-blue-50 text-blue-700" : ""}
+                >
+                  {interest}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-20">
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
@@ -461,7 +619,7 @@ const DiscoverProfiles = memo(() => {
           </div>
           
           {/* Next card preview (slightly behind) */}
-          {profiles[currentIndex + 1] && (
+          {filteredProfiles[currentIndex + 1] && (
             <div 
               className="absolute inset-0 -z-10"
               style={{
@@ -470,7 +628,7 @@ const DiscoverProfiles = memo(() => {
               }}
             >
               <DiscoverProfileCard 
-                profile={profiles[currentIndex + 1]} 
+                profile={filteredProfiles[currentIndex + 1]} 
                 isFlipped={false}
                 onFlipChange={() => {}}
               />
@@ -479,7 +637,6 @@ const DiscoverProfiles = memo(() => {
         </div>
       )}
 
-
       {/* Profile Image Viewer */}
       <ProfileImageViewer
         images={selectedImages}
@@ -487,7 +644,8 @@ const DiscoverProfiles = memo(() => {
         isOpen={imageViewerOpen}
         onClose={() => setImageViewerOpen(false)}
       />
-    </div>
+      </div>
+    </>
   );
 
   return (
