@@ -482,7 +482,7 @@ const DiscoverProfiles = memo(() => {
   const content = (
     <>
       {/* Single Filter Section - Just Button */}
-      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40">
+      <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-40">
         <DropdownMenu open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="h-9 px-4 text-sm bg-white hover:bg-gray-50 border-2 shadow-lg">
@@ -591,7 +591,7 @@ const DiscoverProfiles = memo(() => {
            </DropdownMenu>
        </div>
 
-       <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-24 md:pt-32">
+       <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-32 md:pt-32">
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
