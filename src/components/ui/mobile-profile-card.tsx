@@ -105,10 +105,10 @@ const MobileProfileCard = ({
           position: 'relative',
           display: 'block'
         }}>
-          {/* Larger modern header with bigger profile picture */}
-          <div className="relative h-80 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
-            {/* Larger Profile Image for modern look */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-64 h-64 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target">
+          {/* Smaller header with smaller profile picture */}
+          <div className="relative h-52 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
+            {/* Smaller Profile Image */}
+            <button onClick={() => onImageClick?.(0)} className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target">
               {profile.avatar_url ? (
                 <OptimizedAvatar
                   src={profile.avatar_url}
@@ -119,11 +119,29 @@ const MobileProfileCard = ({
                 />
               ) : (
                 <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                  <User className="w-16 h-16 text-white" />
+                  <User className="w-8 h-8 text-white" />
                 </div>
               )}
             </button>
             
+            {/* Show More Button - top left by profile pic */}
+            {hasExtendedContent && (
+              <div className="absolute top-4 left-4">
+                <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleFlipChange(!actualIsFlipped);
+                }}
+                className="bg-white/20 backdrop-blur-md rounded-full px-4 py-2 flex items-center gap-2 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                title="Show more details"
+              >
+                <Eye className="w-4 h-4" />
+                <span className="text-sm font-medium">Show More</span>
+              </button>
+              </div>
+            )}
+
             {/* Online Status Badge with Last Seen */}
             <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-xl border border-white/20">
               <div className="flex items-center gap-2">
@@ -136,15 +154,41 @@ const MobileProfileCard = ({
                 </span>
               </div>
             </div>
-            
-            {/* Pass/Connect Action Buttons - moved here */}
+          </div>
+
+          {/* Content Section */}
+          <CardContent className="p-6 space-y-4">
+            {/* Name, Age, Location, Gender - all in one line in top half */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h3 className="text-2xl font-bold text-gray-900">{profile.first_name}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {calculateAge(profile.age) && (
+                    <span className="text-lg font-semibold text-gray-700 bg-blue-50 px-3 py-1 rounded-full">{calculateAge(profile.age)}</span>
+                  )}
+                  {profile.gender && (
+                    <span className="text-lg font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-full capitalize">{profile.gender}</span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Location on same line level */}
+              {profile.city && (
+                <div className="flex items-center gap-3 text-gray-600">
+                  <MapPin className="w-5 h-5 flex-shrink-0 text-blue-500" />
+                  <span className="text-base font-medium">{profile.city}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Pass/Connect Action Buttons - in white space */}
             {(onPass || onLike) && (
-              <div className="absolute bottom-4 left-4 right-4 flex gap-3">
+              <div className="flex gap-3 py-2">
                 {onPass && (
                   <Button
                     onClick={onPass}
                     variant="outline"
-                    className="flex-1 h-11 bg-white/90 backdrop-blur-sm border-white/50 hover:bg-white text-gray-700 font-semibold rounded-xl transition-all duration-200 shadow-lg"
+                    className="flex-1 h-11 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-xl transition-all duration-200"
                   >
                     <X className="w-5 h-5 mr-2" />
                     Pass
@@ -161,66 +205,26 @@ const MobileProfileCard = ({
                 )}
               </div>
             )}
-          </div>
 
-          {/* Modern Content Section with more padding */}
-          <CardContent className="p-6 space-y-4">
-            {/* Show More Button - moved higher up */}
-            {hasExtendedContent && (
-              <div className="flex justify-center -mt-2 mb-4">
-                <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleFlipChange(!actualIsFlipped);
-                }}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <Eye className="w-4 h-4 mr-2 inline" />
-                Show More
-              </button>
-              </div>
-            )}
-
-            {/* Name, Age and Gender - same size fonts */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-bold text-gray-900">{profile.first_name}</h3>
-              <div className="flex items-center gap-3">
-                {profile.gender && (
-                  <span className="text-lg font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-full capitalize">{profile.gender}</span>
-                )}
-                {calculateAge(profile.age) && (
-                  <span className="text-lg font-semibold text-gray-700 bg-blue-50 px-3 py-1 rounded-full">{calculateAge(profile.age)}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Larger Location */}
-            {profile.city && (
-              <div className="flex items-center gap-3 text-gray-600">
-                <MapPin className="w-5 h-5 flex-shrink-0 text-blue-500" />
-                <span className="text-base font-medium truncate">{profile.city}</span>
-              </div>
-            )}
-
-            {/* MS Subtype with label */}
+            {/* MS Subtype with different colored box */}
             {profile.ms_subtype && (
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold text-gray-700">MS Subtype:</span>
-                <Badge variant="outline" className="text-lg font-semibold px-3 py-1.5 uppercase border-purple-200 text-purple-700 bg-purple-50">
-                  {profile.ms_subtype}
-                </Badge>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-semibold text-gray-800">MS Subtype:</span>
+                  <Badge variant="outline" className="text-base font-semibold px-3 py-1.5 uppercase border-purple-300 text-purple-700 bg-purple-100">
+                    {profile.ms_subtype}
+                  </Badge>
+                </div>
               </div>
             )}
 
-
-            {/* Improved Hobbies section */}
+            {/* Interests section with different colored box */}
             {profile.hobbies && profile.hobbies.length > 0 && (
-              <div>
-                <div className="text-sm font-bold text-gray-800 mb-3">Interests:</div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="text-base font-semibold text-gray-800 mb-3">Interests:</div>
                 <div className="flex flex-wrap gap-2">
                   {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 4)).map((hobby, index) => (
-                    <Badge key={index} variant="secondary" className="text-sm px-3 py-1.5 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 transition-colors">
+                    <Badge key={index} variant="secondary" className="text-sm px-3 py-1.5 bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 transition-colors">
                       {hobby}
                     </Badge>
                   ))}
@@ -229,7 +233,7 @@ const MobileProfileCard = ({
                       onClick={() => setShowAllHobbies(!showAllHobbies)}
                       className="text-sm text-blue-600 hover:text-blue-700 font-semibold transition-colors"
                     >
-                      <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-50 cursor-pointer border-blue-300">
+                      <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-50 cursor-pointer border-blue-400">
                         {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 4} more`}
                       </Badge>
                     </button>
@@ -238,16 +242,17 @@ const MobileProfileCard = ({
               </div>
             )}
 
-            {/* About section with better expansion */}
+            {/* About section with different colored box */}
             {profile.about_me_preview && (
-              <div className={`${showAllAbout ? '' : ''}`}>
-                <p className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap font-medium ${!showAllAbout ? 'line-clamp-3' : ''}`}>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
+                <p className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
                   {profile.about_me_preview}
                 </p>
                 {profile.about_me_preview.length > 100 && (
                   <button
                     onClick={() => setShowAllAbout(!showAllAbout)}
-                    className="text-sm text-blue-600 hover:text-blue-700 mt-3 font-semibold transition-colors duration-200"
+                    className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200"
                   >
                     {showAllAbout ? 'Show Less' : 'Read More'}
                   </button>
