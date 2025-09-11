@@ -593,7 +593,7 @@ const DiscoverProfiles = memo(() => {
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-4">
+      <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-20">
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
