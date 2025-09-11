@@ -412,7 +412,7 @@ const DiscoverProfiles = memo(() => {
   }
 
   const content = (
-    <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-6">
+    <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-2">
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
@@ -436,16 +436,16 @@ const DiscoverProfiles = memo(() => {
             {/* Swipe indicators */}
             {isDragging && swipeDirection && (
               <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-between px-8">
-                {swipeDirection === 'right' && (
-                  <div className="bg-blue-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-2xl transform rotate-12 border-4 border-white">
-                    <HandHeart className="w-6 h-6 mr-2 inline" />
-                    CONNECT
-                  </div>
-                )}
                 {swipeDirection === 'left' && (
-                  <div className="bg-red-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-2xl transform -rotate-12 border-4 border-white ml-auto">
+                  <div className="bg-red-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-2xl transform -rotate-12 border-4 border-white">
                     <X className="w-6 h-6 mr-2 inline" />
                     PASS
+                  </div>
+                )}
+                {swipeDirection === 'right' && (
+                  <div className="bg-blue-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-2xl transform rotate-12 border-4 border-white ml-auto">
+                    <HandHeart className="w-6 h-6 mr-2 inline" />
+                    CONNECT
                   </div>
                 )}
               </div>
@@ -479,24 +479,25 @@ const DiscoverProfiles = memo(() => {
 
       {/* Modern Action Buttons - Fixed at bottom */}
       {currentProfile && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex justify-center items-center gap-6">
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex justify-center items-center gap-8">
           <Button
             onClick={() => passProfile(currentProfile.user_id)}
             size="lg"
             variant="outline"
-            className="w-16 h-16 rounded-full border-2 border-gray-300 hover:border-red-400 hover:bg-red-50 bg-white/90 backdrop-blur-sm transition-all duration-200 group shadow-lg"
+            className="w-20 h-20 rounded-full border-3 border-gray-300 hover:border-red-400 hover:bg-red-50 bg-white/95 backdrop-blur-sm transition-all duration-300 group shadow-xl hover:shadow-2xl transform hover:scale-110"
             disabled={actionCooldown}
           >
-            <X className="w-6 h-6 text-gray-600 group-hover:text-red-500 transition-colors" />
+            <X className="w-8 h-8 text-gray-600 group-hover:text-red-500 transition-colors" />
           </Button>
           
           <Button
             onClick={() => handleLikeProfile(currentProfile.user_id)}
             size="lg"
-            className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 group"
+            className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 hover:from-blue-600 hover:via-purple-600 hover:to-indigo-600 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 group relative overflow-hidden"
             disabled={actionCooldown}
           >
-            <HandHeart className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <HandHeart className="w-8 h-8 text-white group-hover:scale-125 transition-transform duration-300 relative z-10" />
           </Button>
         </div>
       )}
