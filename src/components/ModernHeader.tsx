@@ -43,13 +43,13 @@ const ModernHeader = ({ activeTab }: ModernHeaderProps) => {
         </div>
         
         {/* Right side - Modern action buttons */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
             size="sm"
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors ios-bounce"
+            className="p-3 hover:bg-gray-100 rounded-full transition-colors ios-bounce"
           >
-            <Search className="w-5 h-5 text-gray-600" />
+            <Search className="w-6 h-6 text-gray-600" />
           </Button>
           
           <ModernNotificationSystem />
@@ -58,13 +58,13 @@ const ModernHeader = ({ activeTab }: ModernHeaderProps) => {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/dashboard?tab=profile')}
-            className={`p-2 transition-colors rounded-full ios-bounce ${
+            className={`p-3 transition-colors rounded-full ios-bounce ${
               activeTab === 'profile' 
                 ? 'text-blue-600 bg-blue-50' 
                 : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
             }`}
           >
-            <User className="w-5 h-5" />
+            <User className="w-6 h-6" />
           </Button>
         </div>
       </div>
