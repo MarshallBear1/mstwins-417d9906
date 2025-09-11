@@ -70,6 +70,7 @@ const DiscoverProfiles = memo(() => {
   // Filter states - single filter at a time
   const [filterType, setFilterType] = useState<'ms_subtype' | 'gender' | 'interest' | null>(null);
   const [filterValue, setFilterValue] = useState<string | null>(null);
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
@@ -483,7 +484,7 @@ const DiscoverProfiles = memo(() => {
       {/* Single Filter Section */}
       <div className="fixed top-14 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-2">
         <div className="flex items-center justify-center">
-          <DropdownMenu>
+          <DropdownMenu open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-4 text-sm bg-white hover:bg-gray-50 border-2">
                 <Filter className="w-4 h-4 mr-2" />
@@ -501,29 +502,61 @@ const DiscoverProfiles = memo(() => {
             <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[200px]">
               {!filterType ? (
                 <>
-                  <DropdownMenuItem onClick={() => setFilterType('ms_subtype')}>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setFilterType('ms_subtype');
+                      // Keep dropdown open
+                    }}
+                    onSelect={(e) => e.preventDefault()}
+                  >
                     Filter by MS Type
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilterType('gender')}>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setFilterType('gender');
+                      // Keep dropdown open
+                    }}
+                    onSelect={(e) => e.preventDefault()}
+                  >
                     Filter by Gender
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilterType('interest')}>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setFilterType('interest');
+                      // Keep dropdown open
+                    }}
+                    onSelect={(e) => e.preventDefault()}
+                  >
                     Filter by Interest
                   </DropdownMenuItem>
                 </>
               ) : (
                 <>
-                  <DropdownMenuItem onClick={() => { setFilterType(null); setFilterValue(null); }}>
+                  <DropdownMenuItem 
+                    onClick={() => { 
+                      setFilterType(null); 
+                      setFilterValue(null); 
+                    }}
+                    onSelect={(e) => e.preventDefault()}
+                  >
                     ← Back to Filter Types
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilterValue(null)}>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setFilterValue(null);
+                      setIsFilterDropdownOpen(false);
+                    }}
+                  >
                     Show All {filterType === 'ms_subtype' ? 'MS Types' : filterType === 'gender' ? 'Genders' : 'Interests'}
                   </DropdownMenuItem>
                   <div className="border-t my-1"></div>
                   {filterType === 'ms_subtype' && msSubtypes.map((subtype) => (
                     <DropdownMenuItem 
                       key={subtype} 
-                      onClick={() => setFilterValue(subtype)}
+                      onClick={() => {
+                        setFilterValue(subtype);
+                        setIsFilterDropdownOpen(false);
+                      }}
                       className={filterValue === subtype ? "bg-blue-50 text-blue-700" : ""}
                     >
                       {subtype?.toUpperCase()}
@@ -532,7 +565,10 @@ const DiscoverProfiles = memo(() => {
                   {filterType === 'gender' && genders.map((gender) => (
                     <DropdownMenuItem 
                       key={gender} 
-                      onClick={() => setFilterValue(gender)}
+                      onClick={() => {
+                        setFilterValue(gender);
+                        setIsFilterDropdownOpen(false);
+                      }}
                       className={filterValue === gender ? "bg-blue-50 text-blue-700" : ""}
                     >
                       {gender?.charAt(0).toUpperCase() + gender?.slice(1)}
@@ -541,7 +577,10 @@ const DiscoverProfiles = memo(() => {
                   {filterType === 'interest' && interests.map((interest) => (
                     <DropdownMenuItem 
                       key={interest} 
-                      onClick={() => setFilterValue(interest)}
+                      onClick={() => {
+                        setFilterValue(interest);
+                        setIsFilterDropdownOpen(false);
+                      }}
                       className={filterValue === interest ? "bg-blue-50 text-blue-700" : ""}
                     >
                       {interest}
@@ -554,7 +593,7 @@ const DiscoverProfiles = memo(() => {
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-12">
+      <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-4">
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
