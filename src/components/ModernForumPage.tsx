@@ -569,8 +569,9 @@ const ModernForumPage = () => {
             </div>
           </div>
 
-              {/* Search and Filter Bar */}
-              <div className="flex gap-3">
+          {/* Search and Filter Bar */}
+          <Card className="bg-white rounded-2xl shadow-sm border-0">
+            <CardContent className="p-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
@@ -706,13 +707,11 @@ const ModernForumPage = () => {
                 );
               })
             )}
-          </div>
+           </div>
         </div>
       )}
     </div>
   );
 };
-
-export default ModernForumPage;
 
 export default ModernForumPage;
