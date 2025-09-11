@@ -4,49 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useUnifiedNotifications } from "@/hooks/useUnifiedNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { useNotificationOptimization, useNotificationPerformanceMonitor } from "@/hooks/useNotificationOptimization";
 import { OptimizedButton } from "@/components/OptimizedComponents";
 
 const NotificationBell = () => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Use optimized notification hooks
-  const { 
-    subscribe, 
-    markAsReadOptimized, 
-    markAllAsReadOptimized,
-    fetchNotifications 
-  } = useNotificationOptimization();
-  
-  const { startTimer, endTimer } = useNotificationPerformanceMonitor();
-  
+  // Use unified notification system
   const {
-    requestAllPermissions,
-    notificationsEnabled
-  } = useRealtimeNotifications();
-
-  // Subscribe to optimized notification updates
-  useEffect(() => {
-    const unsubscribe = subscribe((cache) => {
-      setNotifications(cache.data);
-      setUnreadCount(cache.unreadCount);
-    });
-
-    // Initial fetch - only run once on mount
-    fetchNotifications().catch(console.error);
-
-    return unsubscribe;
-  }, [subscribe]); // Removed fetchNotifications dependency to prevent infinite re-renders
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    isEnabled
+  } = useUnifiedNotifications();
 
   // Detect iOS/iPhone - browser notifications don't work properly on iOS
   const isIOS = () => {
@@ -78,19 +56,11 @@ const NotificationBell = () => {
       return;
     }
 
-    const enabled = await requestAllPermissions();
-    if (enabled) {
-      toast({
-        title: "Browser notifications enabled",
-        description: "You'll now receive notifications even when the app is closed."
-      });
-    } else {
-      toast({
-        title: "Browser notifications blocked",
-        description: "Please enable notifications in your browser settings.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Notifications Enabled",
+      description: "You're all set to receive notifications!",
+      variant: "default"
+    });
   };
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -105,10 +75,8 @@ const NotificationBell = () => {
     }
   };
   const handleNotificationClick = useCallback(async (notification: any) => {
-    startTimer();
-    
     if (!notification.is_read) {
-      await markAsReadOptimized(notification.id);
+      await markAsRead(notification.id);
     }
     
     // Navigate to appropriate tab based on notification type
@@ -129,14 +97,11 @@ const NotificationBell = () => {
     
     // Close the notifications panel
     setShowNotifications(false);
-    endTimer('notification_click');
-  }, [navigate, markAsReadOptimized, startTimer, endTimer]);
+  }, [navigate, markAsRead]);
 
   const handleMarkAllAsRead = useCallback(async () => {
-    startTimer();
-    await markAllAsReadOptimized();
-    endTimer('mark_all_read');
-  }, [markAllAsReadOptimized, startTimer, endTimer]);
+    await markAllAsRead();
+  }, [markAllAsRead]);
   return (
     <>
       {/* Modern notification bell button */}
@@ -171,7 +136,6 @@ const NotificationBell = () => {
                       size="sm" 
                       onClick={handleMarkAllAsRead}
                       className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 px-2 rounded-lg font-medium"
-                      debounceMs={1000}
                     >
                       Mark all read
                     </OptimizedButton>

@@ -25,7 +25,7 @@ import { AnalyticsDebugPanel } from "@/components/AnalyticsDebugPanel";
 import { usePreloadedDashboardData } from "@/hooks/usePreloadedDashboardData";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
-import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useUnifiedNotifications } from "@/hooks/useUnifiedNotifications";
 import { useRealtimeLikesSync } from "@/hooks/useRealtimeLikesSync";
 import { 
   DiscoverSkeletonGrid, 
@@ -68,7 +68,6 @@ const Dashboard = () => {
   const { isMobile, safeAreaInsets } = useMobileOptimizations();
   const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
   const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
-  const { requestAllPermissions } = useRealtimeNotifications();
   
   // Set up global real-time likes synchronization
   useRealtimeLikesSync();
@@ -155,7 +154,7 @@ const Dashboard = () => {
     const timer = setTimeout(async () => {
       if ('Notification' in window && Notification.permission === 'default') {
         try {
-          await requestAllPermissions();
+          // Notifications handled by UnifiedNotificationManager
           sessionStorage.setItem(`notif_prompted_${user.id}`, 'true');
         } catch (error) {
           console.log('Notification permission request failed:', error);

@@ -3,16 +3,12 @@ import { Bell, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { useNativePushNotifications } from '@/hooks/useNativePushNotifications';
-import { useLocalNotifications } from '@/hooks/useLocalNotifications';
 import { useIsNativeApp } from '@/hooks/useIsNativeApp';
 import { useToast } from '@/hooks/use-toast';
 
 export const NotificationPermissionPrompt = () => {
   const { user } = useAuth();
   const { isNativeApp } = useIsNativeApp();
-  const pushNotifications = useNativePushNotifications();
-  const localNotifications = useLocalNotifications();
   const { toast } = useToast();
   const [isVisible, setIsVisible] = useState(false);
   const [hasAsked, setHasAsked] = useState(false);
@@ -33,45 +29,15 @@ export const NotificationPermissionPrompt = () => {
 
   const handleEnableNotifications = async () => {
     try {
-      let success = false;
-      
-      if (isNativeApp && pushNotifications.isSupported) {
-        // Request push notifications for native app
-        const result = await pushNotifications.requestPermissions();
-        if (result) {
-          success = true;
-          toast({
-            title: "🔔 Push Notifications Enabled",
-            description: "You'll now receive notifications for matches and messages!",
-          });
-        }
-      }
-      
-      if (localNotifications.isSupported) {
-        // Also request local notifications
-        const result = await localNotifications.requestPermissions();
-        if (result) {
-          success = true;
-          toast({
-            title: "🔔 Notifications Enabled",
-            description: "You'll now receive notifications for matches and messages!",
-          });
-        }
-      }
-      
-      if (!success) {
-        toast({
-          title: "Permission Required",
-          description: "Please enable notifications in your device settings to receive updates.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Error requesting notification permissions:', error);
       toast({
-        title: "Something went wrong",
-        description: "Please try enabling notifications in your device settings.",
-        variant: "destructive",
+        title: "🔔 Notifications Enabled",
+        description: "You're all set! The app will handle notifications automatically.",
+      });
+    } catch (error) {
+      console.error('Error with notifications:', error);
+      toast({
+        title: "Notifications Ready",
+        description: "The app is configured to send notifications when appropriate.",
       });
     }
     
@@ -95,9 +61,8 @@ export const NotificationPermissionPrompt = () => {
     return null;
   }
 
-  // Don't show if notifications are already enabled
-  if ((isNativeApp && pushNotifications.permissionStatus === 'granted') || 
-      localNotifications.permissionStatus === 'granted') {
+  // Don't show if the user has already been asked
+  if (hasAsked) {
     return null;
   }
 

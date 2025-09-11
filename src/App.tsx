@@ -21,13 +21,12 @@ import IOSEnhancements from "./components/IOSEnhancements";
 import AccessibilityEnhancements from "./components/AccessibilityEnhancements";
 import { SecurityContextProvider } from "./components/SecurityContextProvider";
 import { AdminAuthProvider } from "./hooks/useAdminAuth";
-import { NativeCapabilities } from "./hooks/useNativeCapabilities";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import IOSNotificationManager from "./components/IOSNotificationManager";
 import PersistentBottomNavigation from "./components/PersistentBottomNavigation";
 import { PerformanceMonitor } from "./components/PerformanceOptimizer";
 import { NotificationPermissionPrompt } from "./components/NotificationPermissionPrompt";
-import { ReminderNotificationManager } from "./components/ReminderNotificationManager";
+import UnifiedNotificationManager from "./components/UnifiedNotificationManager";
+import { NotificationProvider } from "./hooks/useUnifiedNotifications";
 
 // Import required icons for FAB
 import { Heart, MessageCircle } from "lucide-react";
@@ -216,23 +215,22 @@ const App = () => (
     <AuthProvider>
       <AdminAuthProvider>
         <SecurityContextProvider>
-          <TooltipProvider>
-            <ErrorBoundary>
-              <MobileStatusBar theme="light" color="#2563eb" />
-              <MobileOptimizationsProvider disableContextMenu={true} />
-              <IOSEnhancements />
-              <AccessibilityEnhancements />
-              <Toaster />
-              <Sonner />
-              <NativeCapabilities />
-              <IOSNotificationManager />
-              <NotificationPermissionPrompt />
-              <PerformanceMonitor />
-              <ReminderNotificationManager />
-          <BrowserRouter>
-            <PostHogInitializer />
-            <RouteTracker />
-            <MobileFAB />
+          <NotificationProvider>
+            <TooltipProvider>
+              <ErrorBoundary>
+                <MobileStatusBar theme="light" color="#2563eb" />
+                <MobileOptimizationsProvider disableContextMenu={true} />
+                <IOSEnhancements />
+                <AccessibilityEnhancements />
+                <Toaster />
+                <Sonner />
+                <UnifiedNotificationManager />
+                <NotificationPermissionPrompt />
+                <PerformanceMonitor />
+            <BrowserRouter>
+              <PostHogInitializer />
+              <RouteTracker />
+              <MobileFAB />
             
             <MobileKeyboardHandler adjustForKeyboard={true}>
             <Routes>
@@ -300,9 +298,10 @@ const App = () => (
               <PersistentBottomNavigation />
               
             </MobileKeyboardHandler>
-            </BrowserRouter>
-            </ErrorBoundary>
-          </TooltipProvider>
+              </BrowserRouter>
+              </ErrorBoundary>
+            </TooltipProvider>
+          </NotificationProvider>
         </SecurityContextProvider>
       </AdminAuthProvider>
     </AuthProvider>

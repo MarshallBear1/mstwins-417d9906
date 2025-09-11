@@ -3,7 +3,7 @@ import { X, Heart, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useUnifiedNotifications } from "@/hooks/useUnifiedNotifications";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +15,7 @@ const NotificationPopup = () => {
   const [notificationQueue, setNotificationQueue] = useState<any[]>([]);
   const [lastShownNotificationId, setLastShownNotificationId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { notifications, markAsRead } = useRealtimeNotifications();
+  const { notifications, markAsRead } = useUnifiedNotifications();
   const { getNotificationSettings } = useNotificationPreferences();
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   const autoHideTimeoutRef = useRef<NodeJS.Timeout>();
