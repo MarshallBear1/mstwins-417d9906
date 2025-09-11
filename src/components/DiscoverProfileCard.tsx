@@ -7,23 +7,15 @@ interface Profile {
   id: string;
   user_id: string;
   first_name: string;
-  last_name: string;
-  date_of_birth: string | null;
-  location: string;
+  age: number | null;
+  city: string;
   gender: string | null;
   ms_subtype: string | null;
-  diagnosis_year: number | null;
-  symptoms: string[];
-  medications: string[];
-  hobbies: string[];
   avatar_url: string | null;
-  about_me: string | null;
-  last_seen: string | null;
+  about_me_preview: string | null;
+  hobbies: string[];
   additional_photos?: string[];
-  selected_prompts?: {
-    question: string;
-    answer: string;
-  }[];
+  selected_prompts?: any;
   extended_profile_completed?: boolean;
 }
 

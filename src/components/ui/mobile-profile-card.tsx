@@ -11,19 +11,16 @@ interface Profile {
   id: string;
   user_id: string;
   first_name: string;
-  last_name: string;
-  date_of_birth: string | null;
-  location: string;
-  gender?: string;
-  avatar_url?: string;
-  ms_subtype?: string;
-  diagnosis_year?: number;
-  hobbies?: string[];
-  about_me?: string;
-  symptoms?: string[];
+  age: number | null;
+  city: string;
+  gender: string | null;
+  ms_subtype: string | null;
+  avatar_url: string | null;
+  about_me_preview: string | null;
+  hobbies: string[];
   additional_photos?: string[];
-  selected_prompts?: { question: string; answer: string }[];
-  last_seen: string | null;
+  selected_prompts?: any;
+  extended_profile_completed?: boolean;
 }
 
 interface MobileProfileCardProps {
@@ -71,26 +68,16 @@ const MobileProfileCard = ({
   const isUserOnline = propIsUserOnline || hookIsUserOnline;
   const getLastSeenText = propGetLastSeenText || hookGetLastSeenText;
 
-  const calculateAge = (dateOfBirth: string | null) => {
-    if (!dateOfBirth) return null;
-    const birth = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
+  const calculateAge = (age: number | null) => {
     return age;
   };
 
   const hasExtendedContent = Boolean(
     (profile.additional_photos && profile.additional_photos.length > 0) ||
     (profile.selected_prompts && profile.selected_prompts.length > 0) ||
-    (profile.symptoms && profile.symptoms.length > 0) ||
-    (profile.about_me && profile.about_me.length > 80) ||
+    (profile.about_me_preview && profile.about_me_preview.length > 80) ||
     profile.hobbies?.length ||
-    profile.ms_subtype ||
-    profile.diagnosis_year
+    profile.ms_subtype
   );
 
   return (
@@ -136,12 +123,12 @@ const MobileProfileCard = ({
               )}
             </button>
             
-            {/* Online Status Badge with Last Seen */}
+            {/* Online Status Badge - Remove since we don't have last_seen in discovery */}
             <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
               <div className="flex items-center gap-1">
-                <div className={`w-2 h-2 rounded-full ${isUserOnline(profile.user_id) ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
                 <span className="text-xs font-medium text-gray-700">
-                  {isUserOnline(profile.user_id) ? 'Online' : getLastSeenText(profile.last_seen)}
+                  Member
                 </span>
               </div>
             </div>
@@ -174,17 +161,17 @@ const MobileProfileCard = ({
                 {profile.gender && (
                   <span className="text-xs text-gray-500 capitalize">{profile.gender}</span>
                 )}
-                {calculateAge(profile.date_of_birth) && (
-                  <span className="text-sm font-medium text-gray-600">{calculateAge(profile.date_of_birth)}</span>
+                {calculateAge(profile.age) && (
+                  <span className="text-sm font-medium text-gray-600">{calculateAge(profile.age)}</span>
                 )}
               </div>
             </div>
 
             {/* Compact Location */}
-            {profile.location && (
+            {profile.city && (
               <div className="flex items-center gap-2 text-gray-600">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm truncate">{profile.location}</span>
+                <span className="text-sm truncate">{profile.city}</span>
               </div>
             )}
 
@@ -194,11 +181,6 @@ const MobileProfileCard = ({
                 <Badge variant="outline" className="text-xs px-2 py-1 uppercase">
                   {profile.ms_subtype}
                 </Badge>
-                {profile.diagnosis_year && (
-                  <span className="text-xs text-gray-500">
-                    Diagnosed {profile.diagnosis_year}
-                  </span>
-                )}
               </div>
             )}
 
@@ -228,12 +210,12 @@ const MobileProfileCard = ({
             )}
 
             {/* Compact About */}
-            {profile.about_me && (
+            {profile.about_me_preview && (
               <div>
                 <p className={`text-sm text-gray-600 leading-relaxed ${!showAllAbout ? 'line-clamp-2' : ''}`}>
-                  {profile.about_me}
+                  {profile.about_me_preview}
                 </p>
-                {profile.about_me.length > 80 && (
+                {profile.about_me_preview.length > 80 && (
                   <button
                     onClick={() => setShowAllAbout(!showAllAbout)}
                     className="text-xs text-blue-600 hover:text-blue-700 mt-1 font-medium"
@@ -306,20 +288,6 @@ const MobileProfileCard = ({
             </div>
 
             <CardContent className="p-4 space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 8rem)' }}>
-              {/* Symptoms */}
-              {profile.symptoms && profile.symptoms.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Symptoms</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.symptoms.map((symptom, index) => (
-                      <Badge key={index} variant="outline" className="text-xs px-2 py-1">
-                        {symptom}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Additional Photos */}
               {profile.additional_photos && profile.additional_photos.length > 0 && (
                 <div>
