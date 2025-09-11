@@ -354,12 +354,28 @@ const MobileProfileCard = ({
                   <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
                     {showAllAbout ? (fullAbout ?? profile.about_me_preview) : profile.about_me_preview}
                   </div>
-                  {(
-                    (profile.about_me_preview && profile.about_me_preview.length > 100) ||
-                    (fullAbout && (profile.about_me_preview ? fullAbout.length > profile.about_me_preview.length : fullAbout.length > 100))
-                  ) && (
+                  {((fullAbout && fullAbout.length > 200) || (!fullAbout && profile.about_me_preview && profile.about_me_preview.length > 100)) && (
                     <button
-                      onClick={() => setShowAllAbout(!showAllAbout)}
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!showAllAbout && !fullAbout) {
+                          // Fetch full about_me if we don't have it
+                          try {
+                            const { data } = await supabase
+                              .from('profiles')
+                              .select('about_me')
+                              .eq('user_id', profile.user_id)
+                              .single();
+                            if (data?.about_me) {
+                              setFullAbout(data.about_me);
+                            }
+                          } catch (error) {
+                            console.error('Error fetching full about_me:', error);
+                          }
+                        }
+                        setShowAllAbout(!showAllAbout);
+                      }}
                       className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200"
                     >
                       {showAllAbout ? 'Show Less' : 'Read More'}

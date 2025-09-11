@@ -900,7 +900,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
         /* Modern Match List - Instagram Style */
         <div className="h-full bg-white">
           {/* Messages */}
-          <div className="p-6 border-b border-gray-100">
+          <div className="bg-white border-b border-gray-200 px-4 py-3">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-blue-600" />
               <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
