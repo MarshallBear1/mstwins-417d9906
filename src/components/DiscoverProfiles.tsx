@@ -591,7 +591,7 @@ const DiscoverProfiles = memo(() => {
            </DropdownMenu>
        </div>
 
-       <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-32">
+       <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-16 md:pt-32">
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
