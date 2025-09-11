@@ -101,14 +101,60 @@ const ModernForumPage = () => {
     
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .rpc('get_forum_posts_with_authors_and_likes', {
-          user_id_param: user.id,
-          limit_count: 50
-        });
+      // 1) Load latest approved posts
+      const { data: postsData, error: postsError } = await supabase
+        .from('forum_posts')
+        .select('id,title,content,flair,author_id,created_at,likes_count,comments_count')
+        .eq('moderation_status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (postsError) throw postsError;
 
-      if (error) throw error;
-      setPosts(data || []);
+      const posts = postsData || [];
+      if (posts.length === 0) {
+        setPosts([]);
+        return;
+      }
+
+      // 2) Fetch authors for these posts
+      const authorIds = Array.from(new Set(posts.map(p => p.author_id)));
+      const { data: authors } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, avatar_url, ms_subtype, location')
+        .in('user_id', authorIds);
+
+      const authorsById = new Map((authors || []).map(a => [a.user_id, a]));
+
+      // 3) Fetch which of these posts the current user liked
+      const postIds = posts.map(p => p.id);
+      const { data: myLikes } = await supabase
+        .from('forum_likes')
+        .select('post_id')
+        .eq('user_id', user.id)
+        .in('post_id', postIds);
+      const likedSet = new Set((myLikes || []).map(l => l.post_id));
+
+      // 4) Map to typed ForumPost with author + user_has_liked
+      const mapped = posts.map(p => ({
+        id: p.id,
+        title: p.title,
+        content: p.content,
+        flair: p.flair,
+        author_id: p.author_id,
+        author: {
+          first_name: authorsById.get(p.author_id)?.first_name || 'Community',
+          last_name: authorsById.get(p.author_id)?.last_name || 'Member',
+          avatar_url: authorsById.get(p.author_id)?.avatar_url || null,
+          ms_subtype: authorsById.get(p.author_id)?.ms_subtype || null,
+          location: authorsById.get(p.author_id)?.location || null,
+        },
+        created_at: p.created_at,
+        likes_count: p.likes_count || 0,
+        comments_count: p.comments_count || 0,
+        user_has_liked: likedSet.has(p.id),
+      } as ForumPost));
+
+      setPosts(mapped);
     } catch (error) {
       console.error('Error loading posts:', error);
       toast({
@@ -198,14 +244,55 @@ const ModernForumPage = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .rpc('get_forum_comments_with_authors_and_likes', {
-          post_id_param: postId,
-          user_id_param: user.id
-        });
+      // 1) Load approved comments for the post
+      const { data: commentsData, error: commentsError } = await supabase
+        .from('forum_comments')
+        .select('id, content, author_id, post_id, created_at, likes_count')
+        .eq('post_id', postId)
+        .eq('moderation_status', 'approved')
+        .order('created_at', { ascending: true });
+      if (commentsError) throw commentsError;
 
-      if (error) throw error;
-      setComments(data || []);
+      const comments = commentsData || [];
+      if (comments.length === 0) {
+        setComments([]);
+        return;
+      }
+
+      // 2) Fetch authors for these comments
+      const authorIds = Array.from(new Set(comments.map(c => c.author_id)));
+      const { data: authors } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, avatar_url')
+        .in('user_id', authorIds);
+      const authorsById = new Map((authors || []).map(a => [a.user_id, a]));
+
+      // 3) Fetch likes by current user on these comments
+      const commentIds = comments.map(c => c.id);
+      const { data: myCommentLikes } = await supabase
+        .from('forum_comment_likes')
+        .select('comment_id')
+        .eq('user_id', user.id)
+        .in('comment_id', commentIds);
+      const likedSet = new Set((myCommentLikes || []).map(l => l.comment_id));
+
+      // 4) Map
+      const mapped = comments.map(c => ({
+        id: c.id,
+        content: c.content,
+        author_id: c.author_id,
+        post_id: c.post_id,
+        author: {
+          first_name: authorsById.get(c.author_id)?.first_name || 'Member',
+          last_name: authorsById.get(c.author_id)?.last_name || '',
+          avatar_url: authorsById.get(c.author_id)?.avatar_url || null,
+        },
+        created_at: c.created_at,
+        likes_count: c.likes_count || 0,
+        user_has_liked: likedSet.has(c.id),
+      } as ForumComment));
+
+      setComments(mapped);
     } catch (error) {
       console.error('Error loading comments:', error);
     }

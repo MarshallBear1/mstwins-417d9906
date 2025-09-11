@@ -14,7 +14,7 @@ import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 
 interface Notification {
   id: string;
-  type: 'match' | 'like' | 'message' | 'connection';
+  type: 'match' | 'like' | 'message' | 'connection' | 'forum_post' | 'forum_comment' | 'comment_reply';
   title: string;
   message: string;
   is_read: boolean;
@@ -110,24 +110,42 @@ const ModernNotificationSystem = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // Load notifications without join (some relations are not defined in types)
+      const { data: notifs, error } = await supabase
         .from('notifications')
-        .select(`
-          *,
-          from_user:profiles!notifications_from_user_id_fkey (
-            first_name,
-            last_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(20);
 
       if (error) throw error;
 
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.is_read).length || 0);
+      const list = notifs || [];
+
+      // Fetch sender profiles if any
+      const senderIds = Array.from(new Set(list.map(n => n.from_user_id).filter(Boolean))) as string[];
+      let sendersById = new Map<string, any>();
+      if (senderIds.length > 0) {
+        const { data: senders } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, avatar_url')
+          .in('user_id', senderIds);
+        sendersById = new Map((senders || []).map(s => [s.user_id, s]));
+      }
+
+      const mapped: Notification[] = list.map((n: any) => ({
+        id: n.id,
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        is_read: n.is_read,
+        from_user_id: n.from_user_id || undefined,
+        from_user: n.from_user_id ? sendersById.get(n.from_user_id) || undefined : undefined,
+        created_at: n.created_at,
+      }));
+
+      setNotifications(mapped);
+      setUnreadCount(mapped.filter(n => !n.is_read).length);
     } catch (error) {
       console.error('Error loading notifications:', error);
     }

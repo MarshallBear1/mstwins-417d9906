@@ -78,16 +78,79 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .rpc('get_user_matches_with_last_message', { user_id_param: user.id });
+      // 1) Load matches where current user is part of the pair
+      const { data: matchRows, error: matchErr } = await supabase
+        .from('matches')
+        .select('id, user1_id, user2_id, created_at')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (matchErr) throw matchErr;
 
-      if (error) throw error;
-      
-      setMatches(data || []);
-      
+      const matchesRaw = matchRows || [];
+      if (matchesRaw.length === 0) {
+        setMatches([]);
+        return;
+      }
+
+      const otherUserIds = matchesRaw.map(m => (m.user1_id === user.id ? m.user2_id : m.user1_id));
+      const matchIds = matchesRaw.map(m => m.id);
+
+      // 2) Fetch profiles for other users
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, avatar_url, location, ms_subtype, last_seen')
+        .in('user_id', otherUserIds);
+      const profilesById = new Map((profiles || []).map(p => [p.user_id, p]));
+
+      // 3) Fetch latest messages for these matches
+      const { data: msgs } = await supabase
+        .from('messages')
+        .select('id, content, sender_id, receiver_id, match_id, created_at, is_read')
+        .in('match_id', matchIds)
+        .order('created_at', { ascending: false });
+
+      const firstByMatch = new Map<string, any>();
+      const unreadByMatch = new Map<string, number>();
+      (msgs || []).forEach((m) => {
+        if (!firstByMatch.has(m.match_id)) firstByMatch.set(m.match_id, m);
+        if (m.receiver_id === user.id && !m.is_read) {
+          unreadByMatch.set(m.match_id, (unreadByMatch.get(m.match_id) || 0) + 1);
+        }
+      });
+
+      // 4) Map to typed Match[]
+      const mapped: Match[] = matchesRaw.map(m => {
+        const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
+        const prof = profilesById.get(otherId);
+        const last = firstByMatch.get(m.id);
+        return {
+          id: m.id,
+          user1_id: m.user1_id,
+          user2_id: m.user2_id,
+          created_at: m.created_at,
+          other_user: {
+            id: prof?.user_id || otherId,
+            user_id: prof?.user_id || otherId,
+            first_name: prof?.first_name || 'Member',
+            last_name: prof?.last_name || '',
+            avatar_url: prof?.avatar_url || null,
+            location: prof?.location || undefined,
+            ms_subtype: prof?.ms_subtype || undefined,
+            last_seen: prof?.last_seen || undefined,
+          },
+          last_message: last
+            ? { id: last.id, content: last.content, sender_id: last.sender_id, created_at: last.created_at }
+            : undefined,
+          unread_count: unreadByMatch.get(m.id) || 0,
+        };
+      });
+
+      setMatches(mapped);
+
       // If matchId is provided, select that match
-      if (matchId && data) {
-        const match = data.find((m: Match) => m.id === matchId);
+      if (matchId) {
+        const match = mapped.find((m) => m.id === matchId);
         if (match) {
           setSelectedMatch(match);
           loadMessages(matchId);
