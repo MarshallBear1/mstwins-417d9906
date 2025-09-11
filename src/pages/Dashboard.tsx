@@ -17,7 +17,6 @@ import ModernNotificationSystem from "@/components/ModernNotificationSystem";
 import ProfileCard from "@/components/ProfileCard";
 
 
-import DiscoverProfileCard from "@/components/DiscoverProfileCard";
 import UnifiedProfileView from "@/components/UnifiedProfileView";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -47,6 +46,7 @@ interface Profile {
   id: string;
   user_id: string;
   first_name: string;
+  last_name?: string;
   age: number | null;
   city: string;
   gender: string | null;
@@ -54,12 +54,15 @@ interface Profile {
   about_me: string | null;
   about_me_preview: string | null;
   symptoms: string[];
+  medications?: string[];
   ms_subtype: string | null;
   avatar_url: string | null;
   hobbies: string[];
   additional_photos?: string[];
   selected_prompts?: any;
   extended_profile_completed?: boolean;
+  date_of_birth?: string | null;
+  last_seen?: string;
 }
 
 const Dashboard = () => {
@@ -373,34 +376,34 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Profile View Dialog - using consistent DiscoverProfileCard */}
-      <Dialog open={showProfileView} onOpenChange={setShowProfileView} aria-describedby={undefined}>
-        <DialogContent className="p-0 border-0 bg-transparent shadow-none max-w-[350px] w-full mx-auto">
-          <div className="flex items-center justify-center min-h-screen px-4">
-            {selectedProfileForView && (
-              <DiscoverProfileCard
-                profile={{
-                  id: selectedProfileForView.id,
-                  user_id: selectedProfileForView.user_id,
-                  first_name: selectedProfileForView.first_name,
-                  age: selectedProfileForView.age,
-                  city: selectedProfileForView.city || selectedProfileForView.location?.split(',')[0] || '',
-                  gender: selectedProfileForView.gender,
-                  ms_subtype: selectedProfileForView.ms_subtype,
-                  avatar_url: selectedProfileForView.avatar_url,
-                  about_me_preview: selectedProfileForView.about_me_preview || selectedProfileForView.about_me?.substring(0, 200),
-                  hobbies: selectedProfileForView.hobbies || [],
-                  additional_photos: selectedProfileForView.additional_photos || [],
-                  selected_prompts: selectedProfileForView.selected_prompts || [],
-                  extended_profile_completed: selectedProfileForView.extended_profile_completed,
-                  symptoms: selectedProfileForView.symptoms || []
-                }}
-                
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Unified Profile View - Consistent across all sections */}
+      <UnifiedProfileView
+        profile={selectedProfileForView ? {
+          id: selectedProfileForView.id,
+          user_id: selectedProfileForView.user_id,
+          first_name: selectedProfileForView.first_name,
+          last_name: selectedProfileForView.last_name,
+          age: selectedProfileForView.age,
+          city: selectedProfileForView.city || selectedProfileForView.location?.split(',')[0] || '',
+          gender: selectedProfileForView.gender,
+          ms_subtype: selectedProfileForView.ms_subtype,
+          avatar_url: selectedProfileForView.avatar_url,
+          about_me_preview: selectedProfileForView.about_me_preview,
+          about_me: selectedProfileForView.about_me,
+          hobbies: selectedProfileForView.hobbies || [],
+          additional_photos: selectedProfileForView.additional_photos || [],
+          selected_prompts: selectedProfileForView.selected_prompts || [],
+          extended_profile_completed: selectedProfileForView.extended_profile_completed,
+          symptoms: selectedProfileForView.symptoms || [],
+          medications: selectedProfileForView.medications || [],
+          location: selectedProfileForView.location,
+          date_of_birth: selectedProfileForView.date_of_birth,
+          last_seen: selectedProfileForView.last_seen
+        } : null}
+        open={showProfileView}
+        onOpenChange={setShowProfileView}
+        showActions={false}
+      />
       </div>
     </MobileKeyboardHandler>;
 };
