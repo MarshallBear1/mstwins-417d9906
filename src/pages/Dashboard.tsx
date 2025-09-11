@@ -215,7 +215,7 @@ const Dashboard = () => {
         if (discoverLoading && discoverProfiles.length === 0) {
           return isMobile ? <MobileDiscoverSkeleton /> : <DiscoverSkeletonGrid />;
         }
-        return <div className="pt-6">
+        return <div className="pt-2 md:pt-6">
             {/* Extended Profile Prompt */}
             {profile && !profile.extended_profile_completed && !extendedPromptDismissed && <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mx-4 mb-4">
                 <div className="flex items-start space-x-3">

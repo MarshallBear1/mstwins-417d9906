@@ -494,7 +494,7 @@ const ModernForumPage = () => {
       {viewMode === 'list' && (
         <div className="max-w-2xl mx-auto p-4 space-y-4">
           {/* Header - consistent with Messages and Connections */}
-          <div className="bg-white border-b border-gray-200 px-4 py-3">
+          <Card className="bg-white rounded-2xl shadow-sm border-0"><CardContent>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-600" />
