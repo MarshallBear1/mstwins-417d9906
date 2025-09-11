@@ -86,12 +86,13 @@ const MobileProfileCard = ({
       className={cn("flip-card", className)} 
       style={{ 
         ...style, 
-        height: '75vh', // 3/4 of viewport height
-        minHeight: '750px', // Minimum height for proper spacing
+        height: '65vh', // Slightly less than 3/4 viewport height
+        minHeight: '650px', // Reduced minimum height
         width: '340px', // Card width
         perspective: '1000px',
         position: 'relative'
       }}
+      data-swipeable="true"
       {...props}
     >
       <div className={cn("flip-card-inner", actualIsFlipped && "rotate-y-180")} style={{
@@ -107,8 +108,27 @@ const MobileProfileCard = ({
           display: 'block'
         }}>
           {/* Full gradient background covering entire front card */}
-          <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-20">
-            {/* Larger Profile Image with proper aspect ratio */}
+          <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-16">
+            
+            {/* Show More Button - centered at top */}
+            {hasExtendedContent && (
+              <div className="mb-6">
+                <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleFlipChange(!actualIsFlipped);
+                }}
+                className="bg-white/20 backdrop-blur-md rounded-full px-4 py-2 flex items-center gap-2 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                title="Show more details"
+              >
+                <Eye className="w-4 h-4" />
+                <span className="text-sm font-medium">Show More</span>
+              </button>
+              </div>
+            )}
+
+            {/* Larger Profile Image with proper aspect ratio - centered below show more */}
             <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-8">
               {profile.avatar_url ? (
                 <OptimizedAvatar
@@ -124,26 +144,7 @@ const MobileProfileCard = ({
                 </div>
               )}
             </button>
-            
-            {/* Show More Button - top left - smaller */}
-            {hasExtendedContent && (
-              <div className="absolute top-4 left-4">
-                <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleFlipChange(!actualIsFlipped);
-                }}
-                className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1.5 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
-                title="Show more details"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span className="text-xs font-medium">Show More</span>
-              </button>
-              </div>
-            )}
-
-            {/* Last Seen - top right - smaller */}
+            {/* Last Seen - top right */}
             <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/20">
               <div className="flex items-center gap-1.5">
                 <div className={`w-2.5 h-2.5 rounded-full ${isUserOnline(profile.user_id) ? 'bg-green-400 animate-pulse shadow-lg' : 'bg-gray-300'}`} />

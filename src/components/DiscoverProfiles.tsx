@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import { useHaptics } from "@/hooks/useHaptics";
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
+import { useDiscoverScrollPrevention } from "@/hooks/useDiscoverScrollPrevention";
 import MobilePullToRefresh from "@/components/mobile/MobilePullToRefresh";
 
 // Memoize the calculate age function to prevent recalculation
@@ -66,6 +67,9 @@ const DiscoverProfiles = memo(() => {
   
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
+  
+  // Prevent scrolling on discover page when card is not flipped
+  useDiscoverScrollPrevention({ isDiscoverTab: true, isCardFlipped });
   
   // Swipe gesture state
   const [isDragging, setIsDragging] = useState(false);
