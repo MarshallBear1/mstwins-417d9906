@@ -591,13 +591,117 @@ const DiscoverProfiles = memo(() => {
            </DropdownMenu>
        </div>
 
-       <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-0 md:pt-2">
+        <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-0 md:pt-2 isolate">
       {/* Profile Card Stack */}
       {currentProfile && (
-        <div className="relative w-full max-w-sm mx-auto">
+        <div className="relative w-full max-w-sm mx-auto isolate">
           {/* Card with swipe animation */}
           <div
             ref={cardRef}
+            className={`
+              relative w-full transition-all duration-300 ease-out
+              ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+              ${swipeDirection === 'right' ? 'border-2 border-green-400 shadow-lg shadow-green-400/25' : ''}
+              ${swipeDirection === 'left' ? 'border-2 border-red-400 shadow-lg shadow-red-400/25' : ''}
+            `}
+            style={{ 
+              transform: `translate(${dragOffset.x}px, ${dragOffset.y * 0.1}px) ${isDragging ? `rotate(${dragOffset.x * 0.1}deg)` : ''}`,
+              opacity: isDragging ? Math.max(0.7, 1 - Math.abs(dragOffset.x) / 300) : 1,
+              zIndex: 10
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
+            <DiscoverProfileCard
+              profile={currentProfile}
+              isFlipped={isCardFlipped}
+              onFlipChange={setIsCardFlipped}
+              onLike={() => handleLikeProfile(currentProfile.user_id)}
+              onPass={() => passProfile(currentProfile.user_id)}
+            />
+          </div>
+
+          {/* Next card preview - only show when not dragging and card is not flipped */}
+          {!isDragging && !isCardFlipped && filteredProfiles[currentIndex + 1] && (
+            <div className="absolute inset-0 -z-10 opacity-30 scale-95 transform translate-y-2">
+              <DiscoverProfileCard
+                profile={filteredProfiles[currentIndex + 1]}
+                onFlipChange={() => {}}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Profile Image Viewer */}
+      <ProfileImageViewer
+        images={selectedImages}
+        currentIndex={0}
+        isOpen={imageViewerOpen}
+        onClose={() => setImageViewerOpen(false)}
+      />
+      </div>
+    </>
+  );
+
+  return (
+    <div className="overflow-hidden">
+      {isMobile ? (
+        <MobilePullToRefresh onRefresh={handleRefresh} disabled={loading}>
+          {content}
+        </MobilePullToRefresh>
+      ) : (
+        content
+      )}
+    </div>
+  );
+});
+
+export default DiscoverProfiles;
+            className={`
+              relative w-full transition-all duration-300 ease-out
+              ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+              ${swipeDirection === 'right' ? 'border-2 border-green-400 shadow-lg shadow-green-400/25' : ''}
+              ${swipeDirection === 'left' ? 'border-2 border-red-400 shadow-lg shadow-red-400/25' : ''}
+            `}
+            style={{ 
+              transform: `translate(${dragOffset.x}px, ${dragOffset.y * 0.1}px) ${isDragging ? `rotate(${dragOffset.x * 0.1}deg)` : ''}`,
+              opacity: isDragging ? Math.max(0.7, 1 - Math.abs(dragOffset.x) / 300) : 1,
+              zIndex: 10
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
+            <DiscoverProfileCard
+              profile={currentProfile}
+              isFlipped={isCardFlipped}
+              onFlipChange={setIsCardFlipped}
+              onLike={() => handleLikeProfile(currentProfile.user_id)}
+              onPass={() => passProfile(currentProfile.user_id)}
+            />
+          </div>
+
+          {/* Next card preview - only show when not dragging and card is not flipped */}
+          {!isDragging && !isCardFlipped && filteredProfiles[currentIndex + 1] && (
+            <div className="absolute inset-0 -z-10 opacity-30 scale-95 transform translate-y-2">
+              <DiscoverProfileCard
+                profile={filteredProfiles[currentIndex + 1]}
+                onFlipChange={() => {}}
+              />
+            </div>
+          )}
+        </div>
+      )}
             className="relative touch-none select-none cursor-grab active:cursor-grabbing"
             style={{
               transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.1}deg)`,
@@ -612,24 +716,6 @@ const DiscoverProfiles = memo(() => {
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            {/* Swipe indicators */}
-            {isDragging && swipeDirection && (
-              <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-between px-8">
-                {swipeDirection === 'left' && (
-                  <div className="bg-red-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-2xl transform -rotate-12 border-4 border-white">
-                    <X className="w-6 h-6 mr-2 inline" />
-                    PASS
-                  </div>
-                )}
-                {swipeDirection === 'right' && (
-                  <div className="bg-blue-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-2xl transform rotate-12 border-4 border-white ml-auto">
-                    <HandHeart className="w-6 h-6 mr-2 inline" />
-                    CONNECT
-                  </div>
-                )}
-              </div>
-            )}
-            
             <DiscoverProfileCard 
               profile={currentProfile} 
               isFlipped={isCardFlipped}
@@ -638,19 +724,12 @@ const DiscoverProfiles = memo(() => {
               onPass={() => passProfile(currentProfile.user_id)}
             />
           </div>
-          
-          {/* Next card preview (slightly behind) */}
-          {filteredProfiles[currentIndex + 1] && (
-            <div 
-              className="absolute inset-0 -z-10"
-              style={{
-                transform: 'scale(0.95) translateY(10px)',
-                opacity: 0.5
-              }}
-            >
-              <DiscoverProfileCard 
-                profile={filteredProfiles[currentIndex + 1]} 
-                isFlipped={false}
+
+          {/* Next card preview - only show when not dragging and card is not flipped */}
+          {!isDragging && !isCardFlipped && filteredProfiles[currentIndex + 1] && (
+            <div className="absolute inset-0 -z-10 opacity-30 scale-95 transform translate-y-2">
+              <DiscoverProfileCard
+                profile={filteredProfiles[currentIndex + 1]}
                 onFlipChange={() => {}}
               />
             </div>

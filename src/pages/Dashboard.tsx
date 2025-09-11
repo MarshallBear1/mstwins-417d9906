@@ -370,18 +370,32 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Unified Profile View Dialog */}
-      <UnifiedProfileView
-        profile={selectedProfileForView}
-        open={showProfileView}
-        onOpenChange={(open) => {
-          setShowProfileView(open);
-          if (!open) {
-            setSelectedProfileForView(null);
-          }
-        }}
-        showActions={false}
-      />
+      {/* Profile View Dialog - using consistent DiscoverProfileCard */}
+      <Dialog open={showProfileView} onOpenChange={setShowProfileView} aria-describedby={undefined}>
+        <DialogContent className="p-0 border-0 bg-transparent shadow-none max-w-[350px] w-full">
+          {selectedProfileForView && (
+            <DiscoverProfileCard
+              profile={{
+                id: selectedProfileForView.id,
+                user_id: selectedProfileForView.user_id,
+                first_name: selectedProfileForView.first_name,
+                age: selectedProfileForView.age,
+                city: selectedProfileForView.city || selectedProfileForView.location?.split(',')[0] || '',
+                gender: selectedProfileForView.gender,
+                ms_subtype: selectedProfileForView.ms_subtype,
+                avatar_url: selectedProfileForView.avatar_url,
+                about_me_preview: selectedProfileForView.about_me_preview || selectedProfileForView.about_me?.substring(0, 200),
+                hobbies: selectedProfileForView.hobbies || [],
+                additional_photos: selectedProfileForView.additional_photos || [],
+                selected_prompts: selectedProfileForView.selected_prompts || [],
+                extended_profile_completed: selectedProfileForView.extended_profile_completed,
+                symptoms: selectedProfileForView.symptoms || []
+              }}
+              onFlipChange={() => {}}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
       </div>
     </MobileKeyboardHandler>;
 };

@@ -899,10 +899,13 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
       ) : (
         /* Modern Match List - Instagram Style */
         <div className="h-full bg-white">
-          {/* Header */}
+          {/* Messages */}
           <div className="p-6 border-b border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Messages</h2>
-            <p className="text-gray-600">Your conversations with matches</p>
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
+            </div>
+            <p className="text-gray-600 text-sm">Your conversations with matches</p>
           </div>
 
           {loading ? (

@@ -493,9 +493,12 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
           {/* Header */}
           <div className="bg-white border-b border-gray-200 px-4 py-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
+              <div>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
+                </div>
+                <p className="text-gray-600 text-sm">Your conversations with matches</p>
               </div>
               <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
                 <MoreHorizontal className="w-5 h-5" />
