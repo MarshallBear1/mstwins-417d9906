@@ -81,14 +81,20 @@ const MobileProfileCard = ({
     profile.ms_subtype
   );
 
+  const hasInterests = Boolean(profile.hobbies && profile.hobbies.length > 0);
+  
+  // Adjust card height based on content
+  const cardHeight = hasInterests ? '62vh' : '55vh';
+  const cardMinHeight = hasInterests ? '620px' : '540px';
+
   return (
     <div 
       className={cn("flip-card", className)} 
       style={{ 
         ...style, 
-        height: '65vh', // Slightly less than 3/4 viewport height
-        minHeight: '650px', // Reduced minimum height
-        width: '340px', // Card width
+        height: cardHeight, // Dynamic height based on content
+        minHeight: cardMinHeight, // Dynamic minimum height
+        width: '320px', // Slightly smaller card width
         perspective: '1000px',
         position: 'relative'
       }}
@@ -128,8 +134,8 @@ const MobileProfileCard = ({
               </div>
             )}
 
-            {/* Larger Profile Image with proper aspect ratio */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-6">
+            {/* Profile Image with proper aspect ratio */}
+            <button onClick={() => onImageClick?.(0)} className="relative w-32 h-40 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-3">
               {profile.avatar_url ? (
                 <OptimizedAvatar
                   src={profile.avatar_url}
@@ -158,7 +164,7 @@ const MobileProfileCard = ({
             </div>
 
             {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned closer to pic */}
-            <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-4 mt-2 mb-16">
+            <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-3 mt-0 mb-16">
               {/* Name and basic info */}
               <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
