@@ -246,69 +246,7 @@ const DiscoverProfiles = memo(() => {
     await fetchProfiles();
   }, [fetchProfiles]);
 
-  // Show loading state
-  if (loading && profiles.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="text-gray-600">Finding amazing people for you...</p>
-      </div>
-    );
-  }
-
-  // Show empty state with detailed information
-  if (profiles.length === 0 || currentIndex >= profiles.length) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <div className="text-center">
-          <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            You've seen everyone!
-          </h3>
-          <p className="text-gray-600 mb-4">
-            You've viewed all available profiles. Check back later for new members, or try adjusting your preferences.
-          </p>
-          
-          {/* Show activity summary */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-sm">
-            <h4 className="font-medium text-blue-900 mb-2">Your Activity:</h4>
-            <p className="text-blue-700">You've interacted with most profiles in our community!</p>
-            <p className="text-blue-600 text-xs mt-1">New profiles appear as people join MStwins.</p>
-          </div>
-          
-          <div className="flex space-x-3">
-            <Button onClick={fetchProfiles} variant="outline" className="text-primary border-primary">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-            <Button 
-              onClick={() => {
-                // Reset passes for this user (admin function)
-                if (window.confirm('Reset your pass history? This will show profiles you previously passed on.')) {
-                  supabase
-                    .from('passes')
-                    .delete()
-                    .eq('passer_id', user?.id)
-                    .then(() => {
-                      toast({
-                        title: "Pass history cleared",
-                        description: "You can now see profiles you previously passed on."
-                      });
-                      fetchProfiles();
-                    });
-                }
-              }}
-              className="bg-gradient-primary text-white"
-            >
-              See Skipped Profiles
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Swipe gesture handlers
+  // Swipe gesture handlers - MUST be declared before any early returns
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (actionCooldown) return;
     
@@ -406,6 +344,68 @@ const DiscoverProfiles = memo(() => {
     setDragOffset({ x: 0, y: 0 });
     setSwipeDirection(null);
   }, [isDragging, actionCooldown, currentProfile, dragOffset.x, handleLikeProfile, passProfile]);
+
+  // Show loading state
+  if (loading && profiles.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="text-gray-600">Finding amazing people for you...</p>
+      </div>
+    );
+  }
+
+  // Show empty state with detailed information
+  if (profiles.length === 0 || currentIndex >= profiles.length) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="text-center">
+          <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            You've seen everyone!
+          </h3>
+          <p className="text-gray-600 mb-4">
+            You've viewed all available profiles. Check back later for new members, or try adjusting your preferences.
+          </p>
+          
+          {/* Show activity summary */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-sm">
+            <h4 className="font-medium text-blue-900 mb-2">Your Activity:</h4>
+            <p className="text-blue-700">You've interacted with most profiles in our community!</p>
+            <p className="text-blue-600 text-xs mt-1">New profiles appear as people join MStwins.</p>
+          </div>
+          
+          <div className="flex space-x-3">
+            <Button onClick={fetchProfiles} variant="outline" className="text-primary border-primary">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+            <Button 
+              onClick={() => {
+                // Reset passes for this user (admin function)
+                if (window.confirm('Reset your pass history? This will show profiles you previously passed on.')) {
+                  supabase
+                    .from('passes')
+                    .delete()
+                    .eq('passer_id', user?.id)
+                    .then(() => {
+                      toast({
+                        title: "Pass history cleared",
+                        description: "You can now see profiles you previously passed on."
+                      });
+                      fetchProfiles();
+                    });
+                }
+              }}
+              className="bg-gradient-primary text-white"
+            >
+              See Skipped Profiles
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const content = (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 relative">
