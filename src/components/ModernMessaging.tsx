@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
+import UnifiedProfileView from "@/components/UnifiedProfileView";
 
 interface Message {
   id: string;
@@ -65,6 +66,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showProfileView, setShowProfileView] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -350,7 +352,12 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-2 hover:bg-gray-100 rounded-full"
+                onClick={() => setShowProfileView(true)}
+              >
                 <Phone className="w-5 h-5" />
               </Button>
               <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
@@ -584,6 +591,30 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             )}
           </ScrollArea>
         </div>
+      )}
+
+      {/* Unified Profile View */}
+      {selectedMatch && (
+        <UnifiedProfileView
+          profile={{
+            id: selectedMatch.other_user.id,
+            user_id: selectedMatch.other_user.user_id,
+            first_name: selectedMatch.other_user.first_name,
+            last_name: selectedMatch.other_user.last_name,
+            city: selectedMatch.other_user.location?.split(',')[0] || '',
+            location: selectedMatch.other_user.location,
+            gender: selectedMatch.other_user.ms_subtype, // This might need adjustment
+            ms_subtype: selectedMatch.other_user.ms_subtype,
+            avatar_url: selectedMatch.other_user.avatar_url,
+            hobbies: [],
+            additional_photos: [],
+            selected_prompts: [],
+            last_seen: selectedMatch.other_user.last_seen
+          }}
+          open={showProfileView}
+          onOpenChange={setShowProfileView}
+          showActions={false}
+        />
       )}
     </div>
   );

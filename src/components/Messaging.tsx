@@ -14,6 +14,7 @@ import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { analytics } from "@/lib/analytics";
 import { sanitizeInput, checkRateLimit, sanitizeErrorMessage, filterContent } from "@/lib/security";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
+import UnifiedProfileView from "@/components/UnifiedProfileView";
 
 interface Message {
   id: string;
@@ -738,7 +739,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                 <User className="w-5 h-5" />
               </Button>
 
-              <ProfileViewDialog 
+              <UnifiedProfileView 
                 profile={{
                   id: selectedMatch.other_user.id || selectedMatch.other_user.user_id || '',
                   user_id: selectedMatch.other_user.user_id || selectedMatch.other_user.id || '',
@@ -746,9 +747,9 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                   last_name: selectedMatch.other_user.last_name,
                   date_of_birth: selectedMatch.other_user.date_of_birth || null,
                   location: selectedMatch.other_user.location || '',
+                  city: selectedMatch.other_user.location?.split(',')[0] || '',
                   gender: selectedMatch.other_user.gender || null,
                   ms_subtype: selectedMatch.other_user.ms_subtype || null,
-                  diagnosis_year: selectedMatch.other_user.diagnosis_year || null,
                   symptoms: selectedMatch.other_user.symptoms || [],
                   medications: selectedMatch.other_user.medications || [],
                   hobbies: selectedMatch.other_user.hobbies || [],
@@ -761,6 +762,7 @@ const Messaging = ({ matchId, onBack }: MessagingProps) => {
                 }}
                 open={showProfileView}
                 onOpenChange={setShowProfileView}
+                showActions={false}
               />
 
               <AlertDialog>

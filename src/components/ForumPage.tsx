@@ -15,6 +15,7 @@ import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
+import UnifiedProfileView from "@/components/UnifiedProfileView";
 import { formatDistanceToNow } from "date-fns";
 
 interface ForumPost {
@@ -1450,10 +1451,28 @@ const ForumPage = () => {
         )}
       </div>
 
-      {/* Profile View Dialog */}
+      {/* Unified Profile View Dialog */}
       {selectedProfile && (
-        <ProfileViewDialog
-          profile={selectedProfile}
+        <UnifiedProfileView
+          profile={{
+            id: selectedProfile.id || selectedProfile.user_id,
+            user_id: selectedProfile.user_id || selectedProfile.id,
+            first_name: selectedProfile.first_name,
+            last_name: selectedProfile.last_name,
+            city: selectedProfile.location?.split(',')[0] || '',
+            location: selectedProfile.location,
+            gender: selectedProfile.gender,
+            ms_subtype: selectedProfile.ms_subtype,
+            avatar_url: selectedProfile.avatar_url,
+            about_me: selectedProfile.about_me,
+            hobbies: selectedProfile.hobbies || [],
+            additional_photos: selectedProfile.additional_photos || [],
+            selected_prompts: selectedProfile.selected_prompts || [],
+            last_seen: selectedProfile.last_seen,
+            symptoms: selectedProfile.symptoms || [],
+            medications: selectedProfile.medications || [],
+            date_of_birth: selectedProfile.date_of_birth
+          }}
           open={showProfileView}
           onOpenChange={(open) => {
             setShowProfileView(open);
@@ -1462,7 +1481,7 @@ const ForumPage = () => {
             }
           }}
           showActions={true}
-           onLike={() => likeProfile(selectedProfile.user_id)}
+          onLike={() => likeProfile(selectedProfile.user_id)}
         />
       )}
       

@@ -18,6 +18,7 @@ import ProfileCard from "@/components/ProfileCard";
 
 
 import DiscoverProfileCard from "@/components/DiscoverProfileCard";
+import UnifiedProfileView from "@/components/UnifiedProfileView";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
@@ -320,20 +321,20 @@ const Dashboard = () => {
             </span>
           </div>
           
-          {/* Right side - Clean action buttons with better mobile spacing */}
-          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+          {/* Right side - Enhanced action buttons with bigger, more distinct icons */}
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
             <ModernNotificationSystem />
             <Button
               variant="ghost"
-              size="sm"
+              size="lg"
               onClick={() => navigate('/dashboard?tab=profile')}
-              className={`p-2 transition-colors ${
+              className={`p-3 transition-all duration-200 rounded-full hover:scale-105 ${
                 activeTab === 'profile' 
-                  ? 'text-blue-600 bg-blue-50' 
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                  ? 'text-blue-600 bg-blue-100 shadow-md' 
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50 hover:shadow-sm'
               }`}
             >
-              <User className="w-5 h-5" />
+              <User className="w-6 h-6" />
             </Button>
           </div>
         </div>
@@ -369,23 +370,18 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Profile View Dialog */}
-      <Dialog open={showProfileView} onOpenChange={(open) => {
-        setShowProfileView(open);
-        if (!open) {
-          setSelectedProfileForView(null);
-        }
-      }}>
-        <DialogContent className="p-0 max-w-[90vw] w-full max-h-[90vh] overflow-hidden sm:max-w-md border-0 bg-transparent shadow-none">
-          {selectedProfileForView && (
-            <div className="h-full w-full flex items-center justify-center">
-              <div className="w-full max-w-sm">
-                <DiscoverProfileCard profile={selectedProfileForView} />
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Unified Profile View Dialog */}
+      <UnifiedProfileView
+        profile={selectedProfileForView}
+        open={showProfileView}
+        onOpenChange={(open) => {
+          setShowProfileView(open);
+          if (!open) {
+            setSelectedProfileForView(null);
+          }
+        }}
+        showActions={false}
+      />
       </div>
     </MobileKeyboardHandler>;
 };

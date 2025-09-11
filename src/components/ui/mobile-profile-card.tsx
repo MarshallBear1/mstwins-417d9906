@@ -363,18 +363,15 @@ const MobileProfileCard = ({
                 </div>
               )}
 
-              {/* Prompts */}
+              {/* Prompts - no title, better styling */}
               {profile.selected_prompts && profile.selected_prompts.length > 0 && (
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-3 text-base">About Me Prompts</h4>
-                  <div className="space-y-3">
-                    {profile.selected_prompts.map((prompt, index) => (
-                      <div key={index} className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-sm font-semibold text-gray-700 mb-2">{prompt.question}</p>
-                        <p className="text-base text-gray-900">{prompt.answer}</p>
-                      </div>
-                    ))}
-                  </div>
+                <div className="space-y-4">
+                  {profile.selected_prompts.map((prompt, index) => (
+                    <div key={index} className="bg-gray-100 rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                      <p className="text-sm font-semibold text-gray-700 mb-3 leading-tight">{prompt.question}</p>
+                      <p className="text-base text-gray-900 leading-relaxed">{prompt.answer}</p>
+                    </div>
+                  ))}
                 </div>
               )}
 
