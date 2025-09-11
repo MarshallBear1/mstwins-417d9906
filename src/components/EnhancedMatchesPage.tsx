@@ -247,7 +247,7 @@ const EnhancedMatchesPage = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Who Liked You</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Who Connected with You</h2>
             {refreshing && (
               <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />
             )}

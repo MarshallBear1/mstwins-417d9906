@@ -199,7 +199,7 @@ const MatchesPage = ({
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Who Liked You</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Who Connected with You</h2>
         </div>
       </div>
 

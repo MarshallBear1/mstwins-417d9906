@@ -280,8 +280,8 @@ const ModernNotificationSystem = () => {
             )}
           </Button>
         </DialogTrigger>
-        <DialogContent className={`${isMobile ? 'max-w-[95vw]' : 'max-w-md'} max-h-[80vh] p-0`}>
-          <DialogHeader className="p-4 pb-2">
+        <DialogContent className={`${isMobile ? 'max-w-[95vw]' : 'max-w-md'} max-h-[80vh] p-0 flex flex-col`}>
+          <DialogHeader className="p-4 pb-2 flex-shrink-0">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-lg font-semibold">Notifications</DialogTitle>
               {unreadCount > 0 && (
@@ -297,7 +297,7 @@ const ModernNotificationSystem = () => {
             </div>
           </DialogHeader>
           
-          <ScrollArea className="flex-1 px-4 pb-4">
+          <ScrollArea className="flex-1 overflow-y-auto px-4 pb-4" style={{ maxHeight: 'calc(80vh - 80px)' }}>
             {notifications.length === 0 ? (
               <div className="text-center py-8">
                 <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -311,23 +311,31 @@ const ModernNotificationSystem = () => {
                 {notifications.map((notification) => (
                   <Card 
                     key={notification.id}
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-md border ${
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] border ${
                       !notification.is_read 
                         ? getNotificationColor(notification.type)
                         : 'bg-white border-gray-100'
-                    }`}
-                    onClick={() => {
+                    } ios-bounce`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Notification clicked:', notification.type);
+                      
                       if (!notification.is_read) {
                         markAsRead(notification.id);
                       }
+                      
+                      // Close notifications first
+                      setShowNotifications(false);
+                      
                       // Handle navigation based on notification type
-                      if (notification.type === 'message') {
-                        setShowNotifications(false);
-                        window.location.href = '/dashboard?tab=messages';
-                      } else if (notification.type === 'match' || notification.type === 'connection') {
-                        setShowNotifications(false);
-                        window.location.href = '/dashboard?tab=likes';
-                      }
+                      setTimeout(() => {
+                        if (notification.type === 'message') {
+                          window.location.href = '/dashboard?tab=messages';
+                        } else if (notification.type === 'match' || notification.type === 'connection' || notification.type === 'like') {
+                          window.location.href = '/dashboard?tab=likes';
+                        }
+                      }, 100);
                     }}
                   >
                     <CardContent className="p-3">

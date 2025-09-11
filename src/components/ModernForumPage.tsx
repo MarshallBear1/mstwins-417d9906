@@ -493,19 +493,13 @@ const ModernForumPage = () => {
       {/* Main Forum List View */}
       {viewMode === 'list' && (
         <div className="max-w-2xl mx-auto p-4 space-y-4">
-          {/* Modern Header */}
-          <Card className="bg-white rounded-2xl shadow-sm border-0">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <Users className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-xl font-bold text-gray-900">Community Forum</h1>
-                    <p className="text-sm text-gray-500">{posts.length} active discussions</p>
-                  </div>
-                </div>
+          {/* Header - consistent with Messages and Connections */}
+          <div className="bg-white border-b border-gray-200 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Community Forum</h2>
+              </div>
                 <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
                   <DialogTrigger asChild>
                     <Button className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:opacity-90 shadow-lg rounded-full px-6 ios-bounce">

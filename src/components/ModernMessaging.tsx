@@ -446,8 +446,13 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             </div>
           </ScrollArea>
 
-          {/* Message Input */}
-          <div className="bg-white border-t border-gray-200 p-4">
+          {/* Message Input - positioned above bottom nav */}
+          <div 
+            className="bg-white border-t border-gray-200 p-4 relative z-50"
+            style={{
+              marginBottom: isMobile ? `max(5rem, ${safeAreaInsets.bottom + 80}px)` : '0rem'
+            }}
+          >
             <div className="flex items-end gap-3">
               <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0">
                 <Paperclip className="w-5 h-5 text-gray-500" />
@@ -486,25 +491,15 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
         // Conversations List
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="bg-white border-b border-gray-200 p-4" style={{
-            paddingTop: isMobile ? `max(1rem, ${safeAreaInsets.top}px)` : '1rem'
-          }}>
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
+          <div className="bg-white border-b border-gray-200 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
+              </div>
               <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
                 <MoreHorizontal className="w-5 h-5" />
               </Button>
-            </div>
-            
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Search conversations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 rounded-full border-gray-200 bg-gray-50 focus:bg-white transition-colors"
-              />
             </div>
           </div>
 
