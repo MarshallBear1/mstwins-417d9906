@@ -27,16 +27,19 @@ const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom }: MobileP
 
   return (
     <div 
-      className="!fixed !bottom-0 !left-0 !right-0 !z-[9999] bg-white/98 backdrop-blur-xl border-t border-gray-200 shadow-[0_-2px_20px_rgba(0,0,0,0.15)] supports-[backdrop-filter]:bg-white/95"
+      className="!fixed !bottom-0 !left-0 !right-0 !z-[99999] bg-white/98 backdrop-blur-xl border-t border-gray-200 shadow-[0_-2px_20px_rgba(0,0,0,0.15)] supports-[backdrop-filter]:bg-white/95"
       style={{ 
-        paddingBottom: Math.max(safeAreaBottom, 12),
-        zIndex: 9999,
+        position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
+        zIndex: 99999,
+        paddingBottom: Math.max(safeAreaBottom, 12),
         width: '100vw',
         transform: 'translateZ(0)',
-        willChange: 'transform'
+        willChange: 'transform',
+        WebkitTransform: 'translateZ(0)',
+        contain: 'layout style paint'
       }}
     >
       <div className="flex items-center justify-around px-2 py-2">
