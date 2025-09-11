@@ -66,7 +66,7 @@ const DiscoverProfiles = memo(() => {
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const { likeProfile, loading: likeLoading } = useSimpleLikes();
   
-  // Filter states
+  // Filter states - declare all hooks first
   const [selectedMSSubtype, setSelectedMSSubtype] = useState<string | null>(null);
   const [selectedGender, setSelectedGender] = useState<string | null>(null);  
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
@@ -74,7 +74,7 @@ const DiscoverProfiles = memo(() => {
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
   
-  // Prevent scrolling on discover page when card is not flipped
+  // Prevent scrolling on discover page when card is not flipped - declare all hooks first
   useDiscoverScrollPrevention({ isDiscoverTab: true, isCardFlipped });
   
   // Swipe gesture state
