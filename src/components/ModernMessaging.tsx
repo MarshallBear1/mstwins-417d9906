@@ -501,8 +501,8 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             </div>
           </div>
 
-          {/* Conversations */}
-          <ScrollArea className="flex-1">
+          {/* Conversations - using same card layout as connections */}
+          <ScrollArea className="flex-1 p-4">
             {filteredMatches.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -514,7 +514,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                 </p>
               </div>
             ) : (
-              <div className="p-4 space-y-3 sm:space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {filteredMatches.map((match) => (
                   <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedMatch(match)}>
                     <CardContent className="p-3 sm:p-4">
@@ -527,7 +527,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                             </AvatarFallback>
                           </Avatar>
                           {isUserOnline(match.other_user.user_id) && (
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-3 border-white rounded-full shadow-lg"></div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-3 border-white rounded-full shadow-lg animate-pulse"></div>
                           )}
                         </div>
                         

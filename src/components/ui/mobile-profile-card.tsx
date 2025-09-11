@@ -157,8 +157,8 @@ const MobileProfileCard = ({
               </div>
             </div>
 
-            {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned with more space */}
-            <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-4 mt-4 mb-16">
+            {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned closer to pic */}
+            <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-4 mt-2 mb-16">
               {/* Name and basic info */}
               <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
