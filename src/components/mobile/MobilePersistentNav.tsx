@@ -1,4 +1,4 @@
-import { Heart, Users, MessageCircle, User, Grid3X3 } from 'lucide-react';
+import { Heart, Users, MessageCircle, MessagesSquare } from 'lucide-react';
 import { useHaptics } from '@/hooks/useHaptics';
 import { cn } from '@/lib/utils';
 
@@ -15,8 +15,7 @@ const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom }: MobileP
     { id: 'discover', label: 'Discover', icon: Heart },
     { id: 'likes', label: 'Matches', icon: Users },
     { id: 'messages', label: 'Messages', icon: MessageCircle },
-    { id: 'forum', label: 'Forum', icon: Grid3X3 },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'forum', label: 'Forum', icon: MessagesSquare },
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -45,7 +44,7 @@ const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom }: MobileP
               key={item.id}
               onClick={() => handleTabClick(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-0 flex-1",
+                "flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 min-w-0 flex-1",
                 isActive 
                   ? "bg-primary/10 text-primary scale-105" 
                   : "text-gray-600 hover:text-primary hover:bg-primary/5 active:scale-95"
@@ -53,10 +52,10 @@ const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom }: MobileP
             >
               <Icon className={cn(
                 "transition-all duration-200",
-                isActive ? "w-6 h-6" : "w-5 h-5"
+                isActive ? "w-7 h-7" : "w-6 h-6"
               )} />
               <span className={cn(
-                "text-xs font-medium mt-1 transition-all duration-200",
+                "text-sm font-medium mt-1 transition-all duration-200",
                 isActive ? "opacity-100" : "opacity-70"
               )}>
                 {item.label}
