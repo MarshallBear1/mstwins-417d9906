@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { MapPin, User, Heart, X, Eye, HandHeart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
-
+import { supabase } from "@/integrations/supabase/client";
 interface Profile {
   id: string;
   user_id: string;
@@ -55,6 +55,9 @@ const MobileProfileCard = ({
   const [showAllAbout, setShowAllAbout] = useState(false);
   const [showAllHobbies, setShowAllHobbies] = useState(false);
   const [showAllSymptoms, setShowAllSymptoms] = useState(false);
+  const [fullAbout, setFullAbout] = useState<string | null>(null);
+  const [hasLoadedFullAbout, setHasLoadedFullAbout] = useState(false);
+  const [isLoadingAbout, setIsLoadingAbout] = useState(false);
   
   // Use external flip state if provided, otherwise use internal state
   const actualIsFlipped = propIsFlipped !== undefined ? propIsFlipped : isFlipped;
@@ -71,6 +74,23 @@ const MobileProfileCard = ({
   const isUserOnline = propIsUserOnline || hookIsUserOnline;
   const getLastSeenText = propGetLastSeenText || hookGetLastSeenText;
 
+  // Load full about_me lazily when flipping to back side
+  useEffect(() => {
+    if (actualIsFlipped && !hasLoadedFullAbout) {
+      supabase
+        .from('profiles')
+        .select('about_me')
+        .eq('user_id', profile.user_id)
+        .single()
+        .then(({ data, error }) => {
+          if (!error && data?.about_me) {
+            setFullAbout(data.about_me as string);
+          }
+          setHasLoadedFullAbout(true);
+        });
+    }
+  }, [actualIsFlipped, hasLoadedFullAbout, profile.user_id]);
+
   const calculateAge = (age: number | null) => {
     return age;
   };
@@ -86,8 +106,8 @@ const MobileProfileCard = ({
   const hasInterests = Boolean(profile.hobbies && profile.hobbies.length > 0);
   
   // Adjust card height based on content
-  const cardHeight = hasInterests ? '62vh' : '55vh';
-  const cardMinHeight = hasInterests ? '620px' : '540px';
+  const cardHeight = hasInterests ? '60vh' : '52vh';
+  const cardMinHeight = hasInterests ? '600px' : '500px';
 
   return (
     <div 
@@ -96,7 +116,7 @@ const MobileProfileCard = ({
         ...style, 
         height: cardHeight, // Dynamic height based on content
         minHeight: cardMinHeight, // Dynamic minimum height
-        width: '320px', // Slightly smaller card width
+        width: '300px', // Slightly smaller card width
         perspective: '1000px',
         position: 'relative'
       }}
@@ -137,7 +157,7 @@ const MobileProfileCard = ({
             )}
 
             {/* Profile Image with proper aspect ratio */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-32 h-40 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-3">
+            <button onClick={() => onImageClick?.(0)} className="relative w-28 h-36 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-2">
               {profile.avatar_url ? (
                 <OptimizedAvatar
                   src={profile.avatar_url}
@@ -168,7 +188,7 @@ const MobileProfileCard = ({
             {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned closer to pic */}
             <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-3 mt-0 mb-16">
               {/* Name and basic info */}
-              <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
+              <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 mt-1">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
                   <h3 className="text-2xl font-bold text-white">{profile.first_name}</h3>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -180,17 +200,13 @@ const MobileProfileCard = ({
                     )}
                   </div>
                 </div>
-                
                 <div className="space-y-2">
-                  {/* Location */}
                   {profile.city && (
                     <div className="flex items-center gap-2 text-white/90">
                       <MapPin className="w-4 h-4 flex-shrink-0" />
                       <span className="text-sm font-medium">{profile.city}</span>
                     </div>
                   )}
-                  
-                  {/* MS Subtype */}
                   {profile.ms_subtype && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-white/90">MS Subtype:</span>
@@ -301,7 +317,7 @@ const MobileProfileCard = ({
               
               {/* Pass/Connect Action Buttons - also on back side */}
               {(onPass || onLike) && (
-                <div className="absolute bottom-4 left-4 right-4 flex gap-3">
+                <div className="absolute bottom-4 left-4 right-4 flex gap-3 pointer-events-auto">
                   {onPass && (
                     <Button
                       onClick={onPass}
@@ -330,15 +346,18 @@ const MobileProfileCard = ({
               </div>
             </div>
 
-            <CardContent className="p-6 space-y-5 overflow-y-auto" style={{ maxHeight: 'calc(100% - 12rem)' }}>
+            <CardContent className="p-6 space-y-5 overflow-y-auto pb-24" style={{ maxHeight: 'calc(100% - 12rem)' }}>
               {/* About Me section - moved from front */}
-              {profile.about_me_preview && (
+              {(profile.about_me_preview || fullAbout) && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
                   <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
-                    {profile.about_me_preview}
+                    {showAllAbout ? (fullAbout ?? profile.about_me_preview) : profile.about_me_preview}
                   </div>
-                  {profile.about_me_preview.length > 100 && (
+                  {(
+                    (profile.about_me_preview && profile.about_me_preview.length > 100) ||
+                    (fullAbout && (profile.about_me_preview ? fullAbout.length > profile.about_me_preview.length : fullAbout.length > 100))
+                  ) && (
                     <button
                       onClick={() => setShowAllAbout(!showAllAbout)}
                       className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200"
