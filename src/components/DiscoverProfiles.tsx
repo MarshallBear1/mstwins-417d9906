@@ -412,7 +412,7 @@ const DiscoverProfiles = memo(() => {
   }
 
   const content = (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 relative">
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 relative overflow-hidden">
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
@@ -435,14 +435,16 @@ const DiscoverProfiles = memo(() => {
           >
             {/* Swipe indicators */}
             {isDragging && swipeDirection && (
-              <div className="absolute inset-0 z-20 pointer-events-none">
+              <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-between px-8">
                 {swipeDirection === 'right' && (
-                  <div className="absolute top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg transform rotate-12">
-                    SAY HI!
+                  <div className="bg-blue-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-2xl transform rotate-12 border-4 border-white">
+                    <HandHeart className="w-6 h-6 mr-2 inline" />
+                    CONNECT
                   </div>
                 )}
                 {swipeDirection === 'left' && (
-                  <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg transform -rotate-12">
+                  <div className="bg-red-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-2xl transform -rotate-12 border-4 border-white ml-auto">
+                    <X className="w-6 h-6 mr-2 inline" />
                     PASS
                   </div>
                 )}
@@ -475,14 +477,14 @@ const DiscoverProfiles = memo(() => {
         </div>
       )}
 
-      {/* Modern Action Buttons */}
+      {/* Modern Action Buttons - Fixed at bottom */}
       {currentProfile && (
-        <div className="flex justify-center items-center gap-6 mt-8">
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex justify-center items-center gap-6">
           <Button
             onClick={() => passProfile(currentProfile.user_id)}
             size="lg"
             variant="outline"
-            className="w-16 h-16 rounded-full border-2 border-gray-300 hover:border-red-400 hover:bg-red-50 transition-all duration-200 group"
+            className="w-16 h-16 rounded-full border-2 border-gray-300 hover:border-red-400 hover:bg-red-50 bg-white/90 backdrop-blur-sm transition-all duration-200 group shadow-lg"
             disabled={actionCooldown}
           >
             <X className="w-6 h-6 text-gray-600 group-hover:text-red-500 transition-colors" />

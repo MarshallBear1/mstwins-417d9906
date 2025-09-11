@@ -110,26 +110,26 @@ const MobileProfileCard = ({
           {/* Full gradient background covering entire front card */}
           <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-16">
             
-            {/* Show More Button - centered at top */}
+            {/* Show More Button - back to top left */}
             {hasExtendedContent && (
-              <div className="mb-6">
+              <div className="absolute top-4 left-4">
                 <button 
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   handleFlipChange(!actualIsFlipped);
                 }}
-                className="bg-white/20 backdrop-blur-md rounded-full px-4 py-2 flex items-center gap-2 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1.5 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
                 title="Show more details"
               >
-                <Eye className="w-4 h-4" />
-                <span className="text-sm font-medium">Show More</span>
+                <Eye className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium">Show More</span>
               </button>
               </div>
             )}
 
-            {/* Larger Profile Image with proper aspect ratio - centered below show more */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-8">
+            {/* Larger Profile Image with proper aspect ratio */}
+            <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-6">
               {profile.avatar_url ? (
                 <OptimizedAvatar
                   src={profile.avatar_url}
@@ -158,7 +158,7 @@ const MobileProfileCard = ({
             </div>
 
             {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned with more space */}
-            <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-4 mt-6 mb-20">
+            <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-4 mt-4 mb-16">
               {/* Name and basic info */}
               <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
@@ -198,12 +198,28 @@ const MobileProfileCard = ({
               {profile.hobbies && profile.hobbies.length > 0 && (
                 <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
                   <div className="text-base font-semibold text-white mb-3">Interests:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 4)).map((hobby, index) => (
-                      <Badge key={index} variant="secondary" className="text-sm px-3 py-1.5 bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors">
-                        {hobby}
-                      </Badge>
-                    ))}
+                   <div className="flex flex-wrap gap-2">
+                     {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 4)).map((hobby, index) => {
+                       const colors = [
+                         'bg-pink-400/80 border-pink-300/50 text-white',
+                         'bg-purple-400/80 border-purple-300/50 text-white', 
+                         'bg-indigo-400/80 border-indigo-300/50 text-white',
+                         'bg-blue-400/80 border-blue-300/50 text-white',
+                         'bg-green-400/80 border-green-300/50 text-white',
+                         'bg-yellow-400/80 border-yellow-300/50 text-white',
+                         'bg-orange-400/80 border-orange-300/50 text-white',
+                         'bg-red-400/80 border-red-300/50 text-white'
+                       ];
+                       return (
+                         <Badge 
+                           key={index} 
+                           variant="secondary" 
+                           className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
+                         >
+                           {hobby}
+                         </Badge>
+                       );
+                     })}
                     {profile.hobbies.length > 4 && (
                       <button
                         onClick={() => setShowAllHobbies(!showAllHobbies)}
