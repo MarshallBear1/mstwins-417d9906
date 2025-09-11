@@ -235,14 +235,14 @@ const MobileProfileCard = ({
               )}
             </div>
 
-            {/* Pass/Connect Action Buttons - at the very bottom */}
+            {/* Pass/Connect Action Buttons - at the very bottom inside card */}
             {(onPass || onLike) && (
               <div className="absolute bottom-4 left-4 right-4 flex gap-3">
                 {onPass && (
                   <Button
                     onClick={onPass}
                     variant="outline"
-                    className="flex-1 h-11 bg-white/90 backdrop-blur-sm border-white/50 hover:bg-white text-gray-700 font-semibold rounded-xl transition-all duration-200 shadow-lg"
+                    className="flex-1 h-12 bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:bg-white hover:border-red-400 text-gray-700 hover:text-red-500 font-semibold rounded-xl transition-all duration-200 shadow-lg"
                   >
                     <X className="w-5 h-5 mr-2" />
                     Pass
@@ -251,7 +251,7 @@ const MobileProfileCard = ({
                 {onLike && (
                   <Button
                     onClick={onLike}
-                    className="flex-1 h-11 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                    className="flex-1 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
                   >
                     <HandHeart className="w-5 h-5 mr-2" />
                     Connect
@@ -298,7 +298,7 @@ const MobileProfileCard = ({
                     <Button
                       onClick={onPass}
                       variant="outline"
-                      className="flex-1 h-11 bg-white/90 backdrop-blur-sm border-white/50 hover:bg-white text-gray-700 font-semibold rounded-xl transition-all duration-200 shadow-lg"
+                      className="flex-1 h-12 bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:bg-white hover:border-red-400 text-gray-700 hover:text-red-500 font-semibold rounded-xl transition-all duration-200 shadow-lg"
                     >
                       <X className="w-5 h-5 mr-2" />
                       Pass
@@ -307,7 +307,7 @@ const MobileProfileCard = ({
                   {onLike && (
                     <Button
                       onClick={onLike}
-                      className="flex-1 h-11 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                      className="flex-1 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
                     >
                       <HandHeart className="w-5 h-5 mr-2" />
                       Connect

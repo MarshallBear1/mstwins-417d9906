@@ -455,6 +455,8 @@ const DiscoverProfiles = memo(() => {
               profile={currentProfile} 
               isFlipped={isCardFlipped}
               onFlipChange={setIsCardFlipped}
+              onLike={() => handleLikeProfile(currentProfile.user_id)}
+              onPass={() => passProfile(currentProfile.user_id)}
             />
           </div>
           
@@ -477,30 +479,6 @@ const DiscoverProfiles = memo(() => {
         </div>
       )}
 
-      {/* Modern Action Buttons - Fixed at bottom */}
-      {currentProfile && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex justify-center items-center gap-8">
-          <Button
-            onClick={() => passProfile(currentProfile.user_id)}
-            size="lg"
-            variant="outline"
-            className="w-20 h-20 rounded-full border-3 border-gray-300 hover:border-red-400 hover:bg-red-50 bg-white/95 backdrop-blur-sm transition-all duration-300 group shadow-xl hover:shadow-2xl transform hover:scale-110"
-            disabled={actionCooldown}
-          >
-            <X className="w-8 h-8 text-gray-600 group-hover:text-red-500 transition-colors" />
-          </Button>
-          
-          <Button
-            onClick={() => handleLikeProfile(currentProfile.user_id)}
-            size="lg"
-            className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 hover:from-blue-600 hover:via-purple-600 hover:to-indigo-600 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 group relative overflow-hidden"
-            disabled={actionCooldown}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <HandHeart className="w-8 h-8 text-white group-hover:scale-125 transition-transform duration-300 relative z-10" />
-          </Button>
-        </div>
-      )}
 
       {/* Profile Image Viewer */}
       <ProfileImageViewer
