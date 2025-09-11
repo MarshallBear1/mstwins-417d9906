@@ -514,56 +514,71 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="p-4 space-y-3 sm:space-y-4">
                 {filteredMatches.map((match) => (
-                  <div
-                    key={match.id}
-                    onClick={() => setSelectedMatch(match)}
-                    className="flex items-center gap-3 p-4 hover:bg-gray-50 cursor-pointer transition-colors active:bg-gray-100"
-                  >
-                    <div className="relative">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={match.other_user.avatar_url || undefined} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
-                          {match.other_user.first_name[0]}{match.other_user.last_name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      {isUserOnline(match.other_user.user_id) && (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {match.other_user.first_name} {match.other_user.last_name[0]}.
-                        </h3>
-                        {match.last_message && (
-                          <span className="text-xs text-gray-500 flex-shrink-0">
-                            {formatMessageTime(match.last_message.created_at)}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-600 truncate">
-                          {match.last_message ? (
-                            <>
-                              {match.last_message.sender_id === user?.id && "You: "}
-                              {match.last_message.content}
-                            </>
-                          ) : (
-                            "Say hi to start the conversation!"
+                  <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedMatch(match)}>
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="relative flex-shrink-0">
+                          <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border-2 border-gray-100">
+                            <AvatarImage src={match.other_user.avatar_url || undefined} />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg sm:text-xl font-semibold">
+                              {match.other_user.first_name[0]}{match.other_user.last_name[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          {isUserOnline(match.other_user.user_id) && (
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-3 border-white rounded-full shadow-lg"></div>
                           )}
-                        </p>
-                        {match.unread_count && match.unread_count > 0 && (
-                          <Badge className="bg-blue-500 text-white text-xs min-w-[20px] h-5 rounded-full flex items-center justify-center">
-                            {match.unread_count > 99 ? '99+' : match.unread_count}
-                          </Badge>
-                        )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                              {match.other_user.first_name} {match.other_user.last_name[0]}.
+                            </h4>
+                            {match.last_message && (
+                              <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                                {formatMessageTime(match.last_message.created_at)}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {match.other_user.ms_subtype && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                                {match.other_user.ms_subtype}
+                              </span>
+                            )}
+                            {match.other_user.location && (
+                              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                                📍 {match.other_user.location}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-gray-600 truncate flex-1 mr-2">
+                              {match.last_message ? (
+                                <>
+                                  {match.last_message.sender_id === user?.id && (
+                                    <span className="text-gray-500 font-medium">You: </span>
+                                  )}
+                                  {match.last_message.content}
+                                </>
+                              ) : (
+                                <span className="text-gray-500 italic">Say hi to start the conversation!</span>
+                              )}
+                            </p>
+                            {match.unread_count && match.unread_count > 0 && (
+                              <Badge className="bg-blue-500 text-white text-xs min-w-[22px] h-6 rounded-full flex items-center justify-center font-semibold shadow-sm">
+                                {match.unread_count > 99 ? '99+' : match.unread_count}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}
