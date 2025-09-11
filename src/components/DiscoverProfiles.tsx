@@ -481,25 +481,24 @@ const DiscoverProfiles = memo(() => {
 
   const content = (
     <>
-      {/* Single Filter Section */}
-      <div className="fixed -top-1 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-1">
-        <div className="flex items-center justify-center">
-          <DropdownMenu open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-9 px-4 text-sm bg-white hover:bg-gray-50 border-2">
-                <Filter className="w-4 h-4 mr-2" />
-                {filterType && filterValue 
-                  ? `${filterType === 'ms_subtype' ? 'MS Type' : filterType === 'gender' ? 'Gender' : 'Interest'}: ${
-                      filterType === 'ms_subtype' ? filterValue.toUpperCase() : 
-                      filterType === 'gender' ? filterValue.charAt(0).toUpperCase() + filterValue.slice(1) : 
-                      filterValue
-                    }`
-                  : 'Add Filter'
-                }
-                <ChevronDown className="w-4 h-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[200px]">
+      {/* Single Filter Section - Just Button */}
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+        <DropdownMenu open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="h-9 px-4 text-sm bg-white hover:bg-gray-50 border-2 shadow-lg">
+              <Filter className="w-4 h-4 mr-2" />
+              {filterType && filterValue 
+                ? `${filterType === 'ms_subtype' ? 'MS Type' : filterType === 'gender' ? 'Gender' : 'Interest'}: ${
+                    filterType === 'ms_subtype' ? filterValue.toUpperCase() : 
+                    filterType === 'gender' ? filterValue.charAt(0).toUpperCase() + filterValue.slice(1) : 
+                    filterValue
+                  }`
+                : 'Add Filter'
+              }
+              <ChevronDown className="w-4 h-4 ml-2" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[200px]">
               {!filterType ? (
                 <>
                   <DropdownMenuItem 
@@ -587,13 +586,12 @@ const DiscoverProfiles = memo(() => {
                     </DropdownMenuItem>
                   ))}
                 </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+               )}
+             </DropdownMenuContent>
+           </DropdownMenu>
+       </div>
 
-      <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-10">
+       <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-15">
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
