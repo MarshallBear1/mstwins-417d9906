@@ -86,8 +86,9 @@ const MobileProfileCard = ({
       className={cn("flip-card", className)} 
       style={{ 
         ...style, 
-        minHeight: '620px', // Increased height to prevent overlapping
-        width: '340px', // Increased width for bigger cards
+        height: '75vh', // 3/4 of viewport height
+        minHeight: '750px', // Minimum height for proper spacing
+        width: '340px', // Card width
         perspective: '1000px',
         position: 'relative'
       }}
@@ -106,9 +107,9 @@ const MobileProfileCard = ({
           display: 'block'
         }}>
           {/* Full gradient background covering entire front card */}
-          <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center overflow-hidden">
+          <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-20">
             {/* Larger Profile Image with proper aspect ratio */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-4">
+            <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-8">
               {profile.avatar_url ? (
                 <OptimizedAvatar
                   src={profile.avatar_url}
@@ -155,8 +156,8 @@ const MobileProfileCard = ({
               </div>
             </div>
 
-            {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned higher up */}
-            <div className="absolute bottom-28 left-4 right-4 text-white space-y-3">
+            {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned with more space */}
+            <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-4 mt-6 mb-20">
               {/* Name and basic info */}
               <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
