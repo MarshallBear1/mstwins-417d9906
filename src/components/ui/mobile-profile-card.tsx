@@ -106,7 +106,7 @@ const MobileProfileCard = ({
           display: 'block'
         }}>
           {/* Gradient header with larger profile picture */}
-          <div className="relative h-64 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center overflow-hidden">
+          <div className="relative h-80 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center overflow-hidden">
             {/* Larger Profile Image with proper aspect ratio */}
             <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-4">
               {profile.avatar_url ? (
