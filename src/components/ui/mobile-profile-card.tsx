@@ -105,10 +105,10 @@ const MobileProfileCard = ({
           position: 'relative',
           display: 'block'
         }}>
-          {/* Smaller header with smaller profile picture */}
-          <div className="relative h-52 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
-            {/* Smaller Profile Image */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target">
+          {/* Gradient header with larger profile picture */}
+          <div className="relative h-64 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center overflow-hidden">
+            {/* Larger Profile Image with proper aspect ratio */}
+            <button onClick={() => onImageClick?.(0)} className="relative w-40 h-48 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-4">
               {profile.avatar_url ? (
                 <OptimizedAvatar
                   src={profile.avatar_url}
@@ -119,12 +119,12 @@ const MobileProfileCard = ({
                 />
               ) : (
                 <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                  <User className="w-8 h-8 text-white" />
+                  <User className="w-12 h-12 text-white" />
                 </div>
               )}
             </button>
             
-            {/* Show More Button - top left by profile pic */}
+            {/* Show More Button - top left */}
             {hasExtendedContent && (
               <div className="absolute top-4 left-4">
                 <button 
@@ -142,7 +142,7 @@ const MobileProfileCard = ({
               </div>
             )}
 
-            {/* Online Status Badge with Last Seen */}
+            {/* Last Seen - top right */}
             <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-xl border border-white/20">
               <div className="flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${isUserOnline(profile.user_id) ? 'bg-green-500 animate-pulse shadow-lg' : 'bg-gray-400'}`} />
@@ -154,36 +154,38 @@ const MobileProfileCard = ({
                 </span>
               </div>
             </div>
+
+            {/* Name, Age, Gender, Location - at bottom of gradient */}
+            <div className="absolute bottom-4 left-4 right-4 text-white">
+              <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                  <h3 className="text-2xl font-bold text-white">{profile.first_name}</h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {calculateAge(profile.age) && (
+                      <span className="text-base font-semibold text-white bg-white/20 px-3 py-1 rounded-full">{calculateAge(profile.age)}</span>
+                    )}
+                    {profile.gender && (
+                      <span className="text-base font-semibold text-white bg-white/20 px-3 py-1 rounded-full capitalize">{profile.gender}</span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Location */}
+                {profile.city && (
+                  <div className="flex items-center gap-2 text-white/90">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span className="text-sm font-medium">{profile.city}</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Content Section */}
           <CardContent className="p-6 space-y-4">
-            {/* Name, Age, Location, Gender - all in one line in top half */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <h3 className="text-2xl font-bold text-gray-900">{profile.first_name}</h3>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {calculateAge(profile.age) && (
-                    <span className="text-lg font-semibold text-gray-700 bg-blue-50 px-3 py-1 rounded-full">{calculateAge(profile.age)}</span>
-                  )}
-                  {profile.gender && (
-                    <span className="text-lg font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-full capitalize">{profile.gender}</span>
-                  )}
-                </div>
-              </div>
-              
-              {/* Location on same line level */}
-              {profile.city && (
-                <div className="flex items-center gap-3 text-gray-600">
-                  <MapPin className="w-5 h-5 flex-shrink-0 text-blue-500" />
-                  <span className="text-base font-medium">{profile.city}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Pass/Connect Action Buttons - in white space */}
+            {/* Pass/Connect Action Buttons */}
             {(onPass || onLike) && (
-              <div className="flex gap-3 py-2">
+              <div className="flex gap-3">
                 {onPass && (
                   <Button
                     onClick={onPass}
@@ -274,7 +276,7 @@ const MobileProfileCard = ({
             backfaceVisibility: 'hidden'
           }}>
             {/* Back content implementation continues... */}
-            <div className="relative h-40 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 flex items-center justify-center overflow-hidden">
+            <div className="relative h-48 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 flex items-center justify-center overflow-hidden">
               <div className="absolute inset-0 bg-black/10"></div>
               
               {/* Back Button */}
@@ -321,7 +323,7 @@ const MobileProfileCard = ({
               </div>
             </div>
 
-            <CardContent className="p-6 space-y-5 overflow-y-auto" style={{ maxHeight: 'calc(100% - 10rem)' }}>
+            <CardContent className="p-6 space-y-5 overflow-y-auto" style={{ maxHeight: 'calc(100% - 12rem)' }}>
               {/* Additional Photos */}
               {profile.additional_photos && profile.additional_photos.length > 0 && (
                 <div>
