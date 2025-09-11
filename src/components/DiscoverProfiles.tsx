@@ -482,7 +482,7 @@ const DiscoverProfiles = memo(() => {
   const content = (
     <>
       {/* Single Filter Section - Just Button */}
-      <div className="flex justify-center mb-2 md:mb-6 px-4">
+      <div className="flex items-center justify-center mb-2 md:mb-6 px-4">
         <DropdownMenu open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="h-9 px-4 text-sm bg-white hover:bg-gray-50 border-2 shadow-lg">

@@ -22,6 +22,8 @@ interface ExtendedProfileData {
     question: string;
     answer: string;
   }[];
+  medications: string[];
+  symptoms: string[];
 }
 
 const availablePrompts = [
@@ -74,7 +76,9 @@ const ExtendedProfileSetup = () => {
   
   const [extendedData, setExtendedData] = useState<ExtendedProfileData>({
     additionalPhotos: [],
-    selectedPrompts: []
+    selectedPrompts: [],
+    medications: [],
+    symptoms: []
   });
 
   useEffect(() => {
@@ -89,7 +93,7 @@ const ExtendedProfileSetup = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('additional_photos, selected_prompts, extended_profile_completed')
+        .select('additional_photos, selected_prompts, extended_profile_completed, medications, symptoms')
         .eq('user_id', user.id)
         .single();
 
@@ -101,7 +105,9 @@ const ExtendedProfileSetup = () => {
       if (data) {
         setExtendedData({
           additionalPhotos: data.additional_photos || [],
-          selectedPrompts: Array.isArray(data.selected_prompts) ? data.selected_prompts as { question: string; answer: string; }[] : []
+          selectedPrompts: Array.isArray(data.selected_prompts) ? data.selected_prompts as { question: string; answer: string; }[] : [],
+          medications: data.medications || [],
+          symptoms: data.symptoms || []
         });
         
         // Hide robot prompt if they've already completed extended profile
@@ -338,6 +344,8 @@ const ExtendedProfileSetup = () => {
         .update({
           additional_photos: extendedData.additionalPhotos,
           selected_prompts: sanitizedPrompts,
+          medications: extendedData.medications,
+          symptoms: extendedData.symptoms,
           extended_profile_completed: true
         })
         .eq('user_id', user.id);
@@ -507,6 +515,144 @@ const ExtendedProfileSetup = () => {
                 </div>
               </div>
 
+              {/* Medications Section */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-base font-semibold">Current Medications</Label>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Add your current MS medications (optional)
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {extendedData.medications.map((medication, index) => (
+                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                        {medication}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setExtendedData(prev => ({
+                              ...prev,
+                              medications: prev.medications.filter((_, i) => i !== index)
+                            }));
+                          }}
+                          className="h-4 w-4 p-0 ml-1"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add medication..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                          const medication = e.currentTarget.value.trim();
+                          if (!extendedData.medications.includes(medication) && extendedData.medications.length < 10) {
+                            setExtendedData(prev => ({
+                              ...prev,
+                              medications: [...prev.medications, medication]
+                            }));
+                            e.currentTarget.value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                        if (input?.value.trim()) {
+                          const medication = input.value.trim();
+                          if (!extendedData.medications.includes(medication) && extendedData.medications.length < 10) {
+                            setExtendedData(prev => ({
+                              ...prev,
+                              medications: [...prev.medications, medication]
+                            }));
+                            input.value = '';
+                          }
+                        }
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Press Enter or click + to add</p>
+                </div>
+              </div>
+
+              {/* Symptoms Section */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-base font-semibold">Current Symptoms</Label>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Share symptoms you're currently experiencing (optional)
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {extendedData.symptoms.map((symptom, index) => (
+                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                        {symptom}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setExtendedData(prev => ({
+                              ...prev,
+                              symptoms: prev.symptoms.filter((_, i) => i !== index)
+                            }));
+                          }}
+                          className="h-4 w-4 p-0 ml-1"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add symptom..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                          const symptom = e.currentTarget.value.trim();
+                          if (!extendedData.symptoms.includes(symptom) && extendedData.symptoms.length < 15) {
+                            setExtendedData(prev => ({
+                              ...prev,
+                              symptoms: [...prev.symptoms, symptom]
+                            }));
+                            e.currentTarget.value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                        if (input?.value.trim()) {
+                          const symptom = input.value.trim();
+                          if (!extendedData.symptoms.includes(symptom) && extendedData.symptoms.length < 15) {
+                            setExtendedData(prev => ({
+                              ...prev,
+                              symptoms: [...prev.symptoms, symptom]
+                            }));
+                            input.value = '';
+                          }
+                        }
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Press Enter or click + to add</p>
+                </div>
+              </div>
+
               {/* Prompts Section */}
               <div className="space-y-4">
                 <div>
@@ -575,7 +721,7 @@ const ExtendedProfileSetup = () => {
           <div className="flex justify-end mt-6">
             <Button 
               onClick={saveExtendedProfile} 
-              disabled={loading || (extendedData.additionalPhotos.length === 0 && extendedData.selectedPrompts.length === 0)}
+              disabled={loading || (extendedData.additionalPhotos.length === 0 && extendedData.selectedPrompts.length === 0 && extendedData.medications.length === 0 && extendedData.symptoms.length === 0)}
             >
               {loading ? (
                 <>

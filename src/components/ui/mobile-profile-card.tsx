@@ -23,6 +23,7 @@ interface Profile {
   extended_profile_completed?: boolean;
   last_seen?: string | null;
   symptoms?: string[];
+  medications?: string[];
 }
 
 interface MobileProfileCardProps {
@@ -351,36 +352,46 @@ const MobileProfileCard = ({
               {(profile.about_me_preview || fullAbout) && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
-                  <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
-                    {showAllAbout ? (fullAbout ?? profile.about_me_preview) : profile.about_me_preview}
-                  </div>
-                  {((fullAbout && fullAbout.length > 200) || (!fullAbout && profile.about_me_preview && profile.about_me_preview.length > 100)) && (
-                    <button
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (!showAllAbout && !fullAbout) {
-                          // Fetch full about_me if we don't have it
-                          try {
-                            const { data } = await supabase
-                              .from('profiles')
-                              .select('about_me')
-                              .eq('user_id', profile.user_id)
-                              .single();
-                            if (data?.about_me) {
-                              setFullAbout(data.about_me);
-                            }
-                          } catch (error) {
-                            console.error('Error fetching full about_me:', error);
-                          }
-                        }
-                        setShowAllAbout(!showAllAbout);
-                      }}
-                      className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200"
-                    >
-                      {showAllAbout ? 'Show Less' : 'Read More'}
-                    </button>
-                  )}
+                   <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
+                     {showAllAbout ? (fullAbout || profile.about_me_preview) : profile.about_me_preview}
+                   </div>
+                   {(profile.about_me_preview && profile.about_me_preview.length > 100) && (
+                     <button
+                       onClick={async (e) => {
+                         e.preventDefault();
+                         e.stopPropagation();
+                         if (!showAllAbout && !fullAbout && !isLoadingAbout) {
+                           // Fetch full about_me if we don't have it
+                           setIsLoadingAbout(true);
+                           try {
+                             const { data } = await supabase
+                               .from('profiles')
+                               .select('about_me')
+                               .eq('user_id', profile.user_id)
+                               .single();
+                             if (data?.about_me) {
+                               setFullAbout(data.about_me);
+                             }
+                           } catch (error) {
+                             console.error('Error fetching full about_me:', error);
+                           } finally {
+                             setIsLoadingAbout(false);
+                           }
+                         }
+                         setShowAllAbout(!showAllAbout);
+                       }}
+                       className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200 flex items-center gap-1"
+                     >
+                       {isLoadingAbout ? (
+                         <>
+                           <div className="animate-spin rounded-full h-3 w-3 border-b border-green-600" />
+                           Loading...
+                         </>
+                       ) : (
+                         showAllAbout ? 'Show Less' : 'Read More'
+                       )}
+                     </button>
+                   )}
                 </div>
               )}
 
@@ -418,6 +429,33 @@ const MobileProfileCard = ({
                         </Badge>
                       </button>
                     )}
+                  </div>
+                </div>
+               )}
+
+              {/* Medications */}
+              {profile.medications && profile.medications.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="text-base font-semibold text-gray-800 mb-3">Current Medications:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.medications.map((medication, index) => {
+                      const colors = [
+                        'bg-blue-400/80 border-blue-300/50 text-white',
+                        'bg-indigo-400/80 border-indigo-300/50 text-white', 
+                        'bg-purple-400/80 border-purple-300/50 text-white',
+                        'bg-cyan-400/80 border-cyan-300/50 text-white',
+                        'bg-teal-400/80 border-teal-300/50 text-white'
+                      ];
+                      return (
+                        <Badge 
+                          key={index} 
+                          variant="secondary" 
+                          className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
+                        >
+                          {medication}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 </div>
               )}
