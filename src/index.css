@@ -137,6 +137,26 @@ All colors MUST be HSL.
   }
 }
 
+/* Hide scrollbars but keep scrolling functionality */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Ensure mobile navigation is always on top */
+.mobile-nav-fixed {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 999999 !important;
+  width: 100vw !important;
+}
+
 /* Animated Border Animation */
 .animated-border-box, .animated-border-box-glow {
   position: absolute;
