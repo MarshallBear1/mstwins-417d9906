@@ -408,11 +408,6 @@ const DiscoverProfiles = memo(() => {
     );
   }
 
-  // Reset currentIndex when filters change
-  useEffect(() => {
-    setCurrentIndex(0);
-    setIsCardFlipped(false);
-  }, [selectedMSSubtype, selectedGender, selectedInterest]);
 
   // Show empty state with detailed information - updated for filtered results
   if (filteredProfiles.length === 0 || currentIndex >= filteredProfiles.length) {
