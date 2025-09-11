@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, MessageCircle, Heart, Search, Filter, ArrowLeft, Users, Share, Bookmark, MoreHorizontal, Send } from "lucide-react";
+import { Plus, MessageCircle, Heart, Search, Filter, ArrowLeft, Users, Share, Bookmark, MoreHorizontal, Send, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -572,6 +572,7 @@ const ModernForumPage = () => {
           {/* Search and Filter Bar */}
           <Card className="bg-white rounded-2xl shadow-sm border-0">
             <CardContent className="p-4">
+              <div className="flex gap-3">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input

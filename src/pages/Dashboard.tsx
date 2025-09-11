@@ -50,9 +50,12 @@ interface Profile {
   age: number | null;
   city: string;
   gender: string | null;
+  location: string | null;
+  about_me: string | null;
+  about_me_preview: string | null;
+  symptoms: string[];
   ms_subtype: string | null;
   avatar_url: string | null;
-  about_me_preview: string | null;
   hobbies: string[];
   additional_photos?: string[];
   selected_prompts?: any;
