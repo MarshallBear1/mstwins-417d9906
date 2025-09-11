@@ -131,41 +131,63 @@ const MobileProfileCard = ({
                 <span className="text-sm font-semibold text-gray-800">
                   {isUserOnline(profile.user_id) 
                     ? 'Online' 
-                    : profile.last_seen 
-                      ? getLastSeenText(profile.last_seen)
-                      : 'Offline'
+                    : getLastSeenText(profile.last_seen)
                   }
                 </span>
               </div>
             </div>
             
-            {/* See More Button - Single button only */}
-            {hasExtendedContent && (
-              <div className="absolute top-4 left-4">
-                <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleFlipChange(!actualIsFlipped);
-                }}
-                className="bg-white/20 backdrop-blur-md rounded-full px-4 py-2 flex items-center gap-2 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
-                title="See more details"
-              >
-                <Eye className="w-4 h-4" />
-                <span className="text-sm font-medium">More</span>
-              </button>
+            {/* Pass/Connect Action Buttons - moved here */}
+            {(onPass || onLike) && (
+              <div className="absolute bottom-4 left-4 right-4 flex gap-3">
+                {onPass && (
+                  <Button
+                    onClick={onPass}
+                    variant="outline"
+                    className="flex-1 h-11 bg-white/90 backdrop-blur-sm border-white/50 hover:bg-white text-gray-700 font-semibold rounded-xl transition-all duration-200 shadow-lg"
+                  >
+                    <X className="w-5 h-5 mr-2" />
+                    Pass
+                  </Button>
+                )}
+                {onLike && (
+                  <Button
+                    onClick={onLike}
+                    className="flex-1 h-11 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                  >
+                    <HandHeart className="w-5 h-5 mr-2" />
+                    Connect
+                  </Button>
+                )}
               </div>
             )}
           </div>
 
           {/* Modern Content Section with more padding */}
           <CardContent className="p-6 space-y-4">
-            {/* Larger Name, Age and Gender */}
+            {/* Show More Button - moved higher up */}
+            {hasExtendedContent && (
+              <div className="flex justify-center -mt-2 mb-4">
+                <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleFlipChange(!actualIsFlipped);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <Eye className="w-4 h-4 mr-2 inline" />
+                Show More
+              </button>
+              </div>
+            )}
+
+            {/* Name, Age and Gender - same size fonts */}
             <div className="flex items-center justify-between">
               <h3 className="text-2xl font-bold text-gray-900">{profile.first_name}</h3>
               <div className="flex items-center gap-3">
                 {profile.gender && (
-                  <span className="text-sm text-gray-500 capitalize bg-gray-100 px-2 py-1 rounded-full">{profile.gender}</span>
+                  <span className="text-lg font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-full capitalize">{profile.gender}</span>
                 )}
                 {calculateAge(profile.age) && (
                   <span className="text-lg font-semibold text-gray-700 bg-blue-50 px-3 py-1 rounded-full">{calculateAge(profile.age)}</span>
@@ -181,10 +203,11 @@ const MobileProfileCard = ({
               </div>
             )}
 
-            {/* MS Info - more prominent */}
+            {/* MS Subtype with label */}
             {profile.ms_subtype && (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-sm px-3 py-1.5 uppercase font-semibold border-purple-200 text-purple-700 bg-purple-50">
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-semibold text-gray-700">MS Subtype:</span>
+                <Badge variant="outline" className="text-lg font-semibold px-3 py-1.5 uppercase border-purple-200 text-purple-700 bg-purple-50">
                   {profile.ms_subtype}
                 </Badge>
               </div>
@@ -232,31 +255,6 @@ const MobileProfileCard = ({
               </div>
             )}
           </CardContent>
-
-          {/* Larger Action Buttons */}
-          {(onPass || onLike) && (
-            <div className="p-6 pt-4 flex gap-3">
-              {onPass && (
-                <Button
-                  onClick={onPass}
-                  variant="outline"
-                  className="flex-1 h-12 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-xl transition-all duration-200 text-base"
-                >
-                  <X className="w-5 h-5 mr-2" />
-                  Pass
-                </Button>
-              )}
-              {onLike && (
-                <Button
-                  onClick={onLike}
-                  className="flex-1 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group text-base"
-                >
-                  <HandHeart className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Say Hi!
-                </Button>
-              )}
-            </div>
-          )}
         </Card>
 
         {/* Back Side with extended content... */}
@@ -286,6 +284,31 @@ const MobileProfileCard = ({
               >
                 <Eye className="w-3 h-3" />
               </button>
+              
+              {/* Pass/Connect Action Buttons - also on back side */}
+              {(onPass || onLike) && (
+                <div className="absolute bottom-4 left-4 right-4 flex gap-3">
+                  {onPass && (
+                    <Button
+                      onClick={onPass}
+                      variant="outline"
+                      className="flex-1 h-11 bg-white/90 backdrop-blur-sm border-white/50 hover:bg-white text-gray-700 font-semibold rounded-xl transition-all duration-200 shadow-lg"
+                    >
+                      <X className="w-5 h-5 mr-2" />
+                      Pass
+                    </Button>
+                  )}
+                  {onLike && (
+                    <Button
+                      onClick={onLike}
+                      className="flex-1 h-11 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                      <HandHeart className="w-5 h-5 mr-2" />
+                      Connect
+                    </Button>
+                  )}
+                </div>
+              )}
               
               <div className="text-center text-white z-10">
                 <h3 className="text-xl font-bold">{profile.first_name}'s Details</h3>
@@ -332,33 +355,6 @@ const MobileProfileCard = ({
               )}
 
             </CardContent>
-
-            {/* Action Buttons on Back */}
-            {(onPass || onLike) && (
-              <div className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100">
-                <div className="flex gap-3">
-                  {onPass && (
-                    <Button
-                      onClick={onPass}
-                      variant="outline"
-                      className="flex-1 h-12 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-xl transition-all duration-200 text-base"
-                    >
-                      <X className="w-5 h-5 mr-2" />
-                      Pass
-                    </Button>
-                  )}
-                  {onLike && (
-                    <Button
-                      onClick={onLike}
-                      className="flex-1 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] group text-base"
-                    >
-                      <HandHeart className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                      Say Hi!
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
           </Card>
         )}
       </div>
