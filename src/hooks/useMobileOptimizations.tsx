@@ -52,9 +52,8 @@ export const useMobileTouchOptimizations = (options: MobileTouchOptions = {}) =>
       document.body.style.userSelect = 'none';
     }
 
-    // Enable hardware acceleration for smooth animations
-    (document.body.style as any).webkitTransform = 'translateZ(0)';
-    document.body.style.transform = 'translateZ(0)';
+    // Enable hardware acceleration for smooth animations (but not on body to avoid breaking fixed positioning)
+    // Remove body transforms that break position: fixed on mobile
 
     // Optimized touch-action for better scrolling
     document.body.style.touchAction = 'pan-y pinch-zoom';
@@ -74,8 +73,6 @@ export const useMobileTouchOptimizations = (options: MobileTouchOptions = {}) =>
       (document.body.style as any).webkitTouchCallout = '';
       (document.body.style as any).webkitUserSelect = '';
       document.body.style.userSelect = '';
-      (document.body.style as any).webkitTransform = '';
-      document.body.style.transform = '';
       document.body.style.touchAction = '';
       (document.body.style as any).webkitTapHighlightColor = '';
     };
