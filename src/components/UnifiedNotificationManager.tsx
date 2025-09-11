@@ -26,7 +26,7 @@ interface NotificationCache {
 }
 
 // Global cache to prevent duplicates across all notification systems
-const notificationCache = useRef<NotificationCache>({});
+const notificationCache: NotificationCache = {};
 const DEDUP_WINDOW = 10000; // 10 seconds
 const MAX_NOTIFICATIONS_PER_WINDOW = 3;
 
@@ -114,7 +114,7 @@ const UnifiedNotificationManager = () => {
   // Deduplication logic
   const shouldSendNotification = (notificationKey: string): boolean => {
     const now = Date.now();
-    const cache = notificationCache.current;
+    const cache = notificationCache;
     
     if (!cache[notificationKey]) {
       cache[notificationKey] = { lastSent: now, count: 1 };

@@ -163,7 +163,7 @@ const Dashboard = () => {
     }, 3000); // 3 second delay for natural UX
 
     return () => clearTimeout(timer);
-  }, [user, profile, requestAllPermissions]);
+  }, [user, profile]);
 
   // Real-time likes sync is now handled by useRealtimeLikesSync hook
   const handleSignOut = async () => {
