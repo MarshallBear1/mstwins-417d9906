@@ -108,7 +108,7 @@ const MobileProfileCard = ({
           {/* Larger modern header with bigger profile picture */}
           <div className="relative h-80 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
             {/* Larger Profile Image for modern look */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-48 h-48 rounded-2xl overflow-hidden border-4 border-white/30 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target backdrop-blur-sm">
+            <button onClick={() => onImageClick?.(0)} className="relative w-64 h-64 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target">
               {profile.avatar_url ? (
                 <OptimizedAvatar
                   src={profile.avatar_url}
@@ -119,21 +119,21 @@ const MobileProfileCard = ({
                 />
               ) : (
                 <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                  <User className="w-12 h-12 text-white" />
+                  <User className="w-16 h-16 text-white" />
                 </div>
               )}
             </button>
             
             {/* Online Status Badge with Last Seen */}
-            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-lg">
+            <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-xl border border-white/20">
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${isUserOnline(profile.user_id) ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-                <span className="text-xs font-medium text-gray-700">
+                <div className={`w-3 h-3 rounded-full ${isUserOnline(profile.user_id) ? 'bg-green-500 animate-pulse shadow-lg' : 'bg-gray-400'}`} />
+                <span className="text-sm font-semibold text-gray-800">
                   {isUserOnline(profile.user_id) 
-                    ? 'Online now' 
+                    ? 'Online' 
                     : profile.last_seen 
                       ? getLastSeenText(profile.last_seen)
-                      : 'Last seen long ago'
+                      : 'Offline'
                   }
                 </span>
               </div>
@@ -191,23 +191,23 @@ const MobileProfileCard = ({
             )}
 
 
-            {/* Larger Hobbies */}
+            {/* Improved Hobbies section */}
             {profile.hobbies && profile.hobbies.length > 0 && (
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-2">Interests:</div>
+                <div className="text-sm font-bold text-gray-800 mb-3">Interests:</div>
                 <div className="flex flex-wrap gap-2">
                   {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 4)).map((hobby, index) => (
-                    <Badge key={index} variant="secondary" className="text-sm px-3 py-1.5">
+                    <Badge key={index} variant="secondary" className="text-sm px-3 py-1.5 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 transition-colors">
                       {hobby}
                     </Badge>
                   ))}
                   {profile.hobbies.length > 4 && (
                     <button
                       onClick={() => setShowAllHobbies(!showAllHobbies)}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-sm text-blue-600 hover:text-blue-700 font-semibold transition-colors"
                     >
-                      <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-50 cursor-pointer">
-                        {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 4}`}
+                      <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-50 cursor-pointer border-blue-300">
+                        {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 4} more`}
                       </Badge>
                     </button>
                   )}
@@ -215,16 +215,16 @@ const MobileProfileCard = ({
               </div>
             )}
 
-            {/* Larger About section */}
+            {/* About section with better expansion */}
             {profile.about_me_preview && (
-              <div className={`${showAllAbout ? 'max-h-48 overflow-y-auto pr-2' : ''}`}>
-                <p className={`text-base text-gray-600 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
+              <div className={`${showAllAbout ? '' : ''}`}>
+                <p className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap font-medium ${!showAllAbout ? 'line-clamp-3' : ''}`}>
                   {profile.about_me_preview}
                 </p>
-                {profile.about_me_preview.length > 120 && (
+                {profile.about_me_preview.length > 100 && (
                   <button
                     onClick={() => setShowAllAbout(!showAllAbout)}
-                    className="text-sm text-blue-600 hover:text-blue-700 mt-2 font-medium"
+                    className="text-sm text-blue-600 hover:text-blue-700 mt-3 font-semibold transition-colors duration-200"
                   >
                     {showAllAbout ? 'Show Less' : 'Read More'}
                   </button>
