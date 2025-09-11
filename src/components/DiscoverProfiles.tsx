@@ -67,10 +67,9 @@ const DiscoverProfiles = memo(() => {
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const { likeProfile, loading: likeLoading } = useSimpleLikes();
   
-  // Filter states
-  const [selectedMSSubtype, setSelectedMSSubtype] = useState<string | null>(null);
-  const [selectedGender, setSelectedGender] = useState<string | null>(null);  
-  const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
+  // Filter states - single filter at a time
+  const [filterType, setFilterType] = useState<'ms_subtype' | 'gender' | 'interest' | null>(null);
+  const [filterValue, setFilterValue] = useState<string | null>(null);
   
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
@@ -128,22 +127,24 @@ const DiscoverProfiles = memo(() => {
   const filteredProfiles = useMemo(() => {
     let filtered = profiles;
     
-    if (selectedMSSubtype) {
-      filtered = filtered.filter(profile => profile.ms_subtype === selectedMSSubtype);
-    }
-    
-    if (selectedGender) {
-      filtered = filtered.filter(profile => profile.gender === selectedGender);
-    }
-    
-    if (selectedInterest) {
-      filtered = filtered.filter(profile => 
-        profile.hobbies && profile.hobbies.includes(selectedInterest)
-      );
+    if (filterType && filterValue) {
+      switch (filterType) {
+        case 'ms_subtype':
+          filtered = filtered.filter(profile => profile.ms_subtype === filterValue);
+          break;
+        case 'gender':
+          filtered = filtered.filter(profile => profile.gender === filterValue);
+          break;
+        case 'interest':
+          filtered = filtered.filter(profile => 
+            profile.hobbies && profile.hobbies.includes(filterValue)
+          );
+          break;
+      }
     }
     
     return filtered;
-  }, [profiles, selectedMSSubtype, selectedGender, selectedInterest]);
+  }, [profiles, filterType, filterValue]);
 
   // Memoized current profile calculation using filtered profiles
   const currentProfile = useMemo(() => {
@@ -192,7 +193,7 @@ const DiscoverProfiles = memo(() => {
   useEffect(() => {
     setCurrentIndex(0);
     setIsCardFlipped(false);
-  }, [selectedMSSubtype, selectedGender, selectedInterest]);
+  }, [filterType, filterValue]);
 
   // Optimized like function with cooldown and immediate UI update
   const handleLikeProfile = useCallback(async (profileUserId: string) => {
@@ -433,18 +434,17 @@ const DiscoverProfiles = memo(() => {
           </div>
           
           <div className="flex space-x-3">
-            {(selectedMSSubtype || selectedGender || selectedInterest) && (
+            {(filterType && filterValue) && (
               <Button 
                 onClick={() => {
-                  setSelectedMSSubtype(null);
-                  setSelectedGender(null);
-                  setSelectedInterest(null);
+                  setFilterType(null);
+                  setFilterValue(null);
                 }} 
                 variant="outline" 
                 className="text-primary border-primary"
               >
                 <X className="w-4 h-4 mr-2" />
-                Clear Filters
+                Clear Filter
               </Button>
             )}
             <Button onClick={fetchProfiles} variant="outline" className="text-primary border-primary">
@@ -480,98 +480,81 @@ const DiscoverProfiles = memo(() => {
 
   const content = (
     <>
-      {/* Filters Section */}
-      <div className="fixed top-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-center gap-3 max-w-sm mx-auto">
-          <div className="flex items-center gap-1 text-gray-600">
-            <Filter className="w-4 h-4" />
-            <span className="text-sm font-medium">Filters:</span>
-          </div>
-          
-          {/* MS Subtype Filter */}
+      {/* Single Filter Section */}
+      <div className="fixed top-14 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-2">
+        <div className="flex items-center justify-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 px-3 text-xs bg-white hover:bg-gray-50">
-                {selectedMSSubtype || "MS Type"}
-                <ChevronDown className="w-3 h-3 ml-1" />
+              <Button variant="outline" className="h-9 px-4 text-sm bg-white hover:bg-gray-50 border-2">
+                <Filter className="w-4 h-4 mr-2" />
+                {filterType && filterValue 
+                  ? `${filterType === 'ms_subtype' ? 'MS Type' : filterType === 'gender' ? 'Gender' : 'Interest'}: ${
+                      filterType === 'ms_subtype' ? filterValue.toUpperCase() : 
+                      filterType === 'gender' ? filterValue.charAt(0).toUpperCase() + filterValue.slice(1) : 
+                      filterValue
+                    }`
+                  : 'Add Filter'
+                }
+                <ChevronDown className="w-4 h-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[120px]">
-              <DropdownMenuItem 
-                onClick={() => setSelectedMSSubtype(null)}
-                className={!selectedMSSubtype ? "bg-blue-50 text-blue-700" : ""}
-              >
-                All Types
-              </DropdownMenuItem>
-              {msSubtypes.map((subtype) => (
-                <DropdownMenuItem 
-                  key={subtype} 
-                  onClick={() => setSelectedMSSubtype(subtype)}
-                  className={selectedMSSubtype === subtype ? "bg-blue-50 text-blue-700" : ""}
-                >
-                  {subtype?.toUpperCase()}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Gender Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 px-3 text-xs bg-white hover:bg-gray-50">
-                {selectedGender || "Gender"}
-                <ChevronDown className="w-3 h-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[120px]">
-              <DropdownMenuItem 
-                onClick={() => setSelectedGender(null)}
-                className={!selectedGender ? "bg-blue-50 text-blue-700" : ""}
-              >
-                All Genders
-              </DropdownMenuItem>
-              {genders.map((gender) => (
-                <DropdownMenuItem 
-                  key={gender} 
-                  onClick={() => setSelectedGender(gender)}
-                  className={selectedGender === gender ? "bg-blue-50 text-blue-700" : ""}
-                >
-                  {gender?.charAt(0).toUpperCase() + gender?.slice(1)}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Interest Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 px-3 text-xs bg-white hover:bg-gray-50">
-                {selectedInterest || "Interest"}
-                <ChevronDown className="w-3 h-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[120px] max-h-48 overflow-y-auto">
-              <DropdownMenuItem 
-                onClick={() => setSelectedInterest(null)}
-                className={!selectedInterest ? "bg-blue-50 text-blue-700" : ""}
-              >
-                All Interests
-              </DropdownMenuItem>
-              {interests.map((interest) => (
-                <DropdownMenuItem 
-                  key={interest} 
-                  onClick={() => setSelectedInterest(interest)}
-                  className={selectedInterest === interest ? "bg-blue-50 text-blue-700" : ""}
-                >
-                  {interest}
-                </DropdownMenuItem>
-              ))}
+            <DropdownMenuContent className="bg-white border shadow-lg rounded-lg z-50 min-w-[200px]">
+              {!filterType ? (
+                <>
+                  <DropdownMenuItem onClick={() => setFilterType('ms_subtype')}>
+                    Filter by MS Type
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterType('gender')}>
+                    Filter by Gender
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterType('interest')}>
+                    Filter by Interest
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem onClick={() => { setFilterType(null); setFilterValue(null); }}>
+                    ← Back to Filter Types
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterValue(null)}>
+                    Show All {filterType === 'ms_subtype' ? 'MS Types' : filterType === 'gender' ? 'Genders' : 'Interests'}
+                  </DropdownMenuItem>
+                  <div className="border-t my-1"></div>
+                  {filterType === 'ms_subtype' && msSubtypes.map((subtype) => (
+                    <DropdownMenuItem 
+                      key={subtype} 
+                      onClick={() => setFilterValue(subtype)}
+                      className={filterValue === subtype ? "bg-blue-50 text-blue-700" : ""}
+                    >
+                      {subtype?.toUpperCase()}
+                    </DropdownMenuItem>
+                  ))}
+                  {filterType === 'gender' && genders.map((gender) => (
+                    <DropdownMenuItem 
+                      key={gender} 
+                      onClick={() => setFilterValue(gender)}
+                      className={filterValue === gender ? "bg-blue-50 text-blue-700" : ""}
+                    >
+                      {gender?.charAt(0).toUpperCase() + gender?.slice(1)}
+                    </DropdownMenuItem>
+                  ))}
+                  {filterType === 'interest' && interests.map((interest) => (
+                    <DropdownMenuItem 
+                      key={interest} 
+                      onClick={() => setFilterValue(interest)}
+                      className={filterValue === interest ? "bg-blue-50 text-blue-700" : ""}
+                    >
+                      {interest}
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-20">
+      <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-12">
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
