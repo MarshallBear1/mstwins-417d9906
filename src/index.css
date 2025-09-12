@@ -671,8 +671,12 @@ select {
   width: 100%;
   height: 100%;
   text-align: center;
-  transition: transform 0.6s;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
+  /* Mobile touch optimizations */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
 }
 
 .flip-card-inner.rotate-y-180 {
@@ -685,6 +689,10 @@ select {
   height: 100%;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  /* Optimize for mobile scrolling and touch */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: manipulation;
 }
 
 .flip-card-back {
@@ -707,6 +715,23 @@ select {
   min-height: 44px;
   min-width: 44px;
   touch-action: manipulation;
+}
+
+/* Mobile swipe optimizations */
+.touch-none {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
+}
+
+/* Smooth transforms for swipe gestures */
+.swipe-transform {
+  will-change: transform;
+  transform-origin: center center;
 }
 
 /* Card stack effect for discover page */

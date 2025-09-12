@@ -106,20 +106,21 @@ const MobileProfileCard = ({
 
   const hasInterests = Boolean(profile.hobbies && profile.hobbies.length > 0);
   
-  // Adjust card height based on content
-  const cardHeight = hasInterests ? '60vh' : '52vh';
-  const cardMinHeight = hasInterests ? '600px' : '500px';
+  // Adjust card dimensions based on screen size and content
+  const cardHeight = 'min(75vh, 600px)'; // Responsive height that scales with viewport
+  const cardWidth = 'min(90vw, 350px)'; // Responsive width that scales with viewport
 
   return (
     <div 
       className={cn("flip-card", className)} 
       style={{ 
         ...style, 
-        height: cardHeight, // Dynamic height based on content
-        minHeight: cardMinHeight, // Dynamic minimum height
-        width: '300px', // Slightly smaller card width
+        height: cardHeight, // Responsive height
+        width: cardWidth, // Responsive width
         perspective: '1000px',
-        position: 'relative'
+        position: 'relative',
+        maxHeight: '600px', // Prevent cards from getting too large
+        minHeight: '480px' // Ensure minimum usable height
       }}
       data-swipeable="true"
       {...props}
@@ -134,7 +135,8 @@ const MobileProfileCard = ({
           width: '100%',
           height: '100%',
           position: 'relative',
-          display: 'block'
+          display: 'block',
+          touchAction: 'manipulation' // Optimize touch interactions
         }}>
           {/* Full gradient background covering entire front card */}
           <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-16">

@@ -11,7 +11,7 @@ import { analytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageViewer from "@/components/ProfileImageViewer";
 import { useHaptics } from "@/hooks/useHaptics";
-import DiscoverProfileCard from "@/components/DiscoverProfileCard";
+import SwipeableProfileCard from "@/components/mobile/SwipeableProfileCard";
 import MobilePullToRefresh from "@/components/mobile/MobilePullToRefresh";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
 
@@ -52,14 +52,8 @@ const EnhancedDiscoverProfiles = memo(() => {
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
   
-  // Enhanced swipe gesture state
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
-  const [swipeIntensity, setSwipeIntensity] = useState(0);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const startPos = useRef({ x: 0, y: 0 });
-  const startTime = useRef(0);
+  // Image viewer state
+  const [imageViewerIndex, setImageViewerIndex] = useState(0);
 
   const fetchProfiles = useCallback(async () => {
     if (!user?.id) return;
@@ -99,7 +93,7 @@ const EnhancedDiscoverProfiles = memo(() => {
     return profiles[currentIndex] || null;
   }, [profiles, currentIndex]);
 
-  // Enhanced like function with better animation
+  // Enhanced like function with optimistic updates
   const handleLikeProfile = useCallback(async (profileUserId: string) => {
     if (!user || actionCooldown) return;
 
@@ -114,48 +108,31 @@ const EnhancedDiscoverProfiles = memo(() => {
 
     setActionCooldown(true);
     
-    // Animate card away
-    if (cardRef.current) {
-      cardRef.current.style.transform = 'translateX(100vw) rotate(30deg)';
-      cardRef.current.style.transition = 'transform 0.3s ease-out';
-    }
-    
-    // Move to next profile after animation
-    setTimeout(() => {
-      setCurrentIndex(prev => prev + 1);
-      setIsCardFlipped(false);
-      if (cardRef.current) {
-        cardRef.current.style.transform = '';
-        cardRef.current.style.transition = '';
-      }
-    }, 300);
+    // Move to next profile immediately for better UX
+    setCurrentIndex(prev => prev + 1);
+    setIsCardFlipped(false);
     
     try {
-      console.log('🔄 Attempting to like profile:', profileUserId);
-      
       const success = await likeProfile(profileUserId);
       
       if (success) {
-        console.log('✅ Profile liked successfully');
         vibrate();
         analytics.track('profile_liked', { liked_user_id: profileUserId });
         
-        // Show success feedback
         toast({
           title: "Connection sent! 🎉",
           description: "If they say hi back, you'll be connected!",
           duration: 3000,
         });
       } else {
-        console.log('❌ Like failed');
-        // Revert optimistic update
-        setCurrentIndex(currentIndex);
+        // Revert on failure
+        setCurrentIndex(prev => prev - 1);
         return;
       }
       
     } catch (error) {
       console.error('❌ Error in handleLikeProfile:', error);
-      setCurrentIndex(currentIndex);
+      setCurrentIndex(prev => prev - 1);
       toast({
         title: "Error",
         description: "Failed to send connection. Please try again.",
@@ -164,29 +141,17 @@ const EnhancedDiscoverProfiles = memo(() => {
     } finally {
       setTimeout(() => setActionCooldown(false), 500);
     }
-  }, [user, actionCooldown, currentIndex, likeProfile, vibrate, analytics, toast]);
+  }, [user, actionCooldown, likeProfile, vibrate, analytics, toast]);
 
-  // Enhanced pass function
+  // Enhanced pass function with optimistic updates
   const passProfile = useCallback(async (profileUserId: string) => {
     if (!user || actionCooldown) return;
 
     setActionCooldown(true);
     
-    // Animate card away
-    if (cardRef.current) {
-      cardRef.current.style.transform = 'translateX(-100vw) rotate(-30deg)';
-      cardRef.current.style.transition = 'transform 0.3s ease-out';
-    }
-    
-    // Move to next profile after animation
-    setTimeout(() => {
-      setCurrentIndex(prev => prev + 1);
-      setIsCardFlipped(false);
-      if (cardRef.current) {
-        cardRef.current.style.transform = '';
-        cardRef.current.style.transition = '';
-      }
-    }, 300);
+    // Move to next profile immediately for better UX
+    setCurrentIndex(prev => prev + 1);
+    setIsCardFlipped(false);
 
     try {
       const { error } = await supabase
@@ -203,7 +168,7 @@ const EnhancedDiscoverProfiles = memo(() => {
 
     } catch (error) {
       console.error('Error passing profile:', error);
-      setCurrentIndex(currentIndex);
+      setCurrentIndex(prev => prev - 1);
       
       toast({
         title: "Error passing profile",
@@ -213,61 +178,21 @@ const EnhancedDiscoverProfiles = memo(() => {
     } finally {
       setTimeout(() => setActionCooldown(false), 500);
     }
-  }, [user, actionCooldown, vibrate, toast, currentIndex]);
+  }, [user, actionCooldown, vibrate, toast]);
 
-  // Enhanced touch handlers with better feedback
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (actionCooldown) return;
-    
-    const touch = e.touches[0];
-    startPos.current = { x: touch.clientX, y: touch.clientY };
-    startTime.current = Date.now();
-    setIsDragging(true);
-  }, [actionCooldown]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || actionCooldown) return;
-    
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - startPos.current.x;
-    const deltaY = touch.clientY - startPos.current.y;
-    
-    setDragOffset({ x: deltaX, y: deltaY });
-    
-    // Calculate swipe intensity for visual feedback
-    const intensity = Math.min(Math.abs(deltaX) / 200, 1);
-    setSwipeIntensity(intensity);
-    
-    if (Math.abs(deltaX) > 50) {
-      setSwipeDirection(deltaX > 0 ? 'right' : 'left');
-    } else {
-      setSwipeDirection(null);
+  // Handle image clicks
+  const handleImageClick = useCallback((imageIndex: number) => {
+    if (currentProfile) {
+      const images = [
+        ...(currentProfile.avatar_url ? [currentProfile.avatar_url] : []),
+        ...(currentProfile.additional_photos || [])
+      ].filter(Boolean);
+      
+      setSelectedImages(images);
+      setImageViewerIndex(imageIndex);
+      setImageViewerOpen(true);
     }
-  }, [isDragging, actionCooldown]);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || actionCooldown || !currentProfile) return;
-    
-    const deltaX = dragOffset.x;
-    const deltaTime = Date.now() - startTime.current;
-    const velocity = Math.abs(deltaX) / deltaTime;
-    
-    const shouldSwipe = Math.abs(deltaX) > SWIPE_THRESHOLD || velocity > SWIPE_VELOCITY_THRESHOLD;
-    
-    if (shouldSwipe) {
-      if (deltaX > 0) {
-        handleLikeProfile(currentProfile.user_id);
-      } else {
-        passProfile(currentProfile.user_id);
-      }
-    }
-    
-    // Reset swipe state
-    setIsDragging(false);
-    setDragOffset({ x: 0, y: 0 });
-    setSwipeDirection(null);
-    setSwipeIntensity(0);
-  }, [isDragging, actionCooldown, currentProfile, dragOffset.x, handleLikeProfile, passProfile]);
+  }, [currentProfile]);
 
   const handleRefresh = useCallback(async () => {
     await fetchProfiles();
@@ -368,97 +293,38 @@ const EnhancedDiscoverProfiles = memo(() => {
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto">
-          {/* Current Card */}
-          <div
-            ref={cardRef}
-            className="relative touch-none select-none cursor-grab active:cursor-grabbing"
-            style={{
-              transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.1}deg)`,
-              transition: isDragging ? 'none' : 'transform 0.3s ease-out',
-              zIndex: 10
-            }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {/* Swipe indicators with enhanced feedback */}
-            {isDragging && swipeDirection && (
-              <div className="absolute inset-0 z-20 pointer-events-none">
-                {swipeDirection === 'right' && (
-                  <div 
-                    className="absolute top-8 right-4 bg-green-500 text-white px-6 py-3 rounded-full font-bold text-lg shadow-xl transform rotate-12 transition-all duration-200"
-                    style={{ opacity: swipeIntensity }}
-                  >
-                    <HandHeart className="w-5 h-5 inline mr-2" />
-                    SAY HI!
-                  </div>
-                )}
-                {swipeDirection === 'left' && (
-                  <div 
-                    className="absolute top-8 left-4 bg-red-500 text-white px-6 py-3 rounded-full font-bold text-lg shadow-xl transform -rotate-12 transition-all duration-200"
-                    style={{ opacity: swipeIntensity }}
-                  >
-                    <X className="w-5 h-5 inline mr-2" />
-                    PASS
-                  </div>
-                )}
-              </div>
-            )}
-            
-            <DiscoverProfileCard 
-              profile={currentProfile} 
-              isFlipped={isCardFlipped}
-              onFlipChange={setIsCardFlipped}
-            />
-          </div>
+          <SwipeableProfileCard
+            profile={currentProfile}
+            onLike={handleLikeProfile}
+            onPass={passProfile}
+            onImageClick={handleImageClick}
+            className="mb-4"
+          />
           
           {/* Next card preview */}
           {profiles[currentIndex + 1] && (
             <div 
-              className="absolute inset-0 -z-10"
+              className="absolute inset-0 -z-10 pointer-events-none"
               style={{
-                transform: 'scale(0.95) translateY(8px)',
-                opacity: 0.6
+                transform: 'scale(0.95) translateY(12px)',
+                opacity: 0.4
               }}
             >
-              <DiscoverProfileCard 
-                profile={profiles[currentIndex + 1]} 
-                isFlipped={false}
-                onFlipChange={() => {}}
+              <SwipeableProfileCard
+                profile={profiles[currentIndex + 1]}
+                onLike={() => {}}
+                onPass={() => {}}
+                className="pointer-events-none"
               />
             </div>
           )}
         </div>
       )}
 
-      {/* Enhanced Action Buttons */}
-      {currentProfile && (
-        <div className="flex justify-center items-center gap-8 mt-8">
-          <Button
-            onClick={() => passProfile(currentProfile.user_id)}
-            size="lg"
-            variant="outline"
-            className="w-16 h-16 rounded-full border-2 border-gray-300 hover:border-red-400 hover:bg-red-50 transition-all duration-200 group shadow-lg ios-bounce"
-            disabled={actionCooldown}
-          >
-            <X className="w-6 h-6 text-gray-600 group-hover:text-red-500 transition-colors" />
-          </Button>
-          
-          <Button
-            onClick={() => handleLikeProfile(currentProfile.user_id)}
-            size="lg"
-            className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow-xl hover:shadow-2xl transition-all duration-200 transform hover:scale-110 group ios-bounce"
-            disabled={actionCooldown}
-          >
-            <HandHeart className="w-8 h-8 text-white group-hover:scale-110 transition-transform" />
-          </Button>
-        </div>
-      )}
-
       {/* Profile Image Viewer */}
       <ProfileImageViewer
         images={selectedImages}
-        currentIndex={0}
+        currentIndex={imageViewerIndex}
         isOpen={imageViewerOpen}
         onClose={() => setImageViewerOpen(false)}
       />
