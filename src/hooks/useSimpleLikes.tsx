@@ -93,6 +93,12 @@ export const useSimpleLikes = () => {
             description: "You've already liked this profile!",
             variant: "destructive"
           });
+        } else if (insertError.message.includes('violates foreign key constraint') || insertError.code === '23503') {
+          toast({
+            title: "Profile Error",
+            description: "Unable to find this user profile. They may have been removed.",
+            variant: "destructive"
+          });
         } else if (insertError.message.includes('violates row-level security policy') || 
                    insertError.message.includes('RLS') ||
                    insertError.code === '42501') {

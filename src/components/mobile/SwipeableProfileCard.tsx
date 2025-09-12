@@ -24,8 +24,8 @@ interface Profile {
 
 interface SwipeableProfileCardProps {
   profile: Profile;
-  onLike: (profileId: string) => void;
-  onPass: (profileId: string) => void;
+  onLike: (userId: string) => void;
+  onPass: (userId: string) => void;
   onImageClick?: (imageIndex: number) => void;
   onFlipChange?: (flipped: boolean) => void;
   className?: string;
@@ -65,12 +65,12 @@ const SwipeableProfileCard = ({
 
   const handleLike = () => {
     like();
-    onLike(profile.id);
+    onLike(profile.user_id);
   };
 
   const handlePass = () => {
     errorFeedback();
-    onPass(profile.id);
+    onPass(profile.user_id);
   };
 
   const { swipeHandlers, swipeProgress, isTransitioning } = useSwipeGestures({
