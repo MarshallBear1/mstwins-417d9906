@@ -14,6 +14,7 @@ import { useHaptics } from "@/hooks/useHaptics";
 import SwipeableProfileCard from "@/components/mobile/SwipeableProfileCard";
 import MobilePullToRefresh from "@/components/mobile/MobilePullToRefresh";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
+import { useDiscoverScrollPrevention } from "@/hooks/useDiscoverScrollPrevention";
 
 interface Profile {
   id: string;
@@ -54,6 +55,12 @@ const EnhancedDiscoverProfiles = memo(() => {
   
   // Image viewer state
   const [imageViewerIndex, setImageViewerIndex] = useState(0);
+
+  // Prevent scroll issues on discover tab
+  useDiscoverScrollPrevention({ 
+    isDiscoverTab: true, 
+    isCardFlipped 
+  });
 
   const fetchProfiles = useCallback(async () => {
     if (!user?.id) return;

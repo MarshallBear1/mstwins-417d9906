@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HeartHandshake, X, RotateCcw } from 'lucide-react';
+import { HeartHandshake, X, RotateCcw, Heart } from 'lucide-react';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 import { useHaptics } from '@/hooks/useHaptics';
 import { cn } from '@/lib/utils';
@@ -103,8 +103,8 @@ const SwipeableProfileCard = ({
       {/* Swipe Indicators */}
       {showLikeIndicator && (
         <div className="absolute top-6 right-6 z-20 bg-green-500/95 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-xl animate-scale-in border-2 border-white">
-          <HeartHandshake className="w-5 h-5 fill-current inline mr-2" />
-          <span className="font-semibold text-sm">Connect</span>
+          <Heart className="w-5 h-5 fill-current inline mr-2" />
+          <span className="font-semibold text-sm">Like</span>
         </div>
       )}
       
@@ -124,6 +124,8 @@ const SwipeableProfileCard = ({
         <MobileProfileCard
           profile={profile}
           onImageClick={onImageClick}
+          onLike={handleLike}
+          onPass={handlePass}
           isUserOnline={isUserOnline}
           getLastSeenText={getLastSeenText}
           isFlipped={isFlipped}
@@ -131,28 +133,7 @@ const SwipeableProfileCard = ({
         />
       </div>
 
-      {/* Action Buttons - Only X and Like, removed flip button */}
-      <div className="flex justify-center gap-12 -mt-3 px-6">
-        <button
-          onClick={handlePass}
-          className="bg-white/95 backdrop-blur-sm border-2 border-red-500/40 hover:border-red-500/70 hover:bg-red-500/15 
-                     text-red-500 w-16 h-16 rounded-full flex items-center justify-center
-                     transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
-          disabled={isTransitioning}
-        >
-          <X className="w-6 h-6" />
-        </button>
-
-        <button
-          onClick={handleLike}
-          className="bg-white/95 backdrop-blur-sm border-2 border-green-500/40 hover:border-green-500/70 hover:bg-green-500/15 
-                     text-green-500 w-16 h-16 rounded-full flex items-center justify-center
-                     transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
-          disabled={isTransitioning}
-        >
-          <HeartHandshake className="w-6 h-6" />
-        </button>
-      </div>
+      {/* No external action buttons - handled by MobileProfileCard */}
     </div>
   );
 };

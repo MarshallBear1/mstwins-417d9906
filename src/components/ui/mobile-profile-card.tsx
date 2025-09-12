@@ -191,9 +191,9 @@ const MobileProfileCard = ({
             </div>
             
             {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned closer to pic */}
-            <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-3 mt-0 mb-16">
-              {/* Name and basic info - Standardized width */}
-              <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 mt-1 w-full">
+            <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-3 mt-0 mb-20">
+              {/* Name and basic info - Fixed width container */}
+              <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 mt-1 w-full max-w-[280px] mx-auto">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
                   <h3 className="text-2xl font-bold text-white">{profile.first_name}</h3>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -223,9 +223,9 @@ const MobileProfileCard = ({
                 </div>
               </div>
 
-              {/* Interests - Standardized width */}
+              {/* Interests - Fixed width container */}
             {profile.hobbies && profile.hobbies.length > 0 && (
-                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 w-full">
+                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 w-full max-w-[280px] mx-auto">
                   <div className="text-base font-semibold text-white mb-3">Interests:</div>
                    <div className="flex flex-wrap gap-2">
                      {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 4)).map((hobby, index) => {
@@ -263,6 +263,41 @@ const MobileProfileCard = ({
               </div>
             )}
             </div>
+
+            {/* Action Buttons - Always visible at bottom */}
+            {(onLike || onPass) && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-8 z-30">
+                {onPass && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onPass();
+                    }}
+                    className="bg-white/90 backdrop-blur-sm border-2 border-red-500/40 hover:border-red-500/70 hover:bg-red-50
+                               text-red-500 w-14 h-14 rounded-full flex items-center justify-center
+                               transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+                
+                {onLike && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onLike();
+                    }}
+                    className="bg-white/90 backdrop-blur-sm border-2 border-green-500/40 hover:border-green-500/70 hover:bg-green-50
+                               text-green-500 w-14 h-14 rounded-full flex items-center justify-center
+                               transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
+                  >
+                    <Heart className="w-5 h-5 fill-current" />
+                  </button>
+                )}
+              </div>
+            )}
 
               </div>
 
