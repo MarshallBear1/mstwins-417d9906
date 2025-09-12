@@ -109,8 +109,8 @@ const SwipeableProfileCard = ({
         />
       </div>
 
-      {/* Action Buttons - Improved spacing and positioning */}
-      <div className="flex justify-center gap-8 mt-12 px-6">
+      {/* Action Buttons - Only X and Like, removed flip button */}
+      <div className="flex justify-center gap-12 mt-12 px-6">
         <button
           onClick={handlePass}
           className="bg-white/95 backdrop-blur-sm border-2 border-red-500/40 hover:border-red-500/70 hover:bg-red-500/15 
@@ -119,15 +119,6 @@ const SwipeableProfileCard = ({
           disabled={isTransitioning}
         >
           <X className="w-6 h-6" />
-        </button>
-
-        <button
-          onClick={() => setIsFlipped(!isFlipped)}
-          className="bg-white/95 backdrop-blur-sm border-2 border-primary/40 hover:border-primary/70 hover:bg-primary/15 
-                     text-primary w-14 h-14 rounded-full flex items-center justify-center
-                     transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
-        >
-          <RotateCcw className="w-5 h-5" />
         </button>
 
         <button

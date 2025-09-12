@@ -271,20 +271,7 @@ const EnhancedDiscoverProfiles = memo(() => {
         paddingBottom: isMobile ? `max(8rem, ${safeAreaInsets.bottom + 120}px)` : '8rem'
       }}
     >
-      {/* Profile Counter - Moved to center top */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg z-10">
-        <span className="text-sm font-medium text-gray-700">
-          {profiles.length - currentIndex} left
-        </span>
-      </div>
-
-      {/* Filter Button - Moved to bottom left to avoid overlap */}
-      <div 
-        className="fixed bottom-4 left-4 z-20"
-        style={{
-          paddingBottom: isMobile ? `${safeAreaInsets.bottom}px` : '0px'
-        }}
-      >
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
         <Button 
           variant="outline" 
           size="sm" 
@@ -295,36 +282,43 @@ const EnhancedDiscoverProfiles = memo(() => {
         </Button>
       </div>
 
-      {/* Profile Card Stack */}
-      {currentProfile && (
-        <div className="relative w-full max-w-sm mx-auto">
-          <SwipeableProfileCard
-            profile={currentProfile}
-            onLike={handleLikeProfile}
-            onPass={passProfile}
-            onImageClick={handleImageClick}
-            className="mb-4"
-          />
-          
-          {/* Next card preview */}
-          {profiles[currentIndex + 1] && (
-            <div 
-              className="absolute inset-0 -z-10 pointer-events-none"
-              style={{
-                transform: 'scale(0.95) translateY(12px)',
-                opacity: 0.4
-              }}
-            >
-              <SwipeableProfileCard
-                profile={profiles[currentIndex + 1]}
-                onLike={() => {}}
-                onPass={() => {}}
-                className="pointer-events-none"
-              />
-            </div>
-          )}
-        </div>
-      )}
+      {/* Main Profile Card Container - Moved down and centered */}
+      <div className="flex-1 flex items-center justify-center px-4 pt-8">
+        {currentProfile ? (
+          <div className="relative w-full max-w-sm mx-auto">
+            <SwipeableProfileCard
+              profile={currentProfile}
+              onLike={handleLikeProfile}
+              onPass={passProfile}
+              onImageClick={handleImageClick}
+              className="mb-4"
+            />
+            
+            {/* Next card preview */}
+            {profiles[currentIndex + 1] && (
+              <div 
+                className="absolute inset-0 -z-10 pointer-events-none"
+                style={{
+                  transform: 'scale(0.95) translateY(12px)',
+                  opacity: 0.4
+                }}
+              >
+                <SwipeableProfileCard
+                  profile={profiles[currentIndex + 1]}
+                  onLike={() => {}}
+                  onPass={() => {}}
+                  className="pointer-events-none"
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <h2 className="text-xl font-semibold mb-2">No more profiles</h2>
+            <p className="text-gray-600 mb-4">Check back later for new matches!</p>
+          </div>
+        )}
+      </div>
 
       {/* Profile Image Viewer */}
       <ProfileImageViewer

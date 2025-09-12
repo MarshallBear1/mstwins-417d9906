@@ -190,8 +190,8 @@ const MobileProfileCard = ({
 
             {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned closer to pic */}
             <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-3 mt-0 mb-16">
-              {/* Name and basic info */}
-              <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 mt-1">
+              {/* Name and basic info - Standardized width */}
+              <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 mt-1 w-full">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
                   <h3 className="text-2xl font-bold text-white">{profile.first_name}</h3>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -221,9 +221,9 @@ const MobileProfileCard = ({
                 </div>
               </div>
 
-              {/* Interests */}
+              {/* Interests - Standardized width */}
               {profile.hobbies && profile.hobbies.length > 0 && (
-                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4">
+                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 w-full">
                   <div className="text-base font-semibold text-white mb-3">Interests:</div>
                    <div className="flex flex-wrap gap-2">
                      {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 4)).map((hobby, index) => {
@@ -262,30 +262,6 @@ const MobileProfileCard = ({
               )}
             </div>
 
-            {/* Pass/Connect Action Buttons - at the very bottom inside card */}
-            {(onPass || onLike) && (
-              <div className="absolute bottom-4 left-4 right-4 flex gap-3">
-                {onPass && (
-                  <Button
-                    onClick={onPass}
-                    variant="outline"
-                    className="flex-1 h-12 bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:bg-white hover:border-red-400 text-gray-700 hover:text-red-500 font-semibold rounded-xl transition-all duration-200 shadow-lg"
-                  >
-                    <X className="w-5 h-5 mr-2" />
-                    Pass
-                  </Button>
-                )}
-                {onLike && (
-                  <Button
-                    onClick={onLike}
-                    className="flex-1 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
-                  >
-                    <HandHeart className="w-5 h-5 mr-2" />
-                    Connect
-                  </Button>
-                )}
-              </div>
-            )}
           </div>
 
         </Card>
@@ -318,30 +294,6 @@ const MobileProfileCard = ({
                 <Eye className="w-3 h-3" />
               </button>
               
-              {/* Pass/Connect Action Buttons - also on back side */}
-              {(onPass || onLike) && (
-                <div className="absolute bottom-4 left-4 right-4 flex gap-3 pointer-events-auto">
-                  {onPass && (
-                    <Button
-                      onClick={onPass}
-                      variant="outline"
-                      className="flex-1 h-12 bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:bg-white hover:border-red-400 text-gray-700 hover:text-red-500 font-semibold rounded-xl transition-all duration-200 shadow-lg"
-                    >
-                      <X className="w-5 h-5 mr-2" />
-                      Pass
-                    </Button>
-                  )}
-                  {onLike && (
-                    <Button
-                      onClick={onLike}
-                      className="flex-1 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
-                    >
-                      <HandHeart className="w-5 h-5 mr-2" />
-                      Connect
-                    </Button>
-                  )}
-                </div>
-              )}
               
               <div className="text-center text-white z-10">
                 <h3 className="text-xl font-bold">{profile.first_name}'s Details</h3>
