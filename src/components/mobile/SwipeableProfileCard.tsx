@@ -109,13 +109,13 @@ const SwipeableProfileCard = ({
         />
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center gap-6 mt-8 px-4">
+      {/* Action Buttons - Improved spacing and positioning */}
+      <div className="flex justify-center gap-8 mt-12 px-6">
         <button
           onClick={handlePass}
-          className="bg-background/80 backdrop-blur-sm border-2 border-red-500/30 hover:border-red-500/60 hover:bg-red-500/10 
+          className="bg-white/95 backdrop-blur-sm border-2 border-red-500/40 hover:border-red-500/70 hover:bg-red-500/15 
                      text-red-500 w-16 h-16 rounded-full flex items-center justify-center
-                     transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
+                     transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
           disabled={isTransitioning}
         >
           <X className="w-6 h-6" />
@@ -123,18 +123,18 @@ const SwipeableProfileCard = ({
 
         <button
           onClick={() => setIsFlipped(!isFlipped)}
-          className="bg-background/80 backdrop-blur-sm border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/10 
+          className="bg-white/95 backdrop-blur-sm border-2 border-primary/40 hover:border-primary/70 hover:bg-primary/15 
                      text-primary w-14 h-14 rounded-full flex items-center justify-center
-                     transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
+                     transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
         >
           <RotateCcw className="w-5 h-5" />
         </button>
 
         <button
           onClick={handleLike}
-          className="bg-background/80 backdrop-blur-sm border-2 border-green-500/30 hover:border-green-500/60 hover:bg-green-500/10 
+          className="bg-white/95 backdrop-blur-sm border-2 border-green-500/40 hover:border-green-500/70 hover:bg-green-500/15 
                      text-green-500 w-16 h-16 rounded-full flex items-center justify-center
-                     transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
+                     transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
           disabled={isTransitioning}
         >
           <Heart className="w-6 h-6" />

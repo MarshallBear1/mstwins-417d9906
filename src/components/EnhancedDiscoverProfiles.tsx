@@ -271,19 +271,24 @@ const EnhancedDiscoverProfiles = memo(() => {
         paddingBottom: isMobile ? `max(8rem, ${safeAreaInsets.bottom + 120}px)` : '8rem'
       }}
     >
-      {/* Profile Counter */}
-      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg z-10">
+      {/* Profile Counter - Moved to center top */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg z-10">
         <span className="text-sm font-medium text-gray-700">
-          {currentIndex + 1} of {profiles.length}
+          {profiles.length - currentIndex} left
         </span>
       </div>
 
-      {/* Filter Button */}
-      <div className="absolute top-4 right-4 z-10">
+      {/* Filter Button - Moved to bottom left to avoid overlap */}
+      <div 
+        className="fixed bottom-4 left-4 z-20"
+        style={{
+          paddingBottom: isMobile ? `${safeAreaInsets.bottom}px` : '0px'
+        }}
+      >
         <Button 
           variant="outline" 
           size="sm" 
-          className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border-0 ios-bounce"
+          className="bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-xl border-0 ios-bounce hover:scale-105 transition-transform"
         >
           <Filter className="w-4 h-4 mr-2" />
           Filters
