@@ -102,7 +102,9 @@ const MobileProfileCard = ({
     (profile.selected_prompts && profile.selected_prompts.length > 0) ||
     (profile.about_me_preview && profile.about_me_preview.length > 80) ||
     profile.hobbies?.length ||
-    profile.ms_subtype
+    profile.ms_subtype ||
+    (profile.symptoms && profile.symptoms.length > 0) ||
+    (profile.medications && profile.medications.length > 0)
   );
 
   const hasInterests = Boolean(profile.hobbies && profile.hobbies.length > 0);
@@ -135,9 +137,14 @@ const MobileProfileCard = ({
         <Card className="flip-card-face ios-card ios-shadow-lg hover:shadow-3xl transition-all duration-500 border-0 rounded-2xl overflow-hidden" style={{
           width: '100%',
           height: '100%',
-          position: 'relative',
+          position: 'absolute',
+          top: 0,
+          left: 0,
           display: 'block',
-          touchAction: 'manipulation' // Optimize touch interactions
+          touchAction: 'manipulation',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+          pointerEvents: actualIsFlipped ? 'none' : 'auto'
         }}>
           {/* Full gradient background covering entire front card */}
           <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-16">
@@ -147,6 +154,7 @@ const MobileProfileCard = ({
               <div className="absolute top-4 left-4">
                 <button 
                 type="button"
+                data-no-swipe="true"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -162,7 +170,7 @@ const MobileProfileCard = ({
             )}
 
             {/* Profile Image with proper aspect ratio */}
-            <button onClick={() => onImageClick?.(0)} className="relative w-28 h-36 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-2">
+            <button onClick={() => onImageClick?.(0)} data-no-swipe="true" className="relative w-28 h-36 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl hover:scale-105 transition-all duration-300 mobile-touch-target mb-2">
               {profile.avatar_url ? (
                 <OptimizedAvatar
                   src={profile.avatar_url}
@@ -251,6 +259,7 @@ const MobileProfileCard = ({
                      })}
                     {profile.hobbies.length > 4 && (
                     <button
+                      data-no-swipe="true"
                       onClick={() => setShowAllHobbies(!showAllHobbies)}
                         className="text-sm text-white hover:text-white/80 font-semibold transition-colors"
                     >
@@ -269,6 +278,7 @@ const MobileProfileCard = ({
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-8 z-30">
                 {onPass && (
                   <button
+                    data-no-swipe="true"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -284,6 +294,7 @@ const MobileProfileCard = ({
                 
                 {onLike && (
                   <button
+                    data-no-swipe="true"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -313,7 +324,8 @@ const MobileProfileCard = ({
             left: 0,
             transform: 'rotateY(180deg)',
             backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden'
+            WebkitBackfaceVisibility: 'hidden',
+            pointerEvents: actualIsFlipped ? 'auto' : 'none'
           }}>
             {/* Back content implementation continues... */}
             <div className="relative h-48 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 flex items-center justify-center overflow-hidden">
@@ -322,6 +334,7 @@ const MobileProfileCard = ({
               {/* Back Button */}
               <button 
                 type="button"
+                data-no-swipe="true"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -359,30 +372,31 @@ const MobileProfileCard = ({
                      {showAllAbout ? (fullAbout || profile.about_me_preview) : profile.about_me_preview}
                    </div>
                    {(profile.about_me_preview && profile.about_me_preview.length > 100) && (
-                     <button
-                       onClick={async (e) => {
-                         e.preventDefault();
-                         e.stopPropagation();
-                         if (!showAllAbout && !fullAbout && !isLoadingAbout) {
-                           // Fetch full about_me if we don't have it
-                           setIsLoadingAbout(true);
-                           try {
-                             const { data } = await supabase
-                               .from('profiles')
-                               .select('about_me')
-                               .eq('user_id', profile.user_id)
-                               .single();
-                             if (data?.about_me) {
-                               setFullAbout(data.about_me);
-                             }
-                           } catch (error) {
-                             console.error('Error fetching full about_me:', error);
-                           } finally {
-                             setIsLoadingAbout(false);
-                           }
-                         }
-                         setShowAllAbout(!showAllAbout);
-                       }}
+                      <button
+                        data-no-swipe="true"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!showAllAbout && !fullAbout && !isLoadingAbout) {
+                            // Fetch full about_me if we don't have it
+                            setIsLoadingAbout(true);
+                            try {
+                              const { data } = await supabase
+                                .from('profiles')
+                                .select('about_me')
+                                .eq('user_id', profile.user_id)
+                                .single();
+                              if (data?.about_me) {
+                                setFullAbout(data.about_me);
+                              }
+                            } catch (error) {
+                              console.error('Error fetching full about_me:', error);
+                            } finally {
+                              setIsLoadingAbout(false);
+                            }
+                          }
+                          setShowAllAbout(!showAllAbout);
+                        }}
                        className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200 flex items-center gap-1"
                      >
                        {isLoadingAbout ? (
@@ -424,6 +438,7 @@ const MobileProfileCard = ({
                     })}
                     {profile.symptoms.length > 6 && (
                       <button
+                        data-no-swipe="true"
                         onClick={() => setShowAllSymptoms(!showAllSymptoms)}
                         className="text-sm text-orange-600 hover:text-orange-700 font-semibold transition-colors"
                       >
@@ -468,6 +483,7 @@ const MobileProfileCard = ({
                   </div>
                   {profile.medications.length > 3 && (
                     <button
+                      data-no-swipe="true"
                       onClick={() => setShowAllMedications(!showAllMedications)}
                       className="text-sm text-blue-600 hover:text-blue-700 mt-2 font-semibold transition-colors"
                     >
@@ -487,6 +503,7 @@ const MobileProfileCard = ({
                     {profile.additional_photos.slice(0, 4).map((photoUrl, index) => (
                       <button
                         key={index}
+                        data-no-swipe="true"
                         onClick={() => onImageClick?.(index + 1)}
                         className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-200"
                       >

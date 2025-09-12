@@ -19,6 +19,12 @@ export const useSwipeGestures = (config: SwipeConfig) => {
   const [swipeProgress, setSwipeProgress] = useState({ x: 0, y: 0 });
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // Check if the touch started on an element that should not trigger swipes
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-no-swipe="true"]')) {
+      return;
+    }
+    
     const touch = e.touches[0];
     touchStartRef.current = {
       x: touch.clientX,
@@ -30,6 +36,12 @@ export const useSwipeGestures = (config: SwipeConfig) => {
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!touchStartRef.current) return;
+    
+    // Check if the touch is on an element that should not trigger swipes
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-no-swipe="true"]')) {
+      return;
+    }
     
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
@@ -44,6 +56,14 @@ export const useSwipeGestures = (config: SwipeConfig) => {
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (!touchStartRef.current || isTransitioning) return;
+
+    // Check if the touch ended on an element that should not trigger swipes
+    const target = e.changedTouches[0].target as HTMLElement;
+    if (target.closest('[data-no-swipe="true"]')) {
+      touchStartRef.current = null;
+      setSwipeProgress({ x: 0, y: 0 });
+      return;
+    }
 
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;

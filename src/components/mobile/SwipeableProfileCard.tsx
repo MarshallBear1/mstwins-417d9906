@@ -20,6 +20,8 @@ interface Profile {
   additional_photos?: string[];
   selected_prompts?: any;
   extended_profile_completed?: boolean;
+  symptoms?: string[];
+  medications?: string[];
 }
 
 interface SwipeableProfileCardProps {
