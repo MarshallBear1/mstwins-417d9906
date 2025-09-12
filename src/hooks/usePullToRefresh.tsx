@@ -24,6 +24,18 @@ export const usePullToRefresh = ({
   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (disabled || isRefreshing) return;
     
+    // Check if touch started inside a scrollable element
+    const target = e.target as HTMLElement;
+    const scrollableElement = target.closest('[data-scrollable="true"]') || 
+                             target.closest('.overflow-y-auto') ||
+                             target.closest('.overflow-auto');
+    
+    if (scrollableElement) {
+      // Check if the scrollable element has content to scroll
+      const hasScrollableContent = scrollableElement.scrollHeight > scrollableElement.clientHeight;
+      if (hasScrollableContent) return;
+    }
+    
     const scrollTop = containerRef.current?.scrollTop || window.scrollY;
     if (scrollTop > 0) return;
 

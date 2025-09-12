@@ -27,6 +27,7 @@ interface SwipeableProfileCardProps {
   onLike: (profileId: string) => void;
   onPass: (profileId: string) => void;
   onImageClick?: (imageIndex: number) => void;
+  onFlipChange?: (flipped: boolean) => void;
   className?: string;
 }
 
@@ -35,11 +36,17 @@ const SwipeableProfileCard = ({
   onLike, 
   onPass, 
   onImageClick,
+  onFlipChange,
   className 
 }: SwipeableProfileCardProps) => {
   const { isUserOnline, getLastSeenText } = useRealtimePresence();
   const { like, errorFeedback } = useHaptics();
   const [isFlipped, setIsFlipped] = useState(false);
+  
+  const handleFlipChange = (flipped: boolean) => {
+    setIsFlipped(flipped);
+    onFlipChange?.(flipped);
+  };
 
   const handleLike = () => {
     like();
@@ -52,10 +59,10 @@ const SwipeableProfileCard = ({
   };
 
   const { swipeHandlers, swipeProgress, isTransitioning } = useSwipeGestures({
-    onSwipeRight: handleLike,
-    onSwipeLeft: handlePass,
+    onSwipeRight: isFlipped ? undefined : handleLike,
+    onSwipeLeft: isFlipped ? undefined : handlePass,
     threshold: 100,
-    preventDefaultTouchmove: true,
+    preventDefaultTouchmove: !isFlipped,
   });
 
   // Calculate opacity and rotation based on swipe progress
@@ -95,9 +102,9 @@ const SwipeableProfileCard = ({
 
       {/* Main Card */}
       <div 
-        className="select-none touch-none w-full"
+        className={cn("select-none w-full", !isFlipped && "touch-none")}
         style={getSwipeStyles()}
-        {...swipeHandlers}
+        {...(!isFlipped && swipeHandlers)}
       >
         <MobileProfileCard
           profile={profile}
@@ -105,7 +112,7 @@ const SwipeableProfileCard = ({
           isUserOnline={isUserOnline}
           getLastSeenText={getLastSeenText}
           isFlipped={isFlipped}
-          onFlipChange={setIsFlipped}
+          onFlipChange={handleFlipChange}
         />
       </div>
 

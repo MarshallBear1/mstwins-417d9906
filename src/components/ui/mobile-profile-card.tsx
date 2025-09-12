@@ -302,7 +302,15 @@ const MobileProfileCard = ({
               </div>
             </div>
 
-            <CardContent className="p-6 space-y-5 overflow-y-auto pb-24" style={{ maxHeight: 'calc(100% - 12rem)' }}>
+            <CardContent 
+              className="p-6 space-y-5 overflow-y-auto pb-24" 
+              style={{ 
+                maxHeight: 'calc(100% - 12rem)',
+                WebkitOverflowScrolling: 'touch',
+                touchAction: 'pan-y'
+              }}
+              data-scrollable="true"
+            >
               {/* About Me section - moved from front */}
               {(profile.about_me_preview || fullAbout) && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -392,7 +400,11 @@ const MobileProfileCard = ({
               {profile.medications && profile.medications.length > 0 && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-h-32">
                   <div className="text-base font-semibold text-gray-800 mb-3">Current Medications:</div>
-                  <div className="max-h-20 overflow-y-auto">
+                   <div 
+                     className="max-h-20 overflow-y-auto" 
+                     data-scrollable="true"
+                     style={{ WebkitOverflowScrolling: 'touch' }}
+                   >
                     <div className="flex flex-wrap gap-2">
                       {(showAllMedications ? profile.medications : profile.medications.slice(0, 3)).map((medication, index) => {
                         const colors = [

@@ -297,6 +297,7 @@ const EnhancedDiscoverProfiles = memo(() => {
               onLike={handleLikeProfile}
               onPass={passProfile}
               onImageClick={handleImageClick}
+              onFlipChange={setIsCardFlipped}
               className="mb-4"
             />
             
@@ -339,7 +340,7 @@ const EnhancedDiscoverProfiles = memo(() => {
   return (
     <div className="overflow-hidden bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 min-h-screen">
       {isMobile ? (
-        <MobilePullToRefresh onRefresh={handleRefresh} disabled={loading}>
+        <MobilePullToRefresh onRefresh={handleRefresh} disabled={loading || isCardFlipped}>
           {content}
         </MobilePullToRefresh>
       ) : (
