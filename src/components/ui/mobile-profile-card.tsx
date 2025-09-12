@@ -307,7 +307,8 @@ const MobileProfileCard = ({
               style={{ 
                 maxHeight: 'calc(100% - 12rem)',
                 WebkitOverflowScrolling: 'touch',
-                touchAction: 'pan-y'
+                touchAction: 'pan-y',
+                overscrollBehavior: 'contain'
               }}
               data-scrollable="true"
             >
