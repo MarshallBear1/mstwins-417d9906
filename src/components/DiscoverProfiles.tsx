@@ -611,13 +611,15 @@ const DiscoverProfiles = memo(() => {
               opacity: isDragging ? Math.max(0.7, 1 - Math.abs(dragOffset.x) / 300) : 1,
               zIndex: 10
             }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
+            {...(!isCardFlipped ? {
+              onTouchStart: handleTouchStart,
+              onTouchMove: handleTouchMove,
+              onTouchEnd: handleTouchEnd,
+              onMouseDown: handleMouseDown,
+              onMouseMove: handleMouseMove,
+              onMouseUp: handleMouseUp,
+              onMouseLeave: handleMouseUp,
+            } : {})}
           >
             <DiscoverProfileCard
               profile={currentProfile}

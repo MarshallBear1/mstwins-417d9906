@@ -131,7 +131,10 @@ const MobileProfileCard = ({
       <div className={cn("flip-card-inner", actualIsFlipped && "rotate-y-180")} style={{
         width: '100%',
         height: '100%',
-        position: 'relative'
+        position: 'relative',
+        transformStyle: 'preserve-3d',
+        transform: actualIsFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         {/* Front Side */}
         <Card className="flip-card-face ios-card ios-shadow-lg hover:shadow-3xl transition-all duration-500 border-0 rounded-2xl overflow-hidden" style={{
