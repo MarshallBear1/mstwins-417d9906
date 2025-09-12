@@ -74,8 +74,12 @@ const MatchPopup = ({ isOpen, onClose, matchUser }: MatchPopupProps) => {
             <Button 
               onClick={() => {
                 onClose();
-                // Navigate to messages
-                window.location.href = '/dashboard?tab=messages';
+                // Navigate to messages using React Router
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', 'messages');
+                window.history.pushState({}, '', url.toString());
+                // Trigger navigation event for React Router
+                window.dispatchEvent(new PopStateEvent('popstate'));
               }}
               className="w-full bg-white text-purple-600 hover:bg-gray-100 font-semibold py-3 rounded-xl"
             >
@@ -330,11 +334,14 @@ const ModernNotificationSystem = () => {
                       
                       // Handle navigation based on notification type
                       setTimeout(() => {
+                        const url = new URL(window.location.href);
                         if (notification.type === 'message') {
-                          window.location.href = '/dashboard?tab=messages';
+                          url.searchParams.set('tab', 'messages');
                         } else if (notification.type === 'match' || notification.type === 'connection' || notification.type === 'like') {
-                          window.location.href = '/dashboard?tab=likes';
+                          url.searchParams.set('tab', 'likes');
                         }
+                        window.history.pushState({}, '', url.toString());
+                        window.dispatchEvent(new PopStateEvent('popstate'));
                       }, 100);
                     }}
                   >
