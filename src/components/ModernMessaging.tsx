@@ -523,36 +523,9 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                 </div>
                 <p className="text-gray-600 text-sm">Your conversations with matches</p>
               </div>
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant={messageFilter !== 'all' ? "default" : "ghost"} 
-                      size="sm" 
-                      className="p-2 hover:bg-gray-100 rounded-full"
-                    >
-                      <Filter className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setMessageFilter('all')}>
-                      All Conversations
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setMessageFilter('unread')}>
-                      Unread Messages
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setMessageFilter('no_conversation')}>
-                      Haven't Chatted Yet
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setMessageFilter('active')}>
-                      Recent Conversations
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
-                  <MoreHorizontal className="w-5 h-5" />
-                </Button>
-              </div>
+              <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
@@ -561,21 +534,11 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             <Tabs defaultValue="messages" className="flex-1 flex flex-col">
               <div className="px-4 pt-4">
                 <TabsList className="grid w-full grid-cols-2 bg-gray-100">
-                  <TabsTrigger value="messages" className="text-sm font-medium">
+                  <TabsTrigger value="messages" className="text-xs">
                     Messages
-                    {filteredMatches.filter(m => m.last_message).length > 0 && (
-                      <Badge className="ml-2 bg-blue-500 text-white text-xs min-w-[20px] h-5 rounded-full">
-                        {filteredMatches.filter(m => m.last_message).length}
-                      </Badge>
-                    )}
                   </TabsTrigger>
-                  <TabsTrigger value="new" className="text-sm font-medium">
-                    No Messages Yet
-                    {filteredMatches.filter(m => !m.last_message).length > 0 && (
-                      <Badge className="ml-2 bg-green-500 text-white text-xs min-w-[20px] h-5 rounded-full">
-                        {filteredMatches.filter(m => !m.last_message).length}
-                      </Badge>
-                    )}
+                  <TabsTrigger value="new" className="text-xs">
+                    Not messaged yet
                   </TabsTrigger>
                 </TabsList>
               </div>
