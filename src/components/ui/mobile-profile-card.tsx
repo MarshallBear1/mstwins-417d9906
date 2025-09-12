@@ -146,12 +146,13 @@ const MobileProfileCard = ({
             {hasExtendedContent && (
               <div className="absolute top-4 left-4">
                 <button 
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   handleFlipChange(!actualIsFlipped);
                 }}
-                className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1.5 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1.5 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg z-20 pointer-events-auto"
                 title="Show more details"
               >
                 <Eye className="w-3.5 h-3.5" />
@@ -281,16 +282,17 @@ const MobileProfileCard = ({
           }}>
             {/* Back content implementation continues... */}
             <div className="relative h-48 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 flex items-center justify-center overflow-hidden">
-              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
               
               {/* Back Button */}
               <button 
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   handleFlipChange(false);
                 }}
-                className="absolute top-3 left-3 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg z-20"
+                className="absolute top-3 left-3 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg z-30 pointer-events-auto"
                 title="Back to main"
               >
                 <Eye className="w-3 h-3" />
