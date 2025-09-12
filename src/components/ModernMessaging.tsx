@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Send, ArrowLeft, Phone, Video, MoreHorizontal, Search, Paperclip, Smile, MessageCircle } from "lucide-react";
+import { Send, ArrowLeft, Phone, Video, MoreHorizontal, Search, Paperclip, Smile, MessageCircle, Filter, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
@@ -68,6 +69,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showProfileView, setShowProfileView] = useState(false);
+  const [messageFilter, setMessageFilter] = useState<'all' | 'unread' | 'no_conversation' | 'active'>('all');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -258,9 +260,29 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
   };
 
   const filteredMatches = matches.filter(match => {
-    if (!searchQuery) return true;
-    return match.other_user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           match.last_message?.content.toLowerCase().includes(searchQuery.toLowerCase());
+    // Search filter
+    const matchesSearch = !searchQuery || 
+      match.other_user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      match.last_message?.content.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Status filter
+    let matchesFilter = true;
+    switch (messageFilter) {
+      case 'unread':
+        matchesFilter = (match.unread_count && match.unread_count > 0) || false;
+        break;
+      case 'no_conversation':
+        matchesFilter = !match.last_message;
+        break;
+      case 'active':
+        matchesFilter = match.last_message && 
+          new Date(match.last_message.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000); // Last 7 days
+        break;
+      default:
+        matchesFilter = true;
+    }
+    
+    return matchesSearch && matchesFilter;
   });
 
   useEffect(() => {
@@ -501,9 +523,36 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                 </div>
                 <p className="text-gray-600 text-sm">Your conversations with matches</p>
               </div>
-              <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant={messageFilter !== 'all' ? "default" : "ghost"} 
+                      size="sm" 
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <Filter className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setMessageFilter('all')}>
+                      All Conversations
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setMessageFilter('unread')}>
+                      Unread Messages
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setMessageFilter('no_conversation')}>
+                      Haven't Chatted Yet
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setMessageFilter('active')}>
+                      Recent Conversations
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
 
