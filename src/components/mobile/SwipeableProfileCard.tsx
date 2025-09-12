@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { HeartHandshake, X, RotateCcw } from 'lucide-react';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 import { useHaptics } from '@/hooks/useHaptics';
@@ -42,6 +42,21 @@ const SwipeableProfileCard = ({
   const { isUserOnline, getLastSeenText } = useRealtimePresence();
   const { like, errorFeedback } = useHaptics();
   const [isFlipped, setIsFlipped] = useState(false);
+
+  // Prevent background/page scroll when extended profile (back) is open
+  React.useEffect(() => {
+    if (isFlipped) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isFlipped]);
   
   const handleFlipChange = (flipped: boolean) => {
     setIsFlipped(flipped);

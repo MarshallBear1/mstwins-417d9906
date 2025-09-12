@@ -269,14 +269,15 @@ const MobileProfileCard = ({
 
         {/* Back Side with extended content... */}
         {hasExtendedContent && (
-          <Card className="flip-card-face flip-card-back shadow-2xl hover:shadow-3xl transition-all duration-500 bg-white border-0 rounded-2xl overflow-hidden" style={{
+          <Card className="flip-card-face flip-card-back shadow-2xl hover:shadow-3xl transition-all duration-500 bg-white border-0 rounded-2xl overflow-visible" style={{
             width: '100%',
             height: '100%',
             position: 'absolute',
             top: 0,
             left: 0,
             transform: 'rotateY(180deg)',
-            backfaceVisibility: 'hidden'
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden'
           }}>
             {/* Back content implementation continues... */}
             <div className="relative h-48 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 flex items-center justify-center overflow-hidden">
@@ -289,7 +290,7 @@ const MobileProfileCard = ({
                   e.stopPropagation();
                   handleFlipChange(false);
                 }}
-                className="absolute top-3 left-3 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg"
+                className="absolute top-3 left-3 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg z-20"
                 title="Back to main"
               >
                 <Eye className="w-3 h-3" />
@@ -305,7 +306,7 @@ const MobileProfileCard = ({
             <CardContent 
               className="p-6 space-y-5 overflow-y-auto pb-24" 
               style={{ 
-                maxHeight: 'calc(100% - 12rem)',
+                height: 'calc(100% - 12rem)',
                 WebkitOverflowScrolling: 'touch',
                 touchAction: 'pan-y',
                 overscrollBehavior: 'contain'
