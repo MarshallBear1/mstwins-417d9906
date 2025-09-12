@@ -81,7 +81,7 @@ const EnhancedMatchesPage = ({
       }
       toast({
         title: "Success!",
-        description: "You liked them back!"
+        description: "You connected with them!"
       });
     } catch (error: any) {
       console.error('Error liking back:', error);
@@ -167,7 +167,7 @@ const EnhancedMatchesPage = ({
                   </Button>
                   <OptimizedButton size="sm" className="w-full bg-gradient-primary hover:opacity-90 text-white text-xs sm:text-sm" onClick={() => handleLikeBack(likedProfile)} disabled={isLikingBack === likedProfile.user_id} debounceMs={2000}>
                     {isLikingBack === likedProfile.user_id ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1" /> : <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />}
-                    Like Back
+                    Connect With
                   </OptimizedButton>
                 </div>
               </div>
@@ -181,7 +181,7 @@ const EnhancedMatchesPage = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Who Liked You</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Who Connected With You</h2>
             {refreshing && <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />}
           </div>
           

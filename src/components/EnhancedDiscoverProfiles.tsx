@@ -271,11 +271,17 @@ const EnhancedDiscoverProfiles = memo(() => {
         paddingBottom: isMobile ? `max(8rem, ${safeAreaInsets.bottom + 120}px)` : '8rem'
       }}
     >
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
         <Button 
           variant="outline" 
           size="sm" 
-          className="bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-xl border-0 ios-bounce hover:scale-105 transition-transform"
+          className="bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-xl border-0 ios-bounce hover:scale-105 transition-transform relative z-50"
+          onClick={() => {
+            toast({
+              title: "Filters coming soon!",
+              description: "We're working on advanced filters to help you find your perfect match.",
+            });
+          }}
         >
           <Filter className="w-4 h-4 mr-2" />
           Filters
