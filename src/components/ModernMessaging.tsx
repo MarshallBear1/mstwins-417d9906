@@ -473,7 +473,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
           <div 
             className="bg-white border-t border-gray-200 p-4 relative z-50"
             style={{
-              marginBottom: isMobile ? `max(5rem, ${safeAreaInsets.bottom + 80}px)` : '0rem'
+              marginBottom: isMobile ? `max(6rem, ${safeAreaInsets.bottom + 100}px)` : '0rem'
             }}
           >
             <div className="flex items-end gap-3">
