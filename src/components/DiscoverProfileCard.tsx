@@ -19,6 +19,7 @@ interface Profile {
   extended_profile_completed?: boolean;
   symptoms?: string[];
   medications?: string[];
+  last_seen?: string;
 }
 
 interface DiscoverProfileCardProps {

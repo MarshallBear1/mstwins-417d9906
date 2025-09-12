@@ -188,7 +188,7 @@ const MobileProfileCard = ({
                 </span>
               </div>
             </div>
-
+            
             {/* Name, Age, Gender, Location, MS Subtype, Interests - positioned closer to pic */}
             <div className="flex-1 flex flex-col justify-center px-4 text-white space-y-3 mt-0 mb-16">
               {/* Name and basic info - Standardized width */}
@@ -199,23 +199,23 @@ const MobileProfileCard = ({
                     {calculateAge(profile.age) && (
                       <span className="text-base font-semibold text-white bg-white/20 px-3 py-1 rounded-full">{calculateAge(profile.age)}</span>
                     )}
-                    {profile.gender && (
+                {profile.gender && (
                       <span className="text-base font-semibold text-white bg-white/20 px-3 py-1 rounded-full capitalize">{profile.gender}</span>
-                    )}
-                  </div>
-                </div>
+                )}
+              </div>
+            </div>
                 <div className="space-y-2">
-                  {profile.city && (
+            {profile.city && (
                     <div className="flex items-center gap-2 text-white/90">
-                      <MapPin className="w-4 h-4 flex-shrink-0" />
+                <MapPin className="w-4 h-4 flex-shrink-0" />
                       <span className="text-sm font-medium">{profile.city}</span>
-                    </div>
-                  )}
-                  {profile.ms_subtype && (
-                    <div className="flex items-center gap-2">
+              </div>
+            )}
+            {profile.ms_subtype && (
+              <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-white/90">MS Subtype:</span>
                       <span className="text-sm font-semibold text-white bg-white/20 px-2 py-1 rounded-full uppercase">
-                        {profile.ms_subtype}
+                  {profile.ms_subtype}
                       </span>
                     </div>
                   )}
@@ -223,7 +223,7 @@ const MobileProfileCard = ({
               </div>
 
               {/* Interests - Standardized width */}
-              {profile.hobbies && profile.hobbies.length > 0 && (
+            {profile.hobbies && profile.hobbies.length > 0 && (
                 <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 w-full">
                   <div className="text-base font-semibold text-white mb-3">Interests:</div>
                    <div className="flex flex-wrap gap-2">
@@ -244,26 +244,26 @@ const MobileProfileCard = ({
                            variant="secondary" 
                            className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
                          >
-                           {hobby}
-                         </Badge>
+                      {hobby}
+                    </Badge>
                        );
                      })}
                     {profile.hobbies.length > 4 && (
-                      <button
-                        onClick={() => setShowAllHobbies(!showAllHobbies)}
+                    <button
+                      onClick={() => setShowAllHobbies(!showAllHobbies)}
                         className="text-sm text-white hover:text-white/80 font-semibold transition-colors"
-                      >
+                    >
                         <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-white/20 cursor-pointer border-white/40 text-white">
                           {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 4} more`}
-                        </Badge>
-                      </button>
-                    )}
-                  </div>
+                      </Badge>
+                    </button>
+                  )}
                 </div>
-              )}
+              </div>
+            )}
             </div>
 
-          </div>
+              </div>
 
         </Card>
 
@@ -290,10 +290,10 @@ const MobileProfileCard = ({
                   e.stopPropagation();
                   handleFlipChange(false);
                 }}
-                className="absolute top-3 left-3 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg z-20"
+                className="absolute top-3 left-3 w-10 h-10 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all duration-200 mobile-touch-target shadow-lg z-30 cursor-pointer"
                 title="Back to main"
               >
-                <Eye className="w-3 h-3" />
+                <Eye className="w-4 h-4" />
               </button>
               
               
@@ -304,12 +304,13 @@ const MobileProfileCard = ({
             </div>
 
             <CardContent 
-              className="p-6 space-y-5 overflow-y-auto pb-24" 
+              className="p-6 space-y-5 overflow-y-auto pb-24 custom-scrollbar" 
               style={{ 
                 height: 'calc(100% - 12rem)',
                 WebkitOverflowScrolling: 'touch',
                 touchAction: 'pan-y',
-                overscrollBehavior: 'contain'
+                overscrollBehavior: 'contain',
+                scrollBehavior: 'smooth'
               }}
               data-scrollable="true"
             >
@@ -468,12 +469,12 @@ const MobileProfileCard = ({
               {/* Prompts - no title, better styling */}
               {profile.selected_prompts && profile.selected_prompts.length > 0 && (
                 <div className="space-y-4">
-                  {profile.selected_prompts.map((prompt, index) => (
+                    {profile.selected_prompts.map((prompt, index) => (
                     <div key={index} className="bg-gray-100 rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                       <p className="text-sm font-semibold text-gray-700 mb-3 leading-tight">{prompt.question}</p>
                       <p className="text-base text-gray-900 leading-relaxed">{prompt.answer}</p>
-                    </div>
-                  ))}
+                      </div>
+                    ))}
                 </div>
               )}
 

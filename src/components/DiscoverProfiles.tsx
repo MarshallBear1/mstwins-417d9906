@@ -47,6 +47,8 @@ interface Profile {
   selected_prompts?: any;
   extended_profile_completed?: boolean;
   last_seen?: string;
+  symptoms?: string[];
+  medications?: string[];
 }
 
 // Swipe gesture configuration
