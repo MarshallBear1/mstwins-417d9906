@@ -113,7 +113,7 @@ const NotificationBell = () => {
         title="Notifications"
       >
         <Bell className="w-5 h-5" />
-        {unreadCount > 0 && (
+        {unreadCount && unreadCount > 0 && (
           <Badge 
             className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg animate-pulse" 
           >

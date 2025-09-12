@@ -275,7 +275,7 @@ const ModernNotificationSystem = () => {
             className="relative p-3 hover:bg-gray-100 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-sm"
           >
             <Bell className="w-6 h-6 text-gray-600" />
-            {unreadCount > 0 && (
+            {unreadCount && unreadCount > 0 && (
               <Badge 
                 className="absolute -top-1 -right-1 w-6 h-6 p-0 text-xs bg-red-500 text-white rounded-full flex items-center justify-center animate-pulse shadow-lg notification-badge"
               >
