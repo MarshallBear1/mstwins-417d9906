@@ -283,7 +283,7 @@ const EnhancedDiscoverProfiles = memo(() => {
       </div>
 
       {/* Main Profile Card Container - Moved down and centered */}
-      <div className="flex-1 flex items-center justify-center px-4 pt-8">
+      <div className="flex-1 flex items-center justify-center px-4 pt-20">
         {currentProfile ? (
           <div className="relative w-full max-w-sm mx-auto">
             <SwipeableProfileCard
