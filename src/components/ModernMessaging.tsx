@@ -393,7 +393,9 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
           </div>
 
           {/* Messages Area */}
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4" style={{
+            paddingBottom: isMobile ? `max(6rem, ${safeAreaInsets.bottom + 120}px)` : '1rem'
+          }}>
             <div className="space-y-4">
               {messages.map((message, index) => {
                 const isOwn = message.sender_id === user?.id;
@@ -469,11 +471,13 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             </div>
           </ScrollArea>
 
-          {/* Message Input - positioned above bottom nav */}
+          {/* Message Input - Fixed to bottom on mobile */}
           <div 
-            className="bg-white border-t border-gray-200 p-4 relative z-50"
+            className={`bg-white border-t border-gray-200 p-4 z-50 ${
+              isMobile ? 'fixed left-0 right-0 bottom-0' : 'relative'
+            }`}
             style={{
-              marginBottom: isMobile ? `max(6rem, ${safeAreaInsets.bottom + 100}px)` : '0rem'
+              paddingBottom: isMobile ? `max(1rem, ${safeAreaInsets.bottom + 16}px)` : '1rem'
             }}
           >
             <div className="flex items-end gap-3">
