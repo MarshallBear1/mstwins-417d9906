@@ -110,7 +110,7 @@ const SwipeableProfileCard = ({
       </div>
 
       {/* Action Buttons - Only X and Like, removed flip button */}
-      <div className="flex justify-center gap-12 mt-4 px-6">
+      <div className="flex justify-center gap-12 mt-1 px-6">
         <button
           onClick={handlePass}
           className="bg-white/95 backdrop-blur-sm border-2 border-red-500/40 hover:border-red-500/70 hover:bg-red-500/15 
