@@ -267,11 +267,8 @@ const Dashboard = () => {
         }
         const urlParams = new URLSearchParams(window.location.search);
         const matchId = urlParams.get('match');
-        return <Messaging 
+        return <ModernMessaging 
           matchId={matchId || undefined} 
-          selectedProfileForView={selectedProfileForView}
-          setSelectedProfileForView={setSelectedProfileForView}
-          setShowProfileView={setShowProfileView}
           onBack={() => {
             // Remove match parameter from URL when going back
             const currentUrl = new URL(window.location.href);
