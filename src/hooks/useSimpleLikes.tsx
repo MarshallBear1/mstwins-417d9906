@@ -9,7 +9,14 @@ export const useSimpleLikes = () => {
   const [loading, setLoading] = useState(false);
 
   const likeProfile = useCallback(async (targetUserId: string): Promise<boolean> => {
+    console.log('🚀 Starting likeProfile function', { 
+      userId: user?.id, 
+      targetUserId,
+      timestamp: new Date().toISOString()
+    });
+    
     if (!user) {
+      console.log('❌ No user authenticated');
       toast({
         title: "Authentication Error",
         description: "Please log in to like profiles.",
@@ -19,6 +26,7 @@ export const useSimpleLikes = () => {
     }
 
     if (user.id === targetUserId) {
+      console.log('❌ User trying to like themselves');
       toast({
         title: "Can't like yourself",
         description: "You can't like your own profile!",
@@ -71,20 +79,38 @@ export const useSimpleLikes = () => {
 
       if (insertError) {
         console.error('❌ Database insert error:', insertError);
+        console.error('Error details:', {
+          message: insertError.message,
+          code: insertError.code,
+          details: insertError.details,
+          hint: insertError.hint
+        });
         
-        // Check if it's an RLS policy error
-        if (insertError.message.includes('Invalid user action') || 
-            insertError.message.includes('RLS') ||
-            insertError.message.includes('policy')) {
+        // Check for specific error types
+        if (insertError.message.includes('duplicate key') || insertError.code === '23505') {
+          toast({
+            title: "Already liked",
+            description: "You've already liked this profile!",
+            variant: "destructive"
+          });
+        } else if (insertError.message.includes('violates row-level security policy') || 
+                   insertError.message.includes('RLS') ||
+                   insertError.code === '42501') {
           toast({
             title: "Permission Denied",
-            description: "Unable to like this profile due to security restrictions.",
+            description: `Unable to like this profile. Error: ${insertError.message}`,
+            variant: "destructive"
+          });
+        } else if (insertError.message.includes('not authenticated') || insertError.code === 'PGRST301') {
+          toast({
+            title: "Authentication Error",
+            description: "Please log in again to like profiles.",
             variant: "destructive"
           });
         } else {
           toast({
-            title: "Like Failed",
-            description: "Failed to like profile. Please try again.",
+            title: "Like Failed", 
+            description: `Failed to like profile: ${insertError.message}`,
             variant: "destructive"
           });
         }
