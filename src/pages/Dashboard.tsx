@@ -9,7 +9,7 @@ import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, Eye, Arro
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
-import EnhancedDiscoverProfiles from "@/components/EnhancedDiscoverProfiles";
+import DiscoverProfiles from "@/components/DiscoverProfiles";
 import Messaging from "@/components/Messaging";
 import ModernMessaging from "@/components/ModernMessaging";
 import ModernForumPage from "@/components/ModernForumPage";
@@ -253,7 +253,7 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </div>}
-            <EnhancedDiscoverProfiles />
+            <DiscoverProfiles />
           </div>;
       case "likes":
         return <EnhancedMatchesPage 
@@ -267,11 +267,8 @@ const Dashboard = () => {
         }
         const urlParams = new URLSearchParams(window.location.search);
         const matchId = urlParams.get('match');
-        return <Messaging 
+        return <ModernMessaging 
           matchId={matchId || undefined} 
-          selectedProfileForView={selectedProfileForView}
-          setSelectedProfileForView={setSelectedProfileForView}
-          setShowProfileView={setShowProfileView}
           onBack={() => {
             // Remove match parameter from URL when going back
             const currentUrl = new URL(window.location.href);

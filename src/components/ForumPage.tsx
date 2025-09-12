@@ -1158,7 +1158,7 @@ const ForumPage = () => {
                           >
                             <Heart className={`w-4 h-4 ${post.user_has_liked ? 'fill-current' : ''}`} />
                             {post.likes_count}
-                            <span className="text-xs ml-1">{post.user_has_liked ? 'Connected' : 'Connect'}</span>
+                            <span className="text-xs ml-1">{post.user_has_liked ? 'Liked' : 'Like'}</span>
                           </Button>
                           <div className="flex items-center gap-2 text-gray-500">
                             <MessageCircle className="w-4 h-4" />
@@ -1378,7 +1378,7 @@ const ForumPage = () => {
                   >
                     <Heart className={`w-4 h-4 ${selectedPost.user_has_liked ? 'fill-current' : ''}`} />
                     {selectedPost.likes_count}
-                    <span className="text-xs ml-2">{selectedPost.user_has_liked ? 'Connected' : 'Connect'}</span>
+                    <span className="text-xs ml-2">{selectedPost.user_has_liked ? 'Liked' : 'Like'}</span>
                   </Button>
                   <div className="flex items-center gap-2 text-gray-500">
                     <MessageCircle className="w-4 h-4" />
