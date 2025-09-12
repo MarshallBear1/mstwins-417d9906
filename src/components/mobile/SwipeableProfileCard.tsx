@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, X, RotateCcw } from 'lucide-react';
+import { HeartHandshake, X, RotateCcw } from 'lucide-react';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 import { useHaptics } from '@/hooks/useHaptics';
 import { cn } from '@/lib/utils';
@@ -81,7 +81,7 @@ const SwipeableProfileCard = ({
       {/* Swipe Indicators */}
       {showLikeIndicator && (
         <div className="absolute top-6 right-6 z-20 bg-green-500/95 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-xl animate-scale-in border-2 border-white">
-          <Heart className="w-5 h-5 fill-current inline mr-2" />
+          <HeartHandshake className="w-5 h-5 fill-current inline mr-2" />
           <span className="font-semibold text-sm">Connect</span>
         </div>
       )}
@@ -110,7 +110,7 @@ const SwipeableProfileCard = ({
       </div>
 
       {/* Action Buttons - Only X and Like, removed flip button */}
-      <div className="flex justify-center gap-12 mt-1 px-6">
+      <div className="flex justify-center gap-12 -mt-3 px-6">
         <button
           onClick={handlePass}
           className="bg-white/95 backdrop-blur-sm border-2 border-red-500/40 hover:border-red-500/70 hover:bg-red-500/15 
@@ -128,7 +128,7 @@ const SwipeableProfileCard = ({
                      transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
           disabled={isTransitioning}
         >
-          <Heart className="w-6 h-6" />
+          <HeartHandshake className="w-6 h-6" />
         </button>
       </div>
     </div>
