@@ -7,6 +7,8 @@ interface UseDiscoverScrollPreventionProps {
 
 export const useDiscoverScrollPrevention = ({ isDiscoverTab, isCardFlipped }: UseDiscoverScrollPreventionProps) => {
   useEffect(() => {
+    console.log('🚫 Scroll prevention - isDiscoverTab:', isDiscoverTab, 'isCardFlipped:', isCardFlipped);
+    
     // Only prevent scroll on discover tab when card is not flipped (front side)
     if (isDiscoverTab && !isCardFlipped) {
       // Prevent body scroll
@@ -17,8 +19,11 @@ export const useDiscoverScrollPrevention = ({ isDiscoverTab, isCardFlipped }: Us
       const preventTouchMove = (e: TouchEvent) => {
         const target = e.target as HTMLElement;
         
-        // Allow touch events on swipeable elements (cards with touch-none class)
-        if (target.closest('.touch-none') || target.closest('[data-swipeable]')) {
+        // Allow touch events on scrollable elements or elements marked with data-no-swipe
+        if (target.closest('[data-scrollable]') || 
+            target.closest('[data-no-swipe="true"]') || 
+            target.closest('.touch-none') || 
+            target.closest('[data-swipeable]')) {
           return;
         }
         
@@ -34,6 +39,10 @@ export const useDiscoverScrollPrevention = ({ isDiscoverTab, isCardFlipped }: Us
         document.documentElement.style.overflow = '';
         document.removeEventListener('touchmove', preventTouchMove);
       };
+    } else {
+      // Restore scroll when card is flipped
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
   }, [isDiscoverTab, isCardFlipped]);
 };

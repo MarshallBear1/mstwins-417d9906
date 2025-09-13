@@ -113,62 +113,84 @@ const MobileProfileCard = ({
   const cardHeight = 'min(75vh, 600px)'; // Responsive height that scales with viewport
   const cardWidth = 'min(90vw, 350px)'; // Responsive width that scales with viewport
 
+  console.log('🃏 Profile card render - isFlipped:', actualIsFlipped, 'profile:', profile.first_name);
+
   return (
     <div 
       className={cn("flip-card", className)} 
       style={{ 
         ...style, 
-        height: cardHeight, // Responsive height
-        width: cardWidth, // Responsive width
+        height: cardHeight,
+        width: cardWidth,
         perspective: '1000px',
         position: 'relative',
-        maxHeight: '600px', // Prevent cards from getting too large
-        minHeight: '480px' // Ensure minimum usable height
+        maxHeight: '600px',
+        minHeight: '480px',
+        willChange: 'transform'
       }}
       data-swipeable="true"
       {...props}
     >
-      <div className={cn("flip-card-inner", actualIsFlipped && "rotate-y-180")} style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        transformStyle: 'preserve-3d',
-        transform: actualIsFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-        transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)'
-      }}>
-        {/* Front Side */}
-        <Card className="flip-card-face ios-card ios-shadow-lg hover:shadow-3xl transition-all duration-500 border-0 rounded-2xl overflow-hidden" style={{
+      <div 
+        className="flip-card-inner" 
+        style={{
           width: '100%',
           height: '100%',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          display: 'block',
-          touchAction: 'manipulation',
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
-          pointerEvents: actualIsFlipped ? 'none' : 'auto'
-        }}>
+          position: 'relative',
+          transformStyle: 'preserve-3d',
+          transform: actualIsFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+          transformOrigin: 'center',
+          willChange: 'transform'
+        }}
+      >
+        {/* Front Side */}
+        <Card 
+          className="flip-card-face ios-card ios-shadow-lg hover:shadow-3xl transition-all duration-500 border-0 rounded-2xl overflow-hidden" 
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            pointerEvents: actualIsFlipped ? 'none' : 'auto',
+            zIndex: actualIsFlipped ? 1 : 10,
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            touchAction: 'manipulation'
+          }}
+        >
           {/* Full gradient background covering entire front card */}
           <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-16">
             
             {/* Show More Button - back to top left */}
             {hasExtendedContent && (
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-4 left-4 z-20">
                 <button 
-                type="button"
-                data-no-swipe="true"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleFlipChange(!actualIsFlipped);
-                }}
-                className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1.5 text-white hover:bg-white/30 transition-all duration-200 mobile-touch-target shadow-lg z-20 pointer-events-auto"
-                title="Show more details"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span className="text-xs font-medium">Show More</span>
-              </button>
+                  type="button"
+                  data-no-swipe="true"
+                  onClick={(e) => {
+                    console.log('👁️ Show More button clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleFlipChange(!actualIsFlipped);
+                  }}
+                  className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1.5 text-white hover:bg-white/30 transition-all duration-200 shadow-lg"
+                  style={{
+                    minHeight: '44px',
+                    cursor: 'pointer',
+                    pointerEvents: 'auto',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    touchAction: 'manipulation'
+                  }}
+                  title="Show more details"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">Show More</span>
+                </button>
               </div>
             )}
 
@@ -283,6 +305,7 @@ const MobileProfileCard = ({
                   <button
                     data-no-swipe="true"
                     onClick={(e) => {
+                      console.log('❌ Pass button clicked');
                       e.preventDefault();
                       e.stopPropagation();
                       onPass();
@@ -290,6 +313,15 @@ const MobileProfileCard = ({
                     className="bg-white/90 backdrop-blur-sm border-2 border-red-500/40 hover:border-red-500/70 hover:bg-red-50
                                text-red-500 w-14 h-14 rounded-full flex items-center justify-center
                                transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
+                    style={{
+                      minHeight: '44px',
+                      minWidth: '44px',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      touchAction: 'manipulation'
+                    }}
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -299,6 +331,7 @@ const MobileProfileCard = ({
                   <button
                     data-no-swipe="true"
                     onClick={(e) => {
+                      console.log('❤️ Like button clicked');
                       e.preventDefault();
                       e.stopPropagation();
                       onLike();
@@ -306,6 +339,15 @@ const MobileProfileCard = ({
                     className="bg-white/90 backdrop-blur-sm border-2 border-green-500/40 hover:border-green-500/70 hover:bg-green-50
                                text-green-500 w-14 h-14 rounded-full flex items-center justify-center
                                transition-all duration-200 hover:scale-110 active:scale-95 shadow-xl active:shadow-lg"
+                    style={{
+                      minHeight: '44px',
+                      minWidth: '44px',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      touchAction: 'manipulation'
+                    }}
                   >
                     <Heart className="w-5 h-5 fill-current" />
                   </button>
@@ -319,17 +361,23 @@ const MobileProfileCard = ({
 
         {/* Back Side with extended content... */}
         {hasExtendedContent && (
-          <Card className="flip-card-face flip-card-back shadow-2xl hover:shadow-3xl transition-all duration-500 bg-white border-0 rounded-2xl overflow-visible" style={{
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            transform: 'rotateY(180deg)',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            pointerEvents: actualIsFlipped ? 'auto' : 'none'
-          }}>
+          <Card 
+            className="flip-card-face flip-card-back shadow-2xl hover:shadow-3xl transition-all duration-500 bg-white border-0 rounded-2xl overflow-hidden" 
+            style={{
+              width: '100%',
+              height: '100%',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              transform: 'rotateY(180deg)',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              pointerEvents: actualIsFlipped ? 'auto' : 'none',
+              zIndex: actualIsFlipped ? 10 : 1,
+              cursor: actualIsFlipped ? 'auto' : 'none',
+              touchAction: actualIsFlipped ? 'pan-y' : 'none'
+            }}
+          >
             {/* Back content implementation continues... */}
             <div className="relative h-48 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 flex items-center justify-center overflow-hidden">
               <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
@@ -339,14 +387,24 @@ const MobileProfileCard = ({
                 type="button"
                 data-no-swipe="true"
                 onClick={(e) => {
+                  console.log('🔙 Back button clicked');
                   e.preventDefault();
                   e.stopPropagation();
                   handleFlipChange(false);
                 }}
-                className="absolute top-3 left-3 w-10 h-10 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all duration-200 mobile-touch-target shadow-lg z-30 cursor-pointer pointer-events-auto"
+                className="absolute top-3 left-3 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all duration-200 shadow-lg z-50"
+                style={{
+                  minHeight: '44px',
+                  minWidth: '44px',
+                  cursor: 'pointer',
+                  pointerEvents: 'auto',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  touchAction: 'manipulation'
+                }}
                 title="Back to main"
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-5 h-5" />
               </button>
               
               
@@ -363,9 +421,11 @@ const MobileProfileCard = ({
                 WebkitOverflowScrolling: 'touch',
                 touchAction: 'pan-y',
                 overscrollBehavior: 'contain',
-                scrollBehavior: 'smooth'
+                scrollBehavior: 'smooth',
+                pointerEvents: 'auto'
               }}
               data-scrollable="true"
+              data-no-swipe="true"
             >
               {/* About Me section - moved from front */}
               {(profile.about_me_preview || fullAbout) && (

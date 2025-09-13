@@ -61,6 +61,7 @@ const SwipeableProfileCard = ({
   }, [isFlipped]);
   
   const handleFlipChange = (flipped: boolean) => {
+    console.log('🔄 SwipeableProfileCard flip change:', flipped);
     setIsFlipped(flipped);
     onFlipChange?.(flipped);
   };
