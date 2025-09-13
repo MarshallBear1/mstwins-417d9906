@@ -305,16 +305,20 @@ const DiscoverProfiles = memo(() => {
 
   // Swipe gesture handlers - MUST be declared before any early returns
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (actionCooldown) return;
+    // Disable swipe when card is flipped or on cooldown
+    if (actionCooldown || isCardFlipped) return;
+    
+    console.log('🎯 DiscoverProfiles touch start - card flipped?', isCardFlipped);
     
     const touch = e.touches[0];
     startPos.current = { x: touch.clientX, y: touch.clientY };
     startTime.current = Date.now();
     setIsDragging(true);
-  }, [actionCooldown]);
+  }, [actionCooldown, isCardFlipped]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || actionCooldown) return;
+    // Disable swipe when card is flipped, not dragging, or on cooldown
+    if (!isDragging || actionCooldown || isCardFlipped) return;
     
     const touch = e.touches[0];
     const deltaX = touch.clientX - startPos.current.x;
@@ -328,10 +332,11 @@ const DiscoverProfiles = memo(() => {
     } else {
       setSwipeDirection(null);
     }
-  }, [isDragging, actionCooldown]);
+  }, [isDragging, actionCooldown, isCardFlipped]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || actionCooldown || !currentProfile) return;
+    // Disable swipe when card is flipped, not dragging, on cooldown, or no profile
+    if (!isDragging || actionCooldown || !currentProfile || isCardFlipped) return;
     
     const deltaX = dragOffset.x;
     const deltaTime = Date.now() - startTime.current;
@@ -594,6 +599,17 @@ const DiscoverProfiles = memo(() => {
        </div>
 
         <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-0 md:pt-2 isolate">
+      {/* Isolation Overlay - Captures all interactions when card is flipped */}
+      {isCardFlipped && (
+        <div 
+          className="fixed inset-0 bg-transparent z-[9998]"
+          style={{ pointerEvents: 'auto' }}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        />
+      )}
+      
       {/* Profile Card Stack */}
       {currentProfile && (
         <div className="relative w-full max-w-sm mx-auto isolate">
@@ -611,8 +627,8 @@ const DiscoverProfiles = memo(() => {
             style={{ 
               transform: !isCardFlipped ? `translate(${dragOffset.x}px, ${dragOffset.y * 0.1}px) ${isDragging ? `rotate(${dragOffset.x * 0.1}deg)` : ''}` : 'none',
               opacity: !isCardFlipped && isDragging ? Math.max(0.7, 1 - Math.abs(dragOffset.x) / 300) : 1,
-              zIndex: 10,
-              pointerEvents: isCardFlipped ? 'auto' : 'auto',
+              zIndex: isCardFlipped ? 9999 : 10,
+              pointerEvents: isCardFlipped ? 'none' : 'auto',
               touchAction: isCardFlipped ? 'auto' : 'none'
             }}
             {...(!isCardFlipped ? {

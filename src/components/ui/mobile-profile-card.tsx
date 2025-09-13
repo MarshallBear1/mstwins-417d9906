@@ -373,7 +373,7 @@ const MobileProfileCard = ({
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               pointerEvents: actualIsFlipped ? 'auto' : 'none',
-              zIndex: actualIsFlipped ? 999 : 1,
+              zIndex: actualIsFlipped ? 9999 : 1,
               cursor: 'auto',
               touchAction: 'auto'
             }}

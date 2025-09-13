@@ -118,22 +118,32 @@ const SwipeableProfileCard = ({
         </div>
       )}
 
+      {/* Isolation Overlay - Captures all interactions when flipped */}
+      {isFlipped && (
+        <div 
+          className="fixed inset-0 bg-transparent z-[9998]"
+          style={{ pointerEvents: 'auto' }}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        />
+      )}
+
       {/* Main Card */}
       <div 
-        className={cn("w-full relative", !isFlipped && "select-none touch-none", isFlipped && "select-auto")}
+        className={cn("w-full relative", 
+          !isFlipped && "select-none touch-none", 
+          isFlipped && "select-auto"
+        )}
         style={{
-          ...(!isFlipped ? getSwipeStyles() : { position: 'relative', zIndex: 'auto' }),
-          pointerEvents: isFlipped ? 'none' : 'auto',
+          ...(!isFlipped ? getSwipeStyles() : { 
+            position: 'relative', 
+            zIndex: isFlipped ? 9999 : 'auto',
+            pointerEvents: 'auto'
+          }),
           touchAction: isFlipped ? 'auto' : 'none'
         }}
         {...(!isFlipped ? swipeHandlers : {})}
-        onTouchStart={(e) => {
-          if (isFlipped) {
-            console.log('🚫 SwipeableCard blocking touch when flipped');
-            return;
-          }
-          console.log('👆 SwipeableCard touch start');
-        }}
       >
         <MobileProfileCard
           profile={profile}
