@@ -120,9 +120,13 @@ const SwipeableProfileCard = ({
 
       {/* Main Card */}
       <div 
-        className={cn("select-none w-full", !isFlipped && "touch-none")}
-        style={getSwipeStyles()}
-        {...(!isFlipped && swipeHandlers)}
+        className={cn("w-full", !isFlipped && "select-none touch-none", isFlipped && "select-auto")}
+        style={{
+          ...(!isFlipped ? getSwipeStyles() : {}),
+          pointerEvents: 'auto',
+          touchAction: isFlipped ? 'auto' : 'none'
+        }}
+        {...(!isFlipped ? swipeHandlers : {})}
       >
         <MobileProfileCard
           profile={profile}

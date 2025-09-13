@@ -602,14 +602,18 @@ const DiscoverProfiles = memo(() => {
             ref={cardRef}
             className={`
               relative w-full transition-all duration-300 ease-out
-              ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+              ${!isCardFlipped && isDragging ? 'cursor-grabbing' : ''}
+              ${!isCardFlipped && !isDragging ? 'cursor-grab' : ''}
+              ${isCardFlipped ? 'cursor-auto' : ''}
               ${swipeDirection === 'right' ? 'border-2 border-green-400 shadow-lg shadow-green-400/25' : ''}
               ${swipeDirection === 'left' ? 'border-2 border-red-400 shadow-lg shadow-red-400/25' : ''}
             `}
             style={{ 
-              transform: `translate(${dragOffset.x}px, ${dragOffset.y * 0.1}px) ${isDragging ? `rotate(${dragOffset.x * 0.1}deg)` : ''}`,
-              opacity: isDragging ? Math.max(0.7, 1 - Math.abs(dragOffset.x) / 300) : 1,
-              zIndex: 10
+              transform: !isCardFlipped ? `translate(${dragOffset.x}px, ${dragOffset.y * 0.1}px) ${isDragging ? `rotate(${dragOffset.x * 0.1}deg)` : ''}` : 'none',
+              opacity: !isCardFlipped && isDragging ? Math.max(0.7, 1 - Math.abs(dragOffset.x) / 300) : 1,
+              zIndex: 10,
+              pointerEvents: isCardFlipped ? 'auto' : 'auto',
+              touchAction: isCardFlipped ? 'auto' : 'none'
             }}
             {...(!isCardFlipped ? {
               onTouchStart: handleTouchStart,
