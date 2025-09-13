@@ -155,7 +155,7 @@ const MobileProfileCard = ({
             left: 0,
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
-            pointerEvents: actualIsFlipped ? 'none' : 'auto',
+            pointerEvents: 'auto', // Always allow events so flip button works
             zIndex: actualIsFlipped ? 1 : 10,
             userSelect: 'none',
             WebkitUserSelect: 'none',
@@ -163,7 +163,16 @@ const MobileProfileCard = ({
           }}
         >
           {/* Full gradient background covering entire front card */}
-          <div className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-16">
+          <div 
+            className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-16"
+            onClick={(e) => {
+              // Prevent interactions with front card content when flipped (except flip button)
+              if (actualIsFlipped && !e.currentTarget.closest('[data-no-swipe="true"]')) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
+          >
             
             {/* Show More Button - back to top left */}
             {hasExtendedContent && (
