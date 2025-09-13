@@ -599,16 +599,6 @@ const DiscoverProfiles = memo(() => {
        </div>
 
         <div className="flex flex-col items-center justify-start min-h-[80vh] px-4 relative pt-0 md:pt-2 isolate">
-      {/* Isolation Overlay - Captures all interactions when card is flipped */}
-      {isCardFlipped && (
-        <div 
-          className="fixed inset-0 bg-transparent z-[9998]"
-          style={{ pointerEvents: 'auto' }}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
-        />
-      )}
       
       {/* Profile Card Stack */}
       {currentProfile && (
@@ -627,8 +617,8 @@ const DiscoverProfiles = memo(() => {
             style={{ 
               transform: !isCardFlipped ? `translate(${dragOffset.x}px, ${dragOffset.y * 0.1}px) ${isDragging ? `rotate(${dragOffset.x * 0.1}deg)` : ''}` : 'none',
               opacity: !isCardFlipped && isDragging ? Math.max(0.7, 1 - Math.abs(dragOffset.x) / 300) : 1,
-              zIndex: isCardFlipped ? 9999 : 10,
-              pointerEvents: isCardFlipped ? 'none' : 'auto',
+              zIndex: isCardFlipped ? 'auto' : 10,
+              pointerEvents: 'auto',
               touchAction: isCardFlipped ? 'auto' : 'none'
             }}
             {...(!isCardFlipped ? {

@@ -378,10 +378,21 @@ const MobileProfileCard = ({
               touchAction: 'auto'
             }}
             onTouchStart={(e) => {
-              console.log('🔙 Back card touch start', e.target);
+              const target = e.target as HTMLElement;
+              console.log('🔙 Back card touch start', target, 'actualIsFlipped:', actualIsFlipped);
+              console.log('🔙 Touch target tagName:', target.tagName);
+              console.log('🔙 Touch target className:', target.className);
+              if (actualIsFlipped) {
+                e.stopPropagation();
+              }
             }}
             onClick={(e) => {
-              console.log('🔙 Back card clicked', e.target);
+              const target = e.target as HTMLElement;
+              console.log('🔙 Back card clicked', target, 'actualIsFlipped:', actualIsFlipped);
+              console.log('🔙 Click target tagName:', target.tagName);
+              if (actualIsFlipped) {
+                e.stopPropagation();
+              }
             }}
           >
             {/* Back content implementation continues... */}
@@ -392,16 +403,18 @@ const MobileProfileCard = ({
               <button 
                 type="button"
                 data-no-swipe="true"
+                onTouchStart={(e) => {
+                  console.log('👆 Back button touch start - target:', e.target);
+                  console.log('👆 Back button touch start - currentTarget:', e.currentTarget);
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
                   console.log('🔙 Back button clicked - event target:', e.target);
                   console.log('🔙 Back button clicked - current target:', e.currentTarget);
+                  console.log('🔙 About to flip to false');
                   e.preventDefault();
                   e.stopPropagation();
                   handleFlipChange(false);
-                }}
-                onTouchStart={(e) => {
-                  console.log('👆 Back button touch start');
-                  e.stopPropagation();
                 }}
                 className="absolute top-3 left-3 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all duration-200 shadow-lg z-50"
                 style={{
