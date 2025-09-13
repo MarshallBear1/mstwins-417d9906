@@ -373,9 +373,15 @@ const MobileProfileCard = ({
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               pointerEvents: actualIsFlipped ? 'auto' : 'none',
-              zIndex: actualIsFlipped ? 10 : 1,
-              cursor: actualIsFlipped ? 'auto' : 'none',
-              touchAction: actualIsFlipped ? 'pan-y' : 'none'
+              zIndex: actualIsFlipped ? 999 : 1,
+              cursor: 'auto',
+              touchAction: 'auto'
+            }}
+            onTouchStart={(e) => {
+              console.log('🔙 Back card touch start', e.target);
+            }}
+            onClick={(e) => {
+              console.log('🔙 Back card clicked', e.target);
             }}
           >
             {/* Back content implementation continues... */}
@@ -387,10 +393,15 @@ const MobileProfileCard = ({
                 type="button"
                 data-no-swipe="true"
                 onClick={(e) => {
-                  console.log('🔙 Back button clicked');
+                  console.log('🔙 Back button clicked - event target:', e.target);
+                  console.log('🔙 Back button clicked - current target:', e.currentTarget);
                   e.preventDefault();
                   e.stopPropagation();
                   handleFlipChange(false);
+                }}
+                onTouchStart={(e) => {
+                  console.log('👆 Back button touch start');
+                  e.stopPropagation();
                 }}
                 className="absolute top-3 left-3 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all duration-200 shadow-lg z-50"
                 style={{
@@ -400,7 +411,9 @@ const MobileProfileCard = ({
                   pointerEvents: 'auto',
                   userSelect: 'none',
                   WebkitUserSelect: 'none',
-                  touchAction: 'manipulation'
+                  touchAction: 'manipulation',
+                  position: 'relative',
+                  zIndex: 9999
                 }}
                 title="Back to main"
               >
@@ -422,10 +435,19 @@ const MobileProfileCard = ({
                 touchAction: 'pan-y',
                 overscrollBehavior: 'contain',
                 scrollBehavior: 'smooth',
-                pointerEvents: 'auto'
+                pointerEvents: 'auto',
+                position: 'relative',
+                zIndex: 1
               }}
               data-scrollable="true"
               data-no-swipe="true"
+              onTouchStart={(e) => {
+                console.log('📜 Content area touch start');
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                console.log('📜 Content area clicked');
+              }}
             >
               {/* About Me section - moved from front */}
               {(profile.about_me_preview || fullAbout) && (

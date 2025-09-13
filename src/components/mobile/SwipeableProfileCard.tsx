@@ -120,13 +120,20 @@ const SwipeableProfileCard = ({
 
       {/* Main Card */}
       <div 
-        className={cn("w-full", !isFlipped && "select-none touch-none", isFlipped && "select-auto")}
+        className={cn("w-full relative", !isFlipped && "select-none touch-none", isFlipped && "select-auto")}
         style={{
-          ...(!isFlipped ? getSwipeStyles() : {}),
-          pointerEvents: 'auto',
+          ...(!isFlipped ? getSwipeStyles() : { position: 'relative', zIndex: 'auto' }),
+          pointerEvents: isFlipped ? 'none' : 'auto',
           touchAction: isFlipped ? 'auto' : 'none'
         }}
         {...(!isFlipped ? swipeHandlers : {})}
+        onTouchStart={(e) => {
+          if (isFlipped) {
+            console.log('🚫 SwipeableCard blocking touch when flipped');
+            return;
+          }
+          console.log('👆 SwipeableCard touch start');
+        }}
       >
         <MobileProfileCard
           profile={profile}
