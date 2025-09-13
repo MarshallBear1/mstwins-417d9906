@@ -2,7 +2,7 @@ import { useState, memo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, User, Heart, X, Eye, HandHeart } from "lucide-react";
+import { MapPin, User, Heart, X, Eye, HandHeart, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRealtimePresence } from "@/hooks/useRealtimePresence";
 import { OptimizedAvatar } from "@/components/PerformanceOptimizer";
@@ -412,36 +412,22 @@ const MobileProfileCard = ({
               <button 
                 type="button"
                 data-no-swipe="true"
-                onTouchStart={(e) => {
-                  console.log('👆 Back button touch start - target:', e.target);
-                  console.log('👆 Back button touch start - currentTarget:', e.currentTarget);
-                  e.stopPropagation();
-                }}
                 onClick={(e) => {
-                  console.log('🔙 Back button clicked - event target:', e.target);
-                  console.log('🔙 Back button clicked - current target:', e.currentTarget);
-                  console.log('🔙 About to flip to false');
+                  console.log('🔙 Back button clicked - flipping to front');
                   e.preventDefault();
                   e.stopPropagation();
                   handleFlipChange(false);
                 }}
-                className="absolute top-3 left-3 w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all duration-200 shadow-lg z-50"
+                className="absolute top-3 left-3 w-12 h-12 bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/60 transition-all duration-200 shadow-lg z-[100] cursor-pointer"
                 style={{
                   minHeight: '44px',
                   minWidth: '44px',
-                  cursor: 'pointer',
                   pointerEvents: 'auto',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  touchAction: 'manipulation',
-                  position: 'relative',
-                  zIndex: 9999
+                  touchAction: 'manipulation'
                 }}
-                title="Back to main"
               >
-                <Eye className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5" />
               </button>
-              
               
               <div className="text-center text-white z-10">
                 <h3 className="text-xl font-bold">{profile.first_name}'s Details</h3>
