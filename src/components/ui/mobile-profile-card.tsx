@@ -418,7 +418,7 @@ const MobileProfileCard = ({
                   e.stopPropagation();
                   handleFlipChange(false);
                 }}
-                className="absolute top-3 left-3 w-12 h-12 bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/60 transition-all duration-200 shadow-lg z-[100] cursor-pointer"
+                className="absolute top-3 left-3 w-12 h-12 bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/60 transition-all duration-200 shadow-lg z-[10000] cursor-pointer"
                 style={{
                   minHeight: '44px',
                   minWidth: '44px',
