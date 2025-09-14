@@ -59,7 +59,7 @@ const ExtendedProfileOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
       <Card className="w-full max-w-md h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
@@ -81,13 +81,13 @@ const ExtendedProfileOverlay = ({
                 onClick={() => onImageClick?.(0)}
                 className="relative block"
               >
-                <Avatar className="w-20 h-20 rounded-xl">
+                <Avatar className="w-20 h-20 rounded-full">
                   <AvatarImage 
                     src={profile.avatar_url || ''} 
                     alt={`${profile.first_name}'s profile`}
-                    className="w-full h-full object-contain rounded-xl bg-gradient-to-br from-purple-100 to-blue-100"
+                    className="w-full h-full object-cover rounded-full bg-gradient-to-br from-purple-100 to-blue-100"
                   />
-                  <AvatarFallback className="w-20 h-20 text-2xl rounded-xl bg-gradient-to-br from-purple-400 to-blue-500 text-white">
+                  <AvatarFallback className="w-20 h-20 text-2xl rounded-full bg-gradient-to-br from-purple-400 to-blue-500 text-white">
                     {profile.first_name[0]}
                   </AvatarFallback>
                 </Avatar>
@@ -113,9 +113,7 @@ const ExtendedProfileOverlay = ({
                   </Badge>
                 )}
                 {profile.ms_subtype && (
-                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
-                    {formatMSSubtype(profile.ms_subtype)}
-                  </Badge>
+                  <span className="text-sm text-gray-700"><span className="font-medium">MS Subtype:</span> {formatMSSubtype(profile.ms_subtype)}</span>
                 )}
               </div>
               
@@ -128,55 +126,57 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Scrollable Content */}
-        <CardContent className="flex-1 p-6 space-y-5 overflow-y-auto">
-          {/* About Me - Always show as first section in extended profile */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
-            <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
-              {isLoadingAbout ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b border-green-600" />
-                  <span>Loading full profile...</span>
-                </div>
-              ) : (
-                showAllAbout ? (fullAbout || profile.about_me_preview || "No information available.") : (profile.about_me_preview || "No information available.")
+        <CardContent className="flex-1 p-6 space-y-5 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}>
+          {/* About Me - hide if none */}
+          {(profile.about_me_preview && profile.about_me_preview.length > 0) && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
+              <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
+                {isLoadingAbout ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b border-green-600" />
+                    <span>Loading full profile...</span>
+                  </div>
+                ) : (
+                  showAllAbout ? (fullAbout || profile.about_me_preview) : (profile.about_me_preview)
+                )}
+              </div>
+              {(profile.about_me_preview && profile.about_me_preview.length > 100) && (
+                <button
+                  onClick={async () => {
+                    if (!showAllAbout && !fullAbout && !isLoadingAbout) {
+                      setIsLoadingAbout(true);
+                      try {
+                        const { data } = await supabase
+                          .from('profiles')
+                          .select('about_me')
+                          .eq('user_id', profile.user_id)
+                          .single();
+                        if (data?.about_me) {
+                          setFullAbout(data.about_me);
+                        }
+                      } catch (error) {
+                        console.error('Error loading full about me:', error);
+                      } finally {
+                        setIsLoadingAbout(false);
+                      }
+                    }
+                    setShowAllAbout(!showAllAbout);
+                  }}
+                  className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200 flex items-center gap-1"
+                >
+                  {isLoadingAbout ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b border-green-600" />
+                      Loading...
+                    </>
+                  ) : (
+                    showAllAbout ? 'Show Less' : 'Read More'
+                  )}
+                </button>
               )}
             </div>
-            {(profile.about_me_preview && profile.about_me_preview.length > 100) && (
-              <button
-                onClick={async () => {
-                  if (!showAllAbout && !fullAbout && !isLoadingAbout) {
-                    setIsLoadingAbout(true);
-                    try {
-                      const { data } = await supabase
-                        .from('profiles')
-                        .select('about_me')
-                        .eq('user_id', profile.user_id)
-                        .single();
-                      if (data?.about_me) {
-                        setFullAbout(data.about_me);
-                      }
-                    } catch (error) {
-                      console.error('Error loading full about me:', error);
-                    } finally {
-                      setIsLoadingAbout(false);
-                    }
-                  }
-                  setShowAllAbout(!showAllAbout);
-                }}
-                className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200 flex items-center gap-1"
-              >
-                {isLoadingAbout ? (
-                  <>
-                    <div className="animate-spin rounded-full h-3 w-3 border-b border-green-600" />
-                    Loading...
-                  </>
-                ) : (
-                  showAllAbout ? 'Show Less' : 'Read More'
-                )}
-              </button>
-            )}
-          </div>
+          )}
 
 
           {/* Symptoms */}

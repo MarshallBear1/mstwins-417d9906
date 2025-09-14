@@ -72,8 +72,8 @@ const MobileProfileCard = ({
 
   return (
     <Card 
-      className="w-full shadow-xl border-0 bg-white rounded-2xl overflow-hidden" 
-      style={{ height: cardHeight, maxHeight: '75vh', width: '100%', maxWidth: '384px' }}
+      className="shadow-xl border-0 bg-white rounded-2xl overflow-hidden" 
+      style={{ height: cardHeight, maxHeight: '75vh', width: '360px' }}
     >
       <div className="relative h-full flex flex-col">
         {/* Profile Image Section */}
@@ -83,13 +83,13 @@ const MobileProfileCard = ({
             className="w-full h-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center overflow-hidden cursor-pointer group"
             data-no-swipe="true"
           >
-            <Avatar className="w-full h-full rounded-xl">
+            <Avatar className="w-full h-full rounded-full">
               <AvatarImage 
                 src={profile.avatar_url || ''}
                 alt={`${profile.first_name}'s profile`}
-                className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full"
               />
-              <AvatarFallback className="w-full h-full text-2xl rounded-xl bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
+              <AvatarFallback className="w-full h-full text-2xl rounded-full bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
                 {profile.first_name[0]}
               </AvatarFallback>
             </Avatar>
@@ -104,7 +104,7 @@ const MobileProfileCard = ({
         {/* Profile Info Section */}
         <CardContent className="flex-1 p-4 pb-2 flex flex-col min-h-0">
           {/* Basic Info */}
-          <div className="space-y-3 flex-1">
+          <div className="space-y-2 flex-1">
             {/* Name and Age */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 leading-tight">
@@ -121,10 +121,9 @@ const MobileProfileCard = ({
 
                {/* MS Subtype */}
                {profile.ms_subtype && (
-                 <div className="mt-2">
-                   <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-                     {formatMSSubtype(profile.ms_subtype)}
-                   </Badge>
+                 <div className="mt-1 text-sm text-gray-700">
+                   <span className="font-medium">MS Subtype:</span>
+                   <span className="ml-2">{formatMSSubtype(profile.ms_subtype)}</span>
                  </div>
                )}
             </div>
@@ -143,9 +142,14 @@ const MobileProfileCard = ({
                     </Badge>
                   ))}
                   {profile.hobbies.length > 3 && (
-                    <Badge variant="secondary" className="text-xs px-2 py-1 bg-gray-100 text-gray-600">
+                    <button
+                      type="button"
+                      data-no-swipe="true"
+                      onClick={() => onShowExtended?.()}
+                      className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-md border border-gray-200"
+                    >
                       +{profile.hobbies.length - 3}
-                    </Badge>
+                    </button>
                   )}
                 </div>
               </div>
@@ -157,8 +161,8 @@ const MobileProfileCard = ({
             </div>
           </div>
 
-          {/* Show More Button - Right above action buttons */}
-          <div className="pt-3 pb-2">
+          {/* Show More Button - Directly below last seen */}
+          <div className="pt-2">
             <button
               data-no-swipe="true"
               onClick={() => onShowExtended?.()}
