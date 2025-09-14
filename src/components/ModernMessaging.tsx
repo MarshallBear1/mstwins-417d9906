@@ -473,7 +473,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             }`}
             style={{
               paddingBottom: isMobile ? `max(1rem, ${safeAreaInsets.bottom + 16}px)` : '1rem',
-              bottom: isMobile ? Math.max(safeAreaInsets.bottom + 4, 80) : undefined,
+              bottom: isMobile ? Math.max(safeAreaInsets.bottom + 4, 100) : undefined,
               zIndex: isMobile ? 50 : undefined,
               boxShadow: isMobile ? '0 -6px 24px rgba(0,0,0,0.08)' : undefined,
               backdropFilter: isMobile ? 'saturate(180%) blur(8px)' : undefined
