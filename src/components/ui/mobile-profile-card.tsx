@@ -58,6 +58,8 @@ const MobileProfileCard = ({
   const [showAllSymptoms, setShowAllSymptoms] = useState(false);
   const [showAllMedications, setShowAllMedications] = useState(false);
   const [fullAbout, setFullAbout] = useState<string | null>(null);
+  const [fullSymptoms, setFullSymptoms] = useState<string[] | null>(null);
+  const [fullMedications, setFullMedications] = useState<string[] | null>(null);
   const [hasLoadedFullAbout, setHasLoadedFullAbout] = useState(false);
   const [isLoadingAbout, setIsLoadingAbout] = useState(false);
   
@@ -76,17 +78,23 @@ const MobileProfileCard = ({
   const isUserOnline = propIsUserOnline || hookIsUserOnline;
   const getLastSeenText = propGetLastSeenText || hookGetLastSeenText;
 
-  // Load full about_me lazily when flipping to back side
+  // Load full about_me, symptoms, medications lazily when flipping to back side
   useEffect(() => {
     if (actualIsFlipped && !hasLoadedFullAbout) {
       supabase
         .from('profiles')
-        .select('about_me')
+        .select('about_me, symptoms, medications')
         .eq('user_id', profile.user_id)
         .single()
         .then(({ data, error }) => {
           if (!error && data?.about_me) {
             setFullAbout(data.about_me as string);
+          }
+          if (!error && Array.isArray(data?.symptoms)) {
+            setFullSymptoms(data.symptoms as string[]);
+          }
+          if (!error && Array.isArray(data?.medications)) {
+            setFullMedications(data.medications as string[]);
           }
           setHasLoadedFullAbout(true);
         });
@@ -155,13 +163,22 @@ const MobileProfileCard = ({
             left: 0,
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
-            pointerEvents: 'auto', // Always allow events so flip button works
+            pointerEvents: actualIsFlipped ? 'none' : 'auto',
             zIndex: actualIsFlipped ? 1 : 10,
             userSelect: 'none',
             WebkitUserSelect: 'none',
             touchAction: 'manipulation'
           }}
         >
+=======
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          display: 'block',
+          touchAction: 'manipulation', // Optimize touch interactions
+          pointerEvents: actualIsFlipped ? 'none' : 'auto'
+        }}>
+>>>>>>> e76f33e (Mobile: fix fixed bottom bar; Avatar object-fit; iOS notif dedupe & reminder throttling; profile bio expand scroll; extended profile scroll & back-face clicks; fetch full symptoms/meds on expand; server push dedupe and daily likes_reset guard)
           {/* Full gradient background covering entire front card */}
           <div 
             className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-16"
@@ -386,23 +403,6 @@ const MobileProfileCard = ({
               cursor: 'auto',
               touchAction: 'auto'
             }}
-            onTouchStart={(e) => {
-              const target = e.target as HTMLElement;
-              console.log('🔙 Back card touch start', target, 'actualIsFlipped:', actualIsFlipped);
-              console.log('🔙 Touch target tagName:', target.tagName);
-              console.log('🔙 Touch target className:', target.className);
-              if (actualIsFlipped) {
-                e.stopPropagation();
-              }
-            }}
-            onClick={(e) => {
-              const target = e.target as HTMLElement;
-              console.log('🔙 Back card clicked', target, 'actualIsFlipped:', actualIsFlipped);
-              console.log('🔙 Click target tagName:', target.tagName);
-              if (actualIsFlipped) {
-                e.stopPropagation();
-              }
-            }}
           >
             {/* Back content implementation continues... */}
             <div className="relative h-48 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 flex items-center justify-center overflow-hidden">
@@ -436,7 +436,7 @@ const MobileProfileCard = ({
             </div>
 
             <CardContent 
-              className="p-6 space-y-5 overflow-y-auto pb-24 custom-scrollbar" 
+              className="p-6 space-y-5 overflow-y-auto pb-24 custom-scrollbar ios-scroll" 
               style={{ 
                 height: 'calc(100% - 12rem)',
                 WebkitOverflowScrolling: 'touch',
@@ -506,11 +506,11 @@ const MobileProfileCard = ({
               )}
 
               {/* Symptoms */}
-              {profile.symptoms && profile.symptoms.length > 0 && (
+              {(fullSymptoms || profile.symptoms) && (fullSymptoms || profile.symptoms)?.length > 0 && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="text-base font-semibold text-gray-800 mb-3">My Symptoms:</div>
                   <div className="flex flex-wrap gap-2">
-                    {(showAllSymptoms ? profile.symptoms : profile.symptoms.slice(0, 6)).map((symptom, index) => {
+                    {(showAllSymptoms ? (fullSymptoms || profile.symptoms || []) : (fullSymptoms || profile.symptoms || []).slice(0, 6)).map((symptom, index) => {
                       const colors = [
                         'bg-orange-400/80 border-orange-300/50 text-white',
                         'bg-red-400/80 border-red-300/50 text-white', 
@@ -529,14 +529,14 @@ const MobileProfileCard = ({
                         </Badge>
                       );
                     })}
-                    {profile.symptoms.length > 6 && (
+                    {(fullSymptoms || profile.symptoms || []).length > 6 && (
                       <button
                         data-no-swipe="true"
                         onClick={() => setShowAllSymptoms(!showAllSymptoms)}
                         className="text-sm text-orange-600 hover:text-orange-700 font-semibold transition-colors"
                       >
                         <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-orange-100 cursor-pointer border-orange-400 text-orange-600">
-                          {showAllSymptoms ? 'Show Less' : `+${profile.symptoms.length - 6} more`}
+                          {showAllSymptoms ? 'Show Less' : `+${(fullSymptoms || profile.symptoms || []).length - 6} more`}
                         </Badge>
                       </button>
                     )}
@@ -545,7 +545,7 @@ const MobileProfileCard = ({
                )}
 
               {/* Medications - Smaller blue section with scrolling */}
-              {profile.medications && profile.medications.length > 0 && (
+              {(fullMedications || profile.medications) && (fullMedications || profile.medications)?.length > 0 && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-h-32">
                   <div className="text-base font-semibold text-gray-800 mb-3">Current Medications:</div>
                    <div 
@@ -554,7 +554,7 @@ const MobileProfileCard = ({
                      style={{ WebkitOverflowScrolling: 'touch' }}
                    >
                     <div className="flex flex-wrap gap-2">
-                      {(showAllMedications ? profile.medications : profile.medications.slice(0, 3)).map((medication, index) => {
+                      {(showAllMedications ? (fullMedications || profile.medications || []) : (fullMedications || profile.medications || []).slice(0, 3)).map((medication, index) => {
                         const colors = [
                           'bg-blue-400/80 border-blue-300/50 text-white',
                           'bg-indigo-400/80 border-indigo-300/50 text-white', 
@@ -574,14 +574,14 @@ const MobileProfileCard = ({
                       })}
                     </div>
                   </div>
-                  {profile.medications.length > 3 && (
+                  {(fullMedications || profile.medications || []).length > 3 && (
                     <button
                       data-no-swipe="true"
                       onClick={() => setShowAllMedications(!showAllMedications)}
                       className="text-sm text-blue-600 hover:text-blue-700 mt-2 font-semibold transition-colors"
                     >
                       <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-100 cursor-pointer border-blue-400 text-blue-600">
-                        {showAllMedications ? 'Show Less' : `+${profile.medications.length - 3} more`}
+                        {showAllMedications ? 'Show Less' : `+${(fullMedications || profile.medications || []).length - 3} more`}
                       </Badge>
                     </button>
                   )}
