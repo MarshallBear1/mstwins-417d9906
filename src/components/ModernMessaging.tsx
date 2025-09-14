@@ -337,7 +337,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
     <div className="h-full flex flex-col bg-gray-50" style={{
       paddingBottom: isMobile ? `max(0rem, ${safeAreaInsets.bottom}px)` : '0rem'
     }}>
-      {selectedMatch && selectedMatch.other_user ? (
+      {selectedMatch ? (
         // Chat View
         <div className="flex flex-col h-full">
           {/* Chat Header */}
@@ -354,20 +354,20 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             </Button>
             
             <Avatar className="w-14 h-14 ring-2 ring-white shadow-lg">
-              <AvatarImage src={selectedMatch.other_user?.avatar_url || undefined} />
+              <AvatarImage src={selectedMatch.other_user.avatar_url || undefined} />
               <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg font-semibold">
-                {selectedMatch.other_user?.first_name?.[0] || 'U'}{selectedMatch.other_user?.last_name?.[0] || 'N'}
+                {selectedMatch.other_user.first_name[0]}{selectedMatch.other_user.last_name[0]}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1 min-w-0">
               <h2 className="font-semibold text-gray-900 truncate">
-                {selectedMatch.other_user?.first_name || 'Unknown'} {selectedMatch.other_user?.last_name?.[0] || 'U'}.
+                {selectedMatch.other_user.first_name} {selectedMatch.other_user.last_name[0]}.
               </h2>
               <p className="text-sm text-gray-500 truncate">
-                {isUserOnline(selectedMatch.other_user?.user_id || '') 
+                {isUserOnline(selectedMatch.other_user.user_id) 
                   ? "Online now" 
-                  : selectedMatch.other_user?.last_seen 
+                  : selectedMatch.other_user.last_seen 
                     ? getLastSeenText(selectedMatch.other_user.last_seen)
                     : "Last seen recently"
                 }
@@ -392,12 +392,10 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             paddingBottom: isMobile ? `max(4rem, ${safeAreaInsets.bottom + 80}px)` : '1rem'
           }}>
             <div className="space-y-4">
-              {messages.filter(message => message && message.id).map((message, index) => {
-                if (!message || !message.id) return null;
-                
+              {messages.map((message, index) => {
                 const isOwn = message.sender_id === user?.id;
                 const showTime = index === 0 || 
-                  new Date(message.created_at).getTime() - new Date(messages[index - 1]?.created_at || 0).getTime() > 5 * 60 * 1000;
+                  new Date(message.created_at).getTime() - new Date(messages[index - 1].created_at).getTime() > 5 * 60 * 1000;
 
                 return (
                   <div key={message.id}>
@@ -449,7 +447,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
               })}
               
               {/* Typing indicator */}
-              {selectedMatch && getTypingUsers(selectedMatch.id).length > 0 && (
+              {getTypingUsers(selectedMatch.id).length > 0 && (
                 <div className="flex justify-start">
                   <div className="bg-white px-4 py-3 rounded-2xl rounded-bl-md border border-gray-100 shadow-sm">
                     <div className="flex items-center gap-2">
@@ -482,18 +480,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             }}
           >
             <div className="flex items-end gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0"
-                onClick={() => {
-                  // TODO: Implement file attachment
-                  toast({
-                    title: "Coming soon",
-                    description: "File attachments will be available soon!",
-                  });
-                }}
-              >
+              <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0">
                 <Paperclip className="w-5 h-5 text-gray-500" />
               </Button>
               
@@ -511,13 +498,6 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                   variant="ghost" 
                   size="sm" 
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full"
-                  onClick={() => {
-                    // TODO: Implement emoji picker
-                    toast({
-                      title: "Coming soon",
-                      description: "Emoji picker will be available soon!",
-                    });
-                  }}
                 >
                   <Smile className="w-5 h-5 text-gray-500" />
                 </Button>
@@ -568,7 +548,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
 
               <TabsContent value="messages" className="flex-1 mt-0">
                 <ScrollArea className="flex-1 p-4">
-                  {filteredMatches.length === 0 ? (
+                  {filteredMatches.filter(m => m.last_message).length === 0 ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <MessageCircle className="w-8 h-8 text-gray-400" />
@@ -580,7 +560,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                     </div>
                   ) : (
                     <div className="space-y-3 sm:space-y-4">
-                      {filteredMatches.map((match) => (
+                      {filteredMatches.filter(m => m.last_message).map((match) => (
                         <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedMatch(match)}>
                           <CardContent className="p-3 sm:p-4">
                             <div className="flex items-center space-x-3 sm:space-x-4">
@@ -621,19 +601,13 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                                   )}
                                 </div>
                                 
-                                 <div className="flex items-center justify-between">
-                                   <p className="text-sm text-gray-600 truncate flex-1 mr-2">
-                                     {match.last_message ? (
-                                       <>
-                                         {match.last_message.sender_id === user?.id && (
-                                           <span className="text-gray-500 font-medium">You: </span>
-                                         )}
-                                         {match.last_message.content}
-                                       </>
-                                     ) : (
-                                       <span className="text-gray-400 italic">Start a conversation...</span>
-                                     )}
-                                   </p>
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm text-gray-600 truncate flex-1 mr-2">
+                                    {match.last_message.sender_id === user?.id && (
+                                      <span className="text-gray-500 font-medium">You: </span>
+                                    )}
+                                    {match.last_message.content}
+                                  </p>
                                   {match.unread_count && match.unread_count > 0 && (
                                     <Badge className="bg-blue-500 text-white text-xs min-w-[22px] h-6 rounded-full flex items-center justify-center font-semibold shadow-sm">
                                       {match.unread_count > 99 ? '99+' : match.unread_count}
