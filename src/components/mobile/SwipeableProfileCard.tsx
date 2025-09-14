@@ -46,11 +46,13 @@ const SwipeableProfileCard = ({
 
   const handleLike = () => {
     like();
+    setShowExtended(false); // Close extended view when liking
     onLike(profile.user_id);
   };
 
   const handlePass = () => {
     errorFeedback();
+    setShowExtended(false); // Close extended view when passing
     onPass(profile.user_id);
   };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Heart, X } from 'lucide-react';
+import { ArrowLeft, Heart, X, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -83,11 +83,21 @@ const ExtendedProfileOverlay = ({
     }
   }, [isOpen, profile.user_id]);
 
+  const handleLike = () => {
+    onLike?.();
+    onClose(); // Close extended view after like
+  };
+
+  const handlePass = () => {
+    onPass?.();
+    onClose(); // Close extended view after pass
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <Card className="w-full max-w-md h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <Card className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 2rem)', maxHeight: '800px' }}>
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white flex-shrink-0">
           <button
@@ -97,7 +107,12 @@ const ExtendedProfileOverlay = ({
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <span className="font-semibold text-gray-900">Profile Details</span>
-          <div className="w-9 h-9" /> {/* Spacer */}
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-600" />
+          </button>
         </div>
 
         {/* Profile Header */}
@@ -133,7 +148,10 @@ const ExtendedProfileOverlay = ({
               </h2>
               
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="text-gray-600">{profile.city}</span>
+                <div className="flex items-center gap-1 text-gray-600">
+                  <MapPin className="w-4 h-4" />
+                  <span>{profile.city}</span>
+                </div>
                 {profile.gender && (
                   <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
                     {profile.gender}
@@ -154,7 +172,7 @@ const ExtendedProfileOverlay = ({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <CardContent className="p-4 space-y-4">
+          <CardContent className="p-4 space-y-4 pb-24">
           {/* About Me - Always show full content */}
           {(profile.about_me_preview && profile.about_me_preview.length > 0) && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -314,14 +332,14 @@ const ExtendedProfileOverlay = ({
         <div className="p-3 border-t border-gray-200 bg-white flex-shrink-0">
           <div className="flex gap-3">
             <button
-              onClick={onPass}
+              onClick={handlePass}
               className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
             >
               <X className="w-5 h-5" />
               Dismiss
             </button>
             <button
-              onClick={onLike}
+              onClick={handleLike}
               className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
             >
               <Heart className="w-5 h-5" />
