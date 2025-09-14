@@ -181,9 +181,9 @@ const ExtendedProfileOverlay = ({
 
 
           {/* Symptoms */}
-          {profile.symptoms && profile.symptoms.length > 0 && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <div className="text-base font-semibold text-gray-800 mb-3">My Symptoms:</div>
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="text-base font-semibold text-gray-800 mb-3">My Symptoms:</div>
+            {profile.symptoms && profile.symptoms.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {(showAllSymptoms ? profile.symptoms : profile.symptoms.slice(0, 6)).map((symptom, index) => {
                   const colors = [
@@ -215,45 +215,51 @@ const ExtendedProfileOverlay = ({
                   </button>
                 )}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="text-sm text-gray-600">No symptoms listed</div>
+            )}
+          </div>
 
           {/* Medications */}
-          {profile.medications && profile.medications.length > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="text-base font-semibold text-gray-800 mb-3">Current Medications:</div>
-              <div className="flex flex-wrap gap-2">
-                {(showAllMedications ? profile.medications : profile.medications.slice(0, 3)).map((medication, index) => {
-                  const colors = [
-                    'bg-blue-400/80 border-blue-300/50 text-white',
-                    'bg-indigo-400/80 border-indigo-300/50 text-white', 
-                    'bg-purple-400/80 border-purple-300/50 text-white',
-                    'bg-cyan-400/80 border-cyan-300/50 text-white',
-                    'bg-teal-400/80 border-teal-300/50 text-white'
-                  ];
-                  return (
-                    <Badge 
-                      key={index} 
-                      variant="secondary" 
-                      className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
-                    >
-                      {medication}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="text-base font-semibold text-gray-800 mb-3">Current Medications:</div>
+            {profile.medications && profile.medications.length > 0 ? (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {(showAllMedications ? profile.medications : profile.medications.slice(0, 3)).map((medication, index) => {
+                    const colors = [
+                      'bg-blue-400/80 border-blue-300/50 text-white',
+                      'bg-indigo-400/80 border-indigo-300/50 text-white', 
+                      'bg-purple-400/80 border-purple-300/50 text-white',
+                      'bg-cyan-400/80 border-cyan-300/50 text-white',
+                      'bg-teal-400/80 border-teal-300/50 text-white'
+                    ];
+                    return (
+                      <Badge 
+                        key={index} 
+                        variant="secondary" 
+                        className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
+                      >
+                        {medication}
+                      </Badge>
+                    );
+                  })}
+                </div>
+                {profile.medications.length > 3 && (
+                  <button
+                    onClick={() => setShowAllMedications(!showAllMedications)}
+                    className="text-sm text-blue-600 hover:text-blue-700 mt-2 font-semibold transition-colors"
+                  >
+                    <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-100 cursor-pointer border-blue-400 text-blue-600">
+                      {showAllMedications ? 'Show Less' : `+${profile.medications.length - 3} more`}
                     </Badge>
-                  );
-                })}
-              </div>
-              {profile.medications.length > 3 && (
-                <button
-                  onClick={() => setShowAllMedications(!showAllMedications)}
-                  className="text-sm text-blue-600 hover:text-blue-700 mt-2 font-semibold transition-colors"
-                >
-                  <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-100 cursor-pointer border-blue-400 text-blue-600">
-                    {showAllMedications ? 'Show Less' : `+${profile.medications.length - 3} more`}
-                  </Badge>
-                </button>
-              )}
-            </div>
-          )}
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-gray-600">No medications listed</div>
+            )}
+          </div>
 
           {/* Selected Prompts */}
           {profile.selected_prompts && profile.selected_prompts.length > 0 && (
