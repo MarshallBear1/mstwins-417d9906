@@ -153,8 +153,8 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <CardContent className="p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <CardContent className="p-4 space-y-4 pb-0">
           {/* About Me - Always show full content */}
           {(profile.about_me_preview && profile.about_me_preview.length > 0) && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -165,10 +165,29 @@ const ExtendedProfileOverlay = ({
             </div>
           )}
 
+          {/* Selected Prompts */}
+          {profile.selected_prompts && profile.selected_prompts.length > 0 && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+              <div className="text-base font-semibold text-gray-800 mb-3">Profile Prompts:</div>
+              <div className="space-y-3">
+                {(Array.isArray(profile.selected_prompts) ? profile.selected_prompts : []).slice(0, 3).map((prompt: any, index: number) => (
+                  <div key={index} className="bg-white rounded-lg p-3 border border-indigo-100">
+                    <div className="text-sm font-medium text-indigo-700 mb-1">
+                      {prompt.question || prompt.prompt || 'Question'}
+                    </div>
+                    <div className="text-sm text-gray-700">
+                      {prompt.answer || prompt.response || 'No response provided'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Symptoms */}
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <div className="text-base font-semibold text-gray-800 mb-3">My Symptoms:</div>
-            {profile.symptoms && profile.symptoms.length > 0 ? (
+          {((fullSymptoms.length > 0 ? fullSymptoms : profile.symptoms) && (fullSymptoms.length > 0 ? fullSymptoms : profile.symptoms).length > 0) && (
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3 text-base">My Symptoms</h4>
               <div className="flex flex-wrap gap-2">
                 {(showAllSymptoms ? (fullSymptoms.length > 0 ? fullSymptoms : profile.symptoms) : (fullSymptoms.length > 0 ? fullSymptoms : profile.symptoms).slice(0, 6)).map((symptom, index) => {
                   const colors = [
@@ -200,67 +219,42 @@ const ExtendedProfileOverlay = ({
                   </button>
                 )}
               </div>
-            ) : (
-              <div className="text-sm text-gray-600">No symptoms listed</div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Medications */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="text-base font-semibold text-gray-800 mb-3">Current Medications:</div>
-            {profile.medications && profile.medications.length > 0 ? (
-              <>
-                <div className="flex flex-wrap gap-2">
-                  {(showAllMedications ? (fullMedications.length > 0 ? fullMedications : profile.medications) : (fullMedications.length > 0 ? fullMedications : profile.medications).slice(0, 3)).map((medication, index) => {
-                    const colors = [
-                      'bg-blue-400/80 border-blue-300/50 text-white',
-                      'bg-indigo-400/80 border-indigo-300/50 text-white', 
-                      'bg-purple-400/80 border-purple-300/50 text-white',
-                      'bg-cyan-400/80 border-cyan-300/50 text-white',
-                      'bg-teal-400/80 border-teal-300/50 text-white'
-                    ];
-                    return (
-                      <Badge 
-                        key={index} 
-                        variant="secondary" 
-                        className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
-                      >
-                        {medication}
-                      </Badge>
-                    );
-                  })}
-                </div>
+          {((fullMedications.length > 0 ? fullMedications : profile.medications) && (fullMedications.length > 0 ? fullMedications : profile.medications).length > 0) && (
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3 text-base">Current Medications</h4>
+              <div className="flex flex-wrap gap-2">
+                {(showAllMedications ? (fullMedications.length > 0 ? fullMedications : profile.medications) : (fullMedications.length > 0 ? fullMedications : profile.medications).slice(0, 3)).map((medication, index) => {
+                  const colors = [
+                    'bg-blue-400/80 border-blue-300/50 text-white',
+                    'bg-indigo-400/80 border-indigo-300/50 text-white', 
+                    'bg-purple-400/80 border-purple-300/50 text-white',
+                    'bg-cyan-400/80 border-cyan-300/50 text-white',
+                    'bg-teal-400/80 border-teal-300/50 text-white'
+                  ];
+                  return (
+                    <Badge 
+                      key={index} 
+                      variant="secondary" 
+                      className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
+                    >
+                      {medication}
+                    </Badge>
+                  );
+                })}
                 {(fullMedications.length > 0 ? fullMedications : profile.medications).length > 3 && (
                   <button
                     onClick={() => setShowAllMedications(!showAllMedications)}
-                    className="text-sm text-blue-600 hover:text-blue-700 mt-2 font-semibold transition-colors"
+                    className="text-sm text-blue-600 hover:text-blue-700 font-semibold transition-colors"
                   >
                     <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-100 cursor-pointer border-blue-400 text-blue-600">
                       {showAllMedications ? 'Show Less' : `+${(fullMedications.length > 0 ? fullMedications : profile.medications).length - 3} more`}
                     </Badge>
                   </button>
                 )}
-              </>
-            ) : (
-              <div className="text-sm text-gray-600">No medications listed</div>
-            )}
-          </div>
-
-          {/* Selected Prompts */}
-          {profile.selected_prompts && profile.selected_prompts.length > 0 && (
-            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-              <div className="text-base font-semibold text-gray-800 mb-3">Profile Prompts:</div>
-              <div className="space-y-3">
-                {(Array.isArray(profile.selected_prompts) ? profile.selected_prompts : []).slice(0, 3).map((prompt: any, index: number) => (
-                  <div key={index} className="bg-white rounded-lg p-3 border border-indigo-100">
-                    <div className="text-sm font-medium text-indigo-700 mb-1">
-                      {prompt.question || prompt.prompt || 'Question'}
-                    </div>
-                    <div className="text-sm text-gray-700">
-                      {prompt.answer || prompt.response || 'No response provided'}
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           )}
@@ -287,7 +281,7 @@ const ExtendedProfileOverlay = ({
             </div>
           )}
 
-          {/* Interests & Hobbies - Moved to bottom */}
+          {/* Interests & Hobbies */}
           {profile.hobbies && profile.hobbies.length > 0 && (
             <div>
               <h4 className="font-bold text-gray-900 mb-3 text-base">Interests & Hobbies</h4>
