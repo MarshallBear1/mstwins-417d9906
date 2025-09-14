@@ -392,10 +392,12 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             paddingBottom: isMobile ? `max(4rem, ${safeAreaInsets.bottom + 80}px)` : '1rem'
           }}>
             <div className="space-y-4">
-              {messages.map((message, index) => {
+              {messages.filter(message => message && message.id).map((message, index) => {
+                if (!message || !message.id) return null;
+                
                 const isOwn = message.sender_id === user?.id;
                 const showTime = index === 0 || 
-                  new Date(message.created_at).getTime() - new Date(messages[index - 1].created_at).getTime() > 5 * 60 * 1000;
+                  new Date(message.created_at).getTime() - new Date(messages[index - 1]?.created_at || 0).getTime() > 5 * 60 * 1000;
 
                 return (
                   <div key={message.id}>
