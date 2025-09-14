@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Heart, X } from 'lucide-react';
-import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 import { useHaptics } from '@/hooks/useHaptics';
 import { cn } from '@/lib/utils';
 import MobileProfileCard from '@/components/ui/mobile-profile-card';
@@ -56,54 +55,10 @@ const SwipeableProfileCard = ({
     onPass(profile.user_id);
   };
 
-  const { swipeHandlers, swipeProgress, isTransitioning } = useSwipeGestures({
-    onSwipeRight: handleLike,
-    onSwipeLeft: handlePass,
-    threshold: 100,
-    preventDefaultTouchmove: !showExtended,
-  });
-
-  // Calculate opacity and rotation based on swipe progress
-  const getSwipeStyles = () => {
-    const { x } = swipeProgress;
-    const maxSwipe = 150;
-    const progress = Math.min(Math.abs(x) / maxSwipe, 1);
-    const rotation = (x / maxSwipe) * 12;
-    
-    return {
-      transform: `translateX(${x * 0.6}px) rotate(${rotation}deg)`,
-      opacity: isTransitioning ? 0 : Math.max(0.7, 1 - progress * 0.4),
-      transition: isTransitioning ? 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-      willChange: 'transform, opacity',
-    };
-  };
-
-  const showLikeIndicator = swipeProgress.x > 50;
-  const showPassIndicator = swipeProgress.x < -50;
-
   return (
     <div className={cn("relative w-full max-w-sm mx-auto bg-transparent", className)} style={{ width: '100%', maxWidth: '384px', zIndex: 1 }}>
-      {/* Swipe Indicators */}
-      {showLikeIndicator && (
-        <div className="absolute top-6 right-6 z-20 bg-green-500/95 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-xl animate-scale-in border-2 border-white">
-          <Heart className="w-5 h-5 fill-current inline mr-2" />
-          <span className="font-semibold text-sm">Like</span>
-        </div>
-      )}
-      
-      {showPassIndicator && (
-        <div className="absolute top-6 left-6 z-20 bg-red-500/95 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-xl animate-scale-in border-2 border-white">
-          <X className="w-5 h-5 inline mr-2" />
-          <span className="font-semibold text-sm">Pass</span>
-        </div>
-      )}
-
       {/* Main Card */}
-      <div 
-        className="w-full relative select-none touch-none"
-        style={getSwipeStyles()}
-        {...swipeHandlers}
-      >
+      <div className="w-full relative">
         <MobileProfileCard
           profile={profile}
           onImageClick={onImageClick}

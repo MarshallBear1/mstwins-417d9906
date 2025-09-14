@@ -304,16 +304,16 @@ const EnhancedDiscoverProfiles = React.memo(() => {
         />
       </div>
 
-      {/* Main Profile Card Container - Moved down and centered */}
-      <div className="flex-1 flex items-center justify-center px-4 pt-20">
+      {/* Main Profile Card Container - Perfectly centered */}
+      <div className="flex-1 flex items-center justify-center px-4 pt-16">
         {currentProfile ? (
-          <div className="relative w-full max-w-sm mx-auto">
+          <div className="relative w-full max-w-sm mx-auto flex items-center justify-center">
             <SwipeableProfileCard
               profile={currentProfile}
               onLike={handleLikeProfile}
               onPass={passProfile}
               onImageClick={handleImageClick}
-              className="mb-4"
+              className="w-full"
             />
           </div>
         ) : (
