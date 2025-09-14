@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Heart, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { OptimizedAvatar } from '@/components/OptimizedComponents';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useRealtimePresence } from '@/hooks/useRealtimePresence';
 import { useIsMobile } from '@/hooks/use-mobile';
 
