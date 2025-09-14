@@ -100,7 +100,7 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
               }
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-[10]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
+          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-[5]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
             {/* MS Subtypes */}
             {msSubtypes.length > 0 && (
               <>
