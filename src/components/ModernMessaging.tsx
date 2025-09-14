@@ -555,7 +555,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                     </div>
                   ) : (
                     <div className="space-y-3 sm:space-y-4">
-                      {filteredMatches.map((match) => (
+                      {filteredMatches.filter(m => m.last_message).map((match) => (
                         <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
                           setSelectedMatch(match);
                           loadMessages(match.id);
