@@ -99,19 +99,13 @@ const ExtendedProfileOverlay = ({
     <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 2rem)', maxHeight: '800px' }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
           <span className="font-semibold text-gray-900">Profile Details</span>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-3 hover:bg-gray-100 rounded-full transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-6 h-6 text-gray-600" />
           </button>
         </div>
 
@@ -171,8 +165,7 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <CardContent className="p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* About Me - Always show full content */}
           {(profile.about_me_preview && profile.about_me_preview.length > 0) && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -325,22 +318,21 @@ const ExtendedProfileOverlay = ({
               </div>
             </div>
            )}
-          </CardContent>
         </div>
 
         {/* Action Buttons */}
-        <div className="p-3 border-t border-gray-200 flex-shrink-0">
+        <div className="relative z-10 p-4 border-t border-gray-200 flex-shrink-0 bg-white">
           <div className="flex gap-3">
             <button
               onClick={handlePass}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 min-h-[44px] touch-manipulation"
             >
               <X className="w-5 h-5" />
               Dismiss
             </button>
             <button
               onClick={handleLike}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 min-h-[44px] touch-manipulation"
             >
               <Heart className="w-5 h-5" />
               Connect
