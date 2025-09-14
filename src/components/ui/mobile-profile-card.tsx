@@ -73,11 +73,14 @@ const MobileProfileCard = ({
   const hasInterests = Boolean(profile.hobbies && profile.hobbies.length > 0);
   
   // Adjust card dimensions based on screen size and content
-  const cardHeight = isMobile ? '85vh' : 'auto';
-  const imageHeight = isMobile ? '45%' : '300px';
+  const cardHeight = isMobile ? '75vh' : 'auto'; // Reduced from 85vh to 75vh
+  const imageHeight = isMobile ? '35%' : '250px'; // Reduced from 45% to 35% and from 300px to 250px
 
   return (
-    <Card className="w-full h-full shadow-xl border-0 bg-white rounded-2xl overflow-hidden">
+    <Card 
+      className="w-full shadow-xl border-0 bg-white rounded-2xl overflow-hidden" 
+      style={{ height: cardHeight, maxHeight: '75vh' }}
+    >
       <div className="relative h-full flex flex-col">
         {/* Profile Image Section */}
         <div className="relative flex-shrink-0" style={{ height: imageHeight }}>
@@ -103,9 +106,9 @@ const MobileProfileCard = ({
         </div>
 
         {/* Profile Info Section */}
-        <CardContent className="flex-1 p-5 pb-6 flex flex-col justify-between">
+        <CardContent className="flex-1 p-4 pb-4 flex flex-col justify-between min-h-0"> {/* Reduced padding from p-5 pb-6 to p-4 pb-4 */}
           {/* Basic Info */}
-          <div className="space-y-4">
+          <div className="space-y-3"> {/* Reduced spacing from space-y-4 to space-y-3 */}
             {/* Name and Age */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 leading-tight">
@@ -202,20 +205,20 @@ const MobileProfileCard = ({
         </CardContent>
 
         {/* Action Buttons */}
-        <div className="flex-shrink-0 px-5 pb-5">
+        <div className="flex-shrink-0 px-4 pb-4"> {/* Reduced padding from px-5 pb-5 to px-4 pb-4 */}
           <div className="flex gap-3">
-            <button
-              data-no-swipe="true"
-              onClick={onPass}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-            >
+              <button
+                data-no-swipe="true"
+                onClick={onPass}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2" // Reduced padding from py-3 to py-2.5
+              >
               <X className="w-5 h-5" />
               Pass
             </button>
             <button
               data-no-swipe="true"
               onClick={onLike}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2" // Reduced padding from py-3 to py-2.5
             >
               <Heart className="w-5 h-5" />
               Say Hi!
