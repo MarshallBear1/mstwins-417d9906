@@ -32,7 +32,7 @@ const MobileHome = () => {
       <div className="relative z-10 flex-1 flex flex-col justify-center px-6 py-12 mobile-safe-top mobile-safe-bottom">
         <div className="text-center space-y-10 max-w-sm mx-auto">
           
-          {/* App Logo/Title with enhanced styling */}
+          {/* Mobile welcome copy */}
           <div className={`space-y-6 transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="relative">
               <div className="w-24 h-24 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto shadow-xl-modern rotate-3 hover:rotate-0 transition-transform duration-500">
@@ -41,74 +41,23 @@ const MobileHome = () => {
                   <Sparkles className="w-3 h-3 text-white" />
                 </div>
               </div>
-              {/* Floating sparkles */}
               <Star className="absolute -top-2 -left-3 w-4 h-4 text-accent animate-pulse" />
               <Star className="absolute -bottom-1 -right-4 w-3 h-3 text-primary animate-pulse delay-700" />
             </div>
             
             <div className="space-y-3">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-pulse">
-                MSTwins
-              </h1>
-              <div className="mx-auto w-16 h-1 bg-gradient-to-r from-primary to-accent rounded-full"></div>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Your supportive community for <br />
-                <span className="font-semibold text-foreground">Multiple Sclerosis</span>
+              <h1 className="text-2xl font-bold text-foreground">Hi. It’s great to meet you.</h1>
+              <p className="text-base text-muted-foreground leading-relaxed">
+                I'm excited to get you in touch with other people in the community.
+                No dating. Events. Chat. Join thousands of people.
               </p>
             </div>
           </div>
 
-          {/* Enhanced Feature Cards */}
-          <div className="space-y-4">
-            {[
-              {
-                icon: Users,
-                title: "Connect with Others",
-                description: "Find people who truly understand your MS journey",
-                gradient: "from-blue-500/10 to-blue-600/5",
-                iconColor: "text-blue-600",
-                delay: "delay-200"
-              },
-              {
-                icon: MessageCircle,
-                title: "Share & Support",
-                description: "Exchange experiences and daily encouragement",
-                gradient: "from-green-500/10 to-green-600/5",
-                iconColor: "text-green-600",
-                delay: "delay-400"
-              },
-              {
-                icon: Shield,
-                title: "Safe Space",
-                description: "Build meaningful, lasting friendships here",
-                gradient: "from-purple-500/10 to-purple-600/5",
-                iconColor: "text-purple-600",
-                delay: "delay-600"
-              }
-            ].map((feature, index) => (
-              <div 
-                key={index}
-                className={`
-                  bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/50 
-                  shadow-soft hover:shadow-medium transition-all duration-500 hover:scale-105
-                  ${feature.delay} ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
-                `}
-                style={{ transitionDelay: isVisible ? `${200 + index * 200}ms` : '0ms' }}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className={`w-14 h-14 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner`}>
-                    <feature.icon className={`w-7 h-7 ${feature.iconColor}`} />
-                  </div>
-                  <div className="text-left flex-1">
-                    <h3 className="font-bold text-foreground text-lg">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">{feature.description}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* Single-screen CTA */}
+          <div className="space-y-4" />
 
-          {/* Enhanced CTA Section */}
+          {/* CTA Section */}
           <div className={`space-y-6 pt-6 transition-all duration-1000 delay-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="relative">
               <Button 
@@ -130,12 +79,7 @@ const MobileHome = () => {
             </div>
             
             <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-              <p className="text-sm font-medium text-foreground mb-1">
-                🎉 Join <span className="font-bold text-primary">500+</span> amazing members
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Free forever • No ads • Your privacy matters
-              </p>
+              <p className="text-sm text-muted-foreground">Free forever • Your privacy matters • Join in under 60 seconds</p>
             </div>
           </div>
         </div>

@@ -7,13 +7,11 @@ const HeroContent = () => {
       {/* MSTwins Mascot with Speech Bubble */}
       <div className="flex flex-col items-center mb-8">
         <div className="relative mb-6">
-          {/* Speech Bubble */}
+          {/* Intro Bubble (desktop) */}
           <div className="bg-white rounded-3xl px-6 py-4 shadow-lg border-2 border-blue-100 relative mb-4 max-w-sm mx-auto">
             <p className="text-gray-800 font-medium text-base leading-relaxed">
-              Hi! It's great to meet you, I am excited to get you in touch with other people within our community!
+              Welcome to MSTwins — a supportive MS community for friendship and understanding.
             </p>
-            {/* Arrow pointing to mascot */}
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white border-r-2 border-b-2 border-blue-100 rotate-45"></div>
           </div>
           
           {/* Mascot */}
