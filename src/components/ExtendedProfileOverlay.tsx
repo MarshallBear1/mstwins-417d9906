@@ -81,13 +81,13 @@ const ExtendedProfileOverlay = ({
                 onClick={() => onImageClick?.(0)}
                 className="relative block"
               >
-                <Avatar className="w-20 h-20 rounded-full">
+                <Avatar className="w-20 h-20 rounded-xl">
                   <AvatarImage 
                     src={profile.avatar_url || ''} 
                     alt={`${profile.first_name}'s profile`}
-                    className="w-full h-full object-cover rounded-full bg-gradient-to-br from-purple-100 to-blue-100"
+                    className="w-full h-full object-contain rounded-xl bg-gradient-to-br from-purple-100 to-blue-100"
                   />
-                  <AvatarFallback className="w-20 h-20 text-2xl rounded-full bg-gradient-to-br from-purple-400 to-blue-500 text-white">
+                  <AvatarFallback className="w-20 h-20 text-2xl rounded-xl bg-gradient-to-br from-purple-400 to-blue-500 text-white">
                     {profile.first_name[0]}
                   </AvatarFallback>
                 </Avatar>
@@ -126,7 +126,7 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Scrollable Content */}
-        <CardContent className="flex-1 p-6 space-y-5 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}>
+        <CardContent className="flex-1 p-6 space-y-5 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
           {/* About Me - hide if none */}
           {(profile.about_me_preview && profile.about_me_preview.length > 0) && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">

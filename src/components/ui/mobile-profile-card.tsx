@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +50,8 @@ const MobileProfileCard = ({
   onShowExtended,
   ...props
 }: MobileProfileCardProps) => {
+  const [showMore, setShowMore] = useState(false);
+  const [expandedInterests, setExpandedInterests] = useState(false);
   const isMobile = useIsMobile();
   
   // Use the hook for realtime presence if not provided as props
@@ -83,13 +85,13 @@ const MobileProfileCard = ({
             className="w-full h-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center overflow-hidden cursor-pointer group"
             data-no-swipe="true"
           >
-            <Avatar className="w-full h-full rounded-full">
+            <Avatar className="w-full h-full rounded-xl">
               <AvatarImage 
                 src={profile.avatar_url || ''}
                 alt={`${profile.first_name}'s profile`}
-                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full"
+                className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl"
               />
-              <AvatarFallback className="w-full h-full text-2xl rounded-full bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
+              <AvatarFallback className="w-full h-full text-2xl rounded-xl bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
                 {profile.first_name[0]}
               </AvatarFallback>
             </Avatar>
@@ -132,7 +134,7 @@ const MobileProfileCard = ({
             {profile.hobbies && profile.hobbies.length > 0 && (
               <div>
                 <div className="flex flex-wrap gap-1">
-                  {profile.hobbies.slice(0, 3).map((hobby, index) => (
+                  {(expandedInterests ? profile.hobbies : profile.hobbies.slice(0, 3)).map((hobby, index) => (
                     <Badge 
                       key={index} 
                       variant="secondary" 
@@ -141,14 +143,24 @@ const MobileProfileCard = ({
                       {hobby}
                     </Badge>
                   ))}
-                  {profile.hobbies.length > 3 && (
+                  {!expandedInterests && profile.hobbies.length > 3 && (
                     <button
                       type="button"
                       data-no-swipe="true"
-                      onClick={() => onShowExtended?.()}
-                      className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-md border border-gray-200"
+                      onClick={() => setExpandedInterests(true)}
+                      className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-md border border-gray-200 hover:bg-gray-200 transition-colors"
                     >
                       +{profile.hobbies.length - 3}
+                    </button>
+                  )}
+                  {expandedInterests && profile.hobbies.length > 3 && (
+                    <button
+                      type="button"
+                      data-no-swipe="true"
+                      onClick={() => setExpandedInterests(false)}
+                      className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-md border border-gray-200 hover:bg-gray-200 transition-colors"
+                    >
+                      Show less
                     </button>
                   )}
                 </div>
@@ -161,8 +173,8 @@ const MobileProfileCard = ({
             </div>
           </div>
 
-          {/* Show More Button - Directly below last seen */}
-          <div className="pt-2">
+          {/* Show More Button - Directly below last seen with minimal spacing */}
+          <div>
             <button
               data-no-swipe="true"
               onClick={() => onShowExtended?.()}
@@ -173,8 +185,8 @@ const MobileProfileCard = ({
           </div>
         </CardContent>
 
-        {/* Action Buttons - Directly under Show More */}
-        <div className="flex-shrink-0 px-4 pb-4">
+        {/* Action Buttons - Directly under Show More with minimal spacing */}
+        <div className="flex-shrink-0 px-4 pb-4 pt-1">
           <div className="flex gap-3">
               <button
                 data-no-swipe="true"
