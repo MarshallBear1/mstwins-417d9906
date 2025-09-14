@@ -481,7 +481,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             }`}
             style={{
               paddingBottom: isMobile ? `max(1rem, ${safeAreaInsets.bottom + 16}px)` : '1rem',
-              bottom: isMobile ? Math.max(safeAreaInsets.bottom + 64, 64) : undefined,
+              bottom: isMobile ? Math.max(safeAreaInsets.bottom + 16, 16) : undefined,
               zIndex: isMobile ? 1000001 : undefined,
               boxShadow: isMobile ? '0 -6px 24px rgba(0,0,0,0.08)' : undefined,
               backdropFilter: isMobile ? 'saturate(180%) blur(8px)' : undefined
@@ -556,7 +556,10 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                   ) : (
                     <div className="space-y-3 sm:space-y-4">
                       {filteredMatches.map((match) => (
-                        <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedMatch(match)}>
+                        <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
+                          setSelectedMatch(match);
+                          loadMessages(match.id);
+                        }}>
                           <CardContent className="p-3 sm:p-4">
                             <div className="flex items-center space-x-3 sm:space-x-4">
                               <div className="relative flex-shrink-0">
@@ -634,7 +637,10 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                   ) : (
                     <div className="space-y-3 sm:space-y-4">
                       {filteredMatches.filter(m => !m.last_message).map((match) => (
-                        <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border-green-200 bg-green-50/30" onClick={() => setSelectedMatch(match)}>
+                        <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border-green-200 bg-green-50/30" onClick={() => {
+                          setSelectedMatch(match);
+                          loadMessages(match.id);
+                        }}>
                           <CardContent className="p-3 sm:p-4">
                             <div className="flex items-center space-x-3 sm:space-x-4">
                               <div className="relative flex-shrink-0">
