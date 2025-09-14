@@ -78,17 +78,18 @@ const MobileProfileCard = ({
     >
       <div className="relative flex flex-col">
         {/* Profile Image Section */}
-        <div className="relative flex-shrink-0" style={{ height: imageHeight }}>
+        <div className="relative flex-shrink-0 flex items-center justify-center" style={{ height: imageHeight }}>
           <button
             onClick={() => onImageClick?.(0)}
-            className="w-full h-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center overflow-hidden cursor-pointer group"
+            className="bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center overflow-hidden cursor-pointer group rounded-full"
+            style={{ width: imageHeight, height: imageHeight }}
             data-no-swipe="true"
           >
             <Avatar className="w-full h-full rounded-full">
               <AvatarImage 
                 src={profile.avatar_url || ''}
                 alt={`${profile.first_name}'s profile`}
-                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 rounded-full"
               />
               <AvatarFallback className="w-full h-full text-2xl rounded-full bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
                 {profile.first_name[0]}
