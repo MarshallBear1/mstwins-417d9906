@@ -288,6 +288,25 @@ const ExtendedProfileOverlay = ({
             </div>
           )}
 
+          {/* Selected Prompts */}
+          {profile.selected_prompts && profile.selected_prompts.length > 0 && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+              <div className="text-base font-semibold text-gray-800 mb-3">Profile Prompts:</div>
+              <div className="space-y-3">
+                {(Array.isArray(profile.selected_prompts) ? profile.selected_prompts : []).slice(0, 3).map((prompt: any, index: number) => (
+                  <div key={index} className="bg-white rounded-lg p-3 border border-indigo-100">
+                    <div className="text-sm font-medium text-indigo-700 mb-1">
+                      {prompt.question || prompt.prompt || 'Question'}
+                    </div>
+                    <div className="text-sm text-gray-700">
+                      {prompt.answer || prompt.response || 'No response provided'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Additional Photos */}
           {profile.additional_photos && profile.additional_photos.length > 0 && (
             <div>
@@ -319,14 +338,14 @@ const ExtendedProfileOverlay = ({
               className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
             >
               <X className="w-5 h-5" />
-              Pass
+              Dismiss
             </button>
             <button
               onClick={onLike}
               className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
             >
               <Heart className="w-5 h-5" />
-              Say Hi!
+              Connect
             </button>
           </div>
         </div>

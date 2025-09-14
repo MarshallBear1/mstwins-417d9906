@@ -1,20 +1,20 @@
-import { useState, useEffect, memo, useCallback, useMemo, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { toast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import SwipeableProfileCard from './mobile/SwipeableProfileCard';
+import ProfileImageViewer from './ProfileImageViewer';
 import { Button } from "@/components/ui/button";
-import { Heart, RefreshCw, MapPin, User, X, HandHeart, Sparkles, Filter } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useRealtimePresence } from "@/hooks/useRealtimePresence";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useSimpleLikes } from "@/hooks/useSimpleLikes";
-import { analytics } from "@/lib/analytics";
-import { useToast } from "@/hooks/use-toast";
-import ProfileImageViewer from "@/components/ProfileImageViewer";
-import { useHaptics } from "@/hooks/useHaptics";
-import SwipeableProfileCard from "@/components/mobile/SwipeableProfileCard";
-import MobilePullToRefresh from "@/components/mobile/MobilePullToRefresh";
-import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
-import { useDiscoverScrollPrevention } from "@/hooks/useDiscoverScrollPrevention";
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useHaptics } from '@/hooks/useHaptics';
+import { useRealtimePresence } from '@/hooks/useRealtimePresence';
+import { Heart, RefreshCw } from 'lucide-react';
+import MobilePullToRefresh from './mobile/MobilePullToRefresh';
+import { useOptimizedQuery } from '@/hooks/useOptimizedQuery';
+import { useDiscoverScrollPrevention } from '@/hooks/useDiscoverScrollPrevention';
+import { useSimpleLikes } from '@/hooks/useSimpleLikes';
+import DiscoverProfileFilters from './DiscoverProfileFilters';
+import { analytics } from '@/lib/analytics';
 
 interface Profile {
   id: string;
@@ -30,22 +30,18 @@ interface Profile {
   additional_photos?: string[];
   selected_prompts?: any;
   extended_profile_completed?: boolean;
-  last_seen?: string;
   symptoms?: string[];
   medications?: string[];
 }
 
-const SWIPE_THRESHOLD = 100;
-const SWIPE_VELOCITY_THRESHOLD = 0.5;
-
-const EnhancedDiscoverProfiles = memo(() => {
+const EnhancedDiscoverProfiles = React.memo(() => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { safeAreaInsets } = useMobileOptimizations();
+  
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [actionCooldown, setActionCooldown] = useState(false);
@@ -84,6 +80,7 @@ const EnhancedDiscoverProfiles = memo(() => {
 
       console.log('Fetched discovery profiles:', discoveryProfiles?.length || 0);
       setProfiles(discoveryProfiles || []);
+      setFilteredProfiles(discoveryProfiles || []);
       setCurrentIndex(0);
       
     } catch (error: any) {
@@ -98,157 +95,177 @@ const EnhancedDiscoverProfiles = memo(() => {
     }
   }, [user, toast]);
 
+  // Call fetchProfiles on mount
+  useEffect(() => {
+    fetchProfiles();
+  }, [fetchProfiles]);
+
   const currentProfile = useMemo(() => {
-    return profiles[currentIndex] || null;
-  }, [profiles, currentIndex]);
+    return filteredProfiles[currentIndex];
+  }, [filteredProfiles, currentIndex]);
 
-  // Enhanced like function with optimistic updates
-  const handleLikeProfile = useCallback(async (profileUserId: string) => {
-    if (!user || actionCooldown) return;
+  const handleLikeProfile = useCallback(async (userId: string) => {
+    if (actionCooldown || likeLoading) return;
 
-    if (user.id === profileUserId) {
-      toast({
-        title: "Can't connect with yourself",
-        description: "You can't say hi to your own profile!",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setActionCooldown(true);
-    
-    // Move to next profile immediately for better UX
-    setCurrentIndex(prev => prev + 1);
-    setIsCardFlipped(false);
-    
     try {
-      const success = await likeProfile(profileUserId);
+      setActionCooldown(true);
       
-      if (success) {
-        vibrate();
-        analytics.track('profile_liked', { liked_user_id: profileUserId });
-        
-        toast({
-          title: "Connection sent! 🎉",
-          description: "If they say hi back, you'll be connected!",
-          duration: 3000,
-        });
-      } else {
-        // Revert on failure
+      // Optimistic UI update - move to next profile immediately
+      if (currentIndex < filteredProfiles.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+      } else if (filteredProfiles.length === 0) {
+        // No more profiles, try fetching new ones
+        await fetchProfiles();
+      }
+
+      // Haptic feedback
+      vibrate();
+
+      // Track analytics
+      analytics.track('profile_liked', { 
+        liked_user_id: userId,
+        source: 'enhanced_discover' 
+      });
+
+      // Like the profile
+      await likeProfile(userId);
+
+      console.log('Successfully liked profile:', userId);
+      
+    } catch (error: any) {
+      console.error('Error liking profile:', error);
+      
+      // Revert optimistic update by going back to previous index
+      if (currentIndex > 0) {
         setCurrentIndex(prev => prev - 1);
-        return;
       }
       
-    } catch (error) {
-      console.error('❌ Error in handleLikeProfile:', error);
-      setCurrentIndex(prev => prev - 1);
       toast({
-        title: "Error",
-        description: "Failed to send connection. Please try again.",
+        title: "Error liking profile",
+        description: error.message || "Please try again.",
         variant: "destructive"
       });
     } finally {
       setTimeout(() => setActionCooldown(false), 500);
     }
-  }, [user, actionCooldown, likeProfile, vibrate, analytics, toast]);
+  }, [currentIndex, filteredProfiles.length, actionCooldown, likeLoading, vibrate, likeProfile, fetchProfiles, toast]);
 
-  // Enhanced pass function with optimistic updates
-  const passProfile = useCallback(async (profileUserId: string) => {
-    if (!user || actionCooldown) return;
-
-    setActionCooldown(true);
-    
-    // Move to next profile immediately for better UX
-    setCurrentIndex(prev => prev + 1);
-    setIsCardFlipped(false);
+  const passProfile = useCallback(async (userId: string) => {
+    if (actionCooldown) return;
 
     try {
+      setActionCooldown(true);
+      
+      // Optimistic UI update - move to next profile immediately
+      if (currentIndex < filteredProfiles.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+      } else if (filteredProfiles.length === 0) {
+        // No more profiles, try fetching new ones
+        await fetchProfiles();
+      }
+
+      // Track analytics
+      analytics.track('profile_passed', { 
+        passed_user_id: userId,
+        source: 'enhanced_discover' 
+      });
+
+      // Record the pass in database
       const { error } = await supabase
         .from('passes')
         .insert({
-          passer_id: user.id,
-          passed_id: profileUserId
+          passer_id: user?.id,
+          passed_id: userId
         });
 
-      if (error) throw error;
+      if (error && !error.message.includes('duplicate')) {
+        throw error;
+      }
 
-      vibrate();
-      analytics.track('profile_passed', { passed_user_id: profileUserId });
-
-    } catch (error) {
+      console.log('Successfully passed profile:', userId);
+      
+    } catch (error: any) {
       console.error('Error passing profile:', error);
-      setCurrentIndex(prev => prev - 1);
+      
+      // Revert optimistic update
+      if (currentIndex > 0) {
+        setCurrentIndex(prev => prev - 1);
+      }
       
       toast({
         title: "Error passing profile",
-        description: "Please try again later.",
+        description: error.message || "Please try again.",
         variant: "destructive"
       });
     } finally {
       setTimeout(() => setActionCooldown(false), 500);
     }
-  }, [user, actionCooldown, vibrate, toast]);
+  }, [currentIndex, filteredProfiles.length, actionCooldown, user?.id, fetchProfiles, toast]);
 
-  // Handle image clicks
-  const handleImageClick = useCallback((imageIndex: number) => {
-    if (currentProfile) {
-      const images = [
-        ...(currentProfile.avatar_url ? [currentProfile.avatar_url] : []),
-        ...(currentProfile.additional_photos || [])
-      ].filter(Boolean);
-      
-      setSelectedImages(images);
-      setImageViewerIndex(imageIndex);
-      setImageViewerOpen(true);
-    }
-  }, [currentProfile]);
+  // Handle filter changes
+  const handleFilterChange = useCallback((newFilteredProfiles: Profile[]) => {
+    setFilteredProfiles(newFilteredProfiles);
+    setCurrentIndex(0);
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     await fetchProfiles();
   }, [fetchProfiles]);
 
-  useEffect(() => {
-    fetchProfiles();
-  }, [fetchProfiles]);
+  const handleImageClick = useCallback((imageIndex: number) => {
+    if (!currentProfile) return;
+    
+    const allImages = [
+      ...(currentProfile.avatar_url ? [currentProfile.avatar_url] : []),
+      ...(currentProfile.additional_photos || [])
+    ];
+    
+    setSelectedImages(allImages);
+    setImageViewerIndex(imageIndex);
+    setImageViewerOpen(true);
+  }, [currentProfile]);
 
   // Show loading state
   if (loading && profiles.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="text-gray-600 animate-pulse">Finding amazing people for you...</p>
+        <p className="text-gray-600">Finding amazing people for you...</p>
       </div>
     );
   }
 
-  // Show empty state
-  if (profiles.length === 0 || currentIndex >= profiles.length) {
+  // Show empty state with detailed information - updated for filtered results
+  if (filteredProfiles.length === 0 || currentIndex >= filteredProfiles.length) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-6 p-6">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-10 h-10 text-white" />
-          </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">
-            You've seen everyone!
+          <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            {profiles.length === 0 ? "You've seen everyone!" : "No matches with current filters"}
           </h3>
-          <p className="text-gray-600 mb-6 max-w-sm">
-            You've viewed all available profiles. Check back later for new members, or try adjusting your preferences.
+          <p className="text-gray-600 mb-4">
+            {profiles.length === 0 
+              ? "You've viewed all available profiles. Check back later for new members, or try adjusting your preferences."
+              : "Try adjusting your filters to see more profiles, or clear them to see all available matches."
+            }
           </p>
           
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-4 mb-6">
-            <h4 className="font-semibold text-blue-900 mb-2">Your Activity:</h4>
-            <p className="text-blue-700 text-sm">You've interacted with most profiles in our community!</p>
+          {/* Show activity summary */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-sm">
+            <h4 className="font-medium text-blue-900 mb-2">Your Activity:</h4>
+            <p className="text-blue-700">You've interacted with most profiles in our community!</p>
             <p className="text-blue-600 text-xs mt-1">New profiles appear as people join MStwins.</p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button onClick={fetchProfiles} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white rounded-full px-6 ios-bounce">
+          <div className="flex space-x-3 justify-center">
+            <Button onClick={fetchProfiles} variant="outline" className="text-primary border-primary">
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
             <Button 
               onClick={() => {
+                // Reset passes for this user (admin function)
                 if (window.confirm('Reset your pass history? This will show profiles you previously passed on.')) {
                   supabase
                     .from('passes')
@@ -277,24 +294,14 @@ const EnhancedDiscoverProfiles = memo(() => {
     <div 
       className="flex flex-col items-center justify-center min-h-[80vh] px-4 relative"
       style={{
-        paddingBottom: isMobile ? `max(8rem, ${safeAreaInsets.bottom + 120}px)` : '8rem'
+        paddingBottom: isMobile ? '8rem' : '8rem'
       }}
     >
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-xl border-0 ios-bounce hover:scale-105 transition-transform relative z-50"
-          onClick={() => {
-            toast({
-              title: "Filters coming soon!",
-              description: "We're working on advanced filters to help you find your perfect match.",
-            });
-          }}
-        >
-          <Filter className="w-4 h-4 mr-2" />
-          Filters
-        </Button>
+        <DiscoverProfileFilters 
+          profiles={profiles}
+          onFilterChange={handleFilterChange}
+        />
       </div>
 
       {/* Main Profile Card Container - Moved down and centered */}
@@ -310,7 +317,7 @@ const EnhancedDiscoverProfiles = memo(() => {
             />
             
             {/* Next card preview */}
-            {profiles[currentIndex + 1] && (
+            {filteredProfiles[currentIndex + 1] && (
               <div 
                 className="absolute inset-0 -z-10 pointer-events-none"
                 style={{
@@ -319,7 +326,7 @@ const EnhancedDiscoverProfiles = memo(() => {
                 }}
               >
                 <SwipeableProfileCard
-                  profile={profiles[currentIndex + 1]}
+                  profile={filteredProfiles[currentIndex + 1]}
                   onLike={() => {}}
                   onPass={() => {}}
                   className="pointer-events-none"

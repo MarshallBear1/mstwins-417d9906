@@ -92,7 +92,7 @@ const MobileProfileCard = ({
               <AvatarImage 
                 src={profile.avatar_url || ''}
                 alt={`${profile.first_name}'s profile`}
-                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100"
               />
               <AvatarFallback className="w-full h-full text-2xl rounded-xl bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
                 {profile.first_name[0]}
@@ -198,19 +198,19 @@ const MobileProfileCard = ({
               <button
                 data-no-swipe="true"
                 onClick={onPass}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2" // Reduced padding from py-3 to py-2.5
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
-              <X className="w-5 h-5" />
-              Pass
-            </button>
-            <button
-              data-no-swipe="true"
-              onClick={onLike}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2" // Reduced padding from py-3 to py-2.5
-            >
-              <Heart className="w-5 h-5" />
-              Say Hi!
-            </button>
+                <X className="w-5 h-5" />
+                Dismiss
+              </button>
+              <button
+                data-no-swipe="true"
+                onClick={onLike}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                <Heart className="w-5 h-5" />
+                Connect
+              </button>
           </div>
         </div>
       </div>
