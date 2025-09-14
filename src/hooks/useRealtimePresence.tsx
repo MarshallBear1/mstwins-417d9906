@@ -21,12 +21,18 @@ export const useRealtimePresence = () => {
   const [typingUsers, setTypingUsers] = useState<Map<string, Set<string>>>(new Map());
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found, skipping presence setup');
+      return;
+    }
+
+    console.log('Setting up presence tracking for user:', user.id);
 
     // Update last_seen timestamp when user comes online
     const updateLastSeen = async () => {
       try {
         await supabase.rpc('update_user_last_seen', { user_id_param: user.id });
+        console.log('Last seen timestamp updated for user:', user.id);
       } catch (error) {
         console.error('Error updating last seen:', error);
       }
@@ -36,6 +42,7 @@ export const useRealtimePresence = () => {
 
     // Set up presence channel for online/offline status
     const presenceChannel = supabase.channel('user-presence');
+    console.log('Created presence channel for user:', user.id);
 
     presenceChannel
       .on('presence', { event: 'sync' }, () => {
