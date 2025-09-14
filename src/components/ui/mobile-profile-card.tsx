@@ -178,7 +178,7 @@ const MobileProfileCard = ({
 
             {/* Last seen */}
             <div className="text-sm text-gray-500">
-              {getLastSeenText(profile.user_id, profile.last_seen)}
+              {getLastSeenText(profile.last_seen)}
             </div>
           </div>
 

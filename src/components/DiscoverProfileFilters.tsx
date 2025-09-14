@@ -31,8 +31,12 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
   const [filterValue, setFilterValue] = useState<string | null>(null);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
 
-  // Close dropdown when clicking outside or when another overlay opens
+  // Close dropdown when extended profile opens
   React.useEffect(() => {
+    const handleExtendedProfileOpen = () => {
+      setIsFilterDropdownOpen(false);
+    };
+    
     const handleClickOutside = () => {
       setIsFilterDropdownOpen(false);
     };
@@ -41,6 +45,10 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
+
+    // Listen for extended profile opening
+    document.addEventListener('extended-profile-open', handleExtendedProfileOpen);
+    return () => document.removeEventListener('extended-profile-open', handleExtendedProfileOpen);
   }, [isFilterDropdownOpen]);
 
   // Get unique filter options from profiles
@@ -92,11 +100,7 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
               }
             </Button>
           </DropdownMenuTrigger>
-<<<<<<< HEAD
-          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-[75]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
-=======
-          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-[75]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
->>>>>>> b5a4abf (Fix: prevent white overlay blocking actions; set z-index layering (overlay above filters); keep filters open; throttle toasts and native notifications more; soften reminder copy; circular avatars & fixed width already applied)
+          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-[10]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
             {/* MS Subtypes */}
             {msSubtypes.length > 0 && (
               <>

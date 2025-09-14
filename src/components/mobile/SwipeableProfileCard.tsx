@@ -44,6 +44,8 @@ const SwipeableProfileCard = ({
   const [showExtended, setShowExtended] = useState(false);
 
   const handleLike = () => {
+    // Dispatch event to close filters
+    document.dispatchEvent(new CustomEvent('extended-profile-open'));
     like();
     setShowExtended(false); // Close extended view when liking
     onLike(profile.user_id);
@@ -66,7 +68,11 @@ const SwipeableProfileCard = ({
           onPass={handlePass}
           isUserOnline={isUserOnline}
           getLastSeenText={getLastSeenText}
-          onShowExtended={() => setShowExtended(true)}
+          onShowExtended={() => {
+            // Dispatch event to close filters
+            document.dispatchEvent(new CustomEvent('extended-profile-open'));
+            setShowExtended(true);
+          }}
         />
       </div>
 
