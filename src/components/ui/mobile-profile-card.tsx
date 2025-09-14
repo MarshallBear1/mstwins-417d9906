@@ -182,8 +182,8 @@ const MobileProfileCard = ({
             </div>
           </div>
 
-          {/* All buttons in one container with slightly bigger spacing */}
-          <div className="space-y-2">
+          {/* All buttons in one container with more spacing */}
+          <div className="space-y-2 mt-4">
             <button
               data-no-swipe="true"
               onClick={() => onShowExtended?.()}
