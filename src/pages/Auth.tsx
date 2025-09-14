@@ -722,15 +722,6 @@ const Auth = () => {
         </div>
       </div>
 
-      {/* Trust indicators - Always visible */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-10 text-center space-y-2 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border border-white/20">
-        <p className="text-sm text-gray-600 font-medium">
-          🔒 Your data is secure and private
-        </p>
-        <p className="text-xs text-gray-500">
-          Join 500+ members in our supportive MS community
-        </p>
-      </div>
     </div>
   );
 };
