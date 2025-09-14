@@ -120,8 +120,8 @@ const ExtendedProfileOverlay = ({
   if (!isOpen) return null;
 
   const overlay = (
-    <div className="fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-      <Card className="w-full max-w-md max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col z-[101]">
+    <div className="fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm flex items-start justify-center pt-8 pb-20 px-4" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <Card className="w-full max-w-md max-h-[75vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col z-[101]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 pt-8 border-b border-gray-200 flex-shrink-0">
           <span className="font-semibold text-gray-900">Profile Details</span>
@@ -345,7 +345,7 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="relative z-[102] p-4 border-t border-gray-200 flex-shrink-0 bg-white shadow-lg">
+        <div className="relative z-[102] p-4 mb-2 border-t border-gray-200 flex-shrink-0 bg-white shadow-lg">
           <div className="flex gap-3">
             <button
               onClick={handlePass}
