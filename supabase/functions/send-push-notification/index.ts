@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { SignJWT, importPKCS8 } from 'https://esm.sh/jose@5.2.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -73,59 +74,67 @@ const handler = async (req: Request): Promise<Response> => {
     // For iOS notifications, we need to send to Apple Push Notification service
     // For Android, we'd use Firebase Cloud Messaging
     
-    // Integrate with APNs/FCM (via OneSignal) using server key
+    // Env for OneSignal (optional)
     const oneSignalKey = Deno.env.get('ONESIGNAL_REST_API_KEY');
     const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID');
+    // Env for direct APNs
+    const apnKeyPem = Deno.env.get('APN_KEY'); // .p8 private key contents (PEM)
+    const apnKeyId = Deno.env.get('APN_KEY_ID');
+    const apnTeamId = Deno.env.get('APN_TEAM_ID');
+    const apnBundleId = Deno.env.get('APN_BUNDLE_ID');
+    const apnEnv = (Deno.env.get('APN_ENV') || 'prod').toLowerCase(); // 'prod' or 'sandbox'
+
+    const createApnsJwt = async () => {
+      if (!apnKeyPem || !apnKeyId || !apnTeamId) return null;
+      const alg = 'ES256';
+      const privateKey = await importPKCS8(apnKeyPem, alg);
+      const jwt = await new SignJWT({})
+        .setProtectedHeader({ alg, kid: apnKeyId })
+        .setIssuer(apnTeamId)
+        .setIssuedAt()
+        .setAudience('https://api.push.apple.com')
+        .sign(privateKey);
+      return jwt;
+    };
     const notifications = tokens.map(async (tokenData) => {
       try {
         console.log(`📲 Sending notification to ${tokenData.platform} device:`, tokenData.token);
         
-        // Create notification payload
-        const notificationPayload = {
-          to: tokenData.token,
-          title,
-          body,
-          data: {
-            ...data,
-            type,
-            click_action: 'FLUTTER_NOTIFICATION_CLICK'
-          },
-          // iOS specific settings
-          ...(tokenData.platform === 'ios' && {
-            apns: {
-              headers: {
-                'apns-priority': '10',
-                'apns-push-type': 'alert'
-              },
-              payload: {
-                aps: {
-                  alert: {
-                    title,
-                    body
-                  },
-                  badge: 1,
-                  sound: 'default',
-                  'content-available': 1
-                }
-              }
-            }
-          }),
-          // Android specific settings
-          ...(tokenData.platform === 'android' && {
-            android: {
-              priority: 'high',
-              notification: {
-                title,
-                body,
-                icon: 'ic_notification',
-                color: '#2563eb',
+        // Prefer direct APNs for iOS if configured
+        if (tokenData.platform === 'ios' && apnBundleId) {
+          const jwt = await createApnsJwt();
+          if (!jwt) {
+            console.warn('APNs env not fully configured, falling back');
+          } else {
+            const apnsHost = apnEnv === 'sandbox' ? 'https://api.sandbox.push.apple.com' : 'https://api.push.apple.com';
+            const url = `${apnsHost}/3/device/${tokenData.token}`;
+            const apnsBody = {
+              aps: {
+                alert: { title, body },
                 sound: 'default',
-                click_action: 'FLUTTER_NOTIFICATION_CLICK'
-              }
+                badge: 1
+              },
+              ...(data ? { data: { ...data, type } } : { type })
+            };
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'apns-topic': apnBundleId,
+                'apns-push-type': 'alert',
+                'authorization': `bearer ${jwt}`,
+                'content-type': 'application/json'
+              },
+              body: JSON.stringify(apnsBody)
+            });
+            if (!res.ok) {
+              const text = await res.text();
+              throw new Error(`APNs error: ${res.status} ${text}`);
             }
-          })
-        };
+            return { success: true, provider: 'apns' };
+          }
+        }
 
+        // Otherwise use OneSignal if configured (maps user_id via external ids)
         if (oneSignalKey && oneSignalAppId) {
           const osBody = {
             app_id: oneSignalAppId,
@@ -151,7 +160,7 @@ const handler = async (req: Request): Promise<Response> => {
           return { success: true, provider: 'onesignal', id: json.id };
         } else {
           // Fallback: log only
-          console.log('Notification payload (log-only):', JSON.stringify(notificationPayload, null, 2));
+          console.log('Log-only notification:', { title, body, type, data, token: tokenData.token, platform: tokenData.platform });
           return { success: true, token: tokenData.token, platform: tokenData.platform };
         }
       } catch (error) {
