@@ -87,7 +87,7 @@ const MobileProfileCard = ({
               <AvatarImage 
                 src={profile.avatar_url || ''}
                 alt={`${profile.first_name}'s profile`}
-                className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100"
+                className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl"
               />
               <AvatarFallback className="w-full h-full text-2xl rounded-xl bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
                 {profile.first_name[0]}
@@ -102,9 +102,9 @@ const MobileProfileCard = ({
         </div>
 
         {/* Profile Info Section */}
-        <CardContent className="flex-1 p-4 pb-4 flex flex-col justify-between min-h-0"> {/* Reduced padding from p-5 pb-6 to p-4 pb-4 */}
+        <CardContent className="flex-1 p-4 pb-2 flex flex-col min-h-0">
           {/* Basic Info */}
-          <div className="space-y-3"> {/* Reduced spacing from space-y-4 to space-y-3 */}
+          <div className="space-y-3 flex-1">
             {/* Name and Age */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 leading-tight">
@@ -129,28 +129,48 @@ const MobileProfileCard = ({
                )}
             </div>
 
-            {/* Interests removed from main card - moved to extended profile only */}
+            {/* Interests - Condensed version for main card */}
+            {profile.hobbies && profile.hobbies.length > 0 && (
+              <div>
+                <div className="flex flex-wrap gap-1">
+                  {profile.hobbies.slice(0, 3).map((hobby, index) => (
+                    <Badge 
+                      key={index} 
+                      variant="secondary" 
+                      className="text-xs px-2 py-1 bg-purple-100 text-purple-800 border-purple-200"
+                    >
+                      {hobby}
+                    </Badge>
+                  ))}
+                  {profile.hobbies.length > 3 && (
+                    <Badge variant="secondary" className="text-xs px-2 py-1 bg-gray-100 text-gray-600">
+                      +{profile.hobbies.length - 3}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
 
-            {/* Last seen instead of "member" */}
+            {/* Last seen */}
             <div className="text-sm text-gray-500">
               {getLastSeenText(profile.user_id, profile.last_seen)}
             </div>
+          </div>
 
-            {/* Show More Button - Always show since About Me moved to extended */}
-            <div className="pt-2">
-              <button
-                data-no-swipe="true"
-                onClick={() => onShowExtended?.()}
-                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold py-2.5 rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg text-sm"
-              >
-                Show More
-              </button>
-            </div>
+          {/* Show More Button - Right above action buttons */}
+          <div className="pt-3 pb-2">
+            <button
+              data-no-swipe="true"
+              onClick={() => onShowExtended?.()}
+              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold py-2.5 rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg text-sm"
+            >
+              Show More
+            </button>
           </div>
         </CardContent>
 
-        {/* Action Buttons */}
-        <div className="flex-shrink-0 px-4 pb-4"> {/* Reduced padding from px-5 pb-5 to px-4 pb-4 */}
+        {/* Action Buttons - Directly under Show More */}
+        <div className="flex-shrink-0 px-4 pb-4">
           <div className="flex gap-3">
               <button
                 data-no-swipe="true"

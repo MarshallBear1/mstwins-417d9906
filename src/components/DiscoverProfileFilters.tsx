@@ -80,52 +80,58 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
               }
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl">
+          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-50">
             {/* MS Subtypes */}
             {msSubtypes.length > 0 && (
               <>
-                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">MS Type</div>
-                {msSubtypes.map(subtype => (
-                  <DropdownMenuItem
-                    key={subtype}
-                    onClick={() => applyFilter('ms_subtype', subtype)}
-                    className="cursor-pointer"
-                  >
-                    {subtype?.toUpperCase()}
-                  </DropdownMenuItem>
-                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider sticky top-0 bg-white border-b">MS Type</div>
+                <div className="max-h-32 overflow-y-auto">
+                  {msSubtypes.map(subtype => (
+                    <DropdownMenuItem
+                      key={subtype}
+                      onClick={() => applyFilter('ms_subtype', subtype)}
+                      className="cursor-pointer"
+                    >
+                      {subtype?.toUpperCase()}
+                    </DropdownMenuItem>
+                  ))}
+                </div>
               </>
             )}
 
             {/* Genders */}
             {genders.length > 0 && (
               <>
-                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider border-t">Gender</div>
-                {genders.map(gender => (
-                  <DropdownMenuItem
-                    key={gender}
-                    onClick={() => applyFilter('gender', gender)}
-                    className="cursor-pointer"
-                  >
-                    {gender?.charAt(0).toUpperCase() + gender?.slice(1)}
-                  </DropdownMenuItem>
-                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider border-t sticky top-0 bg-white">Gender</div>
+                <div className="max-h-32 overflow-y-auto">
+                  {genders.map(gender => (
+                    <DropdownMenuItem
+                      key={gender}
+                      onClick={() => applyFilter('gender', gender)}
+                      className="cursor-pointer"
+                    >
+                      {gender?.charAt(0).toUpperCase() + gender?.slice(1)}
+                    </DropdownMenuItem>
+                  ))}
+                </div>
               </>
             )}
 
             {/* Interests */}
             {interests.length > 0 && (
               <>
-                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider border-t">Interests</div>
-                {interests.slice(0, 10).map(interest => (
-                  <DropdownMenuItem
-                    key={interest}
-                    onClick={() => applyFilter('interest', interest)}
-                    className="cursor-pointer"
-                  >
-                    {interest}
-                  </DropdownMenuItem>
-                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider border-t sticky top-0 bg-white">Interests</div>
+                <div className="max-h-40 overflow-y-auto">
+                  {interests.map(interest => (
+                    <DropdownMenuItem
+                      key={interest}
+                      onClick={() => applyFilter('interest', interest)}
+                      className="cursor-pointer"
+                    >
+                      {interest}
+                    </DropdownMenuItem>
+                  ))}
+                </div>
               </>
             )}
           </DropdownMenuContent>

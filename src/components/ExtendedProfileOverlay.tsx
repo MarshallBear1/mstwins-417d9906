@@ -81,13 +81,13 @@ const ExtendedProfileOverlay = ({
                 onClick={() => onImageClick?.(0)}
                 className="relative block"
               >
-                <Avatar className="w-20 h-20">
+                <Avatar className="w-20 h-20 rounded-xl">
                   <AvatarImage 
                     src={profile.avatar_url || ''} 
                     alt={`${profile.first_name}'s profile`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain rounded-xl bg-gradient-to-br from-purple-100 to-blue-100"
                   />
-                  <AvatarFallback className="w-20 h-20 text-2xl bg-gradient-to-br from-purple-400 to-blue-500 text-white">
+                  <AvatarFallback className="w-20 h-20 text-2xl rounded-xl bg-gradient-to-br from-purple-400 to-blue-500 text-white">
                     {profile.first_name[0]}
                   </AvatarFallback>
                 </Avatar>
@@ -139,7 +139,7 @@ const ExtendedProfileOverlay = ({
                   <span>Loading full profile...</span>
                 </div>
               ) : (
-                showAllAbout ? (fullAbout || profile.about_me_preview || "No information provided yet.") : (profile.about_me_preview || "No information provided yet.")
+                showAllAbout ? (fullAbout || profile.about_me_preview || "No information available.") : (profile.about_me_preview || "No information available.")
               )}
             </div>
             {(profile.about_me_preview && profile.about_me_preview.length > 100) && (
