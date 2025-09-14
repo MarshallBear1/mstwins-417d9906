@@ -389,7 +389,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
 
           {/* Messages Area */}
           <ScrollArea className="flex-1 p-4" style={{
-            paddingBottom: isMobile ? `max(6rem, ${safeAreaInsets.bottom + 120}px)` : '1rem'
+            paddingBottom: isMobile ? `max(4rem, ${safeAreaInsets.bottom + 80}px)` : '1rem'
           }}>
             <div className="space-y-4">
               {messages.map((message, index) => {
@@ -466,15 +466,15 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             </div>
           </ScrollArea>
 
-          {/* Message Input - Fixed above mobile nav with high z-index */}
+          {/* Message Input - Fixed above mobile nav */}
           <div 
             className={`bg-white border-t border-gray-200 p-4 ${
               isMobile ? 'fixed left-0 right-0' : 'relative'
             }`}
             style={{
               paddingBottom: isMobile ? `max(1rem, ${safeAreaInsets.bottom + 16}px)` : '1rem',
-              bottom: isMobile ? Math.max(safeAreaInsets.bottom + 64, 64) : undefined,
-              zIndex: isMobile ? 1000001 : undefined,
+              bottom: isMobile ? Math.max(safeAreaInsets.bottom + 4, 68) : undefined,
+              zIndex: isMobile ? 50 : undefined,
               boxShadow: isMobile ? '0 -6px 24px rgba(0,0,0,0.08)' : undefined,
               backdropFilter: isMobile ? 'saturate(180%) blur(8px)' : undefined
             }}
