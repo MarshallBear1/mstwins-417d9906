@@ -96,7 +96,7 @@ const ExtendedProfileOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 2rem)', maxHeight: '800px' }}>
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
@@ -172,7 +172,7 @@ const ExtendedProfileOverlay = ({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <CardContent className="p-4 space-y-4 pb-24">
+          <CardContent className="p-4 space-y-4">
           {/* About Me - Always show full content */}
           {(profile.about_me_preview && profile.about_me_preview.length > 0) && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
