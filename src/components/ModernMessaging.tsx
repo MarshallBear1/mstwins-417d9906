@@ -598,10 +598,10 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                                 
                                 <div className="flex items-center justify-between">
                                   <p className="text-sm text-gray-600 truncate flex-1 mr-2">
-                                    {match.last_message.sender_id === user?.id && (
+                                    {match.last_message?.sender_id === user?.id && (
                                       <span className="text-gray-500 font-medium">You: </span>
                                     )}
-                                    {match.last_message.content}
+                                    {match.last_message?.content || "No messages yet"}
                                   </p>
                                   {match.unread_count && match.unread_count > 0 && (
                                     <Badge className="bg-blue-500 text-white text-xs min-w-[22px] h-6 rounded-full flex items-center justify-center font-semibold shadow-sm">
