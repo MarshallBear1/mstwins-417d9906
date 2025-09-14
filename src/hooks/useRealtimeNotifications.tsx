@@ -85,9 +85,9 @@ export const useRealtimeNotifications = () => {
           // Increment unread count
           setUnreadCount(prev => prev + 1);
           
-          // Throttle toast notifications to 1 per 5 seconds
+          // Throttle toast notifications to 1 per 10 seconds
           const nowTs = Date.now();
-          if (nowTs - lastToastAt > 5000) {
+          if (nowTs - lastToastAt > 10000) {
             toast({
               title: newNotification.title,
               description: newNotification.message,
@@ -111,7 +111,7 @@ export const useRealtimeNotifications = () => {
           if (isNative && localNotifications.isEnabled) {
             // Prevent duplicates by using a stable signature without Date.now()
             const signature = `${newNotification.type}_${newNotification.from_user_id}_${newNotification.message}`.slice(0, 200);
-            if (lastNotificationSignature === signature && nowTs - lastToastAt < 5000) {
+            if (lastNotificationSignature === signature && nowTs - lastToastAt < 30000) {
               console.log('Skipping duplicate native notification (signature throttle)');
               return;
             }

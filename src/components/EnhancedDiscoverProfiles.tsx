@@ -297,7 +297,7 @@ const EnhancedDiscoverProfiles = React.memo(() => {
         paddingBottom: isMobile ? '8rem' : '8rem'
       }}
     >
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[70]">
         <DiscoverProfileFilters 
           profiles={profiles}
           onFilterChange={handleFilterChange}

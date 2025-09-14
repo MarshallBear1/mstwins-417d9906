@@ -21,29 +21,29 @@ export const useReminderNotifications = () => {
   const defaultReminders: ReminderSchedule[] = [
     {
       id: 'welcome-back-1',
-      title: '👋 Missing you already!',
-      message: 'Come back and discover new profiles waiting for you.',
+      title: '👋 We miss you!',
+      message: 'Come back and check your connections when you have a minute.',
       delayHours: 24,
       enabled: true
     },
     {
       id: 'welcome-back-2',
-      title: '💫 New matches could be waiting!',
-      message: 'Check your profile and see who liked you today.',
+      title: '🔔 Quick check-in',
+      message: 'New messages and connections may be waiting for you.',
       delayHours: 48,
       enabled: true
     },
     {
       id: 'welcome-back-3',
-      title: '🌟 Don\'t miss out on love!',
-      message: 'Your perfect match might be just a swipe away.',
+      title: '🌟 Stay connected',
+      message: 'See what\'s new in your community when you\'re ready.',
       delayHours: 72,
       enabled: true
     },
     {
       id: 'weekly-reminder',
-      title: '💝 Weekly dating check-in',
-      message: 'Take a moment to explore new connections this week.',
+      title: '💬 Weekly community check-in',
+      message: 'Drop by to explore new connections this week.',
       delayHours: 168, // 7 days
       enabled: true
     }

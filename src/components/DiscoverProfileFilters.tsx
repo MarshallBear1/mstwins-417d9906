@@ -92,7 +92,11 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
               }
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-0">
+<<<<<<< HEAD
+          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-[75]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
+=======
+          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-[75]" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
+>>>>>>> b5a4abf (Fix: prevent white overlay blocking actions; set z-index layering (overlay above filters); keep filters open; throttle toasts and native notifications more; soften reminder copy; circular avatars & fixed width already applied)
             {/* MS Subtypes */}
             {msSubtypes.length > 0 && (
               <>
