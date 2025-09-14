@@ -53,10 +53,9 @@ const DiscoverProfileCard = ({ profile, isFlipped, onFlipChange, onLike, onPass 
         onImageClick={openImageViewer}
         isUserOnline={isUserOnline}
         getLastSeenText={getLastSeenText}
-        isFlipped={isFlipped}
-        onFlipChange={onFlipChange}
         onLike={onLike}
         onPass={onPass}
+        onShowExtended={() => {}} // Extended view handled by SwipeableProfileCard now
       />
 
       <ProfileImageViewer

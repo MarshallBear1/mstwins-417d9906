@@ -306,7 +306,6 @@ const EnhancedDiscoverProfiles = memo(() => {
               onLike={handleLikeProfile}
               onPass={passProfile}
               onImageClick={handleImageClick}
-              onFlipChange={setIsCardFlipped}
               className="mb-4"
             />
             

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { HeartHandshake, X, RotateCcw, Heart } from 'lucide-react';
+import { Heart, X } from 'lucide-react';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 import { useHaptics } from '@/hooks/useHaptics';
 import { cn } from '@/lib/utils';
 import MobileProfileCard from '@/components/ui/mobile-profile-card';
+import ExtendedProfileOverlay from '@/components/ExtendedProfileOverlay';
 import { useRealtimePresence } from '@/hooks/useRealtimePresence';
 
 interface Profile {
@@ -29,7 +30,6 @@ interface SwipeableProfileCardProps {
   onLike: (userId: string) => void;
   onPass: (userId: string) => void;
   onImageClick?: (imageIndex: number) => void;
-  onFlipChange?: (flipped: boolean) => void;
   className?: string;
 }
 
@@ -38,33 +38,11 @@ const SwipeableProfileCard = ({
   onLike, 
   onPass, 
   onImageClick,
-  onFlipChange,
   className 
 }: SwipeableProfileCardProps) => {
   const { isUserOnline, getLastSeenText } = useRealtimePresence();
   const { like, errorFeedback } = useHaptics();
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  // Prevent background/page scroll when extended profile (back) is open
-  React.useEffect(() => {
-    if (isFlipped) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    };
-  }, [isFlipped]);
-  
-  const handleFlipChange = (flipped: boolean) => {
-    console.log('🔄 SwipeableProfileCard flip change:', flipped);
-    setIsFlipped(flipped);
-    onFlipChange?.(flipped);
-  };
+  const [showExtended, setShowExtended] = useState(false);
 
   const handleLike = () => {
     like();
@@ -77,10 +55,10 @@ const SwipeableProfileCard = ({
   };
 
   const { swipeHandlers, swipeProgress, isTransitioning } = useSwipeGestures({
-    onSwipeRight: isFlipped ? undefined : handleLike,
-    onSwipeLeft: isFlipped ? undefined : handlePass,
+    onSwipeRight: handleLike,
+    onSwipeLeft: handlePass,
     threshold: 100,
-    preventDefaultTouchmove: !isFlipped,
+    preventDefaultTouchmove: !showExtended,
   });
 
   // Calculate opacity and rotation based on swipe progress
@@ -118,32 +96,11 @@ const SwipeableProfileCard = ({
         </div>
       )}
 
-      {/* Isolation Overlay - Captures all interactions when flipped */}
-      {isFlipped && (
-        <div 
-          className="fixed inset-0 bg-transparent z-[9998]"
-          style={{ pointerEvents: 'auto' }}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
-        />
-      )}
-
       {/* Main Card */}
       <div 
-        className={cn("w-full relative", 
-          !isFlipped && "select-none touch-none", 
-          isFlipped && "select-auto"
-        )}
-        style={{
-          ...(!isFlipped ? getSwipeStyles() : { 
-            position: 'relative', 
-            zIndex: isFlipped ? 9999 : 'auto',
-            pointerEvents: 'auto'
-          }),
-          touchAction: isFlipped ? 'auto' : 'none'
-        }}
-        {...(!isFlipped ? swipeHandlers : {})}
+        className="w-full relative select-none touch-none"
+        style={getSwipeStyles()}
+        {...swipeHandlers}
       >
         <MobileProfileCard
           profile={profile}
@@ -152,12 +109,21 @@ const SwipeableProfileCard = ({
           onPass={handlePass}
           isUserOnline={isUserOnline}
           getLastSeenText={getLastSeenText}
-          isFlipped={isFlipped}
-          onFlipChange={handleFlipChange}
+          onShowExtended={() => setShowExtended(true)}
         />
       </div>
 
-      {/* No external action buttons - handled by MobileProfileCard */}
+      {/* Extended Profile Overlay */}
+      <ExtendedProfileOverlay
+        profile={profile}
+        isOpen={showExtended}
+        onClose={() => setShowExtended(false)}
+        onLike={handleLike}
+        onPass={handlePass}
+        onImageClick={onImageClick}
+        isUserOnline={isUserOnline}
+        getLastSeenText={getLastSeenText}
+      />
     </div>
   );
 };

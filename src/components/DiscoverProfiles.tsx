@@ -77,8 +77,8 @@ const DiscoverProfiles = memo(() => {
   const { vibrate } = useHaptics();
   const { isUserOnline } = useRealtimePresence();
   
-  // Prevent scrolling on discover page when card is not flipped
-  useDiscoverScrollPrevention({ isDiscoverTab: true, isCardFlipped });
+  // Prevent scrolling on discover page
+  useDiscoverScrollPrevention({ isDiscoverTab: true, isCardFlipped: false });
   
   // Swipe gesture state
   const [isDragging, setIsDragging] = useState(false);
