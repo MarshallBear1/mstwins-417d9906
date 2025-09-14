@@ -59,10 +59,10 @@ const ExtendedProfileOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
-      <Card className="w-full max-w-md h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <Card className="w-full max-w-md h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white flex-shrink-0">
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -74,7 +74,7 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Profile Header */}
-        <div className="p-6 border-b border-gray-100 bg-white">
+        <div className="p-4 border-b border-gray-100 bg-white flex-shrink-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <button
@@ -126,7 +126,8 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Scrollable Content */}
-        <CardContent className="flex-1 p-6 space-y-5 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+        <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <CardContent className="p-4 space-y-4">
           {/* About Me - hide if none */}
           {(profile.about_me_preview && profile.about_me_preview.length > 0) && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -180,11 +181,11 @@ const ExtendedProfileOverlay = ({
 
 
           {/* Symptoms */}
-          {(fullSymptoms || profile.symptoms) && (fullSymptoms || profile.symptoms)?.length > 0 && (
+          {profile.symptoms && profile.symptoms.length > 0 && (
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
               <div className="text-base font-semibold text-gray-800 mb-3">My Symptoms:</div>
               <div className="flex flex-wrap gap-2">
-                {(showAllSymptoms ? (fullSymptoms || profile.symptoms || []) : (fullSymptoms || profile.symptoms || []).slice(0, 6)).map((symptom, index) => {
+                {(showAllSymptoms ? profile.symptoms : profile.symptoms.slice(0, 6)).map((symptom, index) => {
                   const colors = [
                     'bg-orange-400/80 border-orange-300/50 text-white',
                     'bg-red-400/80 border-red-300/50 text-white', 
@@ -203,13 +204,13 @@ const ExtendedProfileOverlay = ({
                     </Badge>
                   );
                 })}
-                {(fullSymptoms || profile.symptoms || []).length > 6 && (
+                {profile.symptoms.length > 6 && (
                   <button
                     onClick={() => setShowAllSymptoms(!showAllSymptoms)}
                     className="text-sm text-orange-600 hover:text-orange-700 font-semibold transition-colors"
                   >
                     <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-orange-100 cursor-pointer border-orange-400 text-orange-600">
-                      {showAllSymptoms ? 'Show Less' : `+${(fullSymptoms || profile.symptoms || []).length - 6} more`}
+                      {showAllSymptoms ? 'Show Less' : `+${profile.symptoms.length - 6} more`}
                     </Badge>
                   </button>
                 )}
@@ -218,11 +219,11 @@ const ExtendedProfileOverlay = ({
           )}
 
           {/* Medications */}
-          {(fullMedications || profile.medications) && (fullMedications || profile.medications)?.length > 0 && (
+          {profile.medications && profile.medications.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="text-base font-semibold text-gray-800 mb-3">Current Medications:</div>
               <div className="flex flex-wrap gap-2">
-                {(showAllMedications ? (fullMedications || profile.medications || []) : (fullMedications || profile.medications || []).slice(0, 3)).map((medication, index) => {
+                {(showAllMedications ? profile.medications : profile.medications.slice(0, 3)).map((medication, index) => {
                   const colors = [
                     'bg-blue-400/80 border-blue-300/50 text-white',
                     'bg-indigo-400/80 border-indigo-300/50 text-white', 
@@ -241,13 +242,13 @@ const ExtendedProfileOverlay = ({
                   );
                 })}
               </div>
-              {(fullMedications || profile.medications || []).length > 3 && (
+              {profile.medications.length > 3 && (
                 <button
                   onClick={() => setShowAllMedications(!showAllMedications)}
                   className="text-sm text-blue-600 hover:text-blue-700 mt-2 font-semibold transition-colors"
                 >
                   <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-100 cursor-pointer border-blue-400 text-blue-600">
-                    {showAllMedications ? 'Show Less' : `+${(fullMedications || profile.medications || []).length - 3} more`}
+                    {showAllMedications ? 'Show Less' : `+${profile.medications.length - 3} more`}
                   </Badge>
                 </button>
               )}
@@ -320,11 +321,12 @@ const ExtendedProfileOverlay = ({
                 })}
               </div>
             </div>
-          )}
-        </CardContent>
+           )}
+          </CardContent>
+        </div>
 
         {/* Action Buttons */}
-        <div className="p-4 border-t border-gray-200 bg-white">
+        <div className="p-3 border-t border-gray-200 bg-white flex-shrink-0">
           <div className="flex gap-3">
             <button
               onClick={onPass}

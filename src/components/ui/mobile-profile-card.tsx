@@ -173,8 +173,8 @@ const MobileProfileCard = ({
             </div>
           </div>
 
-          {/* Show More Button - Directly below last seen with minimal spacing */}
-          <div>
+          {/* All buttons in one container with minimal spacing */}
+          <div className="space-y-2">
             <button
               data-no-swipe="true"
               onClick={() => onShowExtended?.()}
@@ -182,12 +182,8 @@ const MobileProfileCard = ({
             >
               Show More
             </button>
-          </div>
-        </CardContent>
-
-        {/* Action Buttons - Directly under Show More with minimal spacing */}
-        <div className="flex-shrink-0 px-4 pb-4 pt-1">
-          <div className="flex gap-3">
+            
+            <div className="flex gap-3">
               <button
                 data-no-swipe="true"
                 onClick={onPass}
@@ -204,8 +200,9 @@ const MobileProfileCard = ({
                 <Heart className="w-5 h-5" />
                 Connect
               </button>
+            </div>
           </div>
-        </div>
+        </CardContent>
       </div>
     </Card>
   );
