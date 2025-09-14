@@ -87,7 +87,7 @@ const EnhancedMatchesPage = ({
             user_id: likedProfile.user_id,
             type: 'like',
             title: 'Someone liked your profile',
-            body: `${profile?.first_name || 'Someone'} liked you`,
+            body: `${user.user_metadata?.first_name || 'Someone'} liked you`,
             data: { source: 'likes' }
           }
         });
