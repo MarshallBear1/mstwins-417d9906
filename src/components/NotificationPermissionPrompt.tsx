@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/hooks/useAuth';
 import { useIsNativeApp } from '@/hooks/useIsNativeApp';
 import { useToast } from '@/hooks/use-toast';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 export const NotificationPermissionPrompt = () => {
   const { user } = useAuth();
@@ -12,27 +13,43 @@ export const NotificationPermissionPrompt = () => {
   const { toast } = useToast();
   const [isVisible, setIsVisible] = useState(false);
   const [hasAsked, setHasAsked] = useState(false);
+  const [interactionReady, setInteractionReady] = useState(false);
+  const { requestAllPermissions } = useRealtimeNotifications();
+
+  // Require a user interaction before showing the prompt (prevents auto-pop)
+  useEffect(() => {
+    const onFirstInteraction = () => {
+      setInteractionReady(true);
+      window.removeEventListener('click', onFirstInteraction);
+      window.removeEventListener('touchstart', onFirstInteraction);
+    };
+    window.addEventListener('click', onFirstInteraction, { once: true });
+    window.addEventListener('touchstart', onFirstInteraction, { once: true });
+    return () => {
+      window.removeEventListener('click', onFirstInteraction);
+      window.removeEventListener('touchstart', onFirstInteraction);
+    };
+  }, []);
 
   useEffect(() => {
-    // Show prompt after user is logged in and hasn't been asked before
+    // Show prompt after first interaction, only on native app, and only once
     const hasBeenAsked = localStorage.getItem('notification-permission-asked');
-    
-    if (user && !hasBeenAsked && !hasAsked) {
-      // Small delay to let user settle into the app
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-      }, 3000);
-      
+    if (user && isNativeApp && interactionReady && !hasBeenAsked && !hasAsked) {
+      const timer = setTimeout(() => setIsVisible(true), 500);
       return () => clearTimeout(timer);
     }
-  }, [user, hasAsked]);
+  }, [user, hasAsked, isNativeApp, interactionReady]);
 
   const handleEnableNotifications = async () => {
     try {
-      toast({
-        title: "🔔 Notifications Enabled",
-        description: "You're all set! The app will handle notifications automatically.",
-      });
+      const granted = await requestAllPermissions();
+      if (granted) {
+        localStorage.setItem('notifications_opt_in', 'true');
+        toast({ title: "🔔 Notifications Enabled", description: "You're all set!" });
+      } else {
+        localStorage.setItem('notifications_opt_in', 'false');
+        toast({ title: "Notifications Disabled", description: "You can enable them later in settings." });
+      }
     } catch (error) {
       console.error('Error with notifications:', error);
       toast({
@@ -57,7 +74,7 @@ export const NotificationPermissionPrompt = () => {
     });
   };
 
-  if (!isVisible || !user) {
+  if (!isVisible || !user || !isNativeApp) {
     return null;
   }
 

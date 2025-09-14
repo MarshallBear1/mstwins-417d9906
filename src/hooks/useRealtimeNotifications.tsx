@@ -29,6 +29,7 @@ export const useRealtimeNotifications = () => {
   const [isNative, setIsNative] = useState(false);
   const [lastToastAt, setLastToastAt] = useState<number>(0);
   const [lastNotificationSignature, setLastNotificationSignature] = useState<string>("");
+  const notificationsOptIn = (typeof window !== 'undefined') ? localStorage.getItem('notifications_opt_in') !== 'false' : true;
 
   // Check platform on mount
   useEffect(() => {
@@ -108,7 +109,7 @@ export const useRealtimeNotifications = () => {
 
           // Only send local notifications, not both local and push
           // Push notifications are handled by the backend
-          if (isNative && localNotifications.isEnabled) {
+          if (isNative && localNotifications.isEnabled && notificationsOptIn) {
             // Prevent duplicates by using a stable signature without Date.now()
             const signature = `${newNotification.type}_${newNotification.from_user_id}_${newNotification.message}`.slice(0, 200);
             if (lastNotificationSignature === signature && nowTs - lastToastAt < 30000) {

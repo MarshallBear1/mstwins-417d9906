@@ -17,7 +17,10 @@ export const useReminderNotifications = () => {
   const [scheduledReminders, setScheduledReminders] = useState<Map<string, number>>(new Map());
   const [lastScheduledAt, setLastScheduledAt] = useState<number>(0);
 
-  // Default reminder schedules
+  // Respect user opt-in for reminders
+  const notificationsOptIn = localStorage.getItem('notifications_opt_in') !== 'false';
+
+  // Default reminder schedules (gentle copy)
   const defaultReminders: ReminderSchedule[] = [
     {
       id: 'welcome-back-1',
@@ -84,7 +87,7 @@ export const useReminderNotifications = () => {
 
   // Schedule all enabled reminders
   const scheduleAllReminders = useCallback(async () => {
-    if (!isEnabled || !user) return;
+    if (!isEnabled || !user || !notificationsOptIn) return;
 
     console.log('🔄 Scheduling all reminder notifications...');
     
@@ -108,7 +111,7 @@ export const useReminderNotifications = () => {
     setLastScheduledAt(now);
     
     return successCount;
-  }, [isEnabled, user, scheduleReminder]);
+  }, [isEnabled, user, scheduleReminder, notificationsOptIn]);
 
   // Cancel a specific reminder
   const cancelReminder = useCallback(async (reminderId: string) => {
@@ -141,7 +144,7 @@ export const useReminderNotifications = () => {
 
   // Schedule reminder when user becomes inactive (e.g., app goes to background)
   const scheduleInactivityReminder = useCallback(async () => {
-    if (!isEnabled || !user) return;
+    if (!isEnabled || !user || !notificationsOptIn) return;
 
     // Throttle inactivity reminder to at most once every 6 hours
     const key = `inactivity_last_scheduled_${user.id}`;
@@ -168,7 +171,7 @@ export const useReminderNotifications = () => {
 
   // Schedule reminder when user hasn't been active for a while
   const scheduleLongInactivityReminder = useCallback(async (daysInactive: number) => {
-    if (!isEnabled || !user) return;
+    if (!isEnabled || !user || !notificationsOptIn) return;
 
     let title: string;
     let message: string;
@@ -199,7 +202,7 @@ export const useReminderNotifications = () => {
 
   // Initialize reminders when user logs in
   useEffect(() => {
-    if (user && isEnabled) {
+    if (user && isEnabled && notificationsOptIn) {
       // Schedule initial reminders after a short delay
       const timer = setTimeout(() => {
         scheduleAllReminders();
