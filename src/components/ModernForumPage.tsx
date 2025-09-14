@@ -378,7 +378,7 @@ const ModernForumPage = () => {
           <Card className="bg-white rounded-2xl shadow-sm border-0 mb-4">
             <CardHeader className="pb-3">
               <div className="flex items-start gap-3">
-                <Avatar className="w-12 h-12">
+                <Avatar className="w-12 h-12 rounded-full">
                   <AvatarImage src={selectedPost.author.avatar_url || undefined} />
                   <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
                     {selectedPost.author.first_name[0]}{selectedPost.author.last_name[0]}
@@ -429,7 +429,7 @@ const ModernForumPage = () => {
               <Card key={comment.id} className="bg-white rounded-xl shadow-sm border-0">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <Avatar className="w-8 h-8">
+                    <Avatar className="w-8 h-8 rounded-full">
                       <AvatarImage src={comment.author.avatar_url || undefined} />
                       <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-xs">
                         {comment.author.first_name[0]}{comment.author.last_name[0]}
@@ -648,7 +648,7 @@ const ModernForumPage = () => {
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <Avatar className="w-10 h-10 flex-shrink-0">
+                          <Avatar className="w-10 h-10 flex-shrink-0 rounded-full">
                             <AvatarImage src={post.author.avatar_url || undefined} />
                             <AvatarFallback className="text-sm bg-gradient-to-br from-blue-400 to-purple-500 text-white">
                               {post.author.first_name[0]}{post.author.last_name[0]}

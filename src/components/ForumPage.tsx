@@ -685,7 +685,10 @@ const ForumPage = () => {
       if (error) throw error;
 
       setSelectedProfile(data);
-      setViewMode('profile'); // Use card-based profile view
+      // Open the unified ExtendedProfileOverlay (same as Discover Show More)
+      document.dispatchEvent(new CustomEvent('extended-profile-open'));
+      setShowProfileView(true);
+      setViewMode('list');
     } catch (error) {
       console.error('Error loading profile:', error);
       toast({
@@ -1075,7 +1078,7 @@ const ForumPage = () => {
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <Avatar 
-                            className="w-10 h-10 cursor-pointer" 
+                            className="w-10 h-10 cursor-pointer rounded-full" 
                             onClick={(e) => {
                               e.stopPropagation();
                               viewProfile(post.author_id);
@@ -1318,7 +1321,7 @@ const ForumPage = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar 
-                      className="w-10 h-10 cursor-pointer" 
+                      className="w-10 h-10 cursor-pointer rounded-full" 
                       onClick={() => viewProfile(selectedPost.author_id)}
                     >
                       <AvatarImage src={selectedPost.author.avatar_url || undefined} />
@@ -1476,8 +1479,13 @@ const ForumPage = () => {
             last_seen: selectedProfile.last_seen
           }}
           isOpen={showProfileView}
-          onClose={() => setShowProfileView(false)}
-          showActions={false}
+          onClose={() => {
+            setShowProfileView(false);
+            document.dispatchEvent(new CustomEvent('extended-profile-close'));
+          }}
+          onLike={() => likeUserProfile(selectedProfile.user_id)}
+          onPass={() => setShowProfileView(false)}
+          showActions={true}
         />
       )}
       
