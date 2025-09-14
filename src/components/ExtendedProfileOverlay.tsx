@@ -56,6 +56,33 @@ const ExtendedProfileOverlay = ({
 
   // Remove body scroll prevention to allow internal scrolling
 
+  // Load full data on mount
+  useEffect(() => {
+    const loadFullData = async () => {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('about_me, symptoms, medications')
+          .eq('user_id', profile.user_id)
+          .single();
+        
+        console.log('Extended profile data loaded:', data); // Debug log
+        
+        if (data) {
+          if (data.about_me) setFullAbout(data.about_me);
+          if (data.symptoms) setFullSymptoms(data.symptoms);
+          if (data.medications) setFullMedications(data.medications);
+        }
+      } catch (error) {
+        console.error('Error loading full profile data:', error);
+      }
+    };
+
+    if (isOpen) {
+      loadFullData();
+    }
+  }, [isOpen, profile.user_id]);
+
   if (!isOpen) return null;
 
   return (
@@ -128,64 +155,22 @@ const ExtendedProfileOverlay = ({
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
           <CardContent className="p-4 space-y-4">
-          {/* About Me - hide if none */}
+          {/* About Me - Always show full content */}
           {(profile.about_me_preview && profile.about_me_preview.length > 0) && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
-              <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
-                {isLoadingAbout ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b border-green-600" />
-                    <span>Loading full profile...</span>
-                  </div>
-                ) : (
-                  showAllAbout ? (fullAbout || profile.about_me_preview) : (profile.about_me_preview)
-                )}
+              <div className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">
+                {fullAbout || profile.about_me_preview}
               </div>
-              {(profile.about_me_preview && profile.about_me_preview.length > 100) && (
-                <button
-                  onClick={async () => {
-                    if (!showAllAbout && !fullAbout && !isLoadingAbout) {
-                      setIsLoadingAbout(true);
-                      try {
-                        const { data } = await supabase
-                          .from('profiles')
-                          .select('about_me')
-                          .eq('user_id', profile.user_id)
-                          .single();
-                        if (data?.about_me) {
-                          setFullAbout(data.about_me);
-                        }
-                      } catch (error) {
-                        console.error('Error loading full about me:', error);
-                      } finally {
-                        setIsLoadingAbout(false);
-                      }
-                    }
-                    setShowAllAbout(!showAllAbout);
-                  }}
-                  className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200 flex items-center gap-1"
-                >
-                  {isLoadingAbout ? (
-                    <>
-                      <div className="animate-spin rounded-full h-3 w-3 border-b border-green-600" />
-                      Loading...
-                    </>
-                  ) : (
-                    showAllAbout ? 'Show Less' : 'Read More'
-                  )}
-                </button>
-              )}
             </div>
           )}
-
 
           {/* Symptoms */}
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="text-base font-semibold text-gray-800 mb-3">My Symptoms:</div>
             {profile.symptoms && profile.symptoms.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {(showAllSymptoms ? profile.symptoms : profile.symptoms.slice(0, 6)).map((symptom, index) => {
+                {(showAllSymptoms ? (fullSymptoms.length > 0 ? fullSymptoms : profile.symptoms) : (fullSymptoms.length > 0 ? fullSymptoms : profile.symptoms).slice(0, 6)).map((symptom, index) => {
                   const colors = [
                     'bg-orange-400/80 border-orange-300/50 text-white',
                     'bg-red-400/80 border-red-300/50 text-white', 
@@ -204,13 +189,13 @@ const ExtendedProfileOverlay = ({
                     </Badge>
                   );
                 })}
-                {profile.symptoms.length > 6 && (
+                {(fullSymptoms.length > 0 ? fullSymptoms : profile.symptoms).length > 6 && (
                   <button
                     onClick={() => setShowAllSymptoms(!showAllSymptoms)}
                     className="text-sm text-orange-600 hover:text-orange-700 font-semibold transition-colors"
                   >
                     <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-orange-100 cursor-pointer border-orange-400 text-orange-600">
-                      {showAllSymptoms ? 'Show Less' : `+${profile.symptoms.length - 6} more`}
+                      {showAllSymptoms ? 'Show Less' : `+${(fullSymptoms.length > 0 ? fullSymptoms : profile.symptoms).length - 6} more`}
                     </Badge>
                   </button>
                 )}
@@ -226,7 +211,7 @@ const ExtendedProfileOverlay = ({
             {profile.medications && profile.medications.length > 0 ? (
               <>
                 <div className="flex flex-wrap gap-2">
-                  {(showAllMedications ? profile.medications : profile.medications.slice(0, 3)).map((medication, index) => {
+                  {(showAllMedications ? (fullMedications.length > 0 ? fullMedications : profile.medications) : (fullMedications.length > 0 ? fullMedications : profile.medications).slice(0, 3)).map((medication, index) => {
                     const colors = [
                       'bg-blue-400/80 border-blue-300/50 text-white',
                       'bg-indigo-400/80 border-indigo-300/50 text-white', 
@@ -245,13 +230,13 @@ const ExtendedProfileOverlay = ({
                     );
                   })}
                 </div>
-                {profile.medications.length > 3 && (
+                {(fullMedications.length > 0 ? fullMedications : profile.medications).length > 3 && (
                   <button
                     onClick={() => setShowAllMedications(!showAllMedications)}
                     className="text-sm text-blue-600 hover:text-blue-700 mt-2 font-semibold transition-colors"
                   >
                     <Badge variant="outline" className="text-sm px-3 py-1.5 hover:bg-blue-100 cursor-pointer border-blue-400 text-blue-600">
-                      {showAllMedications ? 'Show Less' : `+${profile.medications.length - 3} more`}
+                      {showAllMedications ? 'Show Less' : `+${(fullMedications.length > 0 ? fullMedications : profile.medications).length - 3} more`}
                     </Badge>
                   </button>
                 )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, X } from 'lucide-react';
+import { Heart, X, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -115,9 +115,17 @@ const MobileProfileCard = ({
               
               {/* Location and Gender */}
               <div className="flex items-center gap-2 mt-1">
-                {profile.city && <span className="text-gray-600">{profile.city}</span>}
-                {profile.city && profile.gender && <span className="text-gray-400">•</span>}
-                {profile.gender && <span className="text-gray-600 capitalize">{profile.gender}</span>}
+                {profile.city && (
+                  <div className="flex items-center gap-1 text-gray-600">
+                    <MapPin className="w-4 h-4" />
+                    <span>{profile.city}</span>
+                  </div>
+                )}
+                {profile.gender && (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300 capitalize">
+                    {profile.gender}
+                  </Badge>
+                )}
               </div>
 
                {/* MS Subtype */}
@@ -132,6 +140,7 @@ const MobileProfileCard = ({
             {/* Interests - Condensed version for main card */}
             {profile.hobbies && profile.hobbies.length > 0 && (
               <div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Interests:</div>
                 <div className="flex flex-wrap gap-1">
                   {(expandedInterests ? profile.hobbies : profile.hobbies.slice(0, 3)).map((hobby, index) => (
                     <Badge 
@@ -172,8 +181,8 @@ const MobileProfileCard = ({
             </div>
           </div>
 
-          {/* All buttons in one container with minimal spacing */}
-          <div className="space-y-1.5">
+          {/* All buttons in one container with slightly bigger spacing */}
+          <div className="space-y-2">
             <button
               data-no-swipe="true"
               onClick={() => onShowExtended?.()}
