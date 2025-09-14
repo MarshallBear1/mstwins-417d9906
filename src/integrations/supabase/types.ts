@@ -1231,6 +1231,7 @@ export type Database = {
           gender: string
           hobbies: string[]
           id: string
+          last_seen: string
           ms_subtype: string
           selected_prompts: Json
           user_id: string
