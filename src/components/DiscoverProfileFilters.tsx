@@ -31,6 +31,18 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
   const [filterValue, setFilterValue] = useState<string | null>(null);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
 
+  // Close dropdown when clicking outside or when another overlay opens
+  React.useEffect(() => {
+    const handleClickOutside = () => {
+      setIsFilterDropdownOpen(false);
+    };
+    
+    if (isFilterDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [isFilterDropdownOpen]);
+
   // Get unique filter options from profiles
   const msSubtypes = [...new Set(profiles.map(p => p.ms_subtype).filter(Boolean))];
   const genders = [...new Set(profiles.map(p => p.gender).filter(Boolean))];
@@ -80,7 +92,7 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
               }
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-30">
+          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-10">
             {/* MS Subtypes */}
             {msSubtypes.length > 0 && (
               <>
