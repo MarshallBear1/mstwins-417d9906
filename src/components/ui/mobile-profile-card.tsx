@@ -84,13 +84,13 @@ const MobileProfileCard = ({
             className="w-full h-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center overflow-hidden cursor-pointer group"
             data-no-swipe="true"
           >
-            <Avatar className="w-full h-full rounded-xl">
+            <Avatar className="w-full h-full rounded-full">
               <AvatarImage 
                 src={profile.avatar_url || ''}
                 alt={`${profile.first_name}'s profile`}
-                className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full"
               />
-              <AvatarFallback className="w-full h-full text-2xl rounded-xl bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
+              <AvatarFallback className="w-full h-full text-2xl rounded-full bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
                 {profile.first_name[0]}
               </AvatarFallback>
             </Avatar>
