@@ -337,7 +337,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
     <div className="h-full flex flex-col bg-gray-50" style={{
       paddingBottom: isMobile ? `max(0rem, ${safeAreaInsets.bottom}px)` : '0rem'
     }}>
-      {selectedMatch ? (
+      {selectedMatch && selectedMatch.other_user ? (
         // Chat View
         <div className="flex flex-col h-full">
           {/* Chat Header */}
@@ -354,20 +354,20 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             </Button>
             
             <Avatar className="w-14 h-14 ring-2 ring-white shadow-lg">
-              <AvatarImage src={selectedMatch.other_user.avatar_url || undefined} />
+              <AvatarImage src={selectedMatch.other_user?.avatar_url || undefined} />
               <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg font-semibold">
-                {selectedMatch.other_user.first_name[0]}{selectedMatch.other_user.last_name[0]}
+                {selectedMatch.other_user?.first_name?.[0] || 'U'}{selectedMatch.other_user?.last_name?.[0] || 'N'}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1 min-w-0">
               <h2 className="font-semibold text-gray-900 truncate">
-                {selectedMatch.other_user.first_name} {selectedMatch.other_user.last_name[0]}.
+                {selectedMatch.other_user?.first_name || 'Unknown'} {selectedMatch.other_user?.last_name?.[0] || 'U'}.
               </h2>
               <p className="text-sm text-gray-500 truncate">
-                {isUserOnline(selectedMatch.other_user.user_id) 
+                {isUserOnline(selectedMatch.other_user?.user_id || '') 
                   ? "Online now" 
-                  : selectedMatch.other_user.last_seen 
+                  : selectedMatch.other_user?.last_seen 
                     ? getLastSeenText(selectedMatch.other_user.last_seen)
                     : "Last seen recently"
                 }
@@ -449,7 +449,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
               })}
               
               {/* Typing indicator */}
-              {getTypingUsers(selectedMatch.id).length > 0 && (
+              {selectedMatch && getTypingUsers(selectedMatch.id).length > 0 && (
                 <div className="flex justify-start">
                   <div className="bg-white px-4 py-3 rounded-2xl rounded-bl-md border border-gray-100 shadow-sm">
                     <div className="flex items-center gap-2">
@@ -621,13 +621,19 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                                   )}
                                 </div>
                                 
-                                <div className="flex items-center justify-between">
-                                  <p className="text-sm text-gray-600 truncate flex-1 mr-2">
-                                    {match.last_message.sender_id === user?.id && (
-                                      <span className="text-gray-500 font-medium">You: </span>
-                                    )}
-                                    {match.last_message.content}
-                                  </p>
+                                 <div className="flex items-center justify-between">
+                                   <p className="text-sm text-gray-600 truncate flex-1 mr-2">
+                                     {match.last_message ? (
+                                       <>
+                                         {match.last_message.sender_id === user?.id && (
+                                           <span className="text-gray-500 font-medium">You: </span>
+                                         )}
+                                         {match.last_message.content}
+                                       </>
+                                     ) : (
+                                       <span className="text-gray-400 italic">Start a conversation...</span>
+                                     )}
+                                   </p>
                                   {match.unread_count && match.unread_count > 0 && (
                                     <Badge className="bg-blue-500 text-white text-xs min-w-[22px] h-6 rounded-full flex items-center justify-center font-semibold shadow-sm">
                                       {match.unread_count > 99 ? '99+' : match.unread_count}
