@@ -466,13 +466,17 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             </div>
           </ScrollArea>
 
-          {/* Message Input - Fixed to bottom on mobile */}
+          {/* Message Input - Fixed above mobile nav with high z-index */}
           <div 
-            className={`bg-white border-t border-gray-200 p-4 z-50 ${
-              isMobile ? 'fixed left-0 right-0 bottom-0' : 'relative'
+            className={`bg-white border-t border-gray-200 p-4 ${
+              isMobile ? 'fixed left-0 right-0' : 'relative'
             }`}
             style={{
-              paddingBottom: isMobile ? `max(1rem, ${safeAreaInsets.bottom + 16}px)` : '1rem'
+              paddingBottom: isMobile ? `max(1rem, ${safeAreaInsets.bottom + 16}px)` : '1rem',
+              bottom: isMobile ? Math.max(safeAreaInsets.bottom + 64, 64) : undefined,
+              zIndex: isMobile ? 1000001 : undefined,
+              boxShadow: isMobile ? '0 -6px 24px rgba(0,0,0,0.08)' : undefined,
+              backdropFilter: isMobile ? 'saturate(180%) blur(8px)' : undefined
             }}
           >
             <div className="flex items-end gap-3">
