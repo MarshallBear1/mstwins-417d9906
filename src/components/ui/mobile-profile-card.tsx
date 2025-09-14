@@ -410,12 +410,18 @@ const MobileProfileCard = ({
                   e.stopPropagation();
                   handleFlipChange(false);
                 }}
+                onTouchStart={(e) => {
+                  console.log('🔙 Back button touched');
+                  e.stopPropagation();
+                }}
                 className="absolute top-3 left-3 w-12 h-12 bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/60 transition-all duration-200 shadow-lg z-[10000] cursor-pointer"
                 style={{
                   minHeight: '44px',
                   minWidth: '44px',
                   pointerEvents: 'auto',
-                  touchAction: 'manipulation'
+                  touchAction: 'manipulation',
+                  position: 'relative',
+                  zIndex: 10000
                 }}
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -442,11 +448,16 @@ const MobileProfileCard = ({
               data-scrollable="true"
               data-no-swipe="true"
               onTouchStart={(e) => {
-                console.log('📜 Content area touch start');
+                console.log('📜 Content area touch start - allowing scroll');
+                e.stopPropagation();
+              }}
+              onTouchMove={(e) => {
+                console.log('📜 Content area touch move - allowing scroll');
                 e.stopPropagation();
               }}
               onClick={(e) => {
                 console.log('📜 Content area clicked');
+                e.stopPropagation();
               }}
             >
               {/* About Me section - moved from front */}
@@ -608,7 +619,7 @@ const MobileProfileCard = ({
               {/* Prompts - no title, better styling */}
               {profile.selected_prompts && profile.selected_prompts.length > 0 && (
                 <div className="space-y-4">
-                    {profile.selected_prompts.map((prompt, index) => (
+                    {profile.selected_prompts.filter(prompt => prompt?.question && prompt?.answer?.trim()).map((prompt, index) => (
                     <div key={index} className="bg-gray-100 rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                       <p className="text-sm font-semibold text-gray-700 mb-3 leading-tight">{prompt.question}</p>
                       <p className="text-base text-gray-900 leading-relaxed">{prompt.answer}</p>
