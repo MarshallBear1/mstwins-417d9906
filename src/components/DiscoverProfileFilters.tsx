@@ -30,25 +30,34 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
   const [filterType, setFilterType] = useState<string | null>(null);
   const [filterValue, setFilterValue] = useState<string | null>(null);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(false);
 
-  // Close dropdown when extended profile opens
+  // Close and temporarily disable filters when ExtendedProfileOverlay opens
   React.useEffect(() => {
     const handleExtendedProfileOpen = () => {
       setIsFilterDropdownOpen(false);
+      setOverlayOpen(true);
     };
-    
+    const handleExtendedProfileClose = () => {
+      setOverlayOpen(false);
+    };
+
     const handleClickOutside = () => {
       setIsFilterDropdownOpen(false);
     };
-    
+
     if (isFilterDropdownOpen) {
       document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
     }
 
-    // Listen for extended profile opening
     document.addEventListener('extended-profile-open', handleExtendedProfileOpen);
-    return () => document.removeEventListener('extended-profile-open', handleExtendedProfileOpen);
+    document.addEventListener('extended-profile-close', handleExtendedProfileClose);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('extended-profile-open', handleExtendedProfileOpen);
+      document.removeEventListener('extended-profile-close', handleExtendedProfileClose);
+    };
   }, [isFilterDropdownOpen]);
 
   // Get unique filter options from profiles
@@ -84,7 +93,7 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
   };
 
   return (
-    <div className="flex items-center justify-center mb-2 md:mb-6 px-4">
+    <div className={`flex items-center justify-center mb-2 md:mb-6 px-4 ${overlayOpen ? 'pointer-events-none opacity-0' : ''}`}>
       <div className="flex items-center gap-2">
         <DropdownMenu open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
           <DropdownMenuTrigger asChild>
