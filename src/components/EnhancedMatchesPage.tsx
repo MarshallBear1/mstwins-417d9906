@@ -7,6 +7,7 @@ import { OptimizedButton } from "@/components/OptimizedComponents";
 import { useToast } from "@/hooks/use-toast";
 import { useEnhancedLikesData } from "@/hooks/useEnhancedLikesData";
 import { useState } from "react";
+import ExtendedProfileOverlay from "@/components/ExtendedProfileOverlay";
 interface EnhancedMatchesPageProps {
   selectedProfileForView: any;
   setSelectedProfileForView: (profile: any) => void;
@@ -159,9 +160,26 @@ const EnhancedMatchesPage = ({
                 
                 <div className="flex-shrink-0 flex flex-col gap-2 min-w-0 sm:min-w-[120px]">
                   <Button size="sm" variant="outline" className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm" onClick={() => {
-                setSelectedProfileForView(likedProfile);
-                setShowProfileView(true);
-              }}>
+                    setLocalProfile({
+                      id: (likedProfile as any).id || likedProfile.user_id,
+                      user_id: likedProfile.user_id,
+                      first_name: likedProfile.first_name,
+                      age: (likedProfile as any).age || null,
+                      city: likedProfile.location ? likedProfile.location.split(',')[0] : '',
+                      gender: (likedProfile as any).gender || null,
+                      ms_subtype: likedProfile.ms_subtype || null,
+                      avatar_url: likedProfile.avatar_url || null,
+                      about_me_preview: (likedProfile as any).about_me_preview || null,
+                      hobbies: (likedProfile as any).hobbies || [],
+                      additional_photos: (likedProfile as any).additional_photos || [],
+                      selected_prompts: (likedProfile as any).selected_prompts || [],
+                      extended_profile_completed: (likedProfile as any).extended_profile_completed || false,
+                      symptoms: (likedProfile as any).symptoms || [],
+                      medications: (likedProfile as any).medications || [],
+                      last_seen: (likedProfile as any).last_seen || undefined,
+                    } as any);
+                    setLocalShowExtended(true);
+                  }}>
                     <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                     View
                   </Button>
@@ -175,6 +193,8 @@ const EnhancedMatchesPage = ({
           </Card>)}
       </div>;
   };
+  const [localShowExtended, setLocalShowExtended] = useState(false);
+  const [localProfile, setLocalProfile] = useState<any | null>(null);
   return <div className="h-full flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
@@ -192,6 +212,13 @@ const EnhancedMatchesPage = ({
       <div className="flex-1 overflow-y-auto p-4">
         {renderLikesContent()}
       </div>
+      <ExtendedProfileOverlay
+        profile={localProfile as any}
+        isOpen={!!localShowExtended}
+        onClose={() => setLocalShowExtended(false)}
+        onLike={localProfile ? () => handleLikeBack(localProfile) : undefined}
+        onPass={() => setLocalShowExtended(false)}
+      />
     </div>;
 };
 export default EnhancedMatchesPage;

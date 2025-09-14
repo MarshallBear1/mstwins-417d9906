@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Send, ArrowLeft, Phone, Video, MoreHorizontal, Search, Paperclip, Smile, MessageCircle, Filter, ChevronDown } from "lucide-react";
+import { Send, ArrowLeft, User, MoreHorizontal, Search, Paperclip, Smile, MessageCircle, Filter, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { useMobileOptimizations } from "@/hooks/useMobileOptimizations";
-import UnifiedProfileView from "@/components/UnifiedProfileView";
+import ExtendedProfileOverlay from "@/components/ExtendedProfileOverlay";
 
 interface Message {
   id: string;
@@ -380,14 +380,9 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                 size="sm" 
                 className="p-2 hover:bg-gray-100 rounded-full"
                 onClick={() => setShowProfileView(true)}
+                title="View profile"
               >
-                <Phone className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
-                <Video className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full">
-                <MoreHorizontal className="w-5 h-5" />
+                <User className="w-5 h-5" />
               </Button>
             </div>
           </div>
@@ -698,9 +693,9 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
         </div>
       )}
 
-      {/* Unified Profile View */}
+      {/* Extended Profile Overlay (same as Discover Show More) */}
       {selectedMatch && (
-        <UnifiedProfileView
+        <ExtendedProfileOverlay
           profile={{
             id: selectedMatch.other_user.id,
             user_id: selectedMatch.other_user.user_id,
@@ -708,17 +703,16 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             last_name: selectedMatch.other_user.last_name,
             city: selectedMatch.other_user.location?.split(',')[0] || '',
             location: selectedMatch.other_user.location,
-            gender: selectedMatch.other_user.ms_subtype, // This might need adjustment
+            gender: undefined,
             ms_subtype: selectedMatch.other_user.ms_subtype,
             avatar_url: selectedMatch.other_user.avatar_url,
             hobbies: [],
             additional_photos: [],
             selected_prompts: [],
             last_seen: selectedMatch.other_user.last_seen
-          }}
-          open={showProfileView}
-          onOpenChange={setShowProfileView}
-          showActions={false}
+          } as any}
+          isOpen={showProfileView}
+          onClose={() => setShowProfileView(false)}
         />
       )}
     </div>
