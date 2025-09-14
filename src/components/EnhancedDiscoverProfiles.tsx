@@ -315,24 +315,6 @@ const EnhancedDiscoverProfiles = React.memo(() => {
               onImageClick={handleImageClick}
               className="mb-4"
             />
-            
-            {/* Next card preview */}
-            {filteredProfiles[currentIndex + 1] && (
-              <div 
-                className="absolute inset-0 -z-10 pointer-events-none"
-                style={{
-                  transform: 'scale(0.95) translateY(12px)',
-                  opacity: 0.4
-                }}
-              >
-                <SwipeableProfileCard
-                  profile={filteredProfiles[currentIndex + 1]}
-                  onLike={() => {}}
-                  onPass={() => {}}
-                  className="pointer-events-none"
-                />
-              </div>
-            )}
           </div>
         ) : (
           <div className="text-center py-20">

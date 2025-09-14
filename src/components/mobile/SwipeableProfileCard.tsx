@@ -82,7 +82,7 @@ const SwipeableProfileCard = ({
   const showPassIndicator = swipeProgress.x < -50;
 
   return (
-    <div className={cn("relative w-full max-w-sm mx-auto", className)} style={{ width: '100%', maxWidth: '384px' }}>
+    <div className={cn("relative w-full max-w-sm mx-auto bg-transparent", className)} style={{ width: '100%', maxWidth: '384px', zIndex: 1 }}>
       {/* Swipe Indicators */}
       {showLikeIndicator && (
         <div className="absolute top-6 right-6 z-20 bg-green-500/95 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-xl animate-scale-in border-2 border-white">

@@ -73,7 +73,7 @@ const MobileProfileCard = ({
 
   return (
     <Card 
-      className="shadow-xl border-0 bg-white rounded-2xl overflow-hidden" 
+      className="shadow-xl border-0 bg-white rounded-2xl overflow-hidden relative z-10" 
       style={{ width: '360px', maxHeight: isMobile ? '90vh' : 'auto' }}
     >
       <div className="relative flex flex-col">
