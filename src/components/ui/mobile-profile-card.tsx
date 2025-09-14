@@ -167,18 +167,10 @@ const MobileProfileCard = ({
             zIndex: actualIsFlipped ? 1 : 10,
             userSelect: 'none',
             WebkitUserSelect: 'none',
-            touchAction: 'manipulation'
+            touchAction: 'manipulation',
+            display: 'block'
           }}
         >
-=======
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          display: 'block',
-          touchAction: 'manipulation', // Optimize touch interactions
-          pointerEvents: actualIsFlipped ? 'none' : 'auto'
-        }}>
->>>>>>> e76f33e (Mobile: fix fixed bottom bar; Avatar object-fit; iOS notif dedupe & reminder throttling; profile bio expand scroll; extended profile scroll & back-face clicks; fetch full symptoms/meds on expand; server push dedupe and daily likes_reset guard)
           {/* Full gradient background covering entire front card */}
           <div 
             className="relative h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-start overflow-hidden pt-16"
