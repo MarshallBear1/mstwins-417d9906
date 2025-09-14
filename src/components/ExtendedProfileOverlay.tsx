@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
+import { formatMSSubtype, calculateAge } from '@/lib/formatters';
 
 interface Profile {
   id: string;
@@ -48,117 +49,167 @@ const ExtendedProfileOverlay = ({
   const [showAllAbout, setShowAllAbout] = useState(false);
   const [showAllSymptoms, setShowAllSymptoms] = useState(false);
   const [showAllMedications, setShowAllMedications] = useState(false);
-  const [fullAbout, setFullAbout] = useState<string | null>(null);
-  const [fullSymptoms, setFullSymptoms] = useState<string[] | null>(null);
-  const [fullMedications, setFullMedications] = useState<string[] | null>(null);
+  const [fullAbout, setFullAbout] = useState<string>('');
+  const [fullSymptoms, setFullSymptoms] = useState<string[]>([]);
+  const [fullMedications, setFullMedications] = useState<string[]>([]);
   const [isLoadingAbout, setIsLoadingAbout] = useState(false);
 
-  // Load full data when overlay opens
-  useEffect(() => {
-    if (isOpen && !fullAbout) {
-      const loadFullData = async () => {
-        try {
-          const { data } = await supabase
-            .from('profiles')
-            .select('about_me, symptoms, medications')
-            .eq('user_id', profile.user_id)
-            .single();
-          
-          if (data) {
-            setFullAbout(data.about_me);
-            setFullSymptoms(data.symptoms);
-            setFullMedications(data.medications);
-          }
-        } catch (error) {
-          console.error('Error loading full profile data:', error);
-        }
-      };
-      loadFullData();
-    }
-  }, [isOpen, profile.user_id, fullAbout]);
-
-  // Prevent body scroll when overlay is open
   useEffect(() => {
     if (isOpen) {
+      // Prevent body scroll when overlay is open
       document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
+      return () => {
+        document.body.style.overflow = '';
+      };
     }
-
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
-      <Card className="w-full max-w-md h-[90vh] flex flex-col overflow-hidden bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <Card className="w-full max-w-md h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="relative h-48 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
-          
-          {/* Back Button */}
-          <button 
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+          <button
             onClick={onClose}
-            className="absolute top-3 left-3 w-12 h-12 bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/60 transition-all duration-200 shadow-lg"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
-          
-          <div className="text-center text-white z-10">
-            <h3 className="text-xl font-bold">{profile.first_name}'s Details</h3>
-            <p className="text-base opacity-90">Extended Profile</p>
+          <span className="font-semibold text-gray-900">Profile Details</span>
+          <div className="w-9 h-9" /> {/* Spacer */}
+        </div>
+
+        {/* Profile Header */}
+        <div className="p-6 border-b border-gray-100 bg-white">
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <button
+                onClick={() => onImageClick?.(0)}
+                className="relative block"
+              >
+                <Avatar className="w-20 h-20">
+                  <AvatarImage 
+                    src={profile.avatar_url || ''} 
+                    alt={`${profile.first_name}'s profile`}
+                    className="w-full h-full object-cover"
+                  />
+                  <AvatarFallback className="w-20 h-20 text-2xl bg-gradient-to-br from-purple-400 to-blue-500 text-white">
+                    {profile.first_name[0]}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+              
+              {/* Online status */}
+              {isUserOnline?.(profile.user_id) && (
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full" />
+              )}
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {profile.first_name}
+                {profile.age && <span className="text-xl text-gray-600 ml-2">{calculateAge(profile.age)}</span>}
+              </h2>
+              
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className="text-gray-600">{profile.city}</span>
+                {profile.gender && (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                    {profile.gender}
+                  </Badge>
+                )}
+                {profile.ms_subtype && (
+                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
+                    {formatMSSubtype(profile.ms_subtype)}
+                  </Badge>
+                )}
+              </div>
+              
+              {/* Last seen */}
+              <div className="text-sm text-gray-500 mt-1">
+                {getLastSeenText?.(profile.user_id, profile.last_seen)}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Scrollable Content */}
         <CardContent className="flex-1 p-6 space-y-5 overflow-y-auto">
-          {/* About Me section */}
-          {(profile.about_me_preview || fullAbout) && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
-              <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
-                {showAllAbout ? (fullAbout || profile.about_me_preview) : profile.about_me_preview}
-              </div>
-              {(profile.about_me_preview && profile.about_me_preview.length > 100) && (
-                <button
-                  onClick={async () => {
-                    if (!showAllAbout && !fullAbout && !isLoadingAbout) {
-                      setIsLoadingAbout(true);
-                      try {
-                        const { data } = await supabase
-                          .from('profiles')
-                          .select('about_me')
-                          .eq('user_id', profile.user_id)
-                          .single();
-                        if (data?.about_me) {
-                          setFullAbout(data.about_me);
-                        }
-                      } catch (error) {
-                        console.error('Error fetching full about_me:', error);
-                      } finally {
-                        setIsLoadingAbout(false);
-                      }
-                    }
-                    setShowAllAbout(!showAllAbout);
-                  }}
-                  className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200 flex items-center gap-1"
-                >
-                  {isLoadingAbout ? (
-                    <>
-                      <div className="animate-spin rounded-full h-3 w-3 border-b border-green-600" />
-                      Loading...
-                    </>
-                  ) : (
-                    showAllAbout ? 'Show Less' : 'Read More'
-                  )}
-                </button>
+          {/* About Me - Always show as first section in extended profile */}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="text-base font-semibold text-gray-800 mb-3">About Me:</div>
+            <div className={`text-base text-gray-800 leading-relaxed whitespace-pre-wrap ${!showAllAbout ? 'line-clamp-3' : ''}`}>
+              {isLoadingAbout ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b border-green-600" />
+                  <span>Loading full profile...</span>
+                </div>
+              ) : (
+                showAllAbout ? (fullAbout || profile.about_me_preview || "No information provided yet.") : (profile.about_me_preview || "No information provided yet.")
               )}
+            </div>
+            {(profile.about_me_preview && profile.about_me_preview.length > 100) && (
+              <button
+                onClick={async () => {
+                  if (!showAllAbout && !fullAbout && !isLoadingAbout) {
+                    setIsLoadingAbout(true);
+                    try {
+                      const { data } = await supabase
+                        .from('profiles')
+                        .select('about_me')
+                        .eq('user_id', profile.user_id)
+                        .single();
+                      if (data?.about_me) {
+                        setFullAbout(data.about_me);
+                      }
+                    } catch (error) {
+                      console.error('Error loading full about me:', error);
+                    } finally {
+                      setIsLoadingAbout(false);
+                    }
+                  }
+                  setShowAllAbout(!showAllAbout);
+                }}
+                className="text-sm text-green-600 hover:text-green-700 mt-3 font-semibold transition-colors duration-200 flex items-center gap-1"
+              >
+                {isLoadingAbout ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b border-green-600" />
+                    Loading...
+                  </>
+                ) : (
+                  showAllAbout ? 'Show Less' : 'Read More'
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* Hobbies/Interests */}
+          {profile.hobbies && profile.hobbies.length > 0 && (
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3 text-base">Interests & Hobbies</h4>
+              <div className="flex flex-wrap gap-2">
+                {profile.hobbies.map((hobby, index) => {
+                  const colors = [
+                    'bg-purple-400/80 border-purple-300/50 text-white',
+                    'bg-blue-400/80 border-blue-300/50 text-white',
+                    'bg-green-400/80 border-green-300/50 text-white',
+                    'bg-orange-400/80 border-orange-300/50 text-white',
+                    'bg-pink-400/80 border-pink-300/50 text-white'
+                  ];
+                  return (
+                    <Badge 
+                      key={index} 
+                      variant="secondary" 
+                      className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
+                    >
+                      {hobby}
+                    </Badge>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -248,56 +299,37 @@ const ExtendedProfileOverlay = ({
                     onClick={() => onImageClick?.(index + 1)}
                     className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-200"
                   >
-                    <Avatar className="w-full h-full">
-                      <AvatarImage 
-                        src={photoUrl}
-                        alt={`${profile.first_name}'s photo ${index + 2}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <AvatarFallback>{profile.first_name[0]}</AvatarFallback>
-                    </Avatar>
+                    <img 
+                      src={photoUrl} 
+                      alt={`${profile.first_name}'s photo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
             </div>
           )}
-
-          {/* Prompts */}
-          {profile.selected_prompts && profile.selected_prompts.length > 0 && (
-            <div className="space-y-4">
-              {profile.selected_prompts.filter(prompt => prompt?.question && prompt?.answer?.trim()).map((prompt, index) => (
-                <div key={index} className="bg-gray-100 rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                  <p className="text-sm font-semibold text-gray-700 mb-3 leading-tight">{prompt.question}</p>
-                  <p className="text-base text-gray-900 leading-relaxed">{prompt.answer}</p>
-                </div>
-              ))}
-            </div>
-          )}
         </CardContent>
 
         {/* Action Buttons */}
-        {(onLike || onPass) && (
-          <div className="flex-shrink-0 p-4 bg-gray-50 border-t flex gap-3">
-            {onPass && (
-              <button
-                onClick={onPass}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-              >
-                <X className="w-5 h-5" />
-                Pass
-              </button>
-            )}
-            {onLike && (
-              <button
-                onClick={onLike}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-              >
-                <Heart className="w-5 h-5" />
-                Say Hi!
-              </button>
-            )}
+        <div className="p-4 border-t border-gray-200 bg-white">
+          <div className="flex gap-3">
+            <button
+              onClick={onPass}
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <X className="w-5 h-5" />
+              Pass
+            </button>
+            <button
+              onClick={onLike}
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <Heart className="w-5 h-5" />
+              Say Hi!
+            </button>
           </div>
-        )}
+        </div>
       </Card>
     </div>
   );

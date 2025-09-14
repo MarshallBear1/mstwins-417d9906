@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useRealtimePresence } from '@/hooks/useRealtimePresence';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { formatMSSubtype, calculateAge } from '@/lib/formatters';
 
 interface Profile {
   id: string;
@@ -57,9 +58,7 @@ const MobileProfileCard = ({
   const isUserOnline = propIsUserOnline || hookIsUserOnline;
   const getLastSeenText = propGetLastSeenText || hookGetLastSeenText;
 
-  const calculateAge = (age: number | null) => {
-    return age;
-  };
+  // Remove local calculateAge - now imported from formatters
 
   const hasExtendedContent = Boolean(
     (profile.additional_photos && profile.additional_photos.length > 0) ||
@@ -74,7 +73,7 @@ const MobileProfileCard = ({
   
   // Adjust card dimensions based on screen size and content
   const cardHeight = isMobile ? '75vh' : 'auto'; // Reduced from 85vh to 75vh
-  const imageHeight = isMobile ? '35%' : '250px'; // Reduced from 45% to 35% and from 300px to 250px
+  const imageHeight = isMobile ? '18%' : '120px'; // Reduced to half size: 35% -> 18%, 250px -> 120px
 
   return (
     <Card 
@@ -89,13 +88,15 @@ const MobileProfileCard = ({
             className="w-full h-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center overflow-hidden cursor-pointer group"
             data-no-swipe="true"
           >
-            <Avatar className="w-full h-full">
+            <Avatar className="w-full h-full rounded-xl">
               <AvatarImage 
                 src={profile.avatar_url || ''}
                 alt={`${profile.first_name}'s profile`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
               />
-              <AvatarFallback className="w-full h-full text-2xl">{profile.first_name[0]}</AvatarFallback>
+              <AvatarFallback className="w-full h-full text-2xl rounded-xl bg-gradient-to-br from-purple-400 to-blue-500 text-white flex items-center justify-center">
+                {profile.first_name[0]}
+              </AvatarFallback>
             </Avatar>
           </button>
 
@@ -123,28 +124,17 @@ const MobileProfileCard = ({
                 {profile.gender && <span className="text-gray-600 capitalize">{profile.gender}</span>}
               </div>
 
-              {/* MS Subtype */}
-              {profile.ms_subtype && (
-                <div className="mt-2">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-                    {profile.ms_subtype}
-                  </Badge>
-                </div>
-              )}
+               {/* MS Subtype */}
+               {profile.ms_subtype && (
+                 <div className="mt-2">
+                   <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+                     {formatMSSubtype(profile.ms_subtype)}
+                   </Badge>
+                 </div>
+               )}
             </div>
 
-            {/* About Me Preview */}
-            {profile.about_me_preview && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <div className="text-sm font-semibold text-gray-700 mb-2">About Me:</div>
-                <div className="text-sm text-gray-800 line-clamp-2 leading-relaxed">
-                  {profile.about_me_preview.length > 120 
-                    ? `${profile.about_me_preview.substring(0, 120)}...` 
-                    : profile.about_me_preview
-                  }
-                </div>
-              </div>
-            )}
+            {/* Remove About Me from main card - moved to extended profile */}
 
             {/* Interests/Hobbies */}
             {hasInterests && (
@@ -189,18 +179,16 @@ const MobileProfileCard = ({
               {getLastSeenText(profile.user_id, profile.last_seen)}
             </div>
 
-            {/* Show More Button - Only if extended content exists */}
-            {hasExtendedContent && (
-              <div className="pt-2">
-                <button
-                  data-no-swipe="true"
-                  onClick={() => onShowExtended?.()}
-                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold py-2.5 rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg text-sm"
-                >
-                  Show More
-                </button>
-              </div>
-            )}
+            {/* Show More Button - Always show since About Me moved to extended */}
+            <div className="pt-2">
+              <button
+                data-no-swipe="true"
+                onClick={() => onShowExtended?.()}
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold py-2.5 rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg text-sm"
+              >
+                Show More
+              </button>
+            </div>
           </div>
         </CardContent>
 

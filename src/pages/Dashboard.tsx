@@ -9,7 +9,7 @@ import { Heart, Users, MessageCircle, User, Edit, MapPin, Calendar, X, Eye, Arro
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationPopup from "@/components/NotificationPopup";
-import DiscoverProfiles from "@/components/DiscoverProfiles";
+import EnhancedDiscoverProfiles from "@/components/EnhancedDiscoverProfiles";
 import Messaging from "@/components/Messaging";
 import ModernMessaging from "@/components/ModernMessaging";
 import ModernForumPage from "@/components/ModernForumPage";
@@ -253,7 +253,7 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </div>}
-            <DiscoverProfiles />
+            <EnhancedDiscoverProfiles />
           </div>;
       case "likes":
         return <EnhancedMatchesPage 
