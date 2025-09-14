@@ -153,8 +153,68 @@ const ProfileSetup = () => {
     }
   };
 
+  const validateCurrentStep = () => {
+    const errors: string[] = [];
+    
+    switch (currentStep) {
+      case 1:
+        if (!profileData.firstName?.trim()) {
+          errors.push("First name is required");
+        }
+        if (!profileData.lastName?.trim()) {
+          errors.push("Last name is required");
+        }
+        break;
+      case 2:
+        if (!profileData.dateOfBirth) {
+          errors.push("Date of birth is required");
+        } else {
+          // Check if user is at least 18
+          const age = Math.floor((Date.now() - profileData.dateOfBirth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+          if (age < 18) {
+            errors.push("You must be at least 18 years old to use this app");
+          }
+        }
+        break;
+      case 3:
+        if (!profileData.location?.trim()) {
+          errors.push("Location is required");
+        }
+        break;
+      case 4:
+        if (!profileData.gender) {
+          errors.push("Gender is required");
+        }
+        break;
+      case 6:
+        if (!profileData.diagnosisYear?.trim()) {
+          errors.push("Diagnosis year is required");
+        } else {
+          const year = parseInt(profileData.diagnosisYear);
+          const currentYear = new Date().getFullYear();
+          if (isNaN(year) || year < 1950 || year > currentYear) {
+            errors.push("Please enter a valid diagnosis year");
+          }
+        }
+        break;
+      // Steps 5, 7, 8, 9, 10, 11 are optional - no validation needed
+    }
+    
+    return errors;
+  };
+
   const handleNext = async () => {
     if (currentStep < totalSteps) {
+      // Validate current step before proceeding
+      const validationErrors = validateCurrentStep();
+      if (validationErrors.length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Please complete this step",
+          description: validationErrors[0], // Show first error
+        });
+        return;
+      }
       setCurrentStep(currentStep + 1);
     } else {
       // Complete profile setup and save to database
@@ -1147,6 +1207,15 @@ const ProfileSetup = () => {
               <div className="text-sm font-medium text-muted-foreground">
                 {existingProfile ? "Edit Profile" : `Step ${currentStep} of ${totalSteps}`}
               </div>
+              {!existingProfile && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  {[1, 2, 3, 4, 6].includes(currentStep) ? (
+                    <span className="text-red-600 font-medium">● Required</span>
+                  ) : (
+                    <span className="text-green-600 font-medium">○ Optional</span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="w-16" /> {/* Spacer */}
           </div>
