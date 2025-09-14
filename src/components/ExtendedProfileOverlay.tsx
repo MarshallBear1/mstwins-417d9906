@@ -48,6 +48,11 @@ const ExtendedProfileOverlay = ({
   isUserOnline,
   getLastSeenText,
 }: ExtendedProfileOverlayProps) => {
+  // Early return if profile is null/undefined
+  if (!profile) {
+    return null;
+  }
+
   const [showAllAbout, setShowAllAbout] = useState(false);
   const [showAllSymptoms, setShowAllSymptoms] = useState(false);
   const [showAllMedications, setShowAllMedications] = useState(false);
