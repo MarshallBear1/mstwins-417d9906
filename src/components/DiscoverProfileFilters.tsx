@@ -42,23 +42,14 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
       setOverlayOpen(false);
     };
 
-    const handleClickOutside = () => {
-      setIsFilterDropdownOpen(false);
-    };
-
-    if (isFilterDropdownOpen) {
-      document.addEventListener('click', handleClickOutside);
-    }
-
     document.addEventListener('extended-profile-open', handleExtendedProfileOpen);
     document.addEventListener('extended-profile-close', handleExtendedProfileClose);
 
     return () => {
-      document.removeEventListener('click', handleClickOutside);
       document.removeEventListener('extended-profile-open', handleExtendedProfileOpen);
       document.removeEventListener('extended-profile-close', handleExtendedProfileClose);
     };
-  }, [isFilterDropdownOpen]);
+  }, []);
 
   // Get unique filter options from profiles
   const msSubtypes = [...new Set(profiles.map(p => p.ms_subtype).filter(Boolean))];
@@ -95,7 +86,7 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
   return (
     <div className={`flex items-center justify-center mb-2 md:mb-6 px-4 ${overlayOpen ? 'pointer-events-none opacity-0' : ''}`}>
       <div className="flex items-center gap-2">
-        <DropdownMenu open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
+        <DropdownMenu open={isFilterDropdownOpen && !overlayOpen} onOpenChange={(open) => !overlayOpen && setIsFilterDropdownOpen(open)}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="h-9 px-4 text-sm bg-white hover:bg-gray-50 border-2 shadow-lg">
               <Filter className="w-4 h-4 mr-2" />

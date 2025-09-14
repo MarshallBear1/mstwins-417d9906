@@ -61,6 +61,21 @@ const ExtendedProfileOverlay = ({
   const [fullMedications, setFullMedications] = useState<string[]>([]);
   const [isLoadingAbout, setIsLoadingAbout] = useState(false);
   const [lastSeen, setLastSeen] = useState<string | undefined>(profile.last_seen);
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  // Store scroll position when overlay opens
+  useEffect(() => {
+    if (isOpen) {
+      setScrollPosition(window.scrollY);
+    }
+  }, [isOpen]);
+
+  // Restore scroll position when overlay closes
+  useEffect(() => {
+    if (!isOpen && scrollPosition > 0) {
+      window.scrollTo(0, scrollPosition);
+    }
+  }, [isOpen, scrollPosition]);
 
   // Fallback to realtime presence hook if not provided
   const { isUserOnline: hookIsUserOnline, getLastSeenText: hookGetLastSeenText } = useRealtimePresence();

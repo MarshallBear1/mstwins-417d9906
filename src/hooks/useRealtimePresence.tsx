@@ -158,14 +158,24 @@ export const useRealtimePresence = () => {
   };
 
   const getLastSeenText = (lastSeen: string | null): string => {
+    console.log('getLastSeenText called with:', lastSeen); // Debug log
     if (!lastSeen) return 'last seen long ago';
     
     const now = new Date();
     const lastSeenDate = new Date(lastSeen);
+    
+    // Check if date is valid
+    if (isNaN(lastSeenDate.getTime())) {
+      console.log('Invalid date:', lastSeen);
+      return 'last seen long ago';
+    }
+    
     const diffInMs = now.getTime() - lastSeenDate.getTime();
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    
+    console.log('Time difference:', { diffInMinutes, diffInHours, diffInDays }); // Debug log
     
     if (diffInMinutes < 1) return 'last seen just now';
     if (diffInMinutes < 60) return `last seen ${diffInMinutes}m ago`;
