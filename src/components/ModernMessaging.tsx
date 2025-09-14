@@ -233,6 +233,22 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
       
       // Update matches list
       loadMatches();
+
+      // Fire push notification to the receiver (non-blocking)
+      try {
+        const title = `New message from ${selectedMatch.other_user.first_name ? 'someone' : ''}`;
+        await supabase.functions.invoke('send-push-notification', {
+          body: {
+            user_id: selectedMatch.other_user.user_id,
+            type: 'message',
+            title: 'New message',
+            body: messageContent.length > 80 ? messageContent.slice(0, 80) + '…' : messageContent,
+            data: { match_id: selectedMatch.id }
+          }
+        });
+      } catch (e) {
+        console.warn('Push invoke failed (message):', e);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast({

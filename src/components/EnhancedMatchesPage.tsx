@@ -80,6 +80,20 @@ const EnhancedMatchesPage = ({
       if (error) {
         throw error;
       }
+      // Fire push to liked user (non-blocking)
+      try {
+        await supabase.functions.invoke('send-push-notification', {
+          body: {
+            user_id: likedProfile.user_id,
+            type: 'like',
+            title: 'Someone liked your profile',
+            body: `${profile?.first_name || 'Someone'} liked you`,
+            data: { source: 'likes' }
+          }
+        });
+      } catch (e) {
+        console.warn('Push invoke failed (like):', e);
+      }
       toast({
         title: "Success!",
         description: "You connected with them!"

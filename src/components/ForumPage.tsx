@@ -912,6 +912,21 @@ const ForumPage = () => {
         title: "Profile liked!",
         description: "Your like has been sent."
       });
+
+      // Fire push to liked user (non-blocking)
+      try {
+        await supabase.functions.invoke('send-push-notification', {
+          body: {
+            user_id: profileUserId,
+            type: 'like',
+            title: 'Someone liked your profile',
+            body: `${user.user_metadata?.first_name || 'Someone'} liked you`,
+            data: { source: 'forum' }
+          }
+        });
+      } catch (e) {
+        console.warn('Push invoke failed (forum like):', e);
+      }
     } catch (error) {
       console.error('Error liking profile:', error);
       toast({

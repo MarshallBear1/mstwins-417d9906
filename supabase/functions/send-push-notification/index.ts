@@ -73,7 +73,9 @@ const handler = async (req: Request): Promise<Response> => {
     // For iOS notifications, we need to send to Apple Push Notification service
     // For Android, we'd use Firebase Cloud Messaging
     
-    // This is a simplified example - in production you'd need proper APNs/FCM integration
+    // Integrate with APNs/FCM (via OneSignal) using server key
+    const oneSignalKey = Deno.env.get('ONESIGNAL_REST_API_KEY');
+    const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID');
     const notifications = tokens.map(async (tokenData) => {
       try {
         console.log(`📲 Sending notification to ${tokenData.platform} device:`, tokenData.token);
@@ -124,11 +126,34 @@ const handler = async (req: Request): Promise<Response> => {
           })
         };
 
-        // Here you would integrate with your push notification service
-        // For now, we'll just log the notification that would be sent
-        console.log('Notification payload:', JSON.stringify(notificationPayload, null, 2));
-        
-        return { success: true, token: tokenData.token, platform: tokenData.platform };
+        if (oneSignalKey && oneSignalAppId) {
+          const osBody = {
+            app_id: oneSignalAppId,
+            include_external_user_ids: [user_id],
+            headings: { en: title },
+            contents: { en: body },
+            data: { ...data, type },
+            ios_badgeType: 'Increase',
+            ios_badgeCount: 1,
+            ios_sound: 'default',
+            android_channel_id: undefined
+          };
+          const res = await fetch('https://api.onesignal.com/notifications', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${oneSignalKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(osBody)
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(JSON.stringify(json));
+          return { success: true, provider: 'onesignal', id: json.id };
+        } else {
+          // Fallback: log only
+          console.log('Notification payload (log-only):', JSON.stringify(notificationPayload, null, 2));
+          return { success: true, token: tokenData.token, platform: tokenData.platform };
+        }
       } catch (error) {
         console.error(`Error sending notification to ${tokenData.platform}:`, error);
         return { success: false, token: tokenData.token, platform: tokenData.platform, error: error.message };
