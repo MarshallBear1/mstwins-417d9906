@@ -364,22 +364,25 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
       {selectedMatch ? (
         // Chat View
         <div className="flex flex-col h-full">
-          {/* Chat Header */}
-          <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3" style={{
+          {/* Chat Header - Fixed/Sticky */}
+          <div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm" style={{
             paddingTop: isMobile ? `max(0.75rem, ${safeAreaInsets.top}px)` : '0.75rem'
           }}>
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => setSelectedMatch(null)}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              onClick={() => {
+                setSelectedMatch(null);
+                if (onBack) onBack();
+              }}
+              className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             
-            <Avatar className="w-14 h-14 ring-2 ring-white shadow-lg">
+            <Avatar className="w-12 h-12 ring-2 ring-white shadow-lg flex-shrink-0">
               <AvatarImage src={selectedMatch.other_user.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg font-semibold">
+              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white font-semibold">
                 {selectedMatch.other_user.first_name[0]}{selectedMatch.other_user.last_name[0]}
               </AvatarFallback>
             </Avatar>
@@ -398,7 +401,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
               </p>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Button 
                 variant="ghost" 
                 size="sm" 
