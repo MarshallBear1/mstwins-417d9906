@@ -480,7 +480,18 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             }}
           >
             <div className="flex items-end gap-3">
-              <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0"
+                onClick={() => {
+                  // TODO: Implement file attachment
+                  toast({
+                    title: "Coming soon",
+                    description: "File attachments will be available soon!",
+                  });
+                }}
+              >
                 <Paperclip className="w-5 h-5 text-gray-500" />
               </Button>
               
@@ -498,6 +509,13 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                   variant="ghost" 
                   size="sm" 
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full"
+                  onClick={() => {
+                    // TODO: Implement emoji picker
+                    toast({
+                      title: "Coming soon",
+                      description: "Emoji picker will be available soon!",
+                    });
+                  }}
                 >
                   <Smile className="w-5 h-5 text-gray-500" />
                 </Button>
@@ -548,7 +566,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
 
               <TabsContent value="messages" className="flex-1 mt-0">
                 <ScrollArea className="flex-1 p-4">
-                  {filteredMatches.filter(m => m.last_message).length === 0 ? (
+                  {filteredMatches.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <MessageCircle className="w-8 h-8 text-gray-400" />
@@ -560,7 +578,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                     </div>
                   ) : (
                     <div className="space-y-3 sm:space-y-4">
-                      {filteredMatches.filter(m => m.last_message).map((match) => (
+                      {filteredMatches.map((match) => (
                         <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedMatch(match)}>
                           <CardContent className="p-3 sm:p-4">
                             <div className="flex items-center space-x-3 sm:space-x-4">
