@@ -6,9 +6,10 @@ interface MobilePersistentNavProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   safeAreaBottom: number;
+  unreadMessagesCount?: number;
 }
 
-const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom }: MobilePersistentNavProps) => {
+const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom, unreadMessagesCount = 0 }: MobilePersistentNavProps) => {
   const { buttonPress } = useHaptics();
 
   const navItems = [
@@ -46,24 +47,32 @@ const MobilePersistentNav = ({ activeTab, onTabChange, safeAreaBottom }: MobileP
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+          const showBadge = item.id === 'messages' && unreadMessagesCount > 0;
           
           return (
             <button
               key={item.id}
               onClick={() => handleTabClick(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center p-3 md:p-4 rounded-xl transition-all duration-300 min-w-0 flex-1 group",
+                "flex flex-col items-center justify-center p-3 md:p-4 rounded-xl transition-all duration-300 min-w-0 flex-1 group relative",
                 "hover:scale-105 active:scale-95",
                 isActive 
                   ? "bg-primary/15 text-primary shadow-sm" 
                   : "text-muted-foreground hover:text-primary hover:bg-primary/8"
               )}
             >
-              <Icon className={cn(
-                "transition-all duration-300",
-                "w-6 h-6 md:w-8 md:h-8",
-                isActive ? "scale-110" : "group-hover:scale-105"
-              )} />
+              <div className="relative">
+                <Icon className={cn(
+                  "transition-all duration-300",
+                  "w-6 h-6 md:w-8 md:h-8",
+                  isActive ? "scale-110" : "group-hover:scale-105"
+                )} />
+                {showBadge && (
+                  <div className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold shadow-sm">
+                    {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                  </div>
+                )}
+              </div>
               <span className={cn(
                 "font-medium mt-1.5 transition-all duration-300 leading-none",
                 "text-xs md:text-sm",

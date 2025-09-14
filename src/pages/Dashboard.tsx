@@ -20,11 +20,11 @@ import ProfileCard from "@/components/ProfileCard";
 import UnifiedProfileView from "@/components/UnifiedProfileView";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup";
+// import RobotAnnouncementPopup from "@/components/RobotAnnouncementPopup"; // Disabled
 import { AnalyticsDebugPanel } from "@/components/AnalyticsDebugPanel";
 import { usePreloadedDashboardData } from "@/hooks/usePreloadedDashboardData";
 import { useDailyLikes } from "@/hooks/useDailyLikes";
-import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements";
+// import { useRobotAnnouncements } from "@/hooks/useRobotAnnouncements"; // Disabled
 import { useUnifiedNotifications } from "@/hooks/useUnifiedNotifications";
 import { useRealtimeLikesSync } from "@/hooks/useRealtimeLikesSync";
 import { 
@@ -73,7 +73,7 @@ const Dashboard = () => {
   } = useAuth();
   const navigate = useNavigate();
   const { isMobile, safeAreaInsets } = useMobileOptimizations();
-  const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements();
+  // const { announcements, currentAnnouncement, showAnnouncement, dismissAnnouncement } = useRobotAnnouncements(); // Disabled
   const { remainingLikes, hasUnlimitedLikes, isLimitEnforced } = useDailyLikes();
   
   // Set up global real-time likes synchronization
@@ -117,6 +117,7 @@ const Dashboard = () => {
   const [showProfileView, setShowProfileView] = useState(false);
   const [extendedPromptDismissed, setExtendedPromptDismissed] = useState(false);
   const [showAnalyticsDebug, setShowAnalyticsDebug] = useState(false);
+  const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -173,6 +174,42 @@ const Dashboard = () => {
   }, [user, profile]);
 
   // Real-time likes sync is now handled by useRealtimeLikesSync hook
+  // Calculate total unread messages
+  useEffect(() => {
+    const calculateUnreadMessages = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: unreadCount } = await supabase
+          .from('messages')
+          .select('id', { count: 'exact' })
+          .eq('receiver_id', user.id)
+          .eq('is_read', false);
+        
+        setTotalUnreadMessages(unreadCount?.length || 0);
+      } catch (error) {
+        console.error('Error calculating unread messages:', error);
+      }
+    };
+
+    calculateUnreadMessages();
+    
+    // Set up real-time subscription for unread messages
+    const channel = supabase
+      .channel('unread-messages')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_id=eq.${user?.id}`
+      }, calculateUnreadMessages)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -305,8 +342,8 @@ const Dashboard = () => {
       {/* Notification Popup */}
       <NotificationPopup />
 
-      {/* Robot Announcement Popup */}
-      {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />}
+      {/* Robot Announcement Popup - Disabled */}
+      {/* {showAnnouncement && currentAnnouncement && <RobotAnnouncementPopup announcement={currentAnnouncement} onDismiss={() => dismissAnnouncement(currentAnnouncement.id)} />} */}
       
       {/* Modern header with clean design */}
       <div className="bg-white/90 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40 shadow-[0_1px_10px_rgba(0,0,0,0.05)]" style={{
@@ -372,7 +409,8 @@ const Dashboard = () => {
         <MobilePersistentNav 
           activeTab={activeTab} 
           onTabChange={handleTabChange} 
-          safeAreaBottom={safeAreaInsets.bottom} 
+          safeAreaBottom={safeAreaInsets.bottom}
+          unreadMessagesCount={totalUnreadMessages}
         />
       )}
 
