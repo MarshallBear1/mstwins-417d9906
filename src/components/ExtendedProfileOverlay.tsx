@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft, Heart, X, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +57,16 @@ const ExtendedProfileOverlay = ({
 
   // Remove body scroll prevention to allow internal scrolling
 
+  // Inform other UI (e.g., Filters) to close when overlay opens
+  useEffect(() => {
+    if (isOpen) {
+      document.dispatchEvent(new CustomEvent('extended-profile-open'));
+    }
+    return () => {
+      document.dispatchEvent(new CustomEvent('extended-profile-close'));
+    };
+  }, [isOpen]);
+
   // Load full data on mount
   useEffect(() => {
     const loadFullData = async () => {
@@ -95,8 +106,8 @@ const ExtendedProfileOverlay = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
+  const overlay = (
+    <div className="fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
       <Card className="w-full max-w-md max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col z-[101]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 pt-8 border-b border-gray-200 flex-shrink-0">
@@ -342,6 +353,8 @@ const ExtendedProfileOverlay = ({
       </Card>
     </div>
   );
+
+  return createPortal(overlay, document.body);
 };
 
 export default ExtendedProfileOverlay;
