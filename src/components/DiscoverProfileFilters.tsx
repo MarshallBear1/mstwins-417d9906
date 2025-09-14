@@ -80,7 +80,7 @@ const DiscoverProfileFilters = ({ profiles, onFilterChange }: DiscoverProfileFil
               }
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-50">
+          <DropdownMenuContent align="center" className="w-56 bg-white border shadow-xl max-h-80 overflow-y-auto z-30">
             {/* MS Subtypes */}
             {msSubtypes.length > 0 && (
               <>
