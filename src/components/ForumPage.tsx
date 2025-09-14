@@ -15,7 +15,7 @@ import { useDailyLikes } from "@/hooks/useDailyLikes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProfileViewDialog from "@/components/ProfileViewDialog";
-import UnifiedProfileView from "@/components/UnifiedProfileView";
+import ExtendedProfileOverlay from "@/components/ExtendedProfileOverlay";
 import { formatDistanceToNow } from "date-fns";
 
 interface ForumPost {
@@ -1453,37 +1453,31 @@ const ForumPage = () => {
         )}
       </div>
 
-      {/* Unified Profile View Dialog */}
+      {/* Extended Profile Overlay */}
       {selectedProfile && (
-        <UnifiedProfileView
+        <ExtendedProfileOverlay
           profile={{
             id: selectedProfile.id || selectedProfile.user_id,
             user_id: selectedProfile.user_id || selectedProfile.id,
             first_name: selectedProfile.first_name,
             last_name: selectedProfile.last_name,
+            age: selectedProfile.date_of_birth ? 
+              new Date().getFullYear() - new Date(selectedProfile.date_of_birth).getFullYear() : null,
             city: selectedProfile.location?.split(',')[0] || '',
-            location: selectedProfile.location,
             gender: selectedProfile.gender,
             ms_subtype: selectedProfile.ms_subtype,
             avatar_url: selectedProfile.avatar_url,
-            about_me: selectedProfile.about_me,
+            about_me_preview: selectedProfile.about_me,
             hobbies: selectedProfile.hobbies || [],
             additional_photos: selectedProfile.additional_photos || [],
             selected_prompts: selectedProfile.selected_prompts || [],
-            last_seen: selectedProfile.last_seen,
             symptoms: selectedProfile.symptoms || [],
             medications: selectedProfile.medications || [],
-            date_of_birth: selectedProfile.date_of_birth
+            last_seen: selectedProfile.last_seen
           }}
-          open={showProfileView}
-          onOpenChange={(open) => {
-            setShowProfileView(open);
-            if (!open) {
-              setSelectedProfile(null);
-            }
-          }}
-          showActions={true}
-          onLike={() => likeProfile(selectedProfile.user_id)}
+          isOpen={showProfileView}
+          onClose={() => setShowProfileView(false)}
+          showActions={false}
         />
       )}
       

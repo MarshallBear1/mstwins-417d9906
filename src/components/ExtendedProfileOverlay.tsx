@@ -12,6 +12,7 @@ interface Profile {
   id: string;
   user_id: string;
   first_name: string;
+  last_name?: string;
   age: number | null;
   city: string;
   gender: string | null;
@@ -36,6 +37,7 @@ interface ExtendedProfileOverlayProps {
   onImageClick?: (imageIndex: number) => void;
   isUserOnline?: (userId: string) => boolean;
   getLastSeenText?: (lastSeen?: string) => string;
+  showActions?: boolean;
 }
 
 const ExtendedProfileOverlay = ({
@@ -47,6 +49,7 @@ const ExtendedProfileOverlay = ({
   onImageClick,
   isUserOnline,
   getLastSeenText,
+  showActions = true,
 }: ExtendedProfileOverlayProps) => {
   // Early return if profile is null/undefined
   if (!profile) {
@@ -360,24 +363,26 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="relative z-[102] p-4 mb-2 border-t border-gray-200 flex-shrink-0 bg-white shadow-lg">
-          <div className="flex gap-3">
-            <button
-              onClick={handlePass}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 min-h-[48px] touch-manipulation shadow-sm"
-            >
-              <X className="w-5 h-5" />
-              Dismiss
-            </button>
-            <button
-              onClick={handleLike}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 min-h-[48px] touch-manipulation shadow-sm"
-            >
-              <Heart className="w-5 h-5" />
-              Connect
-            </button>
+        {showActions && (
+          <div className="relative z-[102] p-4 mb-2 border-t border-gray-200 flex-shrink-0 bg-white shadow-lg">
+            <div className="flex gap-3">
+              <button
+                onClick={handlePass}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 min-h-[48px] touch-manipulation shadow-sm"
+              >
+                <X className="w-5 h-5" />
+                Dismiss
+              </button>
+              <button
+                onClick={handleLike}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 min-h-[48px] touch-manipulation shadow-sm"
+              >
+                <Heart className="w-5 h-5" />
+                Connect
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </Card>
     </div>
   );

@@ -713,6 +713,7 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
           } as any}
           isOpen={showProfileView}
           onClose={() => setShowProfileView(false)}
+          showActions={false}
         />
       )}
     </div>
