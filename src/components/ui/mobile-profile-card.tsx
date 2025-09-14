@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Heart, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -50,15 +50,12 @@ const MobileProfileCard = ({
   onShowExtended,
   ...props
 }: MobileProfileCardProps) => {
-  const [showAllHobbies, setShowAllHobbies] = useState(false);
   const isMobile = useIsMobile();
   
   // Use the hook for realtime presence if not provided as props
   const { isUserOnline: hookIsUserOnline, getLastSeenText: hookGetLastSeenText } = useRealtimePresence();
   const isUserOnline = propIsUserOnline || hookIsUserOnline;
   const getLastSeenText = propGetLastSeenText || hookGetLastSeenText;
-
-  // Remove local calculateAge - now imported from formatters
 
   const hasExtendedContent = Boolean(
     (profile.additional_photos && profile.additional_photos.length > 0) ||
@@ -68,8 +65,6 @@ const MobileProfileCard = ({
     (profile.symptoms && profile.symptoms.length > 0) ||
     (profile.medications && profile.medications.length > 0)
   );
-
-  const hasInterests = Boolean(profile.hobbies && profile.hobbies.length > 0);
   
   // Adjust card dimensions based on screen size and content
   const cardHeight = isMobile ? '75vh' : 'auto'; // Reduced from 85vh to 75vh
@@ -78,7 +73,7 @@ const MobileProfileCard = ({
   return (
     <Card 
       className="w-full shadow-xl border-0 bg-white rounded-2xl overflow-hidden" 
-      style={{ height: cardHeight, maxHeight: '75vh' }}
+      style={{ height: cardHeight, maxHeight: '75vh', width: '100%', maxWidth: '384px' }}
     >
       <div className="relative h-full flex flex-col">
         {/* Profile Image Section */}
@@ -134,45 +129,7 @@ const MobileProfileCard = ({
                )}
             </div>
 
-            {/* Remove About Me from main card - moved to extended profile */}
-
-            {/* Interests/Hobbies */}
-            {hasInterests && (
-              <div>
-                <div className="text-sm font-semibold text-gray-700 mb-2">Interests:</div>
-                <div className="flex flex-wrap gap-2">
-                  {(showAllHobbies ? profile.hobbies : profile.hobbies.slice(0, 5)).map((hobby, index) => {
-                    const colors = [
-                      'bg-purple-100 text-purple-800 border-purple-200',
-                      'bg-blue-100 text-blue-800 border-blue-200',
-                      'bg-green-100 text-green-800 border-green-200',
-                      'bg-orange-100 text-orange-800 border-orange-200',
-                      'bg-pink-100 text-pink-800 border-pink-200'
-                    ];
-                    return (
-                      <Badge 
-                        key={index} 
-                        variant="secondary" 
-                        className={`text-xs px-2 py-1 ${colors[index % colors.length]}`}
-                      >
-                        {hobby}
-                      </Badge>
-                    );
-                  })}
-                  {profile.hobbies.length > 5 && (
-                    <button
-                      data-no-swipe="true"
-                      onClick={() => setShowAllHobbies(!showAllHobbies)}
-                      className="text-xs text-purple-600 hover:text-purple-700 font-semibold"
-                    >
-                      <Badge variant="outline" className="text-xs px-2 py-1 hover:bg-purple-100 cursor-pointer border-purple-300 text-purple-600">
-                        {showAllHobbies ? 'Show Less' : `+${profile.hobbies.length - 5} more`}
-                      </Badge>
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Interests removed from main card - moved to extended profile only */}
 
             {/* Last seen instead of "member" */}
             <div className="text-sm text-gray-500">

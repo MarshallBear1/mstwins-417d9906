@@ -54,15 +54,7 @@ const ExtendedProfileOverlay = ({
   const [fullMedications, setFullMedications] = useState<string[]>([]);
   const [isLoadingAbout, setIsLoadingAbout] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      // Prevent body scroll when overlay is open
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-      };
-    }
-  }, [isOpen]);
+  // Remove body scroll prevention to allow internal scrolling
 
   if (!isOpen) return null;
 
@@ -186,32 +178,6 @@ const ExtendedProfileOverlay = ({
             )}
           </div>
 
-          {/* Hobbies/Interests */}
-          {profile.hobbies && profile.hobbies.length > 0 && (
-            <div>
-              <h4 className="font-bold text-gray-900 mb-3 text-base">Interests & Hobbies</h4>
-              <div className="flex flex-wrap gap-2">
-                {profile.hobbies.map((hobby, index) => {
-                  const colors = [
-                    'bg-purple-400/80 border-purple-300/50 text-white',
-                    'bg-blue-400/80 border-blue-300/50 text-white',
-                    'bg-green-400/80 border-green-300/50 text-white',
-                    'bg-orange-400/80 border-orange-300/50 text-white',
-                    'bg-pink-400/80 border-pink-300/50 text-white'
-                  ];
-                  return (
-                    <Badge 
-                      key={index} 
-                      variant="secondary" 
-                      className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
-                    >
-                      {hobby}
-                    </Badge>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* Symptoms */}
           {(fullSymptoms || profile.symptoms) && (fullSymptoms || profile.symptoms)?.length > 0 && (
@@ -325,6 +291,33 @@ const ExtendedProfileOverlay = ({
                     />
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Interests & Hobbies - Moved to bottom */}
+          {profile.hobbies && profile.hobbies.length > 0 && (
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3 text-base">Interests & Hobbies</h4>
+              <div className="flex flex-wrap gap-2">
+                {profile.hobbies.map((hobby, index) => {
+                  const colors = [
+                    'bg-purple-400/80 border-purple-300/50 text-white',
+                    'bg-blue-400/80 border-blue-300/50 text-white',
+                    'bg-green-400/80 border-green-300/50 text-white',
+                    'bg-orange-400/80 border-orange-300/50 text-white',
+                    'bg-pink-400/80 border-pink-300/50 text-white'
+                  ];
+                  return (
+                    <Badge 
+                      key={index} 
+                      variant="secondary" 
+                      className={`text-sm px-3 py-1.5 transition-colors shadow-sm ${colors[index % colors.length]}`}
+                    >
+                      {hobby}
+                    </Badge>
+                  );
+                })}
               </div>
             </div>
           )}
