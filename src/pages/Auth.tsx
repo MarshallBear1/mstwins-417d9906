@@ -281,7 +281,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
       <SEO 
         title={`${isSignUp ? 'Join MSTwins' : 'Sign In to MSTwins'}`}
         description={`${isSignUp ? 'Create your free account and connect with others living with Multiple Sclerosis in our supportive community.' : 'Sign in to access your MSTwins account and connect with your MS support network.'}`}
@@ -289,221 +289,447 @@ const Auth = () => {
       />
       <SecurityEnhancements />
       
-      {/* Back to Home Button */}
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-purple-300/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+      
+      {/* Back to Home Button - Mobile Optimized */}
       <Button 
         variant="ghost" 
         onClick={() => navigate('/')}
-        className="fixed top-4 left-4 z-10 text-gray-600 hover:text-gray-900 hover:bg-white/80 backdrop-blur-sm rounded-full transition-all duration-200"
+        className="fixed top-4 left-4 z-20 text-gray-600 hover:text-gray-900 hover:bg-white/90 backdrop-blur-md rounded-full transition-all duration-300 shadow-lg border border-white/20 md:top-6 md:left-6"
       >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Home
+        <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
+        <span className="hidden sm:inline">Back to Home</span>
+        <span className="sm:hidden">Back</span>
       </Button>
 
-      <div className="w-full max-w-md mx-auto">
-        <Card className="border-0 shadow-2xl bg-white rounded-3xl overflow-hidden">
-          <CardHeader className="pb-8 pt-10 bg-blue-600 text-white text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/5" />
-            <div className="relative z-10">
-              {/* Modern Logo */}
-              <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center backdrop-blur-sm">
-                <img 
-                  src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
-                  alt="MStwins" 
-                  className="w-10 h-10 object-contain" 
-                />
-              </div>
-              
-              <CardTitle className="text-2xl font-bold mb-2">
-                {showForgotPassword ? "Reset Password" : 
-                 isSignUp ? "Join MSTwins" : "Welcome Back"}
-              </CardTitle>
-              <CardDescription className="text-blue-100 text-base">
-                {showForgotPassword ? "Enter your email to reset your password" :
-                 isSignUp ? "Connect with others who understand your MS journey" : 
-                 "Sign in to your support community"}
-              </CardDescription>
+      {/* Mobile Fullscreen Container */}
+      <div className="flex flex-col min-h-screen md:flex-row md:items-center md:justify-center md:p-6">
+        {/* Mobile Header - Only visible on mobile */}
+        <div className="md:hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white pt-16 pb-8 px-6 relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative z-10 text-center">
+            {/* Logo */}
+            <div className="w-20 h-20 bg-white/20 rounded-2xl mx-auto mb-6 flex items-center justify-center backdrop-blur-sm">
+              <img 
+                src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                alt="MStwins" 
+                className="w-12 h-12 object-contain" 
+              />
             </div>
-          </CardHeader>
+            
+            <h1 className="text-3xl font-bold mb-3">
+              {showForgotPassword ? "Reset Password" : 
+               isSignUp ? "Join MSTwins" : "Welcome Back"}
+            </h1>
+            <p className="text-blue-100 text-lg opacity-90">
+              {showForgotPassword ? "Enter your email to reset your password" :
+               isSignUp ? "Connect with others who understand your MS journey" : 
+               "Sign in to your support community"}
+            </p>
+          </div>
+        </div>
 
-          <CardContent className="p-8">
-            {rateLimitMessage && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-                <p className="text-sm font-medium">{rateLimitMessage}</p>
+        {/* Main Content */}
+        <div className="flex-1 md:flex-none md:w-full md:max-w-md md:mx-auto">
+          {/* Desktop Card */}
+          <Card className="hidden md:block border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-3xl overflow-hidden border border-white/20">
+            <CardHeader className="pb-8 pt-12 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10" />
+              <div className="relative z-10">
+                {/* Desktop Logo */}
+                <div className="w-20 h-20 bg-white/20 rounded-2xl mx-auto mb-6 flex items-center justify-center backdrop-blur-sm">
+                  <img 
+                    src="/lovable-uploads/2293d200-728d-46fb-a007-7994ca0a639c.png" 
+                    alt="MStwins" 
+                    className="w-12 h-12 object-contain" 
+                  />
+                </div>
+                
+                <CardTitle className="text-3xl font-bold mb-3">
+                  {showForgotPassword ? "Reset Password" : 
+                   isSignUp ? "Join MSTwins" : "Welcome Back"}
+                </CardTitle>
+                <CardDescription className="text-blue-100 text-lg">
+                  {showForgotPassword ? "Enter your email to reset your password" :
+                   isSignUp ? "Connect with others who understand your MS journey" : 
+                   "Sign in to your support community"}
+                </CardDescription>
               </div>
-            )}
+            </CardHeader>
 
-            {showForgotPassword ? (
-              // Forgot Password Form
-              <form onSubmit={handleForgotPassword} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="forgotEmail" className="text-sm font-semibold text-gray-700">
-                    Email Address
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <Input
-                      id="forgotEmail"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={forgotPasswordEmail}
-                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
-                      required
-                    />
-                  </div>
+            <CardContent className="p-10">
+              {rateLimitMessage && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                  <p className="text-sm font-medium">{rateLimitMessage}</p>
                 </div>
+              )}
 
-                <Button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
-                >
-                  {loading ? "Sending..." : "Send Reset Link"}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowForgotPassword(false)}
-                  className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
-                >
-                  Back to Sign In
-                </Button>
-              </form>
-            ) : (
-              // Main Auth Form
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {isSignUp && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName" className="text-sm font-semibold text-gray-700">
-                        First Name
-                      </Label>
+              {showForgotPassword ? (
+                // Forgot Password Form
+                <form onSubmit={handleForgotPassword} className="space-y-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="forgotEmail" className="text-sm font-semibold text-gray-700">
+                      Email Address
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                       <Input
-                        id="firstName"
-                        placeholder="First name"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName" className="text-sm font-semibold text-gray-700">
-                        Last Name
-                      </Label>
-                      <Input
-                        id="lastName"
-                        placeholder="Last name"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
+                        id="forgotEmail"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={forgotPasswordEmail}
+                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        className="pl-10 h-14 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-base"
                         required
                       />
                     </div>
                   </div>
-                )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
-                    Email Address
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
-                      required
-                    />
-                  </div>
-                </div>
+                  <Button 
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] text-base"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Sending Reset Link...
+                      </div>
+                    ) : (
+                      "Send Reset Link"
+                    )}
+                  </Button>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors"
-                      required
-                    />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl h-12"
+                  >
+                    Back to Sign In
+                  </Button>
+                </form>
+              ) : (
+                // Main Auth Form
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {isSignUp && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <Label htmlFor="firstName" className="text-sm font-semibold text-gray-700">
+                          First Name
+                        </Label>
+                        <Input
+                          id="firstName"
+                          placeholder="First name"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="h-14 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-base"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label htmlFor="lastName" className="text-sm font-semibold text-gray-700">
+                          Last Name
+                        </Label>
+                        <Input
+                          id="lastName"
+                          placeholder="Last name"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          className="h-14 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-base"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
+                      Email Address
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10 h-14 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-base"
+                        required
+                      />
+                    </div>
                   </div>
-                                      {isSignUp && (
+
+                  <div className="space-y-3">
+                    <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10 h-14 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-base"
+                        required
+                      />
+                    </div>
+                    {isSignUp && (
                       <PasswordStrengthIndicator 
                         password={password} 
                         onValidationChange={handlePasswordValidation}
                       />
                     )}
-                </div>
+                  </div>
 
-                <Button 
-                  type="submit" 
-                  disabled={loading || (isSignUp && !passwordValid)}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      {isSignUp ? "Creating Account..." : "Signing In..."}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      {isSignUp ? "Create Account" : "Sign In"}
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
+                  <Button 
+                    type="submit" 
+                    disabled={loading || (isSignUp && !passwordValid)}
+                    className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {isSignUp ? "Creating Account..." : "Signing In..."}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        {isSignUp ? "Create Account" : "Sign In"}
+                        <ArrowRight className="w-5 h-5" />
+                      </div>
+                    )}
+                  </Button>
+
+                  {!isSignUp && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl h-12"
+                    >
+                      Forgot your password?
+                    </Button>
                   )}
-                </Button>
+                </form>
+              )}
 
-                {!isSignUp && (
+              {!showForgotPassword && (
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                  <p className="text-center text-gray-600">
+                    {isSignUp ? "Already have an account?" : "New to MSTwins?"}
+                    <Button
+                      variant="ghost"
+                      onClick={() => setIsSignUp(!isSignUp)}
+                      className="ml-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-semibold rounded-lg"
+                    >
+                      {isSignUp ? "Sign In" : "Create Account"}
+                    </Button>
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Mobile Form - Only visible on mobile */}
+          <div className="md:hidden bg-white/95 backdrop-blur-xl flex-1 min-h-0">
+            <div className="px-6 py-8">
+              {rateLimitMessage && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                  <p className="text-sm font-medium">{rateLimitMessage}</p>
+                </div>
+              )}
+
+              {showForgotPassword ? (
+                // Mobile Forgot Password Form
+                <form onSubmit={handleForgotPassword} className="space-y-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="mobileEmailForgot" className="text-base font-semibold text-gray-700">
+                      Email Address
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Input
+                        id="mobileEmailForgot"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={forgotPasswordEmail}
+                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        className="pl-12 h-16 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-0 transition-colors text-lg"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full h-16 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] text-lg"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Sending...
+                      </div>
+                    ) : (
+                      "Send Reset Link"
+                    )}
+                  </Button>
+
                   <Button
                     type="button"
                     variant="ghost"
-                    onClick={() => setShowForgotPassword(true)}
-                    className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-2xl h-14 text-base"
                   >
-                    Forgot your password?
+                    Back to Sign In
                   </Button>
-                )}
-              </form>
-            )}
+                </form>
+              ) : (
+                // Mobile Main Auth Form
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {isSignUp && (
+                    <div className="space-y-4">
+                      <div className="space-y-3">
+                        <Label htmlFor="mobileFirstName" className="text-base font-semibold text-gray-700">
+                          First Name
+                        </Label>
+                        <Input
+                          id="mobileFirstName"
+                          placeholder="First name"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="h-16 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-0 transition-colors text-lg px-4"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label htmlFor="mobileLastName" className="text-base font-semibold text-gray-700">
+                          Last Name
+                        </Label>
+                        <Input
+                          id="mobileLastName"
+                          placeholder="Last name"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          className="h-16 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-0 transition-colors text-lg px-4"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
 
-            {!showForgotPassword && (
-              <div className="mt-8 pt-6 border-t border-gray-100">
-                <p className="text-center text-gray-600">
-                  {isSignUp ? "Already have an account?" : "New to MSTwins?"}
+                  <div className="space-y-3">
+                    <Label htmlFor="mobileEmail" className="text-base font-semibold text-gray-700">
+                      Email Address
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Input
+                        id="mobileEmail"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-12 h-16 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-0 transition-colors text-lg"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="mobilePassword" className="text-base font-semibold text-gray-700">
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Input
+                        id="mobilePassword"
+                        type="password"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-12 h-16 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-0 transition-colors text-lg"
+                        required
+                      />
+                    </div>
+                    {isSignUp && (
+                      <div className="mt-3">
+                        <PasswordStrengthIndicator 
+                          password={password} 
+                          onValidationChange={handlePasswordValidation}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    disabled={loading || (isSignUp && !passwordValid)}
+                    className="w-full h-16 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {isSignUp ? "Creating Account..." : "Signing In..."}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        {isSignUp ? "Create Account" : "Sign In"}
+                        <ArrowRight className="w-6 h-6" />
+                      </div>
+                    )}
+                  </Button>
+
+                  {!isSignUp && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-2xl h-14 text-base"
+                    >
+                      Forgot your password?
+                    </Button>
+                  )}
+                </form>
+              )}
+
+              {!showForgotPassword && (
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                  <p className="text-center text-gray-600 text-base">
+                    {isSignUp ? "Already have an account?" : "New to MSTwins?"}
+                  </p>
                   <Button
                     variant="ghost"
                     onClick={() => setIsSignUp(!isSignUp)}
-                    className="ml-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-semibold rounded-lg"
+                    className="w-full mt-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-semibold rounded-2xl h-14 text-lg"
                   >
                     {isSignUp ? "Sign In" : "Create Account"}
                   </Button>
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Trust indicators */}
-        <div className="mt-6 text-center space-y-2">
-          <p className="text-sm text-gray-500">
-            🔒 Your data is secure and private
-          </p>
-          <p className="text-xs text-gray-400">
-            Join 500+ members in our supportive MS community
-          </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Trust indicators - Always visible */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-10 text-center space-y-2 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border border-white/20">
+        <p className="text-sm text-gray-600 font-medium">
+          🔒 Your data is secure and private
+        </p>
+        <p className="text-xs text-gray-500">
+          Join 500+ members in our supportive MS community
+        </p>
       </div>
     </div>
   );
