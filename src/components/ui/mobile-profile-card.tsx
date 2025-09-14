@@ -57,7 +57,7 @@ const MobileProfileCard = ({
   // Use the hook for realtime presence if not provided as props
   const { isUserOnline: hookIsUserOnline, getLastSeenText: hookGetLastSeenText } = useRealtimePresence();
   const isUserOnline = propIsUserOnline || hookIsUserOnline;
-  const getLastSeenText = propGetLastSeenText || hookGetLastSeenText;
+  const getLastSeenText = (lastSeen?: string) => (propGetLastSeenText || hookGetLastSeenText)(lastSeen || null);
 
   const hasExtendedContent = Boolean(
     (profile.additional_photos && profile.additional_photos.length > 0) ||
@@ -178,7 +178,7 @@ const MobileProfileCard = ({
 
             {/* Last seen */}
             <div className="text-sm text-gray-500">
-              {getLastSeenText(profile.last_seen)}
+              {isUserOnline(profile.user_id) ? 'Online' : getLastSeenText(profile.last_seen)}
             </div>
           </div>
 

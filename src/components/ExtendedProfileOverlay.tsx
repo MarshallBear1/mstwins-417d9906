@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { formatMSSubtype, calculateAge } from '@/lib/formatters';
+import { useRealtimePresence } from '@/hooks/useRealtimePresence';
 
 interface Profile {
   id: string;
@@ -54,6 +55,12 @@ const ExtendedProfileOverlay = ({
   const [fullSymptoms, setFullSymptoms] = useState<string[]>([]);
   const [fullMedications, setFullMedications] = useState<string[]>([]);
   const [isLoadingAbout, setIsLoadingAbout] = useState(false);
+  const [lastSeen, setLastSeen] = useState<string | undefined>(profile.last_seen);
+
+  // Fallback to realtime presence hook if not provided
+  const { isUserOnline: hookIsUserOnline, getLastSeenText: hookGetLastSeenText } = useRealtimePresence();
+  const effectiveIsUserOnline = isUserOnline ?? hookIsUserOnline;
+  const effectiveGetLastSeenText = getLastSeenText ?? hookGetLastSeenText;
 
   // Remove body scroll prevention to allow internal scrolling
 
@@ -73,7 +80,7 @@ const ExtendedProfileOverlay = ({
       try {
         const { data } = await supabase
           .from('profiles')
-          .select('about_me, symptoms, medications')
+          .select('about_me, symptoms, medications, last_seen')
           .eq('user_id', profile.user_id)
           .single();
         
@@ -83,6 +90,7 @@ const ExtendedProfileOverlay = ({
           if (data.about_me) setFullAbout(data.about_me);
           if (data.symptoms) setFullSymptoms(data.symptoms);
           if (data.medications) setFullMedications(data.medications);
+          if (data.last_seen) setLastSeen(data.last_seen);
         }
       } catch (error) {
         console.error('Error loading full profile data:', error);
@@ -169,7 +177,7 @@ const ExtendedProfileOverlay = ({
               
               {/* Last seen */}
               <div className="text-sm text-gray-500 mt-1">
-                {isUserOnline?.(profile.user_id) ? 'Online' : (getLastSeenText?.(profile.last_seen) || 'Last seen long ago')}
+                {effectiveIsUserOnline?.(profile.user_id) ? 'Online' : (effectiveGetLastSeenText?.(lastSeen ?? null) || 'Last seen long ago')}
               </div>
             </div>
           </div>
