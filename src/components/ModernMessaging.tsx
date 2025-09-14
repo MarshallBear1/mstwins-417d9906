@@ -151,7 +151,13 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
         };
       });
 
-      setMatches(mapped);
+      // Sort by recent activity (last message time fallback to match creation)
+      const sorted = mapped.sort((a, b) => {
+        const aTime = a.last_message ? new Date(a.last_message.created_at).getTime() : new Date(a.created_at).getTime();
+        const bTime = b.last_message ? new Date(b.last_message.created_at).getTime() : new Date(b.created_at).getTime();
+        return bTime - aTime;
+      });
+      setMatches(sorted);
 
       // If matchId is provided, select that match
       if (matchId) {
@@ -309,6 +315,8 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
       }, (payload) => {
         const newMessage = payload.new as Message;
         setMessages(prev => [...prev, newMessage]);
+        // Auto-scroll on incoming message
+        setTimeout(scrollToBottom, 50);
         
         // Mark as read if it's not from current user
         if (newMessage.sender_id !== user.id) {
@@ -473,17 +481,13 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
             }`}
             style={{
               paddingBottom: isMobile ? `max(1rem, ${safeAreaInsets.bottom + 16}px)` : '1rem',
-              bottom: isMobile ? Math.max(safeAreaInsets.bottom + 4, 100) : undefined,
-              zIndex: isMobile ? 50 : undefined,
+              bottom: isMobile ? Math.max(safeAreaInsets.bottom + 64, 64) : undefined,
+              zIndex: isMobile ? 1000001 : undefined,
               boxShadow: isMobile ? '0 -6px 24px rgba(0,0,0,0.08)' : undefined,
               backdropFilter: isMobile ? 'saturate(180%) blur(8px)' : undefined
             }}
           >
             <div className="flex items-end gap-3">
-              <Button variant="ghost" size="sm" className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0">
-                <Paperclip className="w-5 h-5 text-gray-500" />
-              </Button>
-              
               <div className="flex-1 relative">
                 <Input
                   ref={inputRef}
@@ -494,13 +498,6 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
                   className="pr-12 py-3 rounded-full border-gray-200 bg-gray-50 focus:bg-white transition-colors text-[15px] min-h-[44px] resize-none"
                   disabled={sending}
                 />
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <Smile className="w-5 h-5 text-gray-500" />
-                </Button>
               </div>
               
               <Button
@@ -548,19 +545,17 @@ const ModernMessaging = ({ matchId, onBack }: ModernMessagingProps) => {
 
               <TabsContent value="messages" className="flex-1 mt-0">
                 <ScrollArea className="flex-1 p-4">
-                  {filteredMatches.filter(m => m.last_message).length === 0 ? (
+                  {filteredMatches.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <MessageCircle className="w-8 h-8 text-gray-400" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-600 mb-2">No messages yet</h3>
-                      <p className="text-gray-500 text-sm max-w-sm mx-auto">
-                        Start conversations from your new matches tab
-                      </p>
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">No conversations yet</h3>
+                      <p className="text-gray-500 text-sm max-w-sm mx-auto">Start a conversation from your matches</p>
                     </div>
                   ) : (
                     <div className="space-y-3 sm:space-y-4">
-                      {filteredMatches.filter(m => m.last_message).map((match) => (
+                      {filteredMatches.map((match) => (
                         <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedMatch(match)}>
                           <CardContent className="p-3 sm:p-4">
                             <div className="flex items-center space-x-3 sm:space-x-4">
