@@ -96,10 +96,10 @@ const ExtendedProfileOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 2rem)', maxHeight: '800px' }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white flex-shrink-0">
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -116,7 +116,7 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Profile Header */}
-        <div className="p-4 border-b border-gray-100 bg-white flex-shrink-0">
+        <div className="p-4 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <button
@@ -189,7 +189,7 @@ const ExtendedProfileOverlay = ({
               <div className="text-base font-semibold text-gray-800 mb-3">Profile Prompts:</div>
               <div className="space-y-3">
                 {(Array.isArray(profile.selected_prompts) ? profile.selected_prompts : []).slice(0, 3).map((prompt: any, index: number) => (
-                  <div key={index} className="bg-white rounded-lg p-3 border border-indigo-100">
+                  <div key={index} className="bg-gray-50 rounded-lg p-3 border border-indigo-100">
                     <div className="text-sm font-medium text-indigo-700 mb-1">
                       {prompt.question || prompt.prompt || 'Question'}
                     </div>
@@ -329,7 +329,7 @@ const ExtendedProfileOverlay = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="p-3 border-t border-gray-200 bg-white flex-shrink-0">
+        <div className="p-3 border-t border-gray-200 flex-shrink-0">
           <div className="flex gap-3">
             <button
               onClick={handlePass}
