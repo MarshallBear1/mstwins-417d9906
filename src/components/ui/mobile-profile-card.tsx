@@ -69,15 +69,14 @@ const MobileProfileCard = ({
   );
   
   // Adjust card dimensions based on screen size and content
-  const cardHeight = isMobile ? '75vh' : 'auto'; // Reduced from 85vh to 75vh
-  const imageHeight = isMobile ? '18%' : '120px'; // Reduced to half size: 35% -> 18%, 250px -> 120px
+  const imageHeight = isMobile ? '200px' : '120px'; // Fixed height for image
 
   return (
     <Card 
       className="shadow-xl border-0 bg-white rounded-2xl overflow-hidden" 
-      style={{ height: cardHeight, maxHeight: '75vh', width: '360px' }}
+      style={{ width: '360px', maxHeight: isMobile ? '90vh' : 'auto' }}
     >
-      <div className="relative h-full flex flex-col">
+      <div className="relative flex flex-col">
         {/* Profile Image Section */}
         <div className="relative flex-shrink-0" style={{ height: imageHeight }}>
           <button
@@ -104,9 +103,9 @@ const MobileProfileCard = ({
         </div>
 
         {/* Profile Info Section */}
-        <CardContent className="flex-1 p-4 pb-2 flex flex-col min-h-0">
+        <CardContent className="p-4 pb-2 flex flex-col">
           {/* Basic Info */}
-          <div className="space-y-2 flex-1">
+          <div className="space-y-2">
             {/* Name and Age */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 leading-tight">
