@@ -95,7 +95,33 @@
 
     <!-- Critical CSS for above-the-fold content -->
     <style>
-      /* Critical CSS for header and hero */
+      /* Tailwind base reset and critical styles */
+      *, ::before, ::after {
+        box-sizing: border-box;
+        border-width: 0;
+        border-style: solid;
+        border-color: #e5e7eb;
+      }
+      
+      html, body {
+        margin: 0;
+        padding: 0;
+        line-height: 1.5;
+        -webkit-text-size-adjust: 100%;
+        font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        font-feature-settings: normal;
+        font-variation-settings: normal;
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      body {
+        background-color: #ffffff;
+        color: #0f172a;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Critical header styles */
       .header-critical {
         position: fixed;
         top: 0;
@@ -106,17 +132,71 @@
         backdrop-filter: blur(12px);
         border-bottom: 1px solid rgb(229, 231, 235);
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        height: 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1rem;
       }
       
+      /* Critical hero styles */
       .hero-critical {
         position: relative;
         min-height: 100vh;
         display: flex;
         align-items: center;
+        justify-content: center;
         background: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
-        padding-top: 8rem;
+        padding: 8rem 1rem 4rem;
+        text-align: center;
       }
       
+      /* Critical button styles */
+      .btn-critical {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        height: 2.5rem;
+        padding: 0 1rem;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+      }
+      
+      .btn-primary {
+        background-color: #3b82f6;
+        color: white;
+      }
+      
+      .btn-primary:hover {
+        background-color: #2563eb;
+      }
+      
+      /* Critical text styles */
+      .text-critical-h1 {
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      
+      .text-critical-p {
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+        color: #64748b;
+        margin: 0 0 2rem 0;
+        max-width: 32rem;
+      }
+      
+      /* Critical animations */
       .animate-fade-in {
         animation: fade-in 0.6s ease-out;
       }
@@ -131,7 +211,46 @@
           transform: translateY(0);
         }
       }
+      
+      /* Mobile optimizations */
+      @media (max-width: 640px) {
+        .text-critical-h1 {
+          font-size: 1.875rem;
+          line-height: 2.25rem;
+        }
+        
+        .text-critical-p {
+          font-size: 1rem;
+          line-height: 1.5rem;
+        }
+        
+        .hero-critical {
+          padding: 6rem 1rem 2rem;
+        }
+        
+        .header-critical {
+          padding: 0 0.75rem;
+        }
+      }
+      
+      /* Loading state */
+      .loading-critical {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #ffffff;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
     </style>
+    
+    <!-- Preload main stylesheet -->
+    <link rel="preload" href="/src/index.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
   </head>
 
   <body>

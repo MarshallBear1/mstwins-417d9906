@@ -29,9 +29,18 @@ export default defineConfig(({ mode }) => ({
           query: ['@tanstack/react-query'],
           lucide: ['lucide-react'],
           forms: ['react-hook-form', '@hookform/resolvers', 'zod']
+        },
+        // Enable CSS code splitting
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'assets/[name]-[hash][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
         }
       }
     },
+    // Enable CSS code splitting
+    cssCodeSplit: true,
     // Optimize chunk sizes
     chunkSizeWarningLimit: 1000,
     // Enable source maps for production debugging
