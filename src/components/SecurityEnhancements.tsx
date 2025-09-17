@@ -84,8 +84,13 @@ export const SecurityEnhancements: React.FC = () => {
               const element = node as Element;
               // Check for suspicious script injections
               try {
+                const scriptSrc = element.getAttribute('src');
                 if (element.tagName?.toLowerCase() === 'script' && 
-                    !element.getAttribute('src')?.includes(location.hostname)) {
+                    scriptSrc &&
+                    !scriptSrc.includes(location.hostname) &&
+                    !scriptSrc.includes('analytics.ahrefs.com') &&
+                    !scriptSrc.includes('posthog.com') &&
+                    !scriptSrc.includes('gstatic.com')) {
                   console.error('🔒 Suspicious script injection detected');
                   element.remove(); // Remove the suspicious script
                 }
@@ -208,6 +213,7 @@ export const useSecurityMonitoring = () => {
                 !entry.name.includes('i.posthog.com') &&
                 !entry.name.includes('gstatic.com') &&
                 !entry.name.includes('googleapis.com') &&
+                !entry.name.includes('analytics.ahrefs.com') &&
                 !entry.name.includes('gpteng.co')) {
               console.warn('🔒 External resource loaded:', entry.name);
             }
